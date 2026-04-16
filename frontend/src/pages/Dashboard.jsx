@@ -1,115 +1,110 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import API from "../config";
+
+import Header from "../components/Header";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
+import Table from "../components/Table";
+import AdvancedFilter from "../components/AdvancedFilter";
+
+import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState([]);
+  const [search, setSearch] = useState("");
+
   const [filter, setFilter] = useState({
-    line: "",
-    station: "",
+    id: "",
+    line: [],
+    station: [],
     status: ""
   });
 
+  // 🚀 LOAD DATA
   useEffect(() => {
-    axios.get("http://localhost:5000/api/devices")
-      .then(res => setDevices(res.data));
+    axios.get(`${API}/api/devices`)
+      .then(res => setDevices(res.data))
+      .catch(() => setDevices([]));
   }, []);
 
   const now = new Date();
 
-  const filtered = devices.filter(d =>
-    (!filter.line || d.line === filter.line) &&
-    (!filter.station || d.station === filter.station) &&
-    (!filter.status || d.status === filter.status)
-  );
+  // 🔍 FILTER LOGIC
+  const filtered = devices.filter(d => {
+    return (
+      (!filter.id || d.id?.toString().includes(filter.id)) &&
+      (!filter.line.length || filter.line.includes(d.line)) &&
+      (!filter.station.length || filter.station.includes(d.station)) &&
+      (!filter.status || d.status === filter.status) &&
+      (
+        d.name?.toLowerCase().includes(search.toLowerCase()) ||
+        d.line?.toLowerCase().includes(search.toLowerCase()) ||
+        d.station?.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  });
 
+  // 📊 STATS
   const total = filtered.length;
   const active = filtered.filter(d => d.status === "Active").length;
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
   const expired = filtered.filter(d => new Date(d.expiryDate) < now).length;
 
-  // ⚠️ cảnh báo 7 ngày
-  const warning = filtered.filter(d => {
-    const diff = (new Date(d.expiryDate) - now) / (1000 * 60 * 60 * 24);
-    return diff <= 7 && diff >= 0;
-  });
+  // 🔔 TOAST WARNING
+  useEffect(() => {
+    filtered.forEach(d => {
+      const diff =
+        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+
+      if (diff <= 7 && diff >= 0) {
+        toast.error(`⚠ ${d.name} sắp hết hạn`);
+      }
+    });
+  }, [filtered]);
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
-      <h1 className="text-2xl font-bold">Dashboard Tổng quan</h1>
+    <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
+
+      {/* HEADER */}
+      <Header onSearch={setSearch} />
+
+      {/* ACTION */}
+      <div className="flex flex-col md:flex-row justify-between gap-3 mb-4">
+        <h1 className="text-2xl font-bold">📊 Dashboard</h1>
+
+        <button
+          onClick={() => window.open(`${API}/api/devices/export`)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow"
+        >
+          📤 Export Excel
+        </button>
+      </div>
 
       {/* FILTER */}
-      <div className="flex gap-4 mt-4">
-        <select onChange={e => setFilter({ ...filter, line: e.target.value })}>
-          <option value="">Tuyến</option>
-          {[...new Set(devices.map(d => d.line))].map(l => (
-            <option key={l}>{l}</option>
-          ))}
-        </select>
-
-        <select onChange={e => setFilter({ ...filter, station: e.target.value })}>
-          <option value="">Nhà ga</option>
-          {[...new Set(devices.map(d => d.station))].map(s => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-
-        <select onChange={e => setFilter({ ...filter, status: e.target.value })}>
-          <option value="">Trạng thái</option>
-          <option>Active</option>
-          <option>Maintenance</option>
-          <option>Inactive</option>
-        </select>
-      </div>
-
-      {/* ALERT */}
-      <div className="mt-4">
-        {warning.map(d => (
-          <div key={d.id} className="bg-red-100 text-red-700 p-2 rounded mb-2">
-            ⚠ {d.name} sắp hết hạn ({d.expiryDate})
-          </div>
-        ))}
-      </div>
+      <AdvancedFilter
+        devices={devices}
+        filter={filter}
+        setFilter={setFilter}
+      />
 
       {/* CARD */}
-      <div className="grid grid-cols-4 gap-4 mt-6">
-        <Card title="Tổng thiết bị" value={total} color="bg-blue-500" />
-        <Card title="Hoạt động" value={active} color="bg-green-500" />
-        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" />
-        <Card title="Quá hạn" value={expired} color="bg-red-500" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
+        <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
+        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
+        <Card title="Hết hạn" value={expired} color="bg-red-500" icon={<AlertTriangle />} />
       </div>
 
       {/* CHART */}
-      <div className="mt-6">
+      <div className="mt-8">
         <Chart data={filtered} />
       </div>
 
       {/* TABLE */}
-      <table className="w-full mt-6 bg-white rounded">
-        <thead>
-          <tr className="bg-gray-200">
-            <th>ID</th>
-            <th>Tên</th>
-            <th>Tuyến</th>
-            <th>Ga</th>
-            <th>Hạn</th>
-            <th>Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map(d => (
-            <tr key={d.id}>
-              <td>{d.id}</td>
-              <td>{d.name}</td>
-              <td>{d.line}</td>
-              <td>{d.station}</td>
-              <td>{d.expiryDate}</td>
-              <td>{d.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table data={filtered} />
+
     </div>
   );
 }

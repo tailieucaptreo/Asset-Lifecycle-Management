@@ -1,9 +1,9 @@
-import Dashboard from "./pages/Dashboard";
 import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex">
       <Sidebar />
       <Dashboard />
     </div>

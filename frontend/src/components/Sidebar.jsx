@@ -1,14 +1,30 @@
-export default function Sidebar() {
-  return (
-    <div className="w-64 bg-gradient-to-b from-blue-900 to-blue-800 text-white p-4">
-      <h2 className="text-xl font-bold mb-6">Quản lý thiết bị</h2>
+import { LayoutDashboard, Database, BarChart3, Settings } from "lucide-react";
+import { motion } from "framer-motion";
 
-      <ul className="space-y-3">
-        <li className="bg-blue-600 p-2 rounded">Dashboard</li>
-        <li className="hover:bg-blue-700 p-2 rounded">Tất cả thiết bị</li>
-        <li className="hover:bg-blue-700 p-2 rounded">Import Excel</li>
-        <li className="hover:bg-blue-700 p-2 rounded">Quá hạn</li>
-      </ul>
+export default function Sidebar() {
+  const menu = [
+    { name: "Dashboard", icon: <LayoutDashboard size={18} /> },
+    { name: "Thiết bị", icon: <Database size={18} /> },
+    { name: "Báo cáo", icon: <BarChart3 size={18} /> },
+    { name: "Cài đặt", icon: <Settings size={18} /> },
+  ];
+
+  return (
+    <div className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-screen p-5">
+      <h2 className="text-xl font-bold mb-8">🚆 Asset Manager</h2>
+
+      <div className="space-y-3">
+        {menu.map((item, i) => (
+          <motion.div
+            key={i}
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-gray-700 transition"
+          >
+            {item.icon}
+            {item.name}
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
