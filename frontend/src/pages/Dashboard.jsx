@@ -7,6 +7,7 @@ import Card from "../components/Card";
 import Chart from "../components/Chart";
 import Table from "../components/Table";
 import AdvancedFilter from "../components/AdvancedFilter";
+import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -23,10 +24,14 @@ export default function Dashboard() {
   });
 
   // 🚀 LOAD DATA
-  useEffect(() => {
+  const fetchData = () => {
     axios.get(`${API}/api/devices`)
       .then(res => setDevices(res.data))
       .catch(() => setDevices([]));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const now = new Date();
@@ -34,12 +39,13 @@ export default function Dashboard() {
   // 🔍 FILTER LOGIC
   const filtered = devices.filter(d => {
     return (
-      (!filter.id || d.id?.toString().includes(filter.id)) &&
+      (!filter.id || d.deviceId?.toString().includes(filter.id)) &&
       (!filter.line.length || filter.line.includes(d.line)) &&
       (!filter.station.length || filter.station.includes(d.station)) &&
       (!filter.status || d.status === filter.status) &&
       (
         d.name?.toLowerCase().includes(search.toLowerCase()) ||
+        d.deviceId?.toLowerCase().includes(search.toLowerCase()) ||
         d.line?.toLowerCase().includes(search.toLowerCase()) ||
         d.station?.toLowerCase().includes(search.toLowerCase())
       )
@@ -52,9 +58,11 @@ export default function Dashboard() {
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
   const expired = filtered.filter(d => new Date(d.expiryDate) < now).length;
 
-  // 🔔 TOAST WARNING
+  // 🔔 TOAST CẢNH BÁO
   useEffect(() => {
     filtered.forEach(d => {
+      if (!d.expiryDate) return;
+
       const diff =
         (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
 
@@ -89,8 +97,11 @@ export default function Dashboard() {
         setFilter={setFilter}
       />
 
+      {/* IMPORT EXCEL */}
+      <ImportExcel />
+
       {/* CARD */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
         <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
         <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
         <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
