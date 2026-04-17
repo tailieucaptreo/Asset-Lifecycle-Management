@@ -13,12 +13,22 @@ generator client {
 }
 
 model Device {
-  id          String @id
-  name        String
-  line        String
-  station     String
-  installDate DateTime
-  expiryDate  DateTime
-  status      String
-  note        String?
+  id              Int      @id @default(autoincrement())
+  name            String
+  line            String
+  station         String
+
+  code            String?   // Ký hiệu
+  area            String?   // Khu vực
+  deviceId        String?   // Mã ID
+
+  status          String
+
+  installDate     DateTime?
+  lastMaintenance DateTime?
+
+  lifespan        Int?      // năm
+  expiryDate      DateTime?
+
+  createdAt       DateTime @default(now())
 }

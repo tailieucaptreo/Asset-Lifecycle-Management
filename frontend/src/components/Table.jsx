@@ -1,67 +1,56 @@
 export default function Table({ data }) {
-  const now = new Date();
-
   return (
-    <div className="bg-white p-4 md:p-5 rounded-2xl shadow mt-6">
+    <div className="bg-white mt-6 rounded-xl shadow p-4 overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="p-2">ID</th>
+            <th className="p-2">Tên thiết bị</th>
+            <th className="p-2">Tuyến</th>
+            <th className="p-2">Nhà ga</th>
+            <th className="p-2">Ký hiệu</th>
+            <th className="p-2">Khu vực</th>
+            <th className="p-2">Mã ID</th>
+            <th className="p-2">Trạng thái</th>
+            <th className="p-2">Ngày lắp</th>
+            <th className="p-2">Bảo trì</th>
+            <th className="p-2">Hết hạn</th>
+          </tr>
+        </thead>
 
-      <h2 className="font-bold mb-4">📋 Danh sách thiết bị</h2>
+        <tbody>
+          {data.map((d) => (
+            <tr key={d.id} className="border-b hover:bg-gray-50">
+              <td className="p-2">{d.id}</td>
+              <td className="p-2">{d.name}</td>
+              <td className="p-2">{d.line}</td>
+              <td className="p-2">{d.station}</td>
+              <td className="p-2">{d.code}</td>
+              <td className="p-2">{d.area}</td>
+              <td className="p-2">{d.deviceId}</td>
+              <td className="p-2">{d.status}</td>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm md:text-base">
+              <td className="p-2">
+                {d.installDate
+                  ? new Date(d.installDate).toLocaleDateString()
+                  : "-"}
+              </td>
 
-          <thead>
-            <tr className="bg-gray-100 text-gray-600">
-              <th className="p-3 text-left">ID</th>
-              <th className="p-3 text-left">Tên</th>
-              <th className="p-3 text-left">Tuyến</th>
-              <th className="p-3 text-left">Ga</th>
-              <th className="p-3 text-left">Hạn</th>
-              <th className="p-3 text-left">Trạng thái</th>
+              <td className="p-2">
+                {d.lastMaintenance
+                  ? new Date(d.lastMaintenance).toLocaleDateString()
+                  : "-"}
+              </td>
+
+              <td className="p-2">
+                {d.expiryDate
+                  ? new Date(d.expiryDate).toLocaleDateString()
+                  : "-"}
+              </td>
             </tr>
-          </thead>
-
-          <tbody>
-            {data.map((d, i) => {
-              const expired = new Date(d.expiryDate) < now;
-
-              return (
-                <tr key={i} className="border-b hover:bg-gray-50">
-
-                  <td className="p-3">{d.id}</td>
-
-                  <td className="p-3 font-medium">{d.name}</td>
-
-                  <td className="p-3">{d.line}</td>
-
-                  <td className="p-3">{d.station}</td>
-
-                  <td className="p-3">
-                    {new Date(d.expiryDate).toLocaleDateString()}
-                  </td>
-
-                  <td className="p-3">
-                    {expired ? (
-                      <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs md:text-sm">
-                        Hết hạn
-                      </span>
-                    ) : d.status === "Maintenance" ? (
-                      <span className="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-xs md:text-sm">
-                        Bảo trì
-                      </span>
-                    ) : (
-                      <span className="bg-green-100 text-green-600 px-2 py-1 rounded text-xs md:text-sm">
-                        Hoạt động
-                      </span>
-                    )}
-                  </td>
-
-                </tr>
-              );
-            })}
-          </tbody>
-
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
