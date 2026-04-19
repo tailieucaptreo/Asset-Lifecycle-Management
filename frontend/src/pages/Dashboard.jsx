@@ -1,185 +1,121 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
-import {
-  PieChart, Pie, Cell, Tooltip,
-  LineChart, Line, XAxis, YAxis, CartesianGrid
-} from "recharts";
 
-const COLORS = ["#22c55e", "#eab308", "#ef4444"];
+import Header from "../components/Header";
+import Card from "../components/Card";
+import Chart from "../components/Chart";
+import Table from "../components/Table";
+import AdvancedFilter from "../components/AdvancedFilter";
+import ImportExcel from "../components/ImportExcel";
+
+import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState([]);
-  const [filtered, setFiltered] = useState([]);
-
   const [search, setSearch] = useState("");
-  const [line, setLine] = useState("");
-  const [station, setStation] = useState("");
-  const [status, setStatus] = useState("");
 
-  // 🔄 LOAD DATA
-  useEffect(() => {
-    fetchDevices();
-  }, []);
+  const [filter, setFilter] = useState({
+    id: "",
+    line: [],
+    station: [],
+    status: ""
+  });
 
-  const fetchDevices = async () => {
-    const res = await axios.get(`${API}/api/devices`);
-    setDevices(res.data);
-    setFiltered(res.data);
+  // 🚀 LOAD DATA
+  const fetchData = () => {
+    axios.get(`${API}/api/devices`)
+      .then(res => setDevices(res.data))
+      .catch(() => setDevices([]));
   };
 
-  // 🔍 FILTER + SEARCH REALTIME
   useEffect(() => {
-    let result = devices;
+    fetchData();
+  }, []);
 
-    if (search) {
-      result = result.filter(d =>
+  const now = new Date();
+
+  // 🔍 FILTER LOGIC
+  const filtered = devices.filter(d => {
+    return (
+      (!filter.id || d.deviceId?.toString().includes(filter.id)) &&
+      (!filter.line.length || filter.line.includes(d.line)) &&
+      (!filter.station.length || filter.station.includes(d.station)) &&
+      (!filter.status || d.status === filter.status) &&
+      (
         d.name?.toLowerCase().includes(search.toLowerCase()) ||
-        d.deviceId?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (line) result = result.filter(d => d.line === line);
-    if (station) result = result.filter(d => d.station === station);
-    if (status) result = result.filter(d => d.status === status);
-
-    setFiltered(result);
-  }, [search, line, station, status, devices]);
+        d.deviceId?.toLowerCase().includes(search.toLowerCase()) ||
+        d.line?.toLowerCase().includes(search.toLowerCase()) ||
+        d.station?.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  });
 
   // 📊 STATS
   const total = filtered.length;
   const active = filtered.filter(d => d.status === "Active").length;
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
-  const inactive = filtered.filter(d => d.status === "Inactive").length;
+  const expired = filtered.filter(d => new Date(d.expiryDate) < now).length;
 
-  // 📊 PIE DATA
-  const pieData = [
-    { name: "Active", value: active },
-    { name: "Maintenance", value: maintenance },
-    { name: "Inactive", value: inactive }
-  ];
+  // 🔔 TOAST CẢNH BÁO
+  useEffect(() => {
+    filtered.forEach(d => {
+      if (!d.expiryDate) return;
 
-  // 📈 LINE DATA (theo năm lắp)
-  const lineData = Object.values(
-    filtered.reduce((acc, d) => {
-      const year = d.installDate
-        ? new Date(d.installDate).getFullYear()
-        : "N/A";
+      const diff =
+        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
 
-      if (!acc[year]) acc[year] = { year, count: 0 };
-      acc[year].count++;
-      return acc;
-    }, {})
-  );
+      if (diff <= 7 && diff >= 0) {
+        toast.error(`⚠ ${d.name} sắp hết hạn`);
+      }
+    });
+  }, [filtered]);
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen w-full">
+    <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
-      {/* 🔍 SEARCH */}
-      <input
-        placeholder="🔍 Tìm thiết bị..."
-        className="w-full p-3 mb-4 rounded-xl border shadow"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
+      {/* HEADER */}
+      <Header onSearch={setSearch} />
 
-      {/* 🎛 FILTER */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
-        <input placeholder="Tuyến" onChange={e => setLine(e.target.value)} className="p-2 border rounded"/>
-        <input placeholder="Nhà ga" onChange={e => setStation(e.target.value)} className="p-2 border rounded"/>
-        <select onChange={e => setStatus(e.target.value)} className="p-2 border rounded">
-          <option value="">Trạng thái</option>
-          <option>Active</option>
-          <option>Maintenance</option>
-          <option>Inactive</option>
-        </select>
+      {/* ACTION */}
+      <div className="flex flex-col md:flex-row justify-between gap-3 mb-4">
+        <h1 className="text-2xl font-bold">📊 Dashboard</h1>
 
         <button
-          onClick={() => {
-            setSearch("");
-            setLine("");
-            setStation("");
-            setStatus("");
-          }}
-          className="bg-gray-300 rounded"
+          onClick={() => window.open(`${API}/api/devices/export`)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow"
         >
-          Reset
+          📤 Export Excel
         </button>
       </div>
 
-      {/* 📊 CARDS */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <Card title="Tổng thiết bị" value={total} color="bg-blue-500"/>
-        <Card title="Hoạt động" value={active} color="bg-green-500"/>
-        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500"/>
-        <Card title="Ngừng" value={inactive} color="bg-red-500"/>
+      {/* FILTER */}
+      <AdvancedFilter
+        devices={devices}
+        filter={filter}
+        setFilter={setFilter}
+      />
+
+      {/* IMPORT EXCEL */}
+      <ImportExcel />
+
+      {/* CARD */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+        <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
+        <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
+        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
+        <Card title="Hết hạn" value={expired} color="bg-red-500" icon={<AlertTriangle />} />
       </div>
 
-      {/* 📊 CHART */}
-      <div className="grid grid-cols-2 gap-6">
-
-        {/* PIE */}
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h2 className="mb-2 font-bold">Trạng thái</h2>
-          <PieChart width={300} height={250}>
-            <Pie data={pieData} dataKey="value" outerRadius={80}>
-              {pieData.map((_, i) => (
-                <Cell key={i} fill={COLORS[i]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </div>
-
-        {/* LINE */}
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h2 className="mb-2 font-bold">Xu hướng</h2>
-          <LineChart width={400} height={250} data={lineData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#3b82f6" />
-          </LineChart>
-        </div>
-
+      {/* CHART */}
+      <div className="mt-8">
+        <Chart data={filtered} />
       </div>
 
-      {/* 📋 TABLE */}
-      <table className="w-full mt-6 bg-white rounded-xl shadow">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">Tên</th>
-            <th className="p-2">Tuyến</th>
-            <th className="p-2">Nhà ga</th>
-            <th className="p-2">Mã ID</th>
-            <th className="p-2">Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filtered.map(d => (
-            <tr key={d.id} className="border-t">
-              <td className="p-2">{d.name}</td>
-              <td className="p-2">{d.line}</td>
-              <td className="p-2">{d.station}</td>
-              <td className="p-2">{d.deviceId}</td>
-              <td className="p-2">{d.status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* TABLE */}
+      <Table data={filtered} />
 
-    </div>
-  );
-}
-
-
-// 🎨 CARD COMPONENT
-function Card({ title, value, color }) {
-  return (
-    <div className={`${color} text-white p-4 rounded-xl shadow`}>
-      <p>{title}</p>
-      <h2 className="text-2xl font-bold">{value}</h2>
     </div>
   );
 }
