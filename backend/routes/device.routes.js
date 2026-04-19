@@ -6,6 +6,12 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const upload = multer({ dest: "uploads/" });
 
+const {
+  getDevices,
+  importExcel,
+  exportExcel
+} = require("../controllers/device.controller");
+
 // ✅ TEST ROUTE
 router.get("/", async (req, res) => {
   const data = await prisma.device.findMany();
@@ -39,5 +45,11 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// 📥 IMPORT EXCEL
+router.post("/import", upload.single("file"), importExcel);
+
+// 📤 EXPORT EXCEL
+router.get("/export", exportExcel);
 
 module.exports = router;
