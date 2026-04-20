@@ -1,103 +1,119 @@
 import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
-import { Bar, Pie, Line } from "react-chartjs-2";
-
-ChartJS.register(
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  LineElement,
-  PointElement,
-  Tooltip,
-  Legend
-);
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line
+} from "recharts";
 
 export default function Chart({ data }) {
-  // 📊 Bar - theo tuyến
+
+  // ======================
+  // 🎯 PIE (TRẠNG THÁI)
+  // ======================
+  const active = data.filter(d => d.status === "Active").length;
+  const maintenance = data.filter(d => d.status === "Maintenance").length;
+  const inactive = data.filter(d => d.status === "Inactive").length;
+
+  const pieData = [
+    { name: "Active", value: active },
+    { name: "Maintenance", value: maintenance },
+    { name: "Inactive", value: inactive }
+  ];
+
+  const COLORS = {
+    Active: "#22c55e",
+    Maintenance: "#eab308",
+    Inactive: "#6b7280"
+  };
+
+  // ======================
+  // 📊 BAR CHART (THEO TUYẾN)
+  // ======================
   const lineMap = {};
-  data.forEach(d => {
-    lineMap[d.line] = (lineMap[d.line] || 0) + 1;
-  });
-
-  const barData = {
-    labels: Object.keys(lineMap),
-    datasets: [
-      {
-        label: "Thiết bị theo tuyến",
-        data: Object.values(lineMap),
-      },
-    ],
-  };
-
-  // 🥧 Pie - trạng thái
-  const statusMap = {
-    Active: 0,
-    Maintenance: 0,
-    Inactive: 0,
-  };
 
   data.forEach(d => {
-    if (statusMap[d.status] !== undefined) {
-      statusMap[d.status]++;
+    const key = d.line || "Không rõ";
+
+    if (!lineMap[key]) {
+      lineMap[key] = { line: key, count: 0 };
     }
+
+    lineMap[key].count++;
   });
 
-  const pieData = {
-    labels: Object.keys(statusMap),
-    datasets: [
-      {
-        data: Object.values(statusMap),
-      },
-    ],
-  };
+  const barData = Object.values(lineMap);
 
-  // 📈 Line - theo ngày hết hạn
-  const dateMap = {};
+  // ======================
+  // 📈 LINE CHART (THEO THỜI GIAN)
+  // ======================
+  const timeMap = {};
+
   data.forEach(d => {
-    const date = new Date(d.expiryDate).toLocaleDateString();
-    dateMap[date] = (dateMap[date] || 0) + 1;
+    if (!d.installDate) return;
+
+    const date = new Date(d.installDate);
+    const key = `${date.getMonth() + 1}/${date.getFullYear()}`;
+
+    if (!timeMap[key]) {
+      timeMap[key] = { time: key, count: 0 };
+    }
+
+    timeMap[key].count++;
   });
 
-  const lineData = {
-    labels: Object.keys(dateMap),
-    datasets: [
-      {
-        label: "Thiết bị theo ngày",
-        data: Object.values(dateMap),
-      },
-    ],
-  };
+  const lineData = Object.values(timeMap);
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      {/* BAR */}
-      <div className="bg-white p-4 rounded-2xl shadow">
-        <h3 className="mb-3 font-bold">Theo tuyến</h3>
-        <Bar data={barData} />
+      {/* 📊 BAR - THEO TUYẾN */}
+      <div className="bg-white p-4 rounded-xl shadow">
+        <h2 className="font-bold mb-2">Theo tuyến</h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={barData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="line" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="count" fill="#3b82f6" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* PIE */}
-      <div className="bg-white p-4 rounded-2xl shadow">
-        <h3 className="mb-3 font-bold">Trạng thái</h3>
-        <Pie data={pieData} />
+      {/* 🎨 PIE - TRẠNG THÁI */}
+      <div className="bg-white p-4 rounded-xl shadow">
+        <h2 className="font-bold mb-2">Trạng thái</h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie data={pieData} dataKey="value" outerRadius={80} label>
+              {pieData.map((entry, index) => (
+                <Cell key={index} fill={COLORS[entry.name]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* LINE */}
-      <div className="bg-white p-4 rounded-2xl shadow">
-        <h3 className="mb-3 font-bold">Xu hướng</h3>
-        <Line data={lineData} />
+      {/* 📈 LINE - XU HƯỚNG */}
+      <div className="bg-white p-4 rounded-xl shadow">
+        <h2 className="font-bold mb-2">Xu hướng</h2>
+
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={lineData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="count"
+              stroke="#6366f1"
+              strokeWidth={2}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
     </div>

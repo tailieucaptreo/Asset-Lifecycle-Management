@@ -18,16 +18,17 @@ model Device {
   line            String
   station         String
 
-  code            String?   // Ký hiệu
-  area            String?   // Khu vực
-  deviceId        String?   // Mã ID
+  code            String?
+  area            String?
+
+  deviceId        String?  @unique   // 🔥 chống trùng
 
   status          String
 
   installDate     DateTime?
   lastMaintenance DateTime?
 
-  lifespan        Int?      // năm
+  lifespan        Int?
   expiryDate      DateTime?
 
   createdAt       DateTime @default(now())

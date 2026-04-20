@@ -4,15 +4,13 @@ const cors = require("cors");
 const deviceRoutes = require("./routes/device.routes");
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
+// 👇 quan trọng
 app.use("/api/devices", deviceRoutes);
 
-app.get("/", (req, res) => {
-  res.send("API running...");
-});
-
 app.listen(5000, () => {
-  console.log("Server running on port 5000");
+  console.log("Server chạy tại http://localhost:5000");
 });
