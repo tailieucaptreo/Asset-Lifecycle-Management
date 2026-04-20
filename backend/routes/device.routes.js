@@ -4,32 +4,34 @@ const multer = require("multer");
 
 const upload = multer({ dest: "uploads/" });
 
+// IMPORT CONTROLLER
 const {
   getDevices,
   importExcel,
   exportExcel
 } = require("../controllers/device.controller");
 
+// 👇 THÊM CREATE CONTROLLER
+const { createDevice } = require("../controllers/device.controller");
+
+// =====================
 // GET
+// =====================
 router.get("/", getDevices);
 
-// CREATE
-router.post("/", async (req, res) => {
-  try {
-    const device = await prisma.device.create({
-      data: req.body
-    });
+// =====================
+// CREATE (FIX CHUẨN)
+// =====================
+router.post("/", createDevice);
 
-    res.json(device);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+// =====================
 // IMPORT
+// =====================
 router.post("/import", upload.single("file"), importExcel);
 
+// =====================
 // EXPORT
+// =====================
 router.get("/export", exportExcel);
 
 module.exports = router;

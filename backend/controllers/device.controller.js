@@ -55,7 +55,7 @@ const normalizeStatus = (s) => {
 
 
 // =========================
-// 🔥 DATE
+// 🔥 DATE PARSE
 // =========================
 const parseDate = (date) => {
   if (!date) return null;
@@ -74,7 +74,86 @@ const parseDate = (date) => {
 
 
 // =========================
-// 🚀 IMPORT EXCEL AUTO UPSERT
+// 📥 CREATE / UPSERT DEVICE
+// =========================
+exports.createDevice = async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data.deviceId) {
+      return res.status(400).json({
+        error: "deviceId là bắt buộc"
+      });
+    }
+
+    const installDate = parseDate(data.installDate);
+    const lifespan = data.lifespan ? parseInt(data.lifespan) : null;
+
+    let expiryDate = null;
+    if (installDate && lifespan) {
+      expiryDate = new Date(installDate);
+      expiryDate.setFullYear(expiryDate.getFullYear() + lifespan);
+    }
+
+    const device = await prisma.device.upsert({
+      where: {
+        deviceId: String(data.deviceId)
+      },
+      update: {
+        name: data.name,
+        line: data.line,
+        station: data.station,
+        code: data.code || null,
+        area: data.area || null,
+        status: data.status,
+        installDate,
+        lastMaintenance: parseDate(data.lastMaintenance),
+        lifespan,
+        expiryDate
+      },
+      create: {
+        name: data.name,
+        line: data.line,
+        station: data.station,
+        code: data.code || null,
+        area: data.area || null,
+        deviceId: String(data.deviceId),
+        status: data.status,
+        installDate,
+        lastMaintenance: parseDate(data.lastMaintenance),
+        lifespan,
+        expiryDate
+      }
+    });
+
+    res.json(device);
+
+  } catch (err) {
+    console.log("🔥 CREATE ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// =========================
+// 📊 GET ALL DEVICES
+// =========================
+exports.getDevices = async (req, res) => {
+  try {
+    const data = await prisma.device.findMany({
+      orderBy: { createdAt: "desc" }
+    });
+
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// =========================
+// 📥 IMPORT EXCEL (AUTO)
 // =========================
 exports.importExcel = async (req, res) => {
   try {
@@ -91,7 +170,6 @@ exports.importExcel = async (req, res) => {
 
         const deviceId = getValue(row, "deviceId");
 
-        // ❌ bỏ qua nếu không có ID
         if (!deviceId) {
           errors.push({ row: i + 2, error: "Thiếu deviceId" });
           continue;
@@ -166,40 +244,37 @@ exports.importExcel = async (req, res) => {
 
 
 // =========================
-// ✅ GET ALL
-// =========================
-exports.getDevices = async (req, res) => {
-  const data = await prisma.device.findMany({
-    orderBy: { createdAt: "desc" }
-  });
-  res.json(data);
-};
-
-
-// =========================
-// 📤 EXPORT
+// 📤 EXPORT EXCEL
 // =========================
 exports.exportExcel = async (req, res) => {
-  const devices = await prisma.device.findMany();
+  try {
+    const devices = await prisma.device.findMany();
 
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Devices");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Devices");
 
-  ws.columns = [
-    { header: "Tên thiết bị", key: "name" },
-    { header: "Tuyến", key: "line" },
-    { header: "Nhà ga", key: "station" },
-    { header: "Mã ID", key: "deviceId" },
-    { header: "Trạng thái", key: "status" }
-  ];
+    ws.columns = [
+      { header: "Tên thiết bị", key: "name" },
+      { header: "Tuyến", key: "line" },
+      { header: "Nhà ga", key: "station" },
+      { header: "Mã ID", key: "deviceId" },
+      { header: "Trạng thái", key: "status" },
+      { header: "Ngày lắp đặt", key: "installDate" },
+      { header: "Ngày BT gần nhất", key: "lastMaintenance" },
+      { header: "Tuổi thọ", key: "lifespan" }
+    ];
 
-  devices.forEach(d => ws.addRow(d));
+    devices.forEach(d => ws.addRow(d));
 
-  res.setHeader(
-    "Content-Disposition",
-    "attachment; filename=devices.xlsx"
-  );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=devices.xlsx"
+    );
 
-  await wb.xlsx.write(res);
-  res.end();
+    await wb.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
