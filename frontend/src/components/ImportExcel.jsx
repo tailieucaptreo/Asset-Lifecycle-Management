@@ -1,63 +1,145 @@
-import axios from "axios";
-import API from "../config";
-import { useState } from "react";
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
-export default function ImportExcel() {
-  const [loading, setLoading] = useState(false);
+const XLSX = require("xlsx");
 
-  const handleFile = async (file) => {
-    if (!file) return;
-
-    setLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await axios.post(
-        `${API}/api/devices/import`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        }
-      );
-
-      console.log(res.data);
-
-      alert(`✅ Import OK: ${res.data.success}/${res.data.total}`);
-
-      window.location.reload();
-
-    } catch (err) {
-      console.error(err);
-      alert("❌ Import lỗi!");
+// ===============================
+// 📥 IMPORT EXCEL (FULL CHUẨN)
+// ===============================
+exports.importExcel = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Không có file upload" });
     }
 
-    setLoading(false);
-  };
+    // 🔥 đọc file từ buffer (fix Render)
+    const workbook = XLSX.read(req.file.buffer, {
+      type: "buffer",
+    });
 
-  return (
-    <div className="bg-white p-6 rounded-xl shadow mt-4">
-      <h2 className="font-bold text-lg mb-2">📥 Import Excel</h2>
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
 
-      <div className="border-2 border-dashed border-gray-300 p-6 rounded-lg text-center hover:border-blue-400 transition">
-        <p className="mb-2 text-gray-600">
-          Kéo file Excel vào hoặc chọn file
-        </p>
+    if (!rows.length) {
+      return res.status(400).json({ error: "File Excel rỗng" });
+    }
 
-        <input
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={(e) => handleFile(e.target.files[0])}
-          className="mx-auto"
-        />
+    // ===============================
+    // 🧠 HELPER FUNCTIONS
+    // ===============================
+    const normalize = (val, def = "") => {
+      if (val === undefined || val === null || val === "") return def;
+      return val;
+    };
 
-        {loading && (
-          <p className="mt-2 text-blue-500">⏳ Đang import...</p>
-        )}
-      </div>
-    </div>
-  );
-}
+    const parseDateSafe = (val) => {
+      if (!val) return null;
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    };
+
+    const normalizeStatus = (val) => {
+      if (!val) return "Inactive";
+
+      const v = val.toString().toLowerCase();
+
+      if (v.includes("hoạt") || v.includes("active")) return "Active";
+      if (v.includes("bảo") || v.includes("maint")) return "Maintenance";
+
+      return "Inactive";
+    };
+
+    const calculateExpiry = (installDate, lifespan) => {
+      if (!installDate || !lifespan) return null;
+
+      const d = new Date(installDate);
+      d.setFullYear(d.getFullYear() + Number(lifespan));
+
+      return d;
+    };
+
+    // ===============================
+    // 🚀 IMPORT LOOP
+    // ===============================
+    let success = 0;
+    let warnings = [];
+    let errors = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      try {
+        const row = rows[i];
+
+        const deviceId = normalize(row["Mã ID"], null);
+
+        const installDate = parseDateSafe(row["Ngày lắp đặt"]);
+        const lifespan = row["Tuổi thọ thiết bị"]
+          ? Number(row["Tuổi thọ thiết bị"])
+          : null;
+
+        const data = {
+          deviceId: deviceId || null,
+          name: normalize(row["Tên thiết bị"], "Không tên"),
+          line: normalize(row["Tuyến cáp"], "Chưa rõ"),
+          station: normalize(row["Nhà ga"], "Chưa rõ"),
+          code: normalize(row["Ký hiệu"], null),
+          area: normalize(row["Khu vực"], null),
+          status: normalizeStatus(row["Tình trạng"]),
+          installDate,
+          lastMaintenance: parseDateSafe(row["Ngày BT gần nhất"]),
+          lifespan,
+          expiryDate: calculateExpiry(installDate, lifespan),
+        };
+
+        // ===============================
+        // 🔥 LOGIC CHÍNH
+        // ===============================
+
+        // ❌ KHÔNG có ID → CREATE
+        if (!deviceId) {
+          await prisma.device.create({ data });
+
+          warnings.push({
+            row: i + 2,
+            message: "Thiếu Mã ID (đã lưu, cần cập nhật sau)",
+          });
+        }
+
+        // ✅ CÓ ID → UPSERT
+        else {
+          await prisma.device.upsert({
+            where: { deviceId },
+            update: data,
+            create: data,
+          });
+        }
+
+        success++;
+
+      } catch (err) {
+        console.log("ROW ERROR:", err);
+
+        errors.push({
+          row: i + 2,
+          error: err.message,
+        });
+      }
+    }
+
+    // ===============================
+    // 📤 RESPONSE
+    // ===============================
+    res.json({
+      success,
+      total: rows.length,
+      warnings,
+      errors,
+    });
+
+  } catch (err) {
+    console.log("IMPORT ERROR:", err);
+
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
