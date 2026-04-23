@@ -7,7 +7,9 @@ export default function Header({ onSearch, devices = [] }) {
   const [show, setShow] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  // debounce
+  // ======================
+  // 🔥 DEBOUNCE
+  // ======================
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebounced(value);
@@ -17,14 +19,23 @@ export default function Header({ onSearch, devices = [] }) {
     return () => clearTimeout(timer);
   }, [value]);
 
-  const suggestions = devices.filter(d => {
-    const keyword = debounced.toLowerCase();
-    return (
-      (d.name || "").toLowerCase().includes(keyword) ||
-      (d.deviceId || "").toString().includes(keyword)
-    );
-  }).slice(0, 6);
+  // ======================
+  // 🔍 FILTER SUGGESTIONS
+  // ======================
+  const suggestions = (devices || [])
+    .filter(d => {
+      const keyword = debounced.toLowerCase();
 
+      return (
+        (d?.name || "").toLowerCase().includes(keyword) ||
+        (d?.deviceId || "").toString().includes(keyword)
+      );
+    })
+    .slice(0, 6);
+
+  // ======================
+  // 🎯 HIGHLIGHT
+  // ======================
   const highlight = (text) => {
     if (!debounced) return text;
 
@@ -37,8 +48,11 @@ export default function Header({ onSearch, devices = [] }) {
     );
   };
 
+  // ======================
+  // ⌨️ KEYBOARD NAV
+  // ======================
   const handleKeyDown = (e) => {
-    if (!show) return;
+    if (!show || suggestions.length === 0) return;
 
     if (e.key === "ArrowDown") {
       setActiveIndex(prev => (prev + 1) % suggestions.length);
@@ -53,15 +67,19 @@ export default function Header({ onSearch, devices = [] }) {
     }
   };
 
+  // ======================
+  // SELECT ITEM
+  // ======================
   const selectItem = (item) => {
-    setValue(item.name);
-    onSearch(item.name);
+    setValue(item.name || "");
+    onSearch(item.name || "");
     setShow(false);
   };
 
   return (
     <div className="relative w-full">
 
+      {/* INPUT */}
       <input
         value={value}
         onChange={(e) => {
@@ -76,8 +94,10 @@ export default function Header({ onSearch, devices = [] }) {
                    focus:ring-2 focus:ring-blue-400 outline-none text-sm"
       />
 
+      {/* ICON */}
       <Search className="absolute left-3 top-3 text-gray-400" size={18} />
 
+      {/* CLEAR */}
       {value && (
         <X
           onClick={() => {
@@ -91,7 +111,7 @@ export default function Header({ onSearch, devices = [] }) {
 
       {/* DROPDOWN */}
       {show && value && (
-        <div className="absolute left-0 right-0 mt-2 w-full min-w-[350px]
+        <div className="absolute left-0 right-0 mt-2 w-full
                         bg-white border rounded-xl shadow-xl z-50
                         max-h-72 overflow-y-auto">
 
@@ -103,7 +123,7 @@ export default function Header({ onSearch, devices = [] }) {
 
           {suggestions.map((d, index) => (
             <div
-              key={d.id}
+              key={d.id || index}
               onClick={() => selectItem(d)}
               className={`p-3 cursor-pointer border-b transition ${
                 index === activeIndex
@@ -116,7 +136,7 @@ export default function Header({ onSearch, devices = [] }) {
               </div>
 
               <div className="text-xs text-gray-500 truncate">
-                ID: {d.deviceId} | {d.line} - {d.station}
+                ID: {d.deviceId || "-"} | {d.line || "-"} - {d.station || "-"}
               </div>
             </div>
           ))}

@@ -4,14 +4,23 @@ import {
   LineChart, Line
 } from "recharts";
 
-export default function Chart({ data }) {
+export default function Chart({ data = [] }) {
+
+  // 🛡️ SAFE DATA
+  if (!Array.isArray(data)) {
+    return (
+      <div className="bg-white p-4 rounded-xl shadow text-gray-400">
+        Không có dữ liệu
+      </div>
+    );
+  }
 
   // ======================
   // 🎯 PIE (TRẠNG THÁI)
   // ======================
-  const active = data.filter(d => d.status === "Active").length;
-  const maintenance = data.filter(d => d.status === "Maintenance").length;
-  const inactive = data.filter(d => d.status === "Inactive").length;
+  const active = data.filter(d => d?.status === "Active").length;
+  const maintenance = data.filter(d => d?.status === "Maintenance").length;
+  const inactive = data.filter(d => d?.status === "Inactive").length;
 
   const pieData = [
     { name: "Active", value: active },
@@ -26,12 +35,12 @@ export default function Chart({ data }) {
   };
 
   // ======================
-  // 📊 BAR CHART (THEO TUYẾN)
+  // 📊 BAR (THEO TUYẾN)
   // ======================
   const lineMap = {};
 
   data.forEach(d => {
-    const key = d.line || "Không rõ";
+    const key = d?.line || "Không rõ";
 
     if (!lineMap[key]) {
       lineMap[key] = { line: key, count: 0 };
@@ -43,14 +52,16 @@ export default function Chart({ data }) {
   const barData = Object.values(lineMap);
 
   // ======================
-  // 📈 LINE CHART (THEO THỜI GIAN)
+  // 📈 LINE (THEO THỜI GIAN)
   // ======================
   const timeMap = {};
 
   data.forEach(d => {
-    if (!d.installDate) return;
+    if (!d?.installDate) return;
 
     const date = new Date(d.installDate);
+    if (isNaN(date)) return; // 🛡️ chống crash
+
     const key = `${date.getMonth() + 1}/${date.getFullYear()}`;
 
     if (!timeMap[key]) {
@@ -65,7 +76,7 @@ export default function Chart({ data }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-      {/* 📊 BAR - THEO TUYẾN */}
+      {/* 📊 BAR */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h2 className="font-bold mb-2">Theo tuyến</h2>
 
@@ -80,7 +91,7 @@ export default function Chart({ data }) {
         </ResponsiveContainer>
       </div>
 
-      {/* 🎨 PIE - TRẠNG THÁI */}
+      {/* 🎨 PIE */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h2 className="font-bold mb-2">Trạng thái</h2>
 
@@ -96,7 +107,7 @@ export default function Chart({ data }) {
         </ResponsiveContainer>
       </div>
 
-      {/* 📈 LINE - XU HƯỚNG */}
+      {/* 📈 LINE */}
       <div className="bg-white p-4 rounded-xl shadow">
         <h2 className="font-bold mb-2">Xu hướng</h2>
 
