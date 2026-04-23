@@ -157,7 +157,7 @@ exports.getDevices = async (req, res) => {
 // =========================
 exports.importExcel = async (req, res) => {
   try {
-    const workbook = XLSX.readFile(req.file.path);
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 

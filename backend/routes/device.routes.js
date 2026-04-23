@@ -2,36 +2,57 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
-const upload = multer({ dest: "uploads/" });
+// ===============================
+// 🔥 MULTER (QUAN TRỌNG NHẤT)
+// dùng memoryStorage để fix lỗi Render
+// ===============================
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  }
+});
 
-// IMPORT CONTROLLER
+// ===============================
+// 📦 IMPORT CONTROLLERS
+// ===============================
 const {
   getDevices,
+  createDevice,
   importExcel,
   exportExcel
 } = require("../controllers/device.controller");
 
-// 👇 THÊM CREATE CONTROLLER
-const { createDevice } = require("../controllers/device.controller");
-
-// =====================
-// GET
-// =====================
+// ===============================
+// 📊 GET ALL DEVICES
+// ===============================
 router.get("/", getDevices);
 
-// =====================
-// CREATE (FIX CHUẨN)
-// =====================
+// ===============================
+// ➕ CREATE / UPSERT DEVICE
+// ===============================
 router.post("/", createDevice);
 
-// =====================
-// IMPORT
-// =====================
-router.post("/import", upload.single("file"), importExcel);
+// ===============================
+// 📥 IMPORT EXCEL
+// ===============================
+router.post(
+  "/import",
+  upload.single("file"), // ⚠️ phải trùng key frontend: "file"
+  importExcel
+);
 
-// =====================
-// EXPORT
-// =====================
+// ===============================
+// 📤 EXPORT EXCEL
+// ===============================
 router.get("/export", exportExcel);
 
+// ===============================
+// ❤️ TEST ROUTE (optional)
+// ===============================
+router.get("/health", (req, res) => {
+  res.json({ status: "OK", message: "API running 🚀" });
+});
+
+// ===============================
 module.exports = router;
