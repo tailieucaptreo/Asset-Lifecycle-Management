@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
 const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 
 // ===============================
 // 📊 GET ALL DEVICES
@@ -8,116 +10,113 @@ const XLSX = require("xlsx");
 exports.getDevices = async (req, res) => {
   try {
     const devices = await prisma.device.findMany({
-      orderBy: { createdAt: "desc" }
+      orderBy: { id: "desc" }
     });
 
     res.json(devices);
   } catch (err) {
-    console.log("GET ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// ➕ CREATE / UPSERT DEVICE
+// ➕ CREATE / UPDATE (UPSERT)
 // ===============================
 exports.createDevice = async (req, res) => {
   try {
     const data = req.body;
 
+    // 🛡 validate
+    if (!data.deviceId) {
+      return res.status(400).json({
+        error: "Thiếu deviceId (Mã ID)"
+      });
+    }
+
     const device = await prisma.device.upsert({
-      where: {
-        deviceId: data.deviceId || "NO_ID_" + Date.now()
+      where: { deviceId: String(data.deviceId) },
+      update: {
+        name: data.name || "Không tên",
+        line: data.line || "Chưa rõ",
+        station: data.station || "Chưa rõ",
+        code: data.code || null,
+        area: data.area || null,
+        status: data.status || "Inactive",
+        lifespan: data.lifespan || null,
+        installDate: data.installDate ? new Date(data.installDate) : null,
+        lastMaintenance: data.lastMaintenance ? new Date(data.lastMaintenance) : null,
+        expiryDate: data.expiryDate ? new Date(data.expiryDate) : null
       },
-      update: data,
-      create: data
+      create: {
+        deviceId: String(data.deviceId),
+        name: data.name || "Không tên",
+        line: data.line || "Chưa rõ",
+        station: data.station || "Chưa rõ",
+        code: data.code || null,
+        area: data.area || null,
+        status: data.status || "Inactive",
+        lifespan: data.lifespan || null,
+        installDate: data.installDate ? new Date(data.installDate) : null,
+        lastMaintenance: data.lastMaintenance ? new Date(data.lastMaintenance) : null,
+        expiryDate: data.expiryDate ? new Date(data.expiryDate) : null
+      }
     });
 
     res.json(device);
+
   } catch (err) {
-    console.log("CREATE ERROR:", err);
+    console.log("UPSERT ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// 📥 IMPORT EXCEL (GIỮ NGUYÊN)
+// 📥 IMPORT EXCEL (BATCH)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "Không có file upload" });
+      return res.status(400).json({ error: "Không có file" });
     }
 
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    if (!rows.length) {
-      return res.status(400).json({ error: "File Excel rỗng" });
-    }
+    let success = 0;
 
-    const normalize = (v, def = "") =>
-      v === undefined || v === null || v === "" ? def : v;
+    for (let row of rows) {
+      const deviceId = row["Mã ID"];
 
-    const parseDate = (v) => {
-      if (!v) return null;
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? null : d;
-    };
+      if (!deviceId) continue;
 
-    const normalizeStatus = (v) => {
-      if (!v) return "Inactive";
-      const t = v.toString().toLowerCase();
-      if (t.includes("hoạt") || t.includes("active")) return "Active";
-      if (t.includes("bảo")) return "Maintenance";
-      return "Inactive";
-    };
-
-    const calculateExpiry = (install, life) => {
-      if (!install || !life) return null;
-      const d = new Date(install);
-      d.setFullYear(d.getFullYear() + Number(life));
-      return d;
-    };
-
-    let validData = [];
-
-    rows.forEach((row) => {
-      const installDate = parseDate(row["Ngày lắp đặt"]);
-      const lifespan = row["Tuổi thọ thiết bị"]
-        ? Number(row["Tuổi thọ thiết bị"])
-        : null;
-
-      validData.push({
-        deviceId: row["Mã ID"] || null,
-        name: normalize(row["Tên thiết bị"], "Không tên"),
-        line: normalize(row["Tuyến cáp"], "Chưa rõ"),
-        station: normalize(row["Nhà ga"], "Chưa rõ"),
-        code: row["Ký hiệu"] || null,
-        area: row["Khu vực"] || null,
-        status: normalizeStatus(row["Tình trạng"]),
-        installDate,
-        lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
-        lifespan,
-        expiryDate: calculateExpiry(installDate, lifespan),
+      await prisma.device.upsert({
+        where: { deviceId: String(deviceId) },
+        update: {
+          name: row["Tên thiết bị"] || "Không tên",
+          line: row["Tuyến"] || "Chưa rõ",
+          station: row["Nhà ga"] || "Chưa rõ",
+          code: row["Ký hiệu"] || null,
+          area: row["Khu vực"] || null,
+          status: row["Tình trạng"] || "Inactive"
+        },
+        create: {
+          deviceId: String(deviceId),
+          name: row["Tên thiết bị"] || "Không tên",
+          line: row["Tuyến"] || "Chưa rõ",
+          station: row["Nhà ga"] || "Chưa rõ",
+          code: row["Ký hiệu"] || null,
+          area: row["Khu vực"] || null,
+          status: row["Tình trạng"] || "Inactive"
+        }
       });
-    });
 
-    const chunkSize = 500;
-
-    for (let i = 0; i < validData.length; i += chunkSize) {
-      const chunk = validData.slice(i, i + chunkSize);
-
-      await prisma.device.createMany({
-        data: chunk,
-        skipDuplicates: true,
-      });
+      success++;
     }
 
     res.json({
-      success: validData.length,
-      message: "Import thành công 🚀",
+      message: "Import thành công",
+      total: success
     });
 
   } catch (err) {
@@ -131,14 +130,13 @@ exports.importExcel = async (req, res) => {
 // ===============================
 exports.exportExcel = async (req, res) => {
   try {
-    const ExcelJS = require("exceljs");
-
     const devices = await prisma.device.findMany();
 
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Devices");
 
     ws.columns = [
+      { header: "ID", key: "id" },
       { header: "Tên thiết bị", key: "name" },
       { header: "Tuyến", key: "line" },
       { header: "Nhà ga", key: "station" },
@@ -157,7 +155,6 @@ exports.exportExcel = async (req, res) => {
     res.end();
 
   } catch (err) {
-    console.log("EXPORT ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
