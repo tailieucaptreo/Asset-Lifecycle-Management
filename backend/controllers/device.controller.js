@@ -3,6 +3,95 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 
 // ===============================
+// 🧠 HELPER: normalize key
+// ===============================
+const normalizeKey = (str) => {
+  return str
+    ?.toString()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[^a-z0-9]/g, "") || "";
+};
+
+// ===============================
+// 🧠 HELPER: map column thông minh
+// ===============================
+const mapRow = (row) => {
+  const keys = Object.keys(row);
+
+  const get = (aliases) => {
+    for (let key of keys) {
+      const normalized = normalizeKey(key);
+
+      for (let a of aliases) {
+        if (normalized.includes(normalizeKey(a))) {
+          return row[key];
+        }
+      }
+    }
+    return null;
+  };
+
+  return {
+    deviceId: get(["mã id", "id", "deviceid"]),
+    name: get(["tên", "thiết bị", "name"]),
+    line: get(["tuyến", "line"]),
+    station: get(["ga", "nhà ga", "station"]),
+    code: get(["ký hiệu", "code"]),
+    area: get(["khu vực", "area"]),
+    status: get(["trạng thái", "status"]),
+    installDate: get(["ngày lắp", "install"]),
+    lastMaintenance: get(["bảo trì", "bt"]),
+    lifespan: get(["tuổi thọ", "life"])
+  };
+};
+
+// ===============================
+// 🧠 PARSE DATE (chống lỗi 1970)
+// ===============================
+const parseDate = (v) => {
+  if (!v) return null;
+
+  // excel number date
+  if (typeof v === "number") {
+    const date = XLSX.SSF.parse_date_code(v);
+    if (!date) return null;
+
+    return new Date(date.y, date.m - 1, date.d);
+  }
+
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+// ===============================
+// 🧠 STATUS NORMALIZE
+// ===============================
+const normalizeStatus = (v) => {
+  if (!v) return "Inactive";
+
+  const t = v.toString().toLowerCase();
+
+  if (t.includes("đang") || t.includes("active")) return "Active";
+  if (t.includes("bảo") || t.includes("maint")) return "Maintenance";
+
+  return "Inactive";
+};
+
+// ===============================
+// 🧠 COMPUTE EXPIRY
+// ===============================
+const computeExpiry = (installDate, lifespan) => {
+  if (!installDate || !lifespan) return null;
+
+  const d = new Date(installDate);
+  if (isNaN(d)) return null;
+
+  d.setFullYear(d.getFullYear() + Number(lifespan));
+  return d;
+};
+
+// ===============================
 // GET ALL
 // ===============================
 exports.getDevices = async (req, res) => {
@@ -10,80 +99,37 @@ exports.getDevices = async (req, res) => {
     const data = await prisma.device.findMany({
       orderBy: { id: "desc" }
     });
+
     res.json(data);
   } catch (err) {
-    console.log("GET ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// CREATE
+// CREATE / UPDATE (NO CRASH)
 // ===============================
 exports.createDevice = async (req, res) => {
   try {
-    const d = req.body;
+    let data = req.body;
 
-    const data = {
-      deviceId: d.deviceId || null,
-      name: d.name || "Không tên",
-      line: d.line || "Chưa rõ",
-      station: d.station || "Chưa rõ",
-      code: d.code || null,
-      area: d.area || null,
-      status: d.status || "Inactive",
-      installDate: d.installDate ? new Date(d.installDate) : null,
-      lastMaintenance: d.lastMaintenance
-        ? new Date(d.lastMaintenance)
-        : null,
-      lifespan: d.lifespan ? Number(d.lifespan) : null
-    };
+    data.installDate = parseDate(data.installDate);
+    data.lastMaintenance = parseDate(data.lastMaintenance);
+    data.status = normalizeStatus(data.status);
+    data.lifespan = data.lifespan ? Number(data.lifespan) : null;
 
+    data.expiryDate = computeExpiry(
+      data.installDate,
+      data.lifespan
+    );
+
+    // 🔥 KHÔNG UPSERT -> luôn create (cho phép trùng ID)
     const result = await prisma.device.create({ data });
 
     res.json(result);
+
   } catch (err) {
     console.log("CREATE ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// ===============================
-// UPDATE
-// ===============================
-exports.updateDevice = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    const d = req.body;
-
-    if (!id) {
-      return res.status(400).json({ error: "ID không hợp lệ" });
-    }
-
-    const data = {
-      deviceId: d.deviceId || null,
-      name: d.name || "Không tên",
-      line: d.line || "Chưa rõ",
-      station: d.station || "Chưa rõ",
-      code: d.code || null,
-      area: d.area || null,
-      status: d.status || "Inactive",
-      installDate: d.installDate ? new Date(d.installDate) : null,
-      lastMaintenance: d.lastMaintenance
-        ? new Date(d.lastMaintenance)
-        : null,
-      lifespan: d.lifespan ? Number(d.lifespan) : null
-    };
-
-    const result = await prisma.device.update({
-      where: { id },
-      data
-    });
-
-    res.json(result);
-
-  } catch (err) {
-    console.log("UPDATE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -95,10 +141,6 @@ exports.deleteDevice = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (!id) {
-      return res.status(400).json({ error: "ID không hợp lệ" });
-    }
-
     await prisma.device.delete({
       where: { id }
     });
@@ -106,13 +148,12 @@ exports.deleteDevice = async (req, res) => {
     res.json({ message: "Deleted" });
 
   } catch (err) {
-    console.log("DELETE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// IMPORT EXCEL (KHÔNG FAIL)
+// 🚀 IMPORT SIÊU THÔNG MINH
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -122,7 +163,6 @@ exports.importExcel = async (req, res) => {
 
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
     let success = 0;
@@ -130,84 +170,34 @@ exports.importExcel = async (req, res) => {
 
     for (let i = 0; i < rows.length; i++) {
       try {
-        const row = rows[i];
+        const raw = mapRow(rows[i]);
 
-        // ======================
-        // SAFE FUNCTIONS
-        // ======================
-        const safeString = (v, def = null) => {
-          if (v === undefined || v === null || v === "") return def;
-          return String(v).trim();
-        };
-
-        const safeNumber = (v) => {
-          const n = Number(v);
-          return isNaN(n) ? null : n;
-        };
-
-        const safeDate = (v) => {
-          if (!v) return null;
-
-          // Excel dạng số
-          if (typeof v === "number") {
-            const d = new Date((v - 25569) * 86400 * 1000);
-            return isNaN(d) ? null : d;
-          }
-
-          const d = new Date(v);
-          return isNaN(d) ? null : d;
-        };
-
-        const normalizeStatus = (v) => {
-          if (!v) return "Inactive";
-
-          const t = v.toString().toLowerCase();
-
-          if (t.includes("đang") || t.includes("active")) return "Active";
-          if (t.includes("bảo")) return "Maintenance";
-
-          return "Inactive";
-        };
-
-        // ======================
-        // BUILD DATA
-        // ======================
         const data = {
-          deviceId: safeString(row["Mã ID"]),
-          name: safeString(row["Tên thiết bị"], "Không tên"),
-          line: safeString(row["Tuyến cáp"], "Chưa rõ"),
-          station: safeString(row["Nhà ga"], "Chưa rõ"),
-          code: safeString(row["Ký hiệu"]),
-          area:
-            safeString(row["Khu Vực"]) ||
-            safeString(row["Khu vực"]),
-
-          status: normalizeStatus(row["Trạng thái"]),
-          installDate: safeDate(row["Ngày lắp đặt"]),
-          lastMaintenance: safeDate(row["Ngày BT gần nhất"]),
-          lifespan: safeNumber(row["Tuổi thọ thiết bị"])
+          deviceId: raw.deviceId?.toString() || null,
+          name: raw.name || "Không tên",
+          line: raw.line || "Chưa rõ",
+          station: raw.station || "Chưa rõ",
+          code: raw.code || null,
+          area: raw.area || null,
+          status: normalizeStatus(raw.status),
+          installDate: parseDate(raw.installDate),
+          lastMaintenance: parseDate(raw.lastMaintenance),
+          lifespan: raw.lifespan ? Number(raw.lifespan) : null
         };
 
-        // 🔥 luôn create → cho phép trùng
+        data.expiryDate = computeExpiry(
+          data.installDate,
+          data.lifespan
+        );
+
+        // 🔥 LUÔN CREATE -> import 100%
         await prisma.device.create({ data });
 
         success++;
 
       } catch (err) {
         console.log(`❌ Row ${i + 2}:`, err.message);
-
-        // 🔥 fallback không mất dòng
-        try {
-          await prisma.device.create({
-            data: {
-              name: "Lỗi dữ liệu",
-              line: "Unknown"
-            }
-          });
-          success++;
-        } catch {
-          failed++;
-        }
+        failed++; // chỉ log, không crash
       }
     }
 
