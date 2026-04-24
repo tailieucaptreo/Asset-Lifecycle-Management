@@ -6,8 +6,8 @@ import Header from "../components/Header";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
 import Table from "../components/Table";
-import AdvancedFilter from "../components/AdvancedFilter";
-//import ImportExcel from "../components/ImportExcel";
+//import AdvancedFilter from "../components/AdvancedFilter";
+import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -118,14 +118,14 @@ export default function Dashboard() {
       </div>
 
       {/* FILTER */}
-      <AdvancedFilter
+      {/* <AdvancedFilter
         devices={devices}
         filter={filter}
         setFilter={setFilter}
-      />
+      /> */}
 
       {/* IMPORT */}
-      {/* <ImportExcel /> */}
+      <ImportExcel />
 
       {/* CARD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
