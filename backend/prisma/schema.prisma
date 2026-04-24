@@ -21,7 +21,7 @@ model Device {
   code            String?
   area            String?
 
-  deviceId        String?  @unique   // 🔥 chống trùng
+  deviceId        String?     // 🔥 chống trùng
 
   status          String
 
