@@ -32,9 +32,7 @@ exports.createDevice = async (req, res) => {
         create: data
       });
     } else {
-      result = await prisma.device.create({
-        data
-      });
+      result = await prisma.device.create({ data });
     }
 
     res.json(result);
@@ -49,7 +47,7 @@ exports.createDevice = async (req, res) => {
 // ===============================
 exports.deleteDevice = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number(req.params.id);
 
     if (!id) {
       return res.status(400).json({ error: "ID không hợp lệ" });
@@ -62,10 +60,14 @@ exports.deleteDevice = async (req, res) => {
     res.json({ message: "Deleted" });
 
   } catch (err) {
+    console.log("DELETE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
+// ===============================
+// IMPORT EXCEL (FIX CHUẨN)
+// ===============================
 exports.importExcel = async (req, res) => {
   try {
     if (!req.file) {
@@ -80,9 +82,7 @@ exports.importExcel = async (req, res) => {
       return res.status(400).json({ error: "File rỗng" });
     }
 
-    // =====================
     // HELPER
-    // =====================
     const normalize = (v, def = "") =>
       v === undefined || v === null || v === "" ? def : v;
 
@@ -103,43 +103,43 @@ exports.importExcel = async (req, res) => {
       return "Inactive";
     };
 
-    // =====================
-    // MAP DATA
-    // =====================
-    const data = rows.map(row => ({
-      deviceId: row["Mã ID"]?.toString() || null,
-      name: normalize(row["Tên thiết bị"], "Không tên"),
-      line: normalize(row["Tuyến cáp"], "Chưa rõ"),
-      station: normalize(row["Nhà ga"], "Chưa rõ"),
-      code: row["Ký hiệu"] || null,
-      area: row["Khu vực"] || null,
-      status: normalizeStatus(row["Tình trạng"]),
-      installDate: parseDate(row["Ngày lắp đặt"]),
-      lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
-      lifespan: row["Tuổi thọ thiết bị"]
-        ? Number(row["Tuổi thọ thiết bị"])
-        : null
-    }));
-
-    // =====================
-    // UPSERT (KHÔNG CRASH)
-    // =====================
     let success = 0;
     let failed = 0;
 
-    for (const item of data) {
+    for (let i = 0; i < rows.length; i++) {
       try {
-        await prisma.device.upsert({
-          where: {
-            deviceId: item.deviceId || "temp_" + Math.random()
-          },
-          update: item,
-          create: item
-        });
+        const row = rows[i];
+
+        const data = {
+          deviceId: row["Mã ID"]?.toString() || null,
+          name: normalize(row["Tên thiết bị"], "Không tên"),
+          line: normalize(row["Tuyến cáp"], "Chưa rõ"),
+          station: normalize(row["Nhà ga"], "Chưa rõ"),
+          code: row["Ký hiệu"] || null,
+          area: row["Khu vực"] || null,
+          status: normalizeStatus(row["Tình trạng"]),
+          installDate: parseDate(row["Ngày lắp đặt"]),
+          lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
+          lifespan: row["Tuổi thọ thiết bị"]
+            ? Number(row["Tuổi thọ thiết bị"])
+            : null
+        };
+
+        // 🔥 FIX: không có deviceId thì create
+        if (!data.deviceId) {
+          await prisma.device.create({ data });
+        } else {
+          await prisma.device.upsert({
+            where: { deviceId: data.deviceId },
+            update: data,
+            create: data
+          });
+        }
 
         success++;
+
       } catch (err) {
-        console.log("ROW ERROR:", err.message);
+        console.log(`❌ Row ${i + 2}:`, err.message);
         failed++;
       }
     }
@@ -147,43 +147,14 @@ exports.importExcel = async (req, res) => {
     res.json({
       success,
       failed,
-      total: data.length,
-      message: "Import OK"
+      total: rows.length
     });
 
   } catch (err) {
-    console.log("IMPORT ERROR:", err);
+    console.log("🔥 IMPORT ERROR:", err);
 
     res.status(500).json({
       error: err.message
     });
   }
-};
-// ===============================
-// ❌ DELETE DEVICE
-// ===============================
-exports.deleteDevice = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ error: "ID không hợp lệ" });
-    }
-
-    await prisma.device.delete({
-      where: { id }
-    });
-
-    res.json({
-      message: "Xóa thành công"
-    });
-
-  } catch (err) {
-    console.log("DELETE ERROR:", err);
-
-    res.status(500).json({
-      error: "Xóa thất bại"
-    });
-  }
-};
 };
