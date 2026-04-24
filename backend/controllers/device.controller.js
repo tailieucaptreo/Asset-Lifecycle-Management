@@ -3,9 +3,7 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 
 // ===============================
-// GET ALL
-// ===============================
-exports.getDevices = async (req, res) => {
+const getDevices = async (req, res) => {
   try {
     const data = await prisma.device.findMany({
       orderBy: { id: "desc" }
@@ -17,9 +15,7 @@ exports.getDevices = async (req, res) => {
 };
 
 // ===============================
-// CREATE / UPSERT
-// ===============================
-exports.createDevice = async (req, res) => {
+const createDevice = async (req, res) => {
   try {
     const data = req.body;
 
@@ -36,29 +32,22 @@ exports.createDevice = async (req, res) => {
     }
 
     res.json(result);
-
   } catch (err) {
+    console.log("CREATE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// DELETE
-// ===============================
-exports.deleteDevice = async (req, res) => {
+const deleteDevice = async (req, res) => {
   try {
     const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ error: "ID không hợp lệ" });
-    }
 
     await prisma.device.delete({
       where: { id }
     });
 
     res.json({ message: "Deleted" });
-
   } catch (err) {
     console.log("DELETE ERROR:", err);
     res.status(500).json({ error: err.message });
@@ -66,9 +55,7 @@ exports.deleteDevice = async (req, res) => {
 };
 
 // ===============================
-// IMPORT EXCEL (FIX CHUẨN)
-// ===============================
-exports.importExcel = async (req, res) => {
+const importExcel = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Không có file" });
@@ -78,54 +65,16 @@ exports.importExcel = async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
-    if (!rows.length) {
-      return res.status(400).json({ error: "File rỗng" });
-    }
-
-    // HELPER
-    const normalize = (v, def = "") =>
-      v === undefined || v === null || v === "" ? def : v;
-
-    const parseDate = (v) => {
-      if (!v) return null;
-      const d = new Date(v);
-      return isNaN(d.getTime()) ? null : d;
-    };
-
-    const normalizeStatus = (v) => {
-      if (!v) return "Inactive";
-
-      const t = v.toString().toLowerCase();
-
-      if (t.includes("active") || t.includes("hoạt")) return "Active";
-      if (t.includes("bảo")) return "Maintenance";
-
-      return "Inactive";
-    };
-
     let success = 0;
     let failed = 0;
 
-    for (let i = 0; i < rows.length; i++) {
+    for (const row of rows) {
       try {
-        const row = rows[i];
-
         const data = {
           deviceId: row["Mã ID"]?.toString() || null,
-          name: normalize(row["Tên thiết bị"], "Không tên"),
-          line: normalize(row["Tuyến cáp"], "Chưa rõ"),
-          station: normalize(row["Nhà ga"], "Chưa rõ"),
-          code: row["Ký hiệu"] || null,
-          area: row["Khu vực"] || null,
-          status: normalizeStatus(row["Tình trạng"]),
-          installDate: parseDate(row["Ngày lắp đặt"]),
-          lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
-          lifespan: row["Tuổi thọ thiết bị"]
-            ? Number(row["Tuổi thọ thiết bị"])
-            : null
+          name: row["Tên thiết bị"] || "Không tên",
         };
 
-        // 🔥 FIX: không có deviceId thì create
         if (!data.deviceId) {
           await prisma.device.create({ data });
         } else {
@@ -137,24 +86,22 @@ exports.importExcel = async (req, res) => {
         }
 
         success++;
-
-      } catch (err) {
-        console.log(`❌ Row ${i + 2}:`, err.message);
+      } catch {
         failed++;
       }
     }
 
-    res.json({
-      success,
-      failed,
-      total: rows.length
-    });
+    res.json({ success, failed });
 
   } catch (err) {
-    console.log("🔥 IMPORT ERROR:", err);
-
-    res.status(500).json({
-      error: err.message
-    });
+    res.status(500).json({ error: err.message });
   }
+};
+
+// ===============================
+module.exports = {
+  getDevices,
+  createDevice,
+  deleteDevice,
+  importExcel
 };
