@@ -1,6 +1,14 @@
-export default function Table({ data }) {
+import { useState } from "react";
+import EditDevice from "./EditDevice";
+
+export default function Table({ data = [] }) {
+  const [editing, setEditing] = useState(null);
+
+  if (!Array.isArray(data)) return null;
+
   return (
     <div className="bg-white mt-6 rounded-xl shadow p-4 overflow-x-auto">
+
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-100 text-left">
@@ -15,12 +23,14 @@ export default function Table({ data }) {
             <th className="p-2">Ngày lắp</th>
             <th className="p-2">Bảo trì</th>
             <th className="p-2">Hết hạn</th>
+            <th className="p-2">⚙️</th>
           </tr>
         </thead>
 
         <tbody>
           {data.map((d) => (
             <tr key={d.id} className="border-b hover:bg-gray-50">
+
               <td className="p-2">{d.id}</td>
               <td className="p-2">{d.name}</td>
               <td className="p-2">{d.line}</td>
@@ -47,10 +57,29 @@ export default function Table({ data }) {
                   ? new Date(d.expiryDate).toLocaleDateString()
                   : "-"}
               </td>
+
+              <td className="p-2">
+                <button
+                  onClick={() => setEditing(d)}
+                  className="text-blue-500 hover:underline"
+                >
+                  Edit
+                </button>
+              </td>
+
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* MODAL EDIT */}
+      {editing && (
+        <EditDevice
+          device={editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
+
     </div>
   );
 }
