@@ -3,21 +3,21 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 
 // ===============================
-// GET ALL
+// GET ALL DEVICES
 // ===============================
 exports.getDevices = async (req, res) => {
   try {
-    const data = await prisma.device.findMany({
+    const devices = await prisma.device.findMany({
       orderBy: { createdAt: "desc" }
     });
-    res.json(data);
+    res.json(devices);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ===============================
-// CREATE / UPSERT
+// CREATE / UPSERT DEVICE
 // ===============================
 exports.createDevice = async (req, res) => {
   try {
@@ -42,7 +42,7 @@ exports.createDevice = async (req, res) => {
 };
 
 // ===============================
-// 📥 IMPORT EXCEL (ANTI CRASH)
+// 📥 IMPORT EXCEL (AUTO FIX 100%)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -62,13 +62,36 @@ exports.importExcel = async (req, res) => {
     let failed = [];
 
     // ===============================
-    // 🧠 HELPER
+    // 🧠 AUTO MAP COLUMN
+    // ===============================
+    const findKey = (row, keywords) => {
+      const keys = Object.keys(row);
+
+      return keys.find(k =>
+        keywords.some(w =>
+          k.toLowerCase().includes(w)
+        )
+      );
+    };
+
+    // ===============================
+    // 🧠 DATE FIX (CHỐNG 1970)
     // ===============================
     const parseDate = (v) => {
       if (!v) return null;
 
+      // excel number → date
       if (typeof v === "number") {
         return new Date((v - 25569) * 86400 * 1000);
+      }
+
+      // dd/mm/yyyy → fix
+      if (typeof v === "string" && v.includes("/")) {
+        const parts = v.split("/");
+        if (parts.length === 3) {
+          const [d, m, y] = parts;
+          return new Date(`${y}-${m}-${d}`);
+        }
       }
 
       const d = new Date(v);
@@ -80,6 +103,7 @@ exports.importExcel = async (req, res) => {
 
     const normalizeStatus = (v) => {
       if (!v) return "Inactive";
+
       const t = v.toString().toLowerCase();
 
       if (t.includes("active") || t.includes("hoạt")) return "Active";
@@ -95,21 +119,27 @@ exports.importExcel = async (req, res) => {
       const row = rows[i];
 
       try {
+        const deviceIdKey = findKey(row, ["id"]);
+        const nameKey = findKey(row, ["tên", "name"]);
+        const lineKey = findKey(row, ["tuyến", "line"]);
+        const stationKey = findKey(row, ["ga", "station"]);
+        const statusKey = findKey(row, ["trạng", "status"]);
+        const installKey = findKey(row, ["lắp", "install"]);
+        const maintenanceKey = findKey(row, ["bảo", "bt"]);
+
         const data = {
-          deviceId: row["Mã ID"]?.toString() || null,
-          name: normalize(row["Tên thiết bị"], "Không tên"),
-          line: normalize(row["Tuyến cáp"], "Chưa rõ"),
-          station: normalize(row["Nhà ga"], "Chưa rõ"),
+          deviceId: row[deviceIdKey]?.toString() || null,
+          name: normalize(row[nameKey], "Không tên"),
+          line: normalize(row[lineKey], "Chưa rõ"),
+          station: normalize(row[stationKey], "Chưa rõ"),
           code: row["Ký hiệu"] || null,
           area: row["Khu vực"] || null,
-          status: normalizeStatus(row["Tình trạng"]),
-          installDate: parseDate(row["Ngày lắp đặt"]),
-          lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
-          lifespan: row["Tuổi thọ thiết bị"]
-            ? Number(row["Tuổi thọ thiết bị"])
-            : null,
+          status: normalizeStatus(row[statusKey]),
+          installDate: parseDate(row[installKey]),
+          lastMaintenance: parseDate(row[maintenanceKey]),
         };
 
+        // ❗ thiếu ID → skip
         if (!data.deviceId) {
           failed.push({ row: i + 2, error: "Thiếu Mã ID" });
           continue;
@@ -134,7 +164,8 @@ exports.importExcel = async (req, res) => {
     res.json({
       success,
       failed,
-      total: rows.length
+      total: rows.length,
+      message: "Import hoàn tất 🚀"
     });
 
   } catch (err) {
@@ -144,7 +175,7 @@ exports.importExcel = async (req, res) => {
 };
 
 // ===============================
-// 📤 EXPORT
+// 📤 EXPORT EXCEL
 // ===============================
 exports.exportExcel = async (req, res) => {
   try {
