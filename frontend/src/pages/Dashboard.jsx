@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
 import Table from "../components/Table";
-//import AdvancedFilter from "../components/AdvancedFilter";
+import AdvancedFilter from "../components/AdvancedFilter";
 import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
@@ -118,11 +118,11 @@ export default function Dashboard() {
       </div>
 
       {/* FILTER */}
-      {/* <AdvancedFilter
+      <AdvancedFilter
         devices={devices}
         filter={filter}
         setFilter={setFilter}
-      /> */}
+      />
 
       {/* IMPORT */}
       <ImportExcel />
