@@ -66,50 +66,99 @@ exports.deleteDevice = async (req, res) => {
   }
 };
 
-// ===============================
-// IMPORT EXCEL (FIX DATE 1970)
-// ===============================
 exports.importExcel = async (req, res) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Không có file" });
+    }
+
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet);
 
+    if (!rows.length) {
+      return res.status(400).json({ error: "File rỗng" });
+    }
+
+    // =====================
+    // HELPER
+    // =====================
+    const normalize = (v, def = "") =>
+      v === undefined || v === null || v === "" ? def : v;
+
     const parseDate = (v) => {
       if (!v) return null;
-
-      // FIX EXCEL NUMBER DATE
-      if (typeof v === "number") {
-        const d = new Date((v - 25569) * 86400 * 1000);
-        return d;
-      }
-
       const d = new Date(v);
-      return isNaN(d) ? null : d;
+      return isNaN(d.getTime()) ? null : d;
     };
 
-    const data = rows.map(r => ({
-      name: r["Tên thiết bị"] || "Không tên",
-      line: r["Tuyến cáp"] || "Chưa rõ",
-      station: r["Nhà ga"] || "Chưa rõ",
-      code: r["Ký hiệu"] || null,
-      area: r["Khu vực"] || null,
-      deviceId: r["Mã ID"] || null,
-      status: r["Tình trạng"] || "Inactive",
-      installDate: parseDate(r["Ngày lắp đặt"]),
-      lastMaintenance: parseDate(r["Ngày BT gần nhất"])
+    const normalizeStatus = (v) => {
+      if (!v) return "Inactive";
+
+      const t = v.toString().toLowerCase();
+
+      if (t.includes("active") || t.includes("hoạt")) return "Active";
+      if (t.includes("bảo")) return "Maintenance";
+
+      return "Inactive";
+    };
+
+    // =====================
+    // MAP DATA
+    // =====================
+    const data = rows.map(row => ({
+      deviceId: row["Mã ID"]?.toString() || null,
+      name: normalize(row["Tên thiết bị"], "Không tên"),
+      line: normalize(row["Tuyến cáp"], "Chưa rõ"),
+      station: normalize(row["Nhà ga"], "Chưa rõ"),
+      code: row["Ký hiệu"] || null,
+      area: row["Khu vực"] || null,
+      status: normalizeStatus(row["Tình trạng"]),
+      installDate: parseDate(row["Ngày lắp đặt"]),
+      lastMaintenance: parseDate(row["Ngày BT gần nhất"]),
+      lifespan: row["Tuổi thọ thiết bị"]
+        ? Number(row["Tuổi thọ thiết bị"])
+        : null
     }));
 
-    await prisma.device.createMany({
-      data,
-      skipDuplicates: true
+    // =====================
+    // UPSERT (KHÔNG CRASH)
+    // =====================
+    let success = 0;
+    let failed = 0;
+
+    for (const item of data) {
+      try {
+        await prisma.device.upsert({
+          where: {
+            deviceId: item.deviceId || "temp_" + Math.random()
+          },
+          update: item,
+          create: item
+        });
+
+        success++;
+      } catch (err) {
+        console.log("ROW ERROR:", err.message);
+        failed++;
+      }
+    }
+
+    res.json({
+      success,
+      failed,
+      total: data.length,
+      message: "Import OK"
     });
 
-    res.json({ message: "Import OK" });
-
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log("IMPORT ERROR:", err);
+
+    res.status(500).json({
+      error: err.message
+    });
   }
+};
 // ===============================
 // ❌ DELETE DEVICE
 // ===============================
