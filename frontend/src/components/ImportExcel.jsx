@@ -28,8 +28,8 @@ const isDateField = (key) => {
   return (
     k.includes("ngày") ||
     k.includes("date") ||
-    k.includes("lắp") ||
-  )
+    k.includes("lắp") 
+  );
 };
 
 export default function ImportExcel({ onDone }) {
