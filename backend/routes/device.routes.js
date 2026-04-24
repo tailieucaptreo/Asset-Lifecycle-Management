@@ -1,30 +1,14 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
-
 const controller = require("../controllers/device.controller");
 
-// upload memory (CHO EXCEL)
 const upload = multer({ storage: multer.memoryStorage() });
 
-// =========================
-// ROUTES
-// =========================
+router.get("/", controller.getDevices);
+router.post("/", controller.createDevice);
+router.delete("/:id", controller.deleteDevice);
 
-// GET ALL
-router.get("/devices", controller.getDevices);
-
-// CREATE / UPDATE
-router.post("/devices", controller.createDevice);
-
-// DELETE
-router.delete("/devices/:id", controller.deleteDevice);
-
-// IMPORT EXCEL
-router.post(
-  "/devices/import",
-  upload.single("file"),
-  controller.importExcel
-);
+router.post("/import", upload.single("file"), controller.importExcel);
 
 module.exports = router;
