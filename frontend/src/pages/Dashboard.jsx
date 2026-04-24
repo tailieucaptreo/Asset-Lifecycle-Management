@@ -10,10 +10,15 @@ import AdvancedFilter from "../components/AdvancedFilter";
 import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
+
   const [devices, setDevices] = useState([]);
   const [editing, setEditing] = useState(null);
+
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
   const [filter, setFilter] = useState({
     id: "",
@@ -22,35 +27,50 @@ export default function Dashboard() {
     status: ""
   });
 
-  // =========================
-  // LOAD DATA
-  // =========================
-  const fetchData = async () => {
-    const res = await axios.get(`${API}/api/devices`);
-    setDevices(res.data);
+  // =============================
+  // 🚀 LOAD DATA
+  // =============================
+  const fetchData = () => {
+    axios.get(`${API}/api/devices`)
+      .then(res => setDevices(res.data))
+      .catch(() => setDevices([]));
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // =========================
-  // FILTER
-  // =========================
+  // =============================
+  // 🔥 SEARCH DELAY
+  // =============================
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const now = new Date();
+
+  // =============================
+  // 🔍 FILTER
+  // =============================
   const filtered = devices.filter(d => {
+    const keyword = search.toLowerCase();
+
     return (
       (!filter.id || (d.deviceId || "").includes(filter.id)) &&
       (!filter.line.length || filter.line.includes(d.line)) &&
       (!filter.station.length || filter.station.includes(d.station)) &&
-      (!filter.status || d.status === filter.status)
+      (!filter.status || d.status === filter.status) &&
+      (
+        (d.name || "").toLowerCase().includes(keyword) ||
+        (d.deviceId || "").toLowerCase().includes(keyword)
+      )
     );
   });
 
-  const now = new Date();
-
-  // =========================
-  // STATS
-  // =========================
+  // =============================
+  // 📊 STATS
+  // =============================
   const total = filtered.length;
   const active = filtered.filter(d => d.status === "Active").length;
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
@@ -58,19 +78,57 @@ export default function Dashboard() {
     d => d.expiryDate && new Date(d.expiryDate) < now
   ).length;
 
+  // =============================
+  // 🔔 WARNING
+  // =============================
+  useEffect(() => {
+    filtered.forEach(d => {
+      if (!d.expiryDate) return;
+
+      const diff =
+        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+
+      if (diff <= 7 && diff >= 0) {
+        toast.error(`⚠ ${d.name} sắp hết hạn`);
+      }
+    });
+  }, [filtered]);
+
+  // =============================
+  // 💾 SAVE EDIT
+  // =============================
+  const handleSave = async () => {
+    try {
+      await axios.post(`${API}/api/devices`, editing);
+      setEditing(null);
+      fetchData();
+    } catch {
+      alert("❌ Lưu lỗi");
+    }
+  };
+
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
       {/* HEADER */}
-      <div className="flex justify-between mb-6">
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+
         <h1 className="text-2xl font-bold">📊 Dashboard</h1>
 
-        <button
-          onClick={() => window.open(`${API}/api/devices/export`)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Export
-        </button>
+        <div className="flex gap-3">
+
+          <Header
+            onSearch={setSearchInput}
+            devices={devices}
+          />
+
+          <button
+            onClick={() => window.open(`${API}/api/devices/export`)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Export
+          </button>
+        </div>
       </div>
 
       {/* FILTER */}
@@ -81,11 +139,11 @@ export default function Dashboard() {
       />
 
       {/* IMPORT */}
-      <ImportExcel onDone={fetchData} />
+      <ImportExcel reload={fetchData} />
 
-      {/* CARDS */}
-      <div className="grid grid-cols-4 gap-4 mt-4">
-        <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
+      {/* CARD */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+        <Card title="Tổng" value={total} color="bg-blue-500" icon={<Cpu />} />
         <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
         <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
         <Card title="Hết hạn" value={expired} color="bg-red-500" icon={<AlertTriangle />} />
@@ -103,50 +161,100 @@ export default function Dashboard() {
         reload={fetchData}
       />
 
-      {/* EDIT MODAL */}
+      {/* =============================
+          ✏️ EDIT MODAL FULL PRO
+      ============================= */}
       {editing && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-4 rounded w-96">
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-            <h2 className="font-bold mb-2">Edit thiết bị</h2>
+          <div className="bg-white p-6 rounded-xl w-[400px]">
+
+            <h2 className="font-bold mb-4">Edit thiết bị</h2>
 
             <input
               value={editing.name || ""}
-              onChange={(e) =>
-                setEditing({ ...editing, name: e.target.value })
-              }
-              className="border p-2 w-full mb-2"
+              onChange={(e)=>setEditing({...editing, name:e.target.value})}
+              className="input"
+              placeholder="Tên"
             />
 
             <input
               value={editing.line || ""}
-              onChange={(e) =>
-                setEditing({ ...editing, line: e.target.value })
-              }
-              className="border p-2 w-full mb-2"
+              onChange={(e)=>setEditing({...editing, line:e.target.value})}
+              className="input"
+              placeholder="Tuyến"
             />
 
-            <button
-              onClick={async () => {
-                await axios.post(`${API}/api/devices`, editing);
-                setEditing(null);
-                fetchData();
-              }}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Lưu
-            </button>
+            <input
+              value={editing.station || ""}
+              onChange={(e)=>setEditing({...editing, station:e.target.value})}
+              className="input"
+              placeholder="Nhà ga"
+            />
 
-            <button
-              onClick={() => setEditing(null)}
-              className="ml-2"
+            <input
+              value={editing.code || ""}
+              onChange={(e)=>setEditing({...editing, code:e.target.value})}
+              className="input"
+              placeholder="Ký hiệu"
+            />
+
+            <input
+              value={editing.area || ""}
+              onChange={(e)=>setEditing({...editing, area:e.target.value})}
+              className="input"
+              placeholder="Khu vực"
+            />
+
+            <input
+              value={editing.deviceId || ""}
+              onChange={(e)=>setEditing({...editing, deviceId:e.target.value})}
+              className="input"
+              placeholder="Mã ID"
+            />
+
+            <select
+              value={editing.status || "Inactive"}
+              onChange={(e)=>setEditing({...editing, status:e.target.value})}
+              className="input"
             >
-              Đóng
-            </button>
+              <option>Active</option>
+              <option>Maintenance</option>
+              <option>Inactive</option>
+            </select>
+
+            <input
+              type="date"
+              value={editing.installDate?.slice(0,10) || ""}
+              onChange={(e)=>setEditing({...editing, installDate:e.target.value})}
+              className="input"
+            />
+
+            <input
+              type="date"
+              value={editing.lastMaintenance?.slice(0,10) || ""}
+              onChange={(e)=>setEditing({...editing, lastMaintenance:e.target.value})}
+              className="input"
+            />
+
+            {/* BUTTON */}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleSave}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Lưu
+              </button>
+
+              <button onClick={()=>setEditing(null)}>
+                Đóng
+              </button>
+            </div>
 
           </div>
         </div>
       )}
+
     </div>
   );
 }
