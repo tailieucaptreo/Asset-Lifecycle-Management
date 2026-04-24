@@ -110,4 +110,31 @@ exports.importExcel = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+// ===============================
+// ❌ DELETE DEVICE
+// ===============================
+exports.deleteDevice = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({ error: "ID không hợp lệ" });
+    }
+
+    await prisma.device.delete({
+      where: { id }
+    });
+
+    res.json({
+      message: "Xóa thành công"
+    });
+
+  } catch (err) {
+    console.log("DELETE ERROR:", err);
+
+    res.status(500).json({
+      error: "Xóa thất bại"
+    });
+  }
+};
 };
