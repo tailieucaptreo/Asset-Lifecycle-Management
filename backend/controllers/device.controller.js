@@ -18,7 +18,7 @@ exports.getDevices = async (req, res) => {
 };
 
 // ===============================
-// CREATE (NHẬP TAY)
+// CREATE
 // ===============================
 exports.createDevice = async (req, res) => {
   try {
@@ -49,7 +49,7 @@ exports.createDevice = async (req, res) => {
 };
 
 // ===============================
-// UPDATE (EDIT)
+// UPDATE
 // ===============================
 exports.updateDevice = async (req, res) => {
   try {
@@ -112,7 +112,7 @@ exports.deleteDevice = async (req, res) => {
 };
 
 // ===============================
-// IMPORT EXCEL (KHÔNG BAO GIỜ CRASH)
+// IMPORT EXCEL (KHÔNG FAIL)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -123,7 +123,6 @@ exports.importExcel = async (req, res) => {
     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    // 🔥 quan trọng: defval = null
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
 
     let success = 0;
@@ -133,69 +132,82 @@ exports.importExcel = async (req, res) => {
       try {
         const row = rows[i];
 
-        const data = {
-          deviceId: row["Mã ID"] ? String(row["Mã ID"]) : null,
-          name: row["Tên thiết bị"] || "Không tên",
-          line: row["Tuyến cáp"]
-            ? String(row["Tuyến cáp"])
-            : "Chưa rõ",
-          station: row["Nhà ga"] || "Chưa rõ",
-          code: row["Ký hiệu"] || null,
-          area:
-            row["Khu Vực"] ||
-            row["Khu vực"] ||
-            null,
-
-          status: (() => {
-            const v = row["Trạng thái"];
-            if (!v) return "Inactive";
-            const t = v.toString().toLowerCase();
-            if (t.includes("đang") || t.includes("active"))
-              return "Active";
-            if (t.includes("bảo"))
-              return "Maintenance";
-            return "Inactive";
-          })(),
-
-          installDate: (() => {
-            const v = row["Ngày lắp đặt"];
-            if (!v) return null;
-
-            if (typeof v === "number") {
-              const d = new Date((v - 25569) * 86400 * 1000);
-              return isNaN(d) ? null : d;
-            }
-
-            const d = new Date(v);
-            return isNaN(d) ? null : d;
-          })(),
-
-          lastMaintenance: (() => {
-            const v = row["Ngày BT gần nhất"];
-            if (!v) return null;
-
-            if (typeof v === "number") {
-              const d = new Date((v - 25569) * 86400 * 1000);
-              return isNaN(d) ? null : d;
-            }
-
-            const d = new Date(v);
-            return isNaN(d) ? null : d;
-          })(),
-
-          lifespan: row["Tuổi thọ thiết bị"]
-            ? Number(row["Tuổi thọ thiết bị"])
-            : null
+        // ======================
+        // SAFE FUNCTIONS
+        // ======================
+        const safeString = (v, def = null) => {
+          if (v === undefined || v === null || v === "") return def;
+          return String(v).trim();
         };
 
-        // 🔥 luôn create → cho phép trùng ID
+        const safeNumber = (v) => {
+          const n = Number(v);
+          return isNaN(n) ? null : n;
+        };
+
+        const safeDate = (v) => {
+          if (!v) return null;
+
+          // Excel dạng số
+          if (typeof v === "number") {
+            const d = new Date((v - 25569) * 86400 * 1000);
+            return isNaN(d) ? null : d;
+          }
+
+          const d = new Date(v);
+          return isNaN(d) ? null : d;
+        };
+
+        const normalizeStatus = (v) => {
+          if (!v) return "Inactive";
+
+          const t = v.toString().toLowerCase();
+
+          if (t.includes("đang") || t.includes("active")) return "Active";
+          if (t.includes("bảo")) return "Maintenance";
+
+          return "Inactive";
+        };
+
+        // ======================
+        // BUILD DATA
+        // ======================
+        const data = {
+          deviceId: safeString(row["Mã ID"]),
+          name: safeString(row["Tên thiết bị"], "Không tên"),
+          line: safeString(row["Tuyến cáp"], "Chưa rõ"),
+          station: safeString(row["Nhà ga"], "Chưa rõ"),
+          code: safeString(row["Ký hiệu"]),
+          area:
+            safeString(row["Khu Vực"]) ||
+            safeString(row["Khu vực"]),
+
+          status: normalizeStatus(row["Trạng thái"]),
+          installDate: safeDate(row["Ngày lắp đặt"]),
+          lastMaintenance: safeDate(row["Ngày BT gần nhất"]),
+          lifespan: safeNumber(row["Tuổi thọ thiết bị"])
+        };
+
+        // 🔥 luôn create → cho phép trùng
         await prisma.device.create({ data });
 
         success++;
 
       } catch (err) {
         console.log(`❌ Row ${i + 2}:`, err.message);
-        failed++;
+
+        // 🔥 fallback không mất dòng
+        try {
+          await prisma.device.create({
+            data: {
+              name: "Lỗi dữ liệu",
+              line: "Unknown"
+            }
+          });
+          success++;
+        } catch {
+          failed++;
+        }
       }
     }
 
