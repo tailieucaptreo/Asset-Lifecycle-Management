@@ -7,7 +7,7 @@ import Card from "../components/Card";
 import Chart from "../components/Chart";
 import Table from "../components/Table";
 import AdvancedFilter from "../components/AdvancedFilter";
-import ImportExcel from "../components/ImportExcel";
+//import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
