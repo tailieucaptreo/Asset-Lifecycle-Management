@@ -8,6 +8,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get("/", controller.getDevices);
 router.post("/", controller.createDevice);
 router.delete("/:id", controller.deleteDevice);
+router.put("/:id", controller.updateDevice);
 
 router.post("/import", upload.single("file"), controller.importExcel);
 
