@@ -2,25 +2,55 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
-const upload = multer({ storage: multer.memoryStorage() });
+// ===============================
+// 🔥 MULTER MEMORY (fix Render)
+// ===============================
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
+  }
+});
 
+// ===============================
+// IMPORT CONTROLLER
+// ===============================
 const {
   getDevices,
   createDevice,
-  deleteDevice,
-  importExcel
+  importExcel,
+  exportExcel,
+  deleteDevice
 } = require("../controllers/device.controller");
 
-// GET
+// ===============================
+// GET ALL
+// ===============================
 router.get("/", getDevices);
 
-// CREATE / UPDATE
+// ===============================
+// CREATE / UPSERT
+// ===============================
 router.post("/", createDevice);
 
-// DELETE
+// ===============================
+// IMPORT
+// ===============================
+router.post(
+  "/import",
+  upload.single("file"),
+  importExcel
+);
+
+// ===============================
+// EXPORT
+// ===============================
+router.get("/export", exportExcel);
+
+// ===============================
+// ❌ DELETE
+// ===============================
 router.delete("/:id", deleteDevice);
 
-// IMPORT
-router.post("/import", upload.single("file"), importExcel);
-
+// ===============================
 module.exports = router;
