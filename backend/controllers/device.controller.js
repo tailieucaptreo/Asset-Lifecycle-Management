@@ -42,7 +42,7 @@ exports.createDevice = async (req, res) => {
 };
 
 // ===============================
-// UPDATE (🔥 FIX CRASH)
+// UPDATE
 // ===============================
 exports.updateDevice = async (req, res) => {
   try {
@@ -97,12 +97,12 @@ exports.deleteDevice = async (req, res) => {
 };
 
 // ===============================
-// 🔥 PARSE DATE (FIX EXCEL)
+// 🔥 PARSE DATE CHUẨN (FIX 39853)
 // ===============================
 const parseDate = (v) => {
   if (!v) return null;
 
-  // Excel number
+  // Excel number → Date
   if (typeof v === "number") {
     const date = XLSX.SSF.parse_date_code(v);
     if (!date) return null;
@@ -148,7 +148,7 @@ const getField = (row, keys) => {
 };
 
 // ===============================
-// IMPORT EXCEL (🔥 CHUẨN 100%)
+// IMPORT EXCEL (🔥 FIX DATE + 100%)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -156,9 +156,19 @@ exports.importExcel = async (req, res) => {
       return res.status(400).json({ error: "Không có file" });
     }
 
-    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    // 🔥 FIX 1: đọc đúng dạng date
+    const workbook = XLSX.read(req.file.buffer, {
+      type: "buffer",
+      cellDates: true
+    });
+
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    // 🔥 FIX 2: convert date khỏi dạng số
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      raw: false,
+      defval: null
+    });
 
     if (!rows.length) {
       return res.status(400).json({ error: "File rỗng" });
@@ -184,7 +194,6 @@ exports.importExcel = async (req, res) => {
           lifespan: Number(getField(row, ["tuổi"])) || null
         };
 
-        // 🔥 FIX: tránh crash vì null/undefined
         await prisma.device.create({
           data: {
             ...data,
