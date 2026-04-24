@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -25,18 +26,29 @@ export default function Dashboard() {
     status: ""
   });
 
+  // =========================
   // 🚀 LOAD DATA
-  const fetchData = () => {
-    axios.get(`${API}/api/devices`)
-      .then(res => setDevices(res.data))
-      .catch(() => setDevices([]));
+  // =========================
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/api/devices`);
+      setDevices(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("LOAD ERROR:", err);
+      setDevices([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  // 🔥 debounce search
+  // =========================
+  // 🔥 DEBOUNCE SEARCH
+  // =========================
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -47,7 +59,9 @@ export default function Dashboard() {
 
   const now = new Date();
 
+  // =========================
   // 🔍 FILTER + SEARCH
+  // =========================
   const filtered = devices.filter(d => {
     const keyword = search.toLowerCase();
 
@@ -65,7 +79,9 @@ export default function Dashboard() {
     );
   });
 
+  // =========================
   // 📊 STATS
+  // =========================
   const total = filtered.length;
   const active = filtered.filter(d => d.status === "Active").length;
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
@@ -73,7 +89,9 @@ export default function Dashboard() {
     d => d.expiryDate && new Date(d.expiryDate) < now
   ).length;
 
-  // 🔔 cảnh báo
+  // =========================
+  // 🔔 CẢNH BÁO
+  // =========================
   useEffect(() => {
     filtered.forEach(d => {
       if (!d.expiryDate) return;
@@ -82,23 +100,32 @@ export default function Dashboard() {
         (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
 
       if (diff <= 7 && diff >= 0) {
-        toast.error(`⚠ ${d.name} sắp hết hạn`);
+        toast.error(`⚠ ${d.name} sắp hết hạn`, { id: d.id });
       }
     });
   }, [filtered]);
 
+  // =========================
+  // UI
+  // =========================
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Đang tải dữ liệu...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
-      {/* 🔥 HEADER PRO */}
+      {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
 
-        {/* TITLE */}
         <h1 className="text-2xl font-bold flex items-center gap-2">
           📊 Dashboard
         </h1>
 
-        {/* SEARCH + BUTTON */}
         <div className="flex items-center gap-3 w-full md:w-auto">
 
           <div className="w-full md:w-[420px] lg:w-[480px]">
@@ -117,17 +144,18 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* FILTER */}
+      {/* ================= FILTER ================= */}
       <AdvancedFilter
         devices={devices}
         filter={filter}
         setFilter={setFilter}
       />
 
-      {/* IMPORT */}
-      <ImportExcel />
+      {/* ================= IMPORT ================= */}
+      {/* 🔥 tránh crash nếu component lỗi */}
+      {ImportExcel && <ImportExcel onDone={fetchData} />}
 
-      {/* CARD */}
+      {/* ================= CARD ================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
         <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
         <Card title="Hoạt động" value={active} color={active ? "bg-green-500" : "bg-gray-400"} icon={<CheckCircle />} />
@@ -135,14 +163,14 @@ export default function Dashboard() {
         <Card title="Hết hạn" value={expired} color={expired ? "bg-red-500" : "bg-gray-400"} icon={<AlertTriangle />} />
       </div>
 
-      {/* CHART */}
+      {/* ================= CHART ================= */}
       <div className="mt-8">
         <Chart data={filtered} />
       </div>
 
-      {/* TABLE */}
+      {/* ================= TABLE ================= */}
       <div className="mt-6">
-        <Table data={filtered} />
+        <Table data={filtered} reload={fetchData} />
       </div>
 
     </div>
