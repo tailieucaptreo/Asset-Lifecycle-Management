@@ -3,11 +3,11 @@ import API from "../config";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 
-// 🔥 FORMAT DATE (FIX 39853)
+// 🔥 FORMAT DATE CHỈ DÙNG CHO FIELD NGÀY
 const formatDate = (v) => {
   if (!v) return "";
 
-  // Excel serial
+  // Excel serial number
   if (typeof v === "number" && v > 30000) {
     const d = new Date((v - 25569) * 86400000);
     return d.toLocaleDateString("vi-VN");
@@ -20,6 +20,17 @@ const formatDate = (v) => {
   }
 
   return v;
+};
+
+// 🔥 CHỈ XÁC ĐỊNH CỘT NGÀY
+const isDateField = (key) => {
+  const k = key.toLowerCase();
+  return (
+    k.includes("ngày") ||
+    k.includes("date") ||
+    k.includes("lắp") ||
+    k.includes("bảo trì")
+  );
 };
 
 export default function ImportExcel({ onDone }) {
@@ -39,7 +50,6 @@ export default function ImportExcel({ onDone }) {
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
 
-      // 🔥 FIX DATE NGAY TỪ ĐẦU
       const workbook = XLSX.read(data, {
         type: "array",
         cellDates: true
@@ -48,7 +58,7 @@ export default function ImportExcel({ onDone }) {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
       const json = XLSX.utils.sheet_to_json(sheet, {
-        raw: false,
+        raw: true,      // 🔥 QUAN TRỌNG (không auto convert sai)
         defval: ""
       });
 
@@ -126,7 +136,7 @@ export default function ImportExcel({ onDone }) {
             <thead className="bg-gray-100 sticky top-0 z-10">
               <tr>
                 {Object.keys(preview[0]).map((k) => (
-                  <th key={k} className="p-2 text-left border">
+                  <th key={k} className="p-2 border text-left">
                     {k}
                   </th>
                 ))}
@@ -136,16 +146,18 @@ export default function ImportExcel({ onDone }) {
             <tbody>
               {preview.map((row, i) => (
                 <tr key={i} className="border-b hover:bg-gray-50">
-                  {Object.values(row).map((v, j) => (
+
+                  {Object.entries(row).map(([key, value], j) => (
                     <td key={j} className="p-2 border text-gray-700">
 
-                      {/* 🔥 AUTO FORMAT DATE */}
-                      {typeof v === "number" || typeof v === "string"
-                        ? formatDate(v)
-                        : v}
+                      {/* 🔥 CHỈ FORMAT DATE ĐÚNG CỘT */}
+                      {isDateField(key)
+                        ? formatDate(value)
+                        : value}
 
                     </td>
                   ))}
+
                 </tr>
               ))}
             </tbody>
