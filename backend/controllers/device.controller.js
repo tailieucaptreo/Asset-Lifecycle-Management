@@ -17,7 +17,7 @@ exports.getDevices = async (req, res) => {
 };
 
 // ===============================
-// CREATE / UPSERT
+// CREATE
 // ===============================
 exports.createDevice = async (req, res) => {
   try {
@@ -34,8 +34,41 @@ exports.createDevice = async (req, res) => {
     });
 
     res.json(result);
+
   } catch (err) {
     console.log("CREATE ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ===============================
+// UPDATE (🔥 FIX CRASH)
+// ===============================
+exports.updateDevice = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({ error: "ID không hợp lệ" });
+    }
+
+    const data = req.body;
+
+    const updated = await prisma.device.update({
+      where: { id },
+      data: {
+        ...data,
+        installDate: data.installDate ? new Date(data.installDate) : null,
+        lastMaintenance: data.lastMaintenance
+          ? new Date(data.lastMaintenance)
+          : null
+      }
+    });
+
+    res.json(updated);
+
+  } catch (err) {
+    console.log("UPDATE ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -64,12 +97,12 @@ exports.deleteDevice = async (req, res) => {
 };
 
 // ===============================
-// 🔥 PARSE DATE CHUẨN (FIX EXCEL)
+// 🔥 PARSE DATE (FIX EXCEL)
 // ===============================
 const parseDate = (v) => {
   if (!v) return null;
 
-  // 👉 Excel number (39853)
+  // Excel number
   if (typeof v === "number") {
     const date = XLSX.SSF.parse_date_code(v);
     if (!date) return null;
@@ -77,7 +110,6 @@ const parseDate = (v) => {
     return new Date(date.y, date.m - 1, date.d);
   }
 
-  // 👉 string
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d;
 };
@@ -102,7 +134,7 @@ const normalizeStatus = (v) => {
 };
 
 // ===============================
-// AUTO MAP COLUMN (KHÔNG CẦN ĐÚNG TÊN)
+// AUTO MAP COLUMN
 // ===============================
 const getField = (row, keys) => {
   for (let key of Object.keys(row)) {
@@ -116,7 +148,7 @@ const getField = (row, keys) => {
 };
 
 // ===============================
-// IMPORT EXCEL (PRO MAX)
+// IMPORT EXCEL (🔥 CHUẨN 100%)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -144,16 +176,23 @@ exports.importExcel = async (req, res) => {
           name: normalize(getField(row, ["tên"]), "Không tên"),
           line: normalize(getField(row, ["tuyến"]), "Chưa rõ"),
           station: normalize(getField(row, ["ga"]), "Chưa rõ"),
-          code: getField(row, ["ký hiệu"]),
-          area: getField(row, ["khu vực"]),
+          code: getField(row, ["ký hiệu"]) || null,
+          area: getField(row, ["khu vực"]) || null,
           status: normalizeStatus(getField(row, ["trạng"])),
           installDate: parseDate(getField(row, ["ngày lắp"])),
           lastMaintenance: parseDate(getField(row, ["bảo trì"])),
           lifespan: Number(getField(row, ["tuổi"])) || null
         };
 
-        // 👉 LUÔN CREATE (CHO PHÉP TRÙNG)
-        await prisma.device.create({ data });
+        // 🔥 FIX: tránh crash vì null/undefined
+        await prisma.device.create({
+          data: {
+            ...data,
+            name: data.name || "Không tên",
+            line: data.line || "Chưa rõ",
+            station: data.station || "Chưa rõ"
+          }
+        });
 
         success++;
 
