@@ -3,13 +3,32 @@ import API from "../config";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 
+// 🔥 FORMAT DATE (FIX 39853)
+const formatDate = (v) => {
+  if (!v) return "";
+
+  // Excel serial
+  if (typeof v === "number" && v > 30000) {
+    const d = new Date((v - 25569) * 86400000);
+    return d.toLocaleDateString("vi-VN");
+  }
+
+  // string date
+  const d = new Date(v);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString("vi-VN");
+  }
+
+  return v;
+};
+
 export default function ImportExcel({ onDone }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // 📥 Đọc file để preview
+  // 📥 PREVIEW FILE
   const handlePreview = (f) => {
     if (!f) return;
 
@@ -19,18 +38,27 @@ export default function ImportExcel({ onDone }) {
 
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
+
+      // 🔥 FIX DATE NGAY TỪ ĐẦU
+      const workbook = XLSX.read(data, {
+        type: "array",
+        cellDates: true
+      });
 
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet);
 
-      setPreview(json.slice(0, 20)); // 🔥 chỉ preview 20 dòng
+      const json = XLSX.utils.sheet_to_json(sheet, {
+        raw: false,
+        defval: ""
+      });
+
+      setPreview(json.slice(0, 20));
     };
 
     reader.readAsArrayBuffer(f);
   };
 
-  // 🚀 Import thật
+  // 🚀 IMPORT
   const handleImport = async () => {
     if (!file) return;
 
@@ -66,7 +94,7 @@ export default function ImportExcel({ onDone }) {
       if (onDone) onDone();
 
     } catch (err) {
-      console.error(err);
+      console.error("IMPORT ERROR:", err.response?.data || err);
       alert("❌ Import lỗi - xem console");
     }
 
@@ -81,26 +109,24 @@ export default function ImportExcel({ onDone }) {
         📥 Import Excel (Preview trước)
       </h2>
 
-      {/* CHỌN FILE */}
-      <div className="border-2 border-dashed p-6 text-center rounded-lg">
-
+      {/* SELECT FILE */}
+      <div className="border-2 border-dashed p-6 text-center rounded-lg hover:bg-gray-50 transition">
         <input
           type="file"
           accept=".xlsx, .xls"
           onChange={(e) => handlePreview(e.target.files[0])}
         />
-
       </div>
 
-      {/* PREVIEW TABLE */}
+      {/* PREVIEW */}
       {preview.length > 0 && (
-        <div className="mt-4 overflow-auto max-h-[300px] border rounded">
+        <div className="mt-4 border rounded max-h-[350px] overflow-auto">
 
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+          <table className="w-full text-sm border-collapse">
+            <thead className="bg-gray-100 sticky top-0 z-10">
               <tr>
                 {Object.keys(preview[0]).map((k) => (
-                  <th key={k} className="p-2 text-left">
+                  <th key={k} className="p-2 text-left border">
                     {k}
                   </th>
                 ))}
@@ -109,10 +135,15 @@ export default function ImportExcel({ onDone }) {
 
             <tbody>
               {preview.map((row, i) => (
-                <tr key={i} className="border-b">
+                <tr key={i} className="border-b hover:bg-gray-50">
                   {Object.values(row).map((v, j) => (
-                    <td key={j} className="p-2">
-                      {v?.toString()}
+                    <td key={j} className="p-2 border text-gray-700">
+
+                      {/* 🔥 AUTO FORMAT DATE */}
+                      {typeof v === "number" || typeof v === "string"
+                        ? formatDate(v)
+                        : v}
+
                     </td>
                   ))}
                 </tr>
@@ -126,21 +157,21 @@ export default function ImportExcel({ onDone }) {
       {/* PROGRESS */}
       {loading && (
         <div className="mt-3">
-          <div className="bg-gray-200 h-3 rounded">
+          <div className="bg-gray-200 h-3 rounded overflow-hidden">
             <div
-              className="bg-blue-500 h-3"
+              className="bg-blue-500 h-3 transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p>{progress}%</p>
+          <p className="text-sm mt-1">{progress}% đang upload...</p>
         </div>
       )}
 
-      {/* BUTTON IMPORT */}
+      {/* IMPORT BUTTON */}
       {file && !loading && (
         <button
           onClick={handleImport}
-          className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+          className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow"
         >
           🚀 Xác nhận Import
         </button>
