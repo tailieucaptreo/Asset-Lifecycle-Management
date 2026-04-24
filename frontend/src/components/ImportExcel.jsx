@@ -29,7 +29,6 @@ const isDateField = (key) => {
     k.includes("ngày") ||
     k.includes("date") ||
     k.includes("lắp") ||
-    k.includes("bảo trì")
   );
 };
 
