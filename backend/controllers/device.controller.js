@@ -3,6 +3,50 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 
 // ===============================
+// HELPER
+// ===============================
+const normalize = (v, def = "") =>
+  v === undefined || v === null || v === "" ? def : v;
+
+// 🔥 parse date chuẩn (fix Excel 39853)
+const parseDate = (v) => {
+  if (!v) return null;
+
+  // Excel serial
+  if (typeof v === "number" && v > 30000) {
+    const d = new Date((v - 25569) * 86400000);
+    return d;
+  }
+
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const normalizeStatus = (v) => {
+  if (!v) return "Inactive";
+
+  const t = v.toString().toLowerCase();
+
+  if (t.includes("active") || t.includes("hoạt") || t.includes("sử dụng"))
+    return "Active";
+
+  if (t.includes("bảo")) return "Maintenance";
+
+  return "Inactive";
+};
+
+// 🔥 auto detect column
+const getField = (row, keys) => {
+  for (let key of Object.keys(row)) {
+    const k = key.toLowerCase();
+    if (keys.some(x => k.includes(x))) {
+      return row[key];
+    }
+  }
+  return null;
+};
+
+// ===============================
 // GET ALL
 // ===============================
 exports.getDevices = async (req, res) => {
@@ -26,10 +70,8 @@ exports.createDevice = async (req, res) => {
     const result = await prisma.device.create({
       data: {
         ...data,
-        installDate: data.installDate ? new Date(data.installDate) : null,
-        lastMaintenance: data.lastMaintenance
-          ? new Date(data.lastMaintenance)
-          : null
+        installDate: parseDate(data.installDate),
+        lastMaintenance: parseDate(data.lastMaintenance)
       }
     });
 
@@ -42,7 +84,7 @@ exports.createDevice = async (req, res) => {
 };
 
 // ===============================
-// UPDATE
+// UPDATE (🔥 FIX LỖI LƯU)
 // ===============================
 exports.updateDevice = async (req, res) => {
   try {
@@ -58,10 +100,8 @@ exports.updateDevice = async (req, res) => {
       where: { id },
       data: {
         ...data,
-        installDate: data.installDate ? new Date(data.installDate) : null,
-        lastMaintenance: data.lastMaintenance
-          ? new Date(data.lastMaintenance)
-          : null
+        installDate: parseDate(data.installDate),
+        lastMaintenance: parseDate(data.lastMaintenance)
       }
     });
 
@@ -97,58 +137,7 @@ exports.deleteDevice = async (req, res) => {
 };
 
 // ===============================
-// 🔥 PARSE DATE CHUẨN (FIX 39853)
-// ===============================
-const parseDate = (v) => {
-  if (!v) return null;
-
-  // Excel number → Date
-  if (typeof v === "number") {
-    const date = XLSX.SSF.parse_date_code(v);
-    if (!date) return null;
-
-    return new Date(date.y, date.m - 1, date.d);
-  }
-
-  const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
-};
-
-// ===============================
-// NORMALIZE
-// ===============================
-const normalize = (v, def = "") =>
-  v === undefined || v === null || v === "" ? def : v;
-
-const normalizeStatus = (v) => {
-  if (!v) return "Inactive";
-
-  const t = v.toString().toLowerCase();
-
-  if (t.includes("active") || t.includes("hoạt") || t.includes("sử dụng"))
-    return "Active";
-
-  if (t.includes("bảo")) return "Maintenance";
-
-  return "Inactive";
-};
-
-// ===============================
-// AUTO MAP COLUMN
-// ===============================
-const getField = (row, keys) => {
-  for (let key of Object.keys(row)) {
-    const k = key.toLowerCase();
-
-    if (keys.some(x => k.includes(x))) {
-      return row[key];
-    }
-  }
-  return null;
-};
-
-// ===============================
-// IMPORT EXCEL (🔥 FIX DATE + 100%)
+// IMPORT EXCEL (PRO MAX)
 // ===============================
 exports.importExcel = async (req, res) => {
   try {
@@ -156,19 +145,9 @@ exports.importExcel = async (req, res) => {
       return res.status(400).json({ error: "Không có file" });
     }
 
-    // 🔥 FIX 1: đọc đúng dạng date
-    const workbook = XLSX.read(req.file.buffer, {
-      type: "buffer",
-      cellDates: true
-    });
-
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    // 🔥 FIX 2: convert date khỏi dạng số
-    const rows = XLSX.utils.sheet_to_json(sheet, {
-      raw: false,
-      defval: null
-    });
+    const rows = XLSX.utils.sheet_to_json(sheet);
 
     if (!rows.length) {
       return res.status(400).json({ error: "File rỗng" });
@@ -186,22 +165,16 @@ exports.importExcel = async (req, res) => {
           name: normalize(getField(row, ["tên"]), "Không tên"),
           line: normalize(getField(row, ["tuyến"]), "Chưa rõ"),
           station: normalize(getField(row, ["ga"]), "Chưa rõ"),
-          code: getField(row, ["ký hiệu"]) || null,
-          area: getField(row, ["khu vực"]) || null,
+          code: getField(row, ["ký hiệu"]),
+          area: getField(row, ["khu vực"]),
           status: normalizeStatus(getField(row, ["trạng"])),
           installDate: parseDate(getField(row, ["ngày lắp"])),
           lastMaintenance: parseDate(getField(row, ["bảo trì"])),
           lifespan: Number(getField(row, ["tuổi"])) || null
         };
 
-        await prisma.device.create({
-          data: {
-            ...data,
-            name: data.name || "Không tên",
-            line: data.line || "Chưa rõ",
-            station: data.station || "Chưa rõ"
-          }
-        });
+        // 🔥 LUÔN CREATE → không bị trùng ID
+        await prisma.device.create({ data });
 
         success++;
 
@@ -218,10 +191,7 @@ exports.importExcel = async (req, res) => {
     });
 
   } catch (err) {
-    console.log("🔥 IMPORT ERROR:", err);
-
-    res.status(500).json({
-      error: err.message
-    });
+    console.log("IMPORT ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 };
