@@ -14,6 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/devices" element={<DeviceList />} />
+          <Route path="/devices/expired" element={<ExpiredDevices />} />
           <Route path="/add" element={<AddDevice />} />
         </Routes>
 
