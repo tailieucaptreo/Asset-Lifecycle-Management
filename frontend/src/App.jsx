@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AddDevice from "./pages/AddDevice";
+import DeviceList from "./pages/DeviceList";
 
 export default function App() {
   return (
