@@ -200,62 +200,121 @@ export default function Table({ data = [], reload }) {
       </div>
 
       {/* MODAL EDIT */}
-      {editing && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+{editing && (
+  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-          <div className="bg-white p-6 rounded-xl w-[400px] shadow-lg">
+    <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg">
 
-            <h2 className="font-bold mb-4">✏️ Edit thiết bị</h2>
+      <h2 className="font-bold mb-4 text-lg">✏️ Chỉnh sửa thiết bị</h2>
 
-            <input
-              name="name"
-              value={form.name || ""}
-              onChange={handleChange}
-              className="w-full mb-2 p-2 border rounded"
-              placeholder="Tên"
-            />
+      {/* TÊN */}
+      <input
+        name="name"
+        value={form.name || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Tên thiết bị"
+      />
 
-            <input
-              name="station"
-              value={form.station || ""}
-              onChange={handleChange}
-              className="w-full mb-2 p-2 border rounded"
-              placeholder="Nhà ga"
-            />
+      {/* TUYẾN */}
+      <input
+        name="line"
+        value={form.line || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Tuyến"
+      />
 
-            <select
-              name="status"
-              value={form.status || ""}
-              onChange={handleChange}
-              className="w-full mb-3 p-2 border rounded"
-            >
-              <option value="Active">Active</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+      {/* NHÀ GA */}
+      <input
+        name="station"
+        value={form.station || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Nhà ga"
+      />
 
-            <div className="flex justify-end gap-2">
+      {/* KÝ HIỆU */}
+      <input
+        name="code"
+        value={form.code || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Ký hiệu"
+      />
 
-              <button
-                onClick={() => setEditing(null)}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Hủy
-              </button>
+      {/* KHU VỰC */}
+      <input
+        name="area"
+        value={form.area || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Khu vực"
+      />
 
-              <button
-                onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Lưu
-              </button>
+      {/* MÃ ID */}
+      <input
+        name="deviceId"
+        value={form.deviceId || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+        placeholder="Mã ID"
+      />
 
-            </div>
+      {/* TRẠNG THÁI */}
+      <select
+        name="status"
+        value={form.status || ""}
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+      >
+        <option value="Active">Active</option>
+        <option value="Maintenance">Maintenance</option>
+        <option value="Inactive">Inactive</option>
+      </select>
 
-          </div>
-        </div>
-      )}
+      {/* NGÀY LẮP */}
+      <input
+        type="date"
+        name="installDate"
+        value={
+          form.installDate
+            ? new Date(form.installDate).toISOString().slice(0, 10)
+            : ""
+        }
+        onChange={handleChange}
+        className="w-full mb-2 p-2 border rounded"
+      />
+
+      {/* TUỔI THỌ */}
+      <input
+        type="number"
+        name="lifespan"
+        value={form.lifespan || ""}
+        onChange={handleChange}
+        className="w-full mb-3 p-2 border rounded"
+        placeholder="Tuổi thọ (năm)"
+      />
+
+      {/* BUTTON */}
+      <div className="flex justify-end gap-2 mt-3">
+
+        <button
+          onClick={() => setEditing(null)}
+          className="px-4 py-2 bg-gray-300 rounded"
+        >
+          Hủy
+        </button>
+
+        <button
+          onClick={handleUpdate}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Lưu
+        </button>
+
+      </div>
 
     </div>
-  );
-}
+  </div>
+)}
