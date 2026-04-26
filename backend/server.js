@@ -2,27 +2,22 @@ const express = require("express");
 const cors = require("cors");
 
 const deviceRoutes = require("./routes/device.routes");
+const workRoutes = require("./routes/work.routes");
 
 const app = express();
 
-const workRoutes = require("./routes/work.routes");
-
-app.use("/api/work-orders", workRoutes);
-
+// 🔥 CORS FIX CHẮC CHẮN
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://asset-lifecycle-management.vercel.app"
-  ],
+  origin: "*", // 👉 test trước
   methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  allowedHeaders: ["Content-Type"]
 }));
 
 app.use(express.json());
 
-// 👇 quan trọng
 app.use("/api/devices", deviceRoutes);
+app.use("/api/work-orders", workRoutes);
 
 app.listen(5000, () => {
-  console.log("Server chạy tại http://localhost:5000");
+  console.log("Server running");
 });
