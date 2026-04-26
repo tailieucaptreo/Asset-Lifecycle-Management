@@ -1,3 +1,8 @@
+import { useState, useEffect } from "react";
+import axios from "axios";
+import API from "../config";
+import Table from "../components/Table";
+
 export default function ExpiredDevices() {
 
   const [data, setData] = useState([]);
@@ -18,16 +23,20 @@ export default function ExpiredDevices() {
         });
 
         setData(expired);
-      });
+
+      })
+      .catch(() => setData([]));
   }, []);
 
   return (
     <div className="p-6">
+
       <h1 className="text-xl font-bold mb-4 text-red-500">
         ⛔ Thiết bị hết hạn
       </h1>
 
       <Table data={data} />
+
     </div>
   );
 }
