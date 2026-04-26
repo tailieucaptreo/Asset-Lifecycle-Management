@@ -1,16 +1,24 @@
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-export default function Card({ title, value, color, icon }) {
+export default function Card({ title, value, color, icon, to }) {
+
+  const nav = useNavigate();
+
   return (
-    <motion.div
-      whileHover={{ scale: 1.05 }}
-      className={`p-5 rounded-2xl text-white shadow-xl ${color}`}
+    <div
+      onClick={() => to && nav(to)}
+      className={`${color} text-white p-5 rounded-xl shadow cursor-pointer hover:scale-105 transition`}
     >
       <div className="flex justify-between items-center">
-        <h3 className="text-sm opacity-80">{title}</h3>
-        <div className="opacity-80">{icon}</div>
+        <div>
+          <p className="text-sm">{title}</p>
+          <h2 className="text-2xl font-bold">{value}</h2>
+        </div>
+
+        <div className="text-2xl opacity-80">
+          {icon}
+        </div>
       </div>
-      <p className="text-3xl font-bold mt-3">{value}</p>
-    </motion.div>
+    </div>
   );
 }
