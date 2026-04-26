@@ -8,39 +8,58 @@ export default function WorkOrders() {
 
   const [form, setForm] = useState({
     deviceId: "",
-    title: "",
-    status: "Pending"
+    title: ""
   });
 
-  // ================= LOAD DEVICES =================
+  // LOAD DATA
+  const load = () => {
+    fetch(`${API}/api/work-orders`)
+      .then(res => res.json())
+      .then(setJobs);
+  };
+
   useEffect(() => {
     fetch(`${API}/api/devices`)
       .then(res => res.json())
       .then(setDevices);
+
+    load();
   }, []);
 
-  // ================= ADD JOB =================
-  const handleAdd = () => {
-    if (!form.title) return alert("Nhập tên công việc");
+  // ADD
+  const handleAdd = async () => {
+    if (!form.title) return alert("Nhập tên");
 
-    const newJob = {
-      id: Date.now(),
-      ...form,
-      createdAt: new Date()
-    };
-
-    setJobs([newJob, ...jobs]);
-
-    setForm({
-      deviceId: "",
-      title: "",
-      status: "Pending"
+    await fetch(`${API}/api/work-orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form)
     });
+
+    setForm({ deviceId: "", title: "" });
+    load();
   };
 
-  // ================= UPDATE STATUS =================
-  const updateStatus = (id, status) => {
-    setJobs(jobs.map(j => j.id === id ? { ...j, status } : j));
+  // UPDATE
+  const updateStatus = async (id, status) => {
+    await fetch(`${API}/api/work-orders/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+
+    load();
+  };
+
+  // DELETE
+  const remove = async (id) => {
+    if (!confirm("Xóa?")) return;
+
+    await fetch(`${API}/api/work-orders/${id}`, {
+      method: "DELETE"
+    });
+
+    load();
   };
 
   return (
@@ -48,7 +67,7 @@ export default function WorkOrders() {
 
       <h1 className="text-xl font-bold mb-4">🛠 Công việc bảo trì</h1>
 
-      {/* ================= FORM ================= */}
+      {/* FORM */}
       <div className="bg-white p-4 rounded shadow mb-4 grid grid-cols-3 gap-3">
 
         <select
@@ -80,7 +99,7 @@ export default function WorkOrders() {
 
       </div>
 
-      {/* ================= TABLE ================= */}
+      {/* TABLE */}
       <div className="bg-white rounded shadow">
 
         <table className="w-full text-sm">
@@ -91,37 +110,44 @@ export default function WorkOrders() {
               <th className="p-2 border">Công việc</th>
               <th className="p-2 border">Trạng thái</th>
               <th className="p-2 border">Ngày tạo</th>
+              <th className="p-2 border">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {jobs.map(j => {
-              const device = devices.find(d => d.id == j.deviceId);
+            {jobs.map(j => (
+              <tr key={j.id}>
+                <td className="p-2 border">{j.device?.name}</td>
 
-              return (
-                <tr key={j.id}>
-                  <td className="p-2 border">{device?.name || "-"}</td>
+                <td className="p-2 border">{j.title}</td>
 
-                  <td className="p-2 border">{j.title}</td>
+                <td className="p-2 border">
+                  <select
+                    value={j.status}
+                    onChange={(e) => updateStatus(j.id, e.target.value)}
+                    className="border p-1"
+                  >
+                    <option>Pending</option>
+                    <option>Doing</option>
+                    <option>Done</option>
+                  </select>
+                </td>
 
-                  <td className="p-2 border">
-                    <select
-                      value={j.status}
-                      onChange={(e) => updateStatus(j.id, e.target.value)}
-                      className="border p-1"
-                    >
-                      <option>Pending</option>
-                      <option>Doing</option>
-                      <option>Done</option>
-                    </select>
-                  </td>
+                <td className="p-2 border">
+                  {new Date(j.createdAt).toLocaleDateString("vi-VN")}
+                </td>
 
-                  <td className="p-2 border">
-                    {new Date(j.createdAt).toLocaleDateString("vi-VN")}
-                  </td>
-                </tr>
-              );
-            })}
+                <td className="p-2 border text-center">
+                  <button
+                    onClick={() => remove(j.id)}
+                    className="text-red-600"
+                  >
+                    Delete
+                  </button>
+                </td>
+
+              </tr>
+            ))}
           </tbody>
 
         </table>
