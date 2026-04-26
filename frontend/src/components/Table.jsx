@@ -49,7 +49,7 @@ export default function Table({ data = [], reload }) {
 
   const handleUpdate = async () => {
     try {
-      await fetch(`${API}/api/devices/${editing.id}`, {
+      await fetch(`${API}/api/devices/update/${editing.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
