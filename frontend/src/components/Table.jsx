@@ -29,7 +29,7 @@ export default function Table({ data = [], reload }) {
 
       reload && reload();
 
-    } catch (err) {
+    } catch {
       alert("Xóa lỗi");
     }
   };
@@ -60,7 +60,7 @@ export default function Table({ data = [], reload }) {
       setEditing(null);
       reload && reload();
 
-    } catch (err) {
+    } catch {
       alert("Update lỗi");
     }
   };
@@ -68,7 +68,7 @@ export default function Table({ data = [], reload }) {
   return (
     <div className="bg-white rounded-xl shadow">
 
-      {/* SCROLL */}
+      {/* TABLE */}
       <div className="overflow-x-auto">
 
         <table className="w-full text-sm border border-gray-200">
@@ -76,6 +76,7 @@ export default function Table({ data = [], reload }) {
           {/* FILTER */}
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
+
               <th className="p-2">
                 <input
                   placeholder="Tên"
@@ -120,11 +121,11 @@ export default function Table({ data = [], reload }) {
 
               <th className="p-3 w-[220px]">Tên</th>
               <th className="p-3 w-[60px] text-center">Tuyến</th>
-              <th className="p-3 w-[100px]">Nhà ga</th>
+              <th className="p-3 w-[120px]">Nhà ga</th>
               <th className="p-3 w-[120px]">Trạng thái</th>
               <th className="p-3 w-[90px]">Ký hiệu</th>
               <th className="p-3 w-[120px]">Khu vực</th>
-              <th className="p-3 w-[120px]">Mã ID</th>
+              <th className="p-3 w-[130px]">Mã ID</th>
               <th className="p-3 w-[110px]">Ngày lắp</th>
               <th className="p-3 w-[80px] text-center">Tuổi thọ</th>
               <th className="p-3 w-[120px] text-center">Action</th>
@@ -135,10 +136,7 @@ export default function Table({ data = [], reload }) {
           {/* BODY */}
           <tbody>
             {filteredData.map((d) => (
-              <tr
-                key={d.id}
-                className="border-t hover:bg-gray-50 transition"
-              >
+              <tr key={d.id} className="border-t hover:bg-gray-50">
 
                 <td className="p-3 font-medium">{d.name}</td>
 
@@ -146,6 +144,7 @@ export default function Table({ data = [], reload }) {
 
                 <td className="p-3">{d.station}</td>
 
+                {/* STATUS */}
                 <td className="p-3">
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold
@@ -174,6 +173,7 @@ export default function Table({ data = [], reload }) {
 
                 <td className="p-3 text-center">{d.lifespan || "-"}</td>
 
+                {/* ACTION */}
                 <td className="p-3 text-center space-x-2">
 
                   <button
@@ -199,122 +199,86 @@ export default function Table({ data = [], reload }) {
         </table>
       </div>
 
-      {/* MODAL EDIT */}
-{editing && (
-  <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+      {/* ================= MODAL ================= */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-    <div className="bg-white p-6 rounded-xl w-[500px] shadow-lg">
+          <div className="bg-white p-6 rounded-xl w-[600px] shadow-lg">
 
-      <h2 className="font-bold mb-4 text-lg">✏️ Chỉnh sửa thiết bị</h2>
+            <h2 className="font-bold mb-4 text-lg">
+              ✏️ Chỉnh sửa thiết bị
+            </h2>
 
-      {/* TÊN */}
-      <input
-        name="name"
-        value={form.name || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Tên thiết bị"
-      />
+            {/* GRID */}
+            <div className="grid grid-cols-2 gap-3">
 
-      {/* TUYẾN */}
-      <input
-        name="line"
-        value={form.line || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Tuyến"
-      />
+              <input name="name" value={form.name || ""} onChange={handleChange}
+                className="col-span-2 p-2 border rounded" placeholder="Tên thiết bị" />
 
-      {/* NHÀ GA */}
-      <input
-        name="station"
-        value={form.station || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Nhà ga"
-      />
+              <input name="line" value={form.line || ""} onChange={handleChange}
+                className="p-2 border rounded" placeholder="Tuyến" />
 
-      {/* KÝ HIỆU */}
-      <input
-        name="code"
-        value={form.code || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Ký hiệu"
-      />
+              <input name="station" value={form.station || ""} onChange={handleChange}
+                className="p-2 border rounded" placeholder="Nhà ga" />
 
-      {/* KHU VỰC */}
-      <input
-        name="area"
-        value={form.area || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Khu vực"
-      />
+              <input name="code" value={form.code || ""} onChange={handleChange}
+                className="p-2 border rounded" placeholder="Ký hiệu" />
 
-      {/* MÃ ID */}
-      <input
-        name="deviceId"
-        value={form.deviceId || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-        placeholder="Mã ID"
-      />
+              <input name="area" value={form.area || ""} onChange={handleChange}
+                className="p-2 border rounded" placeholder="Khu vực" />
 
-      {/* TRẠNG THÁI */}
-      <select
-        name="status"
-        value={form.status || ""}
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-      >
-        <option value="Active">Active</option>
-        <option value="Maintenance">Maintenance</option>
-        <option value="Inactive">Inactive</option>
-      </select>
+              <input name="deviceId" value={form.deviceId || ""} onChange={handleChange}
+                className="col-span-2 p-2 border rounded" placeholder="Mã ID" />
 
-      {/* NGÀY LẮP */}
-      <input
-        type="date"
-        name="installDate"
-        value={
-          form.installDate
-            ? new Date(form.installDate).toISOString().slice(0, 10)
-            : ""
-        }
-        onChange={handleChange}
-        className="w-full mb-2 p-2 border rounded"
-      />
+              <select name="status" value={form.status || ""} onChange={handleChange}
+                className="p-2 border rounded">
+                <option value="Active">Active</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Inactive">Inactive</option>
+              </select>
 
-      {/* TUỔI THỌ */}
-      <input
-        type="number"
-        name="lifespan"
-        value={form.lifespan || ""}
-        onChange={handleChange}
-        className="w-full mb-3 p-2 border rounded"
-        placeholder="Tuổi thọ (năm)"
-      />
+              <input type="number" name="lifespan" value={form.lifespan || ""}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                placeholder="Tuổi thọ (năm)" />
 
-      {/* BUTTON */}
-      <div className="flex justify-end gap-2 mt-3">
+              <input
+                type="date"
+                name="installDate"
+                value={
+                  form.installDate
+                    ? new Date(form.installDate).toISOString().split("T")[0]
+                    : ""
+                }
+                onChange={handleChange}
+                className="col-span-2 p-2 border rounded"
+              />
 
-        <button
-          onClick={() => setEditing(null)}
-          className="px-4 py-2 bg-gray-300 rounded"
-        >
-          Hủy
-        </button>
+            </div>
 
-        <button
-          onClick={handleUpdate}
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Lưu
-        </button>
+            {/* BUTTON */}
+            <div className="flex justify-end gap-2 mt-5">
 
-      </div>
+              <button
+                onClick={() => setEditing(null)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Hủy
+              </button>
+
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Lưu
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
-  </div>
-)}
+  );
+}
