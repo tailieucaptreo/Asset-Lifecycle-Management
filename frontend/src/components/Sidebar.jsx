@@ -1,108 +1,112 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Database,
-  BarChart3,
-  Settings,
-  ChevronDown,
-  Plus,
-  List
-} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Sidebar() {
+
+  const nav = useNavigate();
+  const location = useLocation();
+
   const [openDevice, setOpenDevice] = useState(true);
+  const [openMaintenance, setOpenMaintenance] = useState(false);
 
-  const linkClass =
-    "flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-gray-700";
-
-  const activeClass = "bg-blue-600";
+  const active = (path) =>
+    location.pathname === path
+      ? "bg-blue-600 text-white"
+      : "hover:bg-gray-700";
 
   return (
-    <div className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-screen flex flex-col p-4 shadow-xl">
+    <div className="w-64 bg-[#0f172a] text-white min-h-screen p-4">
 
-      {/* LOGO */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="bg-blue-500 p-2 rounded-lg">🚇</div>
-        <h1 className="text-lg font-bold">Asset Manager</h1>
+      <h2 className="text-lg font-bold mb-6">⚙ Asset Manager</h2>
+
+      {/* DASHBOARD */}
+      <div
+        className={`p-2 rounded cursor-pointer ${active("/")}`}
+        onClick={() => nav("/")}
+      >
+        📊 Dashboard
       </div>
 
-      {/* MENU */}
-      <nav className="flex-1 space-y-2">
+      {/* ================= DEVICE ================= */}
+      <div className="mt-4">
 
-        {/* DASHBOARD */}
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `${linkClass} ${isActive ? activeClass : ""}`
-          }
+        <div
+          className="p-2 cursor-pointer flex justify-between"
+          onClick={() => setOpenDevice(!openDevice)}
         >
-          <LayoutDashboard size={18} />
-          Dashboard
-        </NavLink>
+          <span>🗂 Thiết bị</span>
+          <span>{openDevice ? "▾" : "▸"}</span>
+        </div>
 
-        {/* THIẾT BỊ */}
-        <div>
-          <div
-            onClick={() => setOpenDevice(!openDevice)}
-            className="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-700"
-          >
-            <span className="flex items-center gap-3">
-              <Database size={18} />
-              Thiết bị
-            </span>
+        {openDevice && (
+          <div className="ml-4 space-y-1">
 
-            <ChevronDown
-              size={16}
-              className={`transition ${openDevice ? "rotate-180" : ""}`}
-            />
-          </div>
-
-          {/* SUBMENU */}
-          <div
-            className={`ml-6 mt-2 space-y-1 overflow-hidden transition-all duration-300 ${
-              openDevice ? "max-h-40" : "max-h-0"
-            }`}
-          >
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `${linkClass} text-sm ${isActive ? activeClass : ""}`
-              }
+            <div
+              className={`p-2 rounded cursor-pointer ${active("/devices")}`}
+              onClick={() => nav("/devices")}
             >
-              <List size={16} />
-              Danh sách
-            </NavLink>
+              📋 Tổng thiết bị
+            </div>
 
-            <NavLink
-              to="/add"
-              className={({ isActive }) =>
-                `${linkClass} text-sm ${isActive ? activeClass : ""}`
-              }
+            <div
+              className={`p-2 rounded cursor-pointer ${active("/add")}`}
+              onClick={() => nav("/add")}
             >
-              <Plus size={16} />
-              Nhập thiết bị
-            </NavLink>
+              ➕ Nhập thiết bị
+            </div>
+
+            <div className="p-2 cursor-pointer hover:bg-gray-700 rounded">
+              📂 Phân loại
+            </div>
+
+            <div className="p-2 cursor-pointer hover:bg-gray-700 rounded">
+              ⚠ Thiết bị lỗi
+            </div>
+
           </div>
-        </div>
-
-        {/* BÁO CÁO */}
-        <div className={`${linkClass}`}>
-          <BarChart3 size={18} />
-          Báo cáo
-        </div>
-
-        {/* CÀI ĐẶT */}
-        <div className={`${linkClass}`}>
-          <Settings size={18} />
-          Cài đặt
-        </div>
-      </nav>
-
-      {/* FOOTER */}
-      <div className="mt-auto pt-4 border-t border-gray-700 text-sm text-gray-400">
-        © 2026 Asset System
+        )}
       </div>
+
+      {/* ================= MAINTENANCE ================= */}
+      <div className="mt-4">
+
+        <div
+          className="p-2 cursor-pointer flex justify-between"
+          onClick={() => setOpenMaintenance(!openMaintenance)}
+        >
+          <span>🔧 Bảo trì</span>
+          <span>{openMaintenance ? "▾" : "▸"}</span>
+        </div>
+
+        {openMaintenance && (
+          <div className="ml-4 space-y-1">
+
+            <div className="p-2 hover:bg-gray-700 rounded">
+              📅 Lịch bảo trì
+            </div>
+
+            <div className="p-2 hover:bg-gray-700 rounded">
+              🛠 Công việc
+            </div>
+
+            <div className="p-2 hover:bg-gray-700 rounded">
+              🚨 Cảnh báo
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      {/* REPORT */}
+      <div className="mt-4 p-2 hover:bg-gray-700 rounded cursor-pointer">
+        📊 Báo cáo
+      </div>
+
+      {/* SETTINGS */}
+      <div className="mt-4 p-2 hover:bg-gray-700 rounded cursor-pointer">
+        ⚙ Cài đặt
+      </div>
+
     </div>
   );
 }
