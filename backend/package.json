@@ -1,22 +1,26 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "description": "Asset Lifecycle Management Backend",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "prisma generate && prisma migrate deploy",
+    "dev": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "cors": "^2.8.6",
-    "exceljs": "^4.4.0",
-    "express": "^5.2.1",
-    "multer": "^2.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5",
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
     "prisma": "^5.22.0",
-    "xlsx": "^0.18.5"
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
