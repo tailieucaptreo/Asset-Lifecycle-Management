@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AddDevice from "./pages/AddDevice";
 import DeviceList from "./pages/DeviceList";
+import ExpiredDevices from "./pages/ExpiredDevices";
 
 export default function App() {
   return (
