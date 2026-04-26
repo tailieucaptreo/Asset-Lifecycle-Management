@@ -1,101 +1,71 @@
 import axios from "axios";
 import API from "../config";
 
-export default function Table({ data = [], setEditing, reload }) {
+export default function Table({ data, onEdit, onDelete, onSelect }) {
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Xóa thiết bị này?")) return;
-
-    try {
-      await axios.delete(`${API}/api/devices/${id}`);
-      reload();
-    } catch (err) {
-      alert("❌ Xóa lỗi");
-    }
+  const formatDate = (d) => {
+    if (!d) return "-";
+    const date = new Date(d);
+    return isNaN(date) ? "-" : date.toLocaleDateString("vi-VN");
   };
 
   return (
-    <div className="bg-white mt-6 rounded-xl shadow">
+    <div className="mt-6 bg-white rounded shadow overflow-auto max-h-[500px]">
 
-      {/* SCROLL CONTAINER */}
-      <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
+      <table className="w-full text-sm border">
 
-        <table className="w-full text-sm border-collapse">
+        <thead className="bg-gray-100 sticky top-0">
+          <tr>
+            <th className="p-2 border">ID</th>
+            <th className="p-2 border">Tên</th>
+            <th className="p-2 border">Tuyến</th>
+            <th className="p-2 border">Nhà ga</th>
+            <th className="p-2 border">Mã ID</th>
+            <th className="p-2 border">Ngày lắp</th>
+            <th className="p-2 border">Action</th>
+          </tr>
+        </thead>
 
-          {/* STICKY HEADER */}
-          <thead className="bg-gray-100 sticky top-0 z-10">
-            <tr>
-              <th className="p-2">ID</th>
-              <th className="p-2">Tên</th>
-              <th className="p-2">Tuyến</th>
-              <th className="p-2">Nhà ga</th>
-              <th className="p-2">Ký hiệu</th>
-              <th className="p-2">Khu vực</th>
-              <th className="p-2">Mã ID</th>
-              <th className="p-2">Trạng thái</th>
-              <th className="p-2">Ngày lắp</th>
-              <th className="p-2">Bảo trì</th>
-              <th className="p-2">Hết hạn</th>
-              <th className="p-2">Action</th>
+        <tbody>
+          {data.map((d) => (
+            <tr
+              key={d.id}
+              className="border-b hover:bg-gray-50 cursor-pointer"
+              onClick={() => onSelect(d)}
+            >
+
+              <td className="p-2">{d.id}</td>
+              <td className="p-2">{d.name}</td>
+              <td className="p-2">{d.line}</td>
+              <td className="p-2">{d.station}</td>
+              <td className="p-2">{d.deviceId}</td>
+              <td className="p-2">{formatDate(d.installDate)}</td>
+
+              <td
+                className="p-2 space-x-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => onEdit(d)}
+                  className="text-blue-600"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => onDelete(d.id)}
+                  className="text-red-600"
+                >
+                  Delete
+                </button>
+              </td>
+
             </tr>
-          </thead>
+          ))}
+        </tbody>
 
-          <tbody>
-            {data.map((d) => (
-              <tr key={d.id} className="border-b hover:bg-gray-50">
+      </table>
 
-                <td className="p-2">{d.id}</td>
-                <td className="p-2">{d.name}</td>
-                <td className="p-2">{d.line}</td>
-                <td className="p-2">{d.station}</td>
-                <td className="p-2">{d.code}</td>
-                <td className="p-2">{d.area}</td>
-                <td className="p-2">{d.deviceId}</td>
-                <td className="p-2">{d.status}</td>
-
-                <td className="p-2">
-                  {d.installDate
-                    ? new Date(d.installDate).toLocaleDateString()
-                    : "-"}
-                </td>
-
-                <td className="p-2">
-                  {d.lastMaintenance
-                    ? new Date(d.lastMaintenance).toLocaleDateString()
-                    : "-"}
-                </td>
-
-                <td className="p-2">
-                  {d.expiryDate
-                    ? new Date(d.expiryDate).toLocaleDateString()
-                    : "-"}
-                </td>
-
-                {/* ACTION */}
-                <td className="p-2 flex gap-2">
-
-                  <button
-                    onClick={() => setEditing(d)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(d.id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Delete
-                  </button>
-
-                </td>
-
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
     </div>
   );
 }
