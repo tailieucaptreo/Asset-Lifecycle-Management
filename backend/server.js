@@ -9,7 +9,17 @@ const workRoutes = require("./routes/work.routes");
 
 app.use("/api/work-orders", workRoutes);
 
-app.use(cors());
+const cors = require("cors");
+
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://asset-lifecycle-management.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // 👇 quan trọng
