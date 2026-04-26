@@ -32,6 +32,7 @@ model Device {
   expiryDate      DateTime?
 
   createdAt       DateTime @default(now())
+  workOrders      WorkOrder[]
 }
 
 model WorkOrder {
