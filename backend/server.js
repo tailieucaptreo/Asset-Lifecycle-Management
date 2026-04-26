@@ -9,8 +9,6 @@ const workRoutes = require("./routes/work.routes");
 
 app.use("/api/work-orders", workRoutes);
 
-const cors = require("cors");
-
 app.use(cors({
   origin: [
     "http://localhost:3000",
