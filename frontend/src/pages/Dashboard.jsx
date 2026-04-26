@@ -16,18 +16,24 @@ export default function Dashboard() {
 
   const [devices, setDevices] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [selected, setSelected] = useState(null);
+
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+
+  const [filter, setFilter] = useState({
+    id: "",
+    line: [],
+    station: [],
+    status: ""
+  });
 
   // =============================
-  // LOAD DATA
+  // 🚀 LOAD DATA
   // =============================
-  const fetchData = async () => {
-    try {
-      const res = await axios.get(`${API}/api/devices`);
-      setDevices(res.data);
-    } catch {
-      setDevices([]);
-    }
+  const fetchData = () => {
+    axios.get(`${API}/api/devices`)
+      .then(res => setDevices(res.data))
+      .catch(() => setDevices([]));
   };
 
   useEffect(() => {
@@ -35,161 +41,204 @@ export default function Dashboard() {
   }, []);
 
   // =============================
-  // DELETE
+  // 🔥 SEARCH DELAY
   // =============================
-  const handleDelete = async (id) => {
-    if (!window.confirm("Xóa thiết bị?")) return;
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-    try {
-      await axios.delete(`${API}/api/devices/${id}`);
-      toast.success("Đã xóa");
-      fetchData();
-    } catch {
-      toast.error("Xóa lỗi");
-    }
-  };
+  const now = new Date();
 
   // =============================
-  // SAVE EDIT
+  // 🔍 FILTER
+  // =============================
+  const filtered = devices.filter(d => {
+    const keyword = search.toLowerCase();
+
+    return (
+      (!filter.id || (d.deviceId || "").includes(filter.id)) &&
+      (!filter.line.length || filter.line.includes(d.line)) &&
+      (!filter.station.length || filter.station.includes(d.station)) &&
+      (!filter.status || d.status === filter.status) &&
+      (
+        (d.name || "").toLowerCase().includes(keyword) ||
+        (d.deviceId || "").toLowerCase().includes(keyword)
+      )
+    );
+  });
+
+  // =============================
+  // 📊 STATS
+  // =============================
+  const total = filtered.length;
+  const active = filtered.filter(d => d.status === "Active").length;
+  const maintenance = filtered.filter(d => d.status === "Maintenance").length;
+  const expired = filtered.filter(
+    d => d.expiryDate && new Date(d.expiryDate) < now
+  ).length;
+
+  // =============================
+  // 🔔 WARNING
+  // =============================
+  useEffect(() => {
+    filtered.forEach(d => {
+      if (!d.expiryDate) return;
+
+      const diff =
+        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+
+      if (diff <= 7 && diff >= 0) {
+        toast.error(`⚠ ${d.name} sắp hết hạn`);
+      }
+    });
+  }, [filtered]);
+
+  // =============================
+  // 💾 SAVE EDIT
   // =============================
   const handleSave = async () => {
     try {
-      await axios.put(`${API}/api/devices/${editing.id}`, editing);
-
-      toast.success("Lưu thành công");
+      await axios.post(`${API}/api/devices`, editing);
       setEditing(null);
       fetchData();
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Lưu lỗi");
+    } catch {
+      alert("❌ Lưu lỗi");
     }
   };
 
-  // =============================
-  // FORMAT DATE
-  // =============================
-  const formatDate = (d) => {
-    if (!d) return "-";
-    const date = new Date(d);
-    return isNaN(date) ? "-" : date.toLocaleDateString("vi-VN");
-  };
-
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
-      <h1 className="text-2xl font-bold mb-4">📊 Dashboard</h1>
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
+
+        <h1 className="text-2xl font-bold">📊 Dashboard</h1>
+
+        <div className="flex gap-3">
+
+          <Header
+            onSearch={setSearchInput}
+            devices={devices}
+          />
+
+          <button
+            onClick={() => window.open(`${API}/api/devices/export`)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Export
+          </button>
+        </div>
+      </div>
+
+      {/* FILTER */}
+      <AdvancedFilter
+        devices={devices}
+        filter={filter}
+        setFilter={setFilter}
+      />
 
       {/* IMPORT */}
-      <ImportExcel onDone={fetchData} />
+      <ImportExcel reload={fetchData} />
+
+      {/* CARD */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+        <Card title="Tổng" value={total} color="bg-blue-500" icon={<Cpu />} />
+        <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
+        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
+        <Card title="Hết hạn" value={expired} color="bg-red-500" icon={<AlertTriangle />} />
+      </div>
+
+      {/* CHART */}
+      <div className="mt-6">
+        <Chart data={filtered} />
+      </div>
 
       {/* TABLE */}
       <Table
-        data={devices}
-        onEdit={setEditing}
-        onDelete={handleDelete}
-        onSelect={setSelected}
+        data={filtered}
+        setEditing={setEditing}
+        reload={fetchData}
       />
 
       {/* =============================
-          🔍 DETAIL MODAL
-      ============================= */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-          <div className="bg-white p-6 rounded-xl w-[700px] grid grid-cols-2 gap-6">
-
-            {/* LEFT */}
-            <div>
-
-              <h2 className="font-bold text-lg mb-3">
-                {selected.name}
-              </h2>
-
-              <p><b>Tuyến:</b> {selected.line}</p>
-              <p><b>Nhà ga:</b> {selected.station}</p>
-              <p><b>Ký hiệu:</b> {selected.code}</p>
-              <p><b>Khu vực:</b> {selected.area}</p>
-              <p><b>Mã ID:</b> {selected.deviceId}</p>
-              <p><b>Trạng thái:</b> {selected.status}</p>
-
-              <p><b>Ngày lắp:</b> {formatDate(selected.installDate)}</p>
-              <p><b>Bảo trì:</b> {formatDate(selected.lastMaintenance)}</p>
-              <p><b>Tuổi thọ:</b> {selected.lifespan || "-"} năm</p>
-
-            </div>
-
-            {/* RIGHT */}
-            <div className="flex flex-col items-center">
-              <img
-                src={selected.image || "https://via.placeholder.com/200"}
-                className="w-60 h-40 object-contain border"
-              />
-            </div>
-
-            <div className="col-span-2 flex justify-end">
-              <button
-                onClick={() => setSelected(null)}
-                className="px-4 py-2 border rounded"
-              >
-                Đóng
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* =============================
-          ✏️ EDIT MODAL
+          ✏️ EDIT MODAL FULL PRO
       ============================= */}
       {editing && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
-          <div className="bg-white p-6 rounded w-[400px] space-y-2">
+          <div className="bg-white p-6 rounded-xl w-[400px]">
 
-            <h2 className="font-bold">Edit thiết bị</h2>
+            <h2 className="font-bold mb-4">Edit thiết bị</h2>
 
             <input
-              className="input"
               value={editing.name || ""}
               onChange={(e)=>setEditing({...editing, name:e.target.value})}
+              className="input"
               placeholder="Tên"
             />
 
             <input
-              className="input"
               value={editing.line || ""}
               onChange={(e)=>setEditing({...editing, line:e.target.value})}
+              className="input"
               placeholder="Tuyến"
             />
 
             <input
-              className="input"
               value={editing.station || ""}
               onChange={(e)=>setEditing({...editing, station:e.target.value})}
+              className="input"
               placeholder="Nhà ga"
             />
 
             <input
+              value={editing.code || ""}
+              onChange={(e)=>setEditing({...editing, code:e.target.value})}
               className="input"
+              placeholder="Ký hiệu"
+            />
+
+            <input
+              value={editing.area || ""}
+              onChange={(e)=>setEditing({...editing, area:e.target.value})}
+              className="input"
+              placeholder="Khu vực"
+            />
+
+            <input
               value={editing.deviceId || ""}
               onChange={(e)=>setEditing({...editing, deviceId:e.target.value})}
+              className="input"
               placeholder="Mã ID"
+            />
+
+            <select
+              value={editing.status || "Inactive"}
+              onChange={(e)=>setEditing({...editing, status:e.target.value})}
+              className="input"
+            >
+              <option>Active</option>
+              <option>Maintenance</option>
+              <option>Inactive</option>
+            </select>
+
+            <input
+              type="date"
+              value={editing.installDate?.slice(0,10) || ""}
+              onChange={(e)=>setEditing({...editing, installDate:e.target.value})}
+              className="input"
             />
 
             <input
               type="date"
+              value={editing.lastMaintenance?.slice(0,10) || ""}
+              onChange={(e)=>setEditing({...editing, lastMaintenance:e.target.value})}
               className="input"
-              value={
-                editing.installDate
-                  ? new Date(editing.installDate).toISOString().split("T")[0]
-                  : ""
-              }
-              onChange={(e)=>setEditing({...editing, installDate:e.target.value})}
             />
 
-            <div className="flex gap-2 pt-2">
+            {/* BUTTON */}
+            <div className="flex gap-2 mt-4">
               <button
                 onClick={handleSave}
                 className="bg-blue-500 text-white px-4 py-2 rounded"
