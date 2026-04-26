@@ -1,5 +1,6 @@
 import axios from "axios";
 import API from "../config";
+import { useState, useMemo } from "react";
 
 export default function Table({ data = [] }) {
 
