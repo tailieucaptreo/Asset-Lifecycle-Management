@@ -5,6 +5,10 @@ const deviceRoutes = require("./routes/device.routes");
 
 const app = express();
 
+const workRoutes = require("./routes/work.routes");
+
+app.use("/api/work-orders", workRoutes);
+
 app.use(cors());
 app.use(express.json());
 
