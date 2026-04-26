@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import Header from "../components/Header";
+import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
+
 import Card from "../components/Card";
 import Chart from "../components/Chart";
 import AdvancedFilter from "../components/AdvancedFilter";
-
-import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
-import toast from "react-hot-toast";
+import Header from "../components/Header";
 
 export default function Dashboard() {
 
@@ -69,8 +68,12 @@ export default function Dashboard() {
   // STATS
   // =============================
   const total = filtered.length;
+
   const active = filtered.filter(d => d.status === "Active").length;
-  const maintenance = filtered.filter(d => d.status === "Maintenance").length;
+
+  const maintenance = filtered.filter(
+    d => d.status === "Maintenance"
+  ).length;
 
   const expired = filtered.filter(d => {
     if (!d.installDate || !d.lifespan) return false;
@@ -82,24 +85,8 @@ export default function Dashboard() {
   }).length;
 
   // =============================
-  // WARNING
+  // RENDER
   // =============================
-  useEffect(() => {
-    filtered.forEach(d => {
-      if (!d.installDate || !d.lifespan) return;
-
-      const exp = new Date(d.installDate);
-      exp.setFullYear(exp.getFullYear() + d.lifespan);
-
-      const diff =
-        (exp - new Date()) / (1000 * 60 * 60 * 24);
-
-      if (diff <= 7 && diff >= 0) {
-        toast.error(`⚠ ${d.name} sắp hết hạn`);
-      }
-    });
-  }, [filtered]);
-
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
@@ -110,13 +97,12 @@ export default function Dashboard() {
 
         <div className="flex gap-3">
 
-          <Header
-            onSearch={setSearchInput}
-            devices={devices}
-          />
+          <Header onSearch={setSearchInput} devices={devices} />
 
           <button
-            onClick={() => window.open(`${API}/api/devices/export`)}
+            onClick={() =>
+              window.open(`${API}/api/devices/export`)
+            }
             className="bg-blue-500 text-white px-4 py-2 rounded"
           >
             Export
@@ -134,20 +120,45 @@ export default function Dashboard() {
 
       {/* CARD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
-        <Card title="Tổng" value={total} color="bg-blue-500" icon={<Cpu />} />
-        <Card title="Hoạt động" value={active} color="bg-green-500" icon={<CheckCircle />} />
-        <Card title="Bảo trì" value={maintenance} color="bg-yellow-500" icon={<Wrench />} />
-        <Card title="Hết hạn" value={expired} color="bg-red-500" icon={<AlertTriangle />} />
+
+        <Card
+          title="Tổng"
+          value={total}
+          color="bg-blue-500"
+          icon={<Cpu />}
+          to="/devices"
+        />
+
+        <Card
+          title="Hoạt động"
+          value={active}
+          color="bg-green-500"
+          icon={<CheckCircle />}
+          to="/devices?status=Active"
+        />
+
+        <Card
+          title="Bảo trì"
+          value={maintenance}
+          color="bg-yellow-500"
+          icon={<Wrench />}
+          to="/devices?status=Maintenance"
+        />
+
+        <Card
+          title="Hết hạn"
+          value={expired}
+          color="bg-red-500"
+          icon={<AlertTriangle />}
+          to="/devices/expired"
+        />
+
       </div>
 
       {/* CHART */}
       <div className="mt-6">
         <Chart data={filtered} />
       </div>
-
-      {/* ⚠ KHÔNG CÒN TABLE */}
-      {/* ⚠ KHÔNG CÒN EDIT MODAL */}
-      {/* ⚠ KHÔNG IMPORT */}
 
     </div>
   );
