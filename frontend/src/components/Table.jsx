@@ -48,22 +48,43 @@ export default function Table({ data = [], reload }) {
   };
 
   const handleUpdate = async () => {
-    try {
-      await fetch(`${API}/api/devices/update/${editing.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(form)
-      });
+  try {
 
-      setEditing(null);
-      reload && reload();
+    const payload = {
+      ...form,
 
-    } catch {
-      alert("Update lỗi");
+      // 🔥 FIX DATE
+      installDate: form.installDate
+        ? new Date(form.installDate)
+        : null,
+
+      // 🔥 FIX NUMBER
+      lifespan: form.lifespan
+        ? Number(form.lifespan)
+        : null
+    };
+
+    const res = await fetch(`${API}/api/devices/update/${editing.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
     }
-  };
+
+    setEditing(null);
+    reload && reload();
+
+  } catch (err) {
+    console.log("UPDATE ERROR:", err);
+    alert("Update lỗi: " + err.message);
+  }
+};
 
   return (
     <div className="bg-white rounded-xl shadow">
