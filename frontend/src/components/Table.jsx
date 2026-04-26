@@ -37,7 +37,21 @@ export default function Table({ data = [], reload }) {
   // ================= EDIT =================
   const openEdit = (d) => {
     setEditing(d);
-    setForm(d);
+
+    // 🔥 CLEAN FORM (QUAN TRỌNG)
+    setForm({
+      name: d.name || "",
+      line: d.line || "",
+      station: d.station || "",
+      code: d.code || "",
+      area: d.area || "",
+      deviceId: d.deviceId || "",
+      status: d.status || "Inactive",
+      lifespan: d.lifespan || "",
+      installDate: d.installDate
+        ? new Date(d.installDate).toISOString().split("T")[0]
+        : ""
+    });
   };
 
   const handleChange = (e) => {
@@ -47,42 +61,42 @@ export default function Table({ data = [], reload }) {
     });
   };
 
+  // ================= UPDATE =================
   const handleUpdate = async () => {
-  try {
-    const payload = {
-      ...form,
-      installDate: form.installDate ? new Date(form.installDate) : null,
-      lifespan: form.lifespan ? Number(form.lifespan) : null
-    };
+    try {
+      const payload = {
+        ...form,
+        lifespan: form.lifespan ? Number(form.lifespan) : null,
+        installDate: form.installDate || null
+      };
 
-    const res = await fetch(`${API}/api/devices/${editing.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
+      const res = await fetch(`${API}/api/devices/${editing.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
 
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+
+      setEditing(null);
+      reload && reload();
+
+    } catch (err) {
+      console.log("UPDATE ERROR:", err);
+      alert("Update lỗi: " + err.message);
     }
-
-    setEditing(null);
-    reload && reload();
-
-  } catch (err) {
-    console.log(err);
-    alert("Update lỗi: " + err.message);
-  }
-};
+  };
 
   return (
     <div className="bg-white rounded-xl shadow">
 
       {/* TABLE */}
       <div className="overflow-x-auto">
-
         <table className="w-full text-sm border border-gray-200">
 
           {/* FILTER */}
@@ -151,9 +165,7 @@ export default function Table({ data = [], reload }) {
               <tr key={d.id} className="border-t hover:bg-gray-50">
 
                 <td className="p-3 font-medium">{d.name}</td>
-
                 <td className="p-3 text-center">{d.line}</td>
-
                 <td className="p-3">{d.station}</td>
 
                 {/* STATUS */}
@@ -167,14 +179,12 @@ export default function Table({ data = [], reload }) {
                       : "bg-gray-200 text-gray-600"
                     }`}
                   >
-                    {d.status}
+                    {d.status || "Inactive"}
                   </span>
                 </td>
 
                 <td className="p-3">{d.code || "-"}</td>
-
                 <td className="p-3">{d.area || "-"}</td>
-
                 <td className="p-3 font-mono">{d.deviceId}</td>
 
                 <td className="p-3">
@@ -185,9 +195,7 @@ export default function Table({ data = [], reload }) {
 
                 <td className="p-3 text-center">{d.lifespan || "-"}</td>
 
-                {/* ACTION */}
                 <td className="p-3 text-center space-x-2">
-
                   <button
                     onClick={() => openEdit(d)}
                     className="text-blue-600 hover:underline"
@@ -201,7 +209,6 @@ export default function Table({ data = [], reload }) {
                   >
                     Delete
                   </button>
-
                 </td>
 
               </tr>
@@ -221,35 +228,34 @@ export default function Table({ data = [], reload }) {
               ✏️ Chỉnh sửa thiết bị
             </h2>
 
-            {/* GRID */}
             <div className="grid grid-cols-2 gap-3">
 
-              <input name="name" value={form.name || ""} onChange={handleChange}
+              <input name="name" value={form.name} onChange={handleChange}
                 className="col-span-2 p-2 border rounded" placeholder="Tên thiết bị" />
 
-              <input name="line" value={form.line || ""} onChange={handleChange}
+              <input name="line" value={form.line} onChange={handleChange}
                 className="p-2 border rounded" placeholder="Tuyến" />
 
-              <input name="station" value={form.station || ""} onChange={handleChange}
+              <input name="station" value={form.station} onChange={handleChange}
                 className="p-2 border rounded" placeholder="Nhà ga" />
 
-              <input name="code" value={form.code || ""} onChange={handleChange}
+              <input name="code" value={form.code} onChange={handleChange}
                 className="p-2 border rounded" placeholder="Ký hiệu" />
 
-              <input name="area" value={form.area || ""} onChange={handleChange}
+              <input name="area" value={form.area} onChange={handleChange}
                 className="p-2 border rounded" placeholder="Khu vực" />
 
-              <input name="deviceId" value={form.deviceId || ""} onChange={handleChange}
+              <input name="deviceId" value={form.deviceId} onChange={handleChange}
                 className="col-span-2 p-2 border rounded" placeholder="Mã ID" />
 
-              <select name="status" value={form.status || ""} onChange={handleChange}
+              <select name="status" value={form.status} onChange={handleChange}
                 className="p-2 border rounded">
                 <option value="Active">Active</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Inactive">Inactive</option>
               </select>
 
-              <input type="number" name="lifespan" value={form.lifespan || ""}
+              <input type="number" name="lifespan" value={form.lifespan}
                 onChange={handleChange}
                 className="p-2 border rounded"
                 placeholder="Tuổi thọ (năm)" />
@@ -257,18 +263,13 @@ export default function Table({ data = [], reload }) {
               <input
                 type="date"
                 name="installDate"
-                value={
-                  form.installDate
-                    ? new Date(form.installDate).toISOString().split("T")[0]
-                    : ""
-                }
+                value={form.installDate}
                 onChange={handleChange}
                 className="col-span-2 p-2 border rounded"
               />
 
             </div>
 
-            {/* BUTTON */}
             <div className="flex justify-end gap-2 mt-5">
 
               <button
