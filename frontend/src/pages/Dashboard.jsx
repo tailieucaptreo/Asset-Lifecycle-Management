@@ -5,9 +5,7 @@ import API from "../config";
 import Header from "../components/Header";
 import Card from "../components/Card";
 import Chart from "../components/Chart";
-import Table from "../components/Table";
 import AdvancedFilter from "../components/AdvancedFilter";
-import ImportExcel from "../components/ImportExcel";
 
 import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -15,7 +13,6 @@ import toast from "react-hot-toast";
 export default function Dashboard() {
 
   const [devices, setDevices] = useState([]);
-  const [editing, setEditing] = useState(null);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -28,7 +25,7 @@ export default function Dashboard() {
   });
 
   // =============================
-  // 🚀 LOAD DATA
+  // LOAD DATA
   // =============================
   const fetchData = () => {
     axios.get(`${API}/api/devices`)
@@ -41,7 +38,7 @@ export default function Dashboard() {
   }, []);
 
   // =============================
-  // 🔥 SEARCH DELAY
+  // SEARCH DELAY
   // =============================
   useEffect(() => {
     const t = setTimeout(() => setSearch(searchInput), 300);
@@ -51,7 +48,7 @@ export default function Dashboard() {
   const now = new Date();
 
   // =============================
-  // 🔍 FILTER
+  // FILTER
   // =============================
   const filtered = devices.filter(d => {
     const keyword = search.toLowerCase();
@@ -69,43 +66,39 @@ export default function Dashboard() {
   });
 
   // =============================
-  // 📊 STATS
+  // STATS
   // =============================
   const total = filtered.length;
   const active = filtered.filter(d => d.status === "Active").length;
   const maintenance = filtered.filter(d => d.status === "Maintenance").length;
-  const expired = filtered.filter(
-    d => d.expiryDate && new Date(d.expiryDate) < now
-  ).length;
+
+  const expired = filtered.filter(d => {
+    if (!d.installDate || !d.lifespan) return false;
+
+    const exp = new Date(d.installDate);
+    exp.setFullYear(exp.getFullYear() + d.lifespan);
+
+    return exp < now;
+  }).length;
 
   // =============================
-  // 🔔 WARNING
+  // WARNING
   // =============================
   useEffect(() => {
     filtered.forEach(d => {
-      if (!d.expiryDate) return;
+      if (!d.installDate || !d.lifespan) return;
+
+      const exp = new Date(d.installDate);
+      exp.setFullYear(exp.getFullYear() + d.lifespan);
 
       const diff =
-        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+        (exp - new Date()) / (1000 * 60 * 60 * 24);
 
       if (diff <= 7 && diff >= 0) {
         toast.error(`⚠ ${d.name} sắp hết hạn`);
       }
     });
   }, [filtered]);
-
-  // =============================
-  // 💾 SAVE EDIT
-  // =============================
-  const handleSave = async () => {
-    try {
-      await axios.post(`${API}/api/devices`, editing);
-      setEditing(null);
-      fetchData();
-    } catch {
-      alert("❌ Lưu lỗi");
-    }
-  };
 
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
@@ -128,6 +121,7 @@ export default function Dashboard() {
           >
             Export
           </button>
+
         </div>
       </div>
 
@@ -137,9 +131,6 @@ export default function Dashboard() {
         filter={filter}
         setFilter={setFilter}
       />
-
-      {/* IMPORT */}
-      <ImportExcel reload={fetchData} />
 
       {/* CARD */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
@@ -154,106 +145,9 @@ export default function Dashboard() {
         <Chart data={filtered} />
       </div>
 
-      {/* TABLE */}
-      <Table
-        data={filtered}
-        setEditing={setEditing}
-        reload={fetchData}
-      />
-
-      {/* =============================
-          ✏️ EDIT MODAL FULL PRO
-      ============================= */}
-      {editing && (
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-          <div className="bg-white p-6 rounded-xl w-[400px]">
-
-            <h2 className="font-bold mb-4">Edit thiết bị</h2>
-
-            <input
-              value={editing.name || ""}
-              onChange={(e)=>setEditing({...editing, name:e.target.value})}
-              className="input"
-              placeholder="Tên"
-            />
-
-            <input
-              value={editing.line || ""}
-              onChange={(e)=>setEditing({...editing, line:e.target.value})}
-              className="input"
-              placeholder="Tuyến"
-            />
-
-            <input
-              value={editing.station || ""}
-              onChange={(e)=>setEditing({...editing, station:e.target.value})}
-              className="input"
-              placeholder="Nhà ga"
-            />
-
-            <input
-              value={editing.code || ""}
-              onChange={(e)=>setEditing({...editing, code:e.target.value})}
-              className="input"
-              placeholder="Ký hiệu"
-            />
-
-            <input
-              value={editing.area || ""}
-              onChange={(e)=>setEditing({...editing, area:e.target.value})}
-              className="input"
-              placeholder="Khu vực"
-            />
-
-            <input
-              value={editing.deviceId || ""}
-              onChange={(e)=>setEditing({...editing, deviceId:e.target.value})}
-              className="input"
-              placeholder="Mã ID"
-            />
-
-            <select
-              value={editing.status || "Inactive"}
-              onChange={(e)=>setEditing({...editing, status:e.target.value})}
-              className="input"
-            >
-              <option>Active</option>
-              <option>Maintenance</option>
-              <option>Inactive</option>
-            </select>
-
-            <input
-              type="date"
-              value={editing.installDate?.slice(0,10) || ""}
-              onChange={(e)=>setEditing({...editing, installDate:e.target.value})}
-              className="input"
-            />
-
-            <input
-              type="date"
-              value={editing.lastMaintenance?.slice(0,10) || ""}
-              onChange={(e)=>setEditing({...editing, lastMaintenance:e.target.value})}
-              className="input"
-            />
-
-            {/* BUTTON */}
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={handleSave}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-              >
-                Lưu
-              </button>
-
-              <button onClick={()=>setEditing(null)}>
-                Đóng
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      {/* ⚠ KHÔNG CÒN TABLE */}
+      {/* ⚠ KHÔNG CÒN EDIT MODAL */}
+      {/* ⚠ KHÔNG IMPORT */}
 
     </div>
   );
