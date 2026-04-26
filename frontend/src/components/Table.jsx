@@ -49,22 +49,13 @@ export default function Table({ data = [], reload }) {
 
   const handleUpdate = async () => {
   try {
-
     const payload = {
       ...form,
-
-      // 🔥 FIX DATE
-      installDate: form.installDate
-        ? new Date(form.installDate)
-        : null,
-
-      // 🔥 FIX NUMBER
-      lifespan: form.lifespan
-        ? Number(form.lifespan)
-        : null
+      installDate: form.installDate ? new Date(form.installDate) : null,
+      lifespan: form.lifespan ? Number(form.lifespan) : null
     };
 
-    const res = await fetch(`${API}/api/devices/update/${editing.id}`, {
+    const res = await fetch(`${API}/api/devices/${editing.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -81,7 +72,7 @@ export default function Table({ data = [], reload }) {
     reload && reload();
 
   } catch (err) {
-    console.log("UPDATE ERROR:", err);
+    console.log(err);
     alert("Update lỗi: " + err.message);
   }
 };
