@@ -6,11 +6,13 @@ const workRoutes = require("./routes/work.routes");
 
 const app = express();
 
-// 🔥 CORS FIX CHẮC CHẮN
 app.use(cors({
-  origin: "*", // 👉 test trước
+  origin: [
+    "http://localhost:5173",
+    "https://asset-lifecycle-management.vercel.app"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"]
+  credentials: true
 }));
 
 app.use(express.json());
@@ -18,6 +20,10 @@ app.use(express.json());
 app.use("/api/devices", deviceRoutes);
 app.use("/api/work-orders", workRoutes);
 
+app.get("/", (req, res) => {
+  res.send("API RUNNING...");
+});
+
 app.listen(5000, () => {
-  console.log("Server running");
+  console.log("Server chạy tại port 5000");
 });
