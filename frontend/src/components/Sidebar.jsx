@@ -55,6 +55,13 @@ export default function Sidebar() {
             >
               ➕ Nhập thiết bị
             </div>
+            
+            <div
+              className={`p-2 rounded cursor-pointer ${active("/import")}`}
+              onClick={() => nav("/import")}
+            >
+              📥 Import Excel
+            </div>
 
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
