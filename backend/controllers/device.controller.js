@@ -119,19 +119,19 @@ exports.importExcel = async (req, res) => {
     try {
       const data = {
         deviceId: getField(row, ["ma id", "id"])?.toString() || null,
-        name: normalize(getField(row, ["ten"])),
-        line: normalize(getField(row, ["tuyen"])),
-        station: normalize(getField(row, ["ga"])),
 
-        // 🔥 FIX CHỖ BỊ LỖI
-        code: getField(row, ["ky hieu", "code"]),
-        area: getField(row, ["khu vuc", "area"]),
-        lifespan: Number(getField(row, ["tuoi tho"])) || null,
+        name: normalize(getField(row, ["ten thiet bi", "ten"])),
+        line: normalize(getField(row, ["tuyen"])),
+        station: normalize(getField(row, ["nha ga", "ga"])),
+
+        code: getField(row, ["ky hieu"]),
+        area: getField(row, ["khu vuc"]),
 
         status: normalizeStatus(getField(row, ["trang thai"])),
-        installDate: parseDate(getField(row, ["ngay lap"]))
-      };
 
+        installDate: parseDate(getField(row, ["ngay lap"])),
+        lifespan: Number(getField(row, ["tuoi tho thiet bi", "tuoi tho"])) || null
+      };
       await prisma.device.create({ data });
 
       success++;
