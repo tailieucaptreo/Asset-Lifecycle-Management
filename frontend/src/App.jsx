@@ -7,6 +7,7 @@ import ExpiredDevices from "./pages/ExpiredDevices";
 import MaintenanceSchedule from "./pages/MaintenanceSchedule";
 import WorkOrders from "./pages/WorkOrders";
 import Alerts from "./pages/Alerts";
+import ImportExcel from "./pages/ImportExcel";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/maintenance/schedule" element={<MaintenanceSchedule />} />
           <Route path="/maintenance/work" element={<WorkOrders />} />
           <Route path="/maintenance/alerts" element={<Alerts />} />
+          <Route path="/import" element={<ImportExcel />} />
         </Routes>
 
       </div>
