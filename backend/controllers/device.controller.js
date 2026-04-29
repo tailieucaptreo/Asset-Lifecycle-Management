@@ -91,33 +91,60 @@ exports.deleteDevice = async (req, res) => {
   res.json({ ok: true });
 };
 
-// ================= IMPORT =================
+// ================= IMPORT (FIX FULL) =================
+const getField = (row, keys) => {
+  for (let key of Object.keys(row)) {
+    const k = key
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+    if (keys.some(x => k.includes(x))) {
+      return row[key];
+    }
+  }
+  return null;
+};
+
 exports.importExcel = async (req, res) => {
   const workbook = XLSX.read(req.file.buffer);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet);
 
   let success = 0;
+  let failed = 0;
 
   for (let row of rows) {
     try {
-      await prisma.device.create({
-        data: {
-          deviceId: row["Mã ID"]?.toString() || null,
-          name: normalize(row["Tên thiết bị"]),
-          line: normalize(row["Tuyến"]),
-          station: normalize(row["Nhà ga"]),
-          code: row["Ký hiệu"],
-          area: row["Khu vực"],
-          status: normalizeStatus(row["Trạng thái"]),
-          installDate: parseDate(row["Ngày lắp đặt"]),
-          lifespan: Number(row["Tuổi thọ"]) || null
-        }
-      });
+      const data = {
+        deviceId: getField(row, ["ma id", "id"])?.toString() || null,
+        name: normalize(getField(row, ["ten"])),
+        line: normalize(getField(row, ["tuyen"])),
+        station: normalize(getField(row, ["ga"])),
+
+        // 🔥 FIX CHỖ BỊ LỖI
+        code: getField(row, ["ky hieu", "code"]),
+        area: getField(row, ["khu vuc", "area"]),
+        lifespan: Number(getField(row, ["tuoi tho"])) || null,
+
+        status: normalizeStatus(getField(row, ["trang thai"])),
+        installDate: parseDate(getField(row, ["ngay lap"]))
+      };
+
+      await prisma.device.create({ data });
 
       success++;
-    } catch {}
+
+    } catch (err) {
+      console.log("IMPORT ERROR:", err.message);
+      failed++;
+    }
   }
 
-  res.json({ success, total: rows.length });
+  res.json({
+    success,
+    failed,
+    total: rows.length
+  });
 };
