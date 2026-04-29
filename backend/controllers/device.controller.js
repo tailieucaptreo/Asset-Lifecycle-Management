@@ -91,7 +91,12 @@ exports.deleteDevice = async (req, res) => {
   res.json({ ok: true });
 };
 
-// ================= IMPORT (FIX FULL) =================
+// ================= IMPORT (PRO MAX FIX) =================
+const clean = (v) => {
+  if (v === undefined || v === null) return null;
+  return v.toString().trim();
+};
+
 const getField = (row, keys) => {
   for (let key of Object.keys(row)) {
     const k = key
@@ -118,27 +123,33 @@ exports.importExcel = async (req, res) => {
   for (let row of rows) {
     try {
       const data = {
-        deviceId: getField(row, ["ma id", "id"])?.toString() || null,
+        deviceId: clean(getField(row, ["ma id", "id"])),
 
-        name: normalize(getField(row, ["ten thiet bi", "ten"])),
-        line: normalize(getField(row, ["tuyen"])),
-        station: normalize(getField(row, ["nha ga", "ga"])),
+        name: clean(getField(row, ["ten thiet bi", "ten"])),
+        line: clean(getField(row, ["tuyen", "line"])),
+        station: clean(getField(row, ["nha ga", "ga", "station"])),
 
-        code: getField(row, ["ky hieu"]),
-        area: getField(row, ["khu vuc"]),
+        code: clean(getField(row, ["ky hieu", "symbol"])),
+        area: clean(getField(row, ["khu vuc", "area"])),
 
-        status: normalizeStatus(getField(row, ["trang thai"])),
+        status: normalizeStatus(getField(row, ["trang thai", "status"])),
 
-        installDate: parseDate(getField(row, ["ngay lap"])),
+        installDate: parseDate(getField(row, ["ngay lap", "ngay lap dat"])),
         lifespan: Number(getField(row, ["tuoi tho thiet bi", "tuoi tho"])) || null
       };
+
+      // 🔥 VALIDATE BẮT BUỘC
+      if (!data.name || !data.line || !data.station) {
+        throw new Error("Thiếu dữ liệu bắt buộc (name/line/station)");
+      }
+
       await prisma.device.create({ data });
 
       success++;
 
     } catch (err) {
-      console.log("IMPORT ERROR:", err.message);
-      console.log("❌ ERROR ROW:", row);
+      console.log("❌ IMPORT ERROR:", err.message);
+      console.log("ROW:", row);
       failed++;
     }
   }
