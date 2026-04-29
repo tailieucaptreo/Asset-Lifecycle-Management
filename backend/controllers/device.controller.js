@@ -138,6 +138,7 @@ exports.importExcel = async (req, res) => {
 
     } catch (err) {
       console.log("IMPORT ERROR:", err.message);
+      console.log(row);
       failed++;
     }
   }
