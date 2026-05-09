@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import Card from "../components/Card";
-import Chart from "../components/Chart";
-import Header from "../components/Header";
 import Header from "../components/Header.jsx";
 import Card from "../components/Card.jsx";
 import Chart from "../components/Chart.jsx";
