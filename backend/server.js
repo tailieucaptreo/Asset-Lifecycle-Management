@@ -4,6 +4,9 @@ const cors = require("cors");
 const deviceRoutes = require("./routes/device.routes");
 const workRoutes = require("./routes/work.routes");
 
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 const app = express();
 
 app.use(cors({
@@ -26,4 +29,27 @@ app.get("/", (req, res) => {
 
 app.listen(5000, () => {
   console.log("Server chạy tại port 5000");
+});
+
+app.get("/fix-db", async (req, res) => {
+  try {
+
+    await prisma.$executeRawUnsafe(`
+      DROP INDEX IF EXISTS "Device_deviceId_key";
+    `);
+
+    res.json({
+      ok: true,
+      message: "Đã xóa unique deviceId"
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.json({
+      ok: false,
+      error: err.message
+    });
+  }
 });
