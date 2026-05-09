@@ -2,12 +2,18 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
-
 import Card from "../components/Card";
 import Chart from "../components/Chart";
 import AdvancedFilter from "../components/AdvancedFilter";
 import Header from "../components/Header";
+import Header from "../components/Header.jsx";
+import Card from "../components/Card.jsx";
+import Chart from "../components/Chart.jsx";
+import Table from "../components/Table.jsx";
+import AdvancedFilter from "../components/AdvancedFilter.jsx";
+
+import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
 
