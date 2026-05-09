@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import API from "../config";
 
-export default function Table({ data = [], reload }) {
+export default function Table({ data = [], setData }) {
 
   const [filters, setFilters] = useState({});
   const [editing, setEditing] = useState(null);
@@ -9,36 +9,56 @@ export default function Table({ data = [], reload }) {
 
   // ================= FILTER =================
   const filteredData = useMemo(() => {
-    return data.filter(d => {
+
+    return data.filter((d) => {
+
       return (
-        (!filters.name || d.name?.toLowerCase().includes(filters.name.toLowerCase())) &&
-        (!filters.station || d.station?.toLowerCase().includes(filters.station.toLowerCase())) &&
-        (!filters.status || d.status === filters.status)
+        (!filters.name ||
+          d.name?.toLowerCase().includes(filters.name.toLowerCase())) &&
+
+        (!filters.station ||
+          d.station?.toLowerCase().includes(filters.station.toLowerCase())) &&
+
+        (!filters.status ||
+          d.status === filters.status)
       );
     });
+
   }, [data, filters]);
 
   // ================= DELETE =================
   const handleDelete = async (id) => {
+
     if (!confirm("Xóa thiết bị này?")) return;
 
     try {
-      await fetch(`${API}/api/devices/${id}`, {
+
+      const res = await fetch(`${API}/api/devices/${id}`, {
         method: "DELETE"
       });
 
-      reload && reload();
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
 
-    } catch {
+      // 🔥 realtime remove
+      setData((prev) =>
+        prev.filter((d) => d.id !== id)
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
       alert("Xóa lỗi");
     }
   };
 
-  // ================= EDIT =================
+  // ================= OPEN EDIT =================
   const openEdit = (d) => {
+
     setEditing(d);
 
-    // 🔥 CLEAN FORM (QUAN TRỌNG)
     setForm({
       name: d.name || "",
       line: d.line || "",
@@ -48,13 +68,18 @@ export default function Table({ data = [], reload }) {
       deviceId: d.deviceId || "",
       status: d.status || "Inactive",
       lifespan: d.lifespan || "",
+
       installDate: d.installDate
-        ? new Date(d.installDate).toISOString().split("T")[0]
+        ? new Date(d.installDate)
+            .toISOString()
+            .split("T")[0]
         : ""
     });
   };
 
+  // ================= CHANGE =================
   const handleChange = (e) => {
+
     setForm({
       ...form,
       [e.target.name]: e.target.value
@@ -63,44 +88,70 @@ export default function Table({ data = [], reload }) {
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
+
     try {
+
       const payload = {
         ...form,
-        lifespan: form.lifespan ? Number(form.lifespan) : null,
+
+        lifespan: form.lifespan
+          ? Number(form.lifespan)
+          : null,
+
         installDate: form.installDate || null
       };
 
-      const res = await fetch(`${API}/api/devices/${editing.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
+      const res = await fetch(
+        `${API}/api/devices/${editing.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
 
       if (!res.ok) {
+
         const err = await res.text();
+
         throw new Error(err);
       }
 
+      const updated = await res.json();
+
+      // 🔥 realtime update
+      setData((prev) =>
+        prev.map((d) =>
+          d.id === updated.id
+            ? updated
+            : d
+        )
+      );
+
       setEditing(null);
-      reload && reload();
 
     } catch (err) {
+
       console.log("UPDATE ERROR:", err);
+
       alert("Update lỗi: " + err.message);
     }
   };
 
   return (
+
     <div className="bg-white rounded-xl shadow">
 
       {/* TABLE */}
       <div className="overflow-x-auto">
+
         <table className="w-full text-sm border border-gray-200">
 
           {/* FILTER */}
           <thead className="bg-gray-100 sticky top-0 z-10">
+
             <tr>
 
               <th className="p-2">
@@ -108,7 +159,10 @@ export default function Table({ data = [], reload }) {
                   placeholder="Tên"
                   className="border p-1 w-full"
                   onChange={(e) =>
-                    setFilters({ ...filters, name: e.target.value })
+                    setFilters({
+                      ...filters,
+                      name: e.target.value
+                    })
                   }
                 />
               </th>
@@ -120,16 +174,23 @@ export default function Table({ data = [], reload }) {
                   placeholder="Nhà ga"
                   className="border p-1 w-full"
                   onChange={(e) =>
-                    setFilters({ ...filters, station: e.target.value })
+                    setFilters({
+                      ...filters,
+                      station: e.target.value
+                    })
                   }
                 />
               </th>
 
               <th className="p-2">
+
                 <select
                   className="border p-1 w-full"
                   onChange={(e) =>
-                    setFilters({ ...filters, status: e.target.value })
+                    setFilters({
+                      ...filters,
+                      status: e.target.value
+                    })
                   }
                 >
                   <option value="">All</option>
@@ -137,65 +198,131 @@ export default function Table({ data = [], reload }) {
                   <option value="Maintenance">Maintenance</option>
                   <option value="Inactive">Inactive</option>
                 </select>
+
               </th>
 
               <th colSpan="6"></th>
+
             </tr>
 
             {/* HEADER */}
             <tr className="text-left text-gray-700">
 
-              <th className="p-3 w-[220px]">Tên</th>
-              <th className="p-3 w-[60px] text-center">Tuyến</th>
-              <th className="p-3 w-[120px]">Nhà ga</th>
-              <th className="p-3 w-[120px]">Trạng thái</th>
-              <th className="p-3 w-[90px]">Ký hiệu</th>
-              <th className="p-3 w-[120px]">Khu vực</th>
-              <th className="p-3 w-[130px]">Mã ID</th>
-              <th className="p-3 w-[110px]">Ngày lắp</th>
-              <th className="p-3 w-[80px] text-center">Tuổi thọ</th>
-              <th className="p-3 w-[120px] text-center">Action</th>
+              <th className="p-3 w-[220px]">
+                Tên
+              </th>
+
+              <th className="p-3 w-[60px] text-center">
+                Tuyến
+              </th>
+
+              <th className="p-3 w-[120px]">
+                Nhà ga
+              </th>
+
+              <th className="p-3 w-[120px]">
+                Trạng thái
+              </th>
+
+              <th className="p-3 w-[90px]">
+                Ký hiệu
+              </th>
+
+              <th className="p-3 w-[120px]">
+                Khu vực
+              </th>
+
+              <th className="p-3 w-[130px]">
+                Mã ID
+              </th>
+
+              <th className="p-3 w-[110px]">
+                Ngày lắp
+              </th>
+
+              <th className="p-3 w-[80px] text-center">
+                Tuổi thọ
+              </th>
+
+              <th className="p-3 w-[120px] text-center">
+                Action
+              </th>
 
             </tr>
+
           </thead>
 
           {/* BODY */}
           <tbody>
-            {filteredData.map((d) => (
-              <tr key={d.id} className="border-t hover:bg-gray-50">
 
-                <td className="p-3 font-medium">{d.name}</td>
-                <td className="p-3 text-center">{d.line}</td>
-                <td className="p-3">{d.station}</td>
+            {filteredData.map((d) => (
+
+              <tr
+                key={d.id}
+                className="border-t hover:bg-gray-50"
+              >
+
+                <td className="p-3 font-medium">
+                  {d.name}
+                </td>
+
+                <td className="p-3 text-center">
+                  {d.line}
+                </td>
+
+                <td className="p-3">
+                  {d.station}
+                </td>
 
                 {/* STATUS */}
                 <td className="p-3">
+
                   <span
                     className={`px-2 py-1 rounded text-xs font-semibold
-                    ${d.status === "Active"
-                      ? "bg-green-100 text-green-700"
-                      : d.status === "Maintenance"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-200 text-gray-600"
-                    }`}
+
+                    ${
+                      d.status === "Active"
+                        ? "bg-green-100 text-green-700"
+
+                        : d.status === "Maintenance"
+                        ? "bg-yellow-100 text-yellow-700"
+
+                        : "bg-gray-200 text-gray-600"
+                    }
+                    `}
                   >
                     {d.status || "Inactive"}
                   </span>
-                </td>
 
-                <td className="p-3">{d.code || "-"}</td>
-                <td className="p-3">{d.area || "-"}</td>
-                <td className="p-3 font-mono">{d.deviceId}</td>
+                </td>
 
                 <td className="p-3">
-                  {d.installDate
-                    ? new Date(d.installDate).toLocaleDateString("vi-VN")
-                    : "-"}
+                  {d.code || "-"}
                 </td>
 
-                <td className="p-3 text-center">{d.lifespan || "-"}</td>
+                <td className="p-3">
+                  {d.area || "-"}
+                </td>
+
+                <td className="p-3 font-mono">
+                  {d.deviceId}
+                </td>
+
+                <td className="p-3">
+
+                  {d.installDate
+                    ? new Date(d.installDate)
+                        .toLocaleDateString("vi-VN")
+                    : "-"}
+
+                </td>
+
+                <td className="p-3 text-center">
+                  {d.lifespan || "-"}
+                </td>
 
                 <td className="p-3 text-center space-x-2">
+
                   <button
                     onClick={() => openEdit(d)}
                     className="text-blue-600 hover:underline"
@@ -209,17 +336,22 @@ export default function Table({ data = [], reload }) {
                   >
                     Delete
                   </button>
+
                 </td>
 
               </tr>
+
             ))}
+
           </tbody>
 
         </table>
+
       </div>
 
       {/* ================= MODAL ================= */}
       {editing && (
+
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
           <div className="bg-white p-6 rounded-xl w-[600px] shadow-lg">
@@ -230,35 +362,73 @@ export default function Table({ data = [], reload }) {
 
             <div className="grid grid-cols-2 gap-3">
 
-              <input name="name" value={form.name} onChange={handleChange}
-                className="col-span-2 p-2 border rounded" placeholder="Tên thiết bị" />
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className="col-span-2 p-2 border rounded"
+                placeholder="Tên thiết bị"
+              />
 
-              <input name="line" value={form.line} onChange={handleChange}
-                className="p-2 border rounded" placeholder="Tuyến" />
+              <input
+                name="line"
+                value={form.line}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                placeholder="Tuyến"
+              />
 
-              <input name="station" value={form.station} onChange={handleChange}
-                className="p-2 border rounded" placeholder="Nhà ga" />
+              <input
+                name="station"
+                value={form.station}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                placeholder="Nhà ga"
+              />
 
-              <input name="code" value={form.code} onChange={handleChange}
-                className="p-2 border rounded" placeholder="Ký hiệu" />
+              <input
+                name="code"
+                value={form.code}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                placeholder="Ký hiệu"
+              />
 
-              <input name="area" value={form.area} onChange={handleChange}
-                className="p-2 border rounded" placeholder="Khu vực" />
+              <input
+                name="area"
+                value={form.area}
+                onChange={handleChange}
+                className="p-2 border rounded"
+                placeholder="Khu vực"
+              />
 
-              <input name="deviceId" value={form.deviceId} onChange={handleChange}
-                className="col-span-2 p-2 border rounded" placeholder="Mã ID" />
+              <input
+                name="deviceId"
+                value={form.deviceId}
+                onChange={handleChange}
+                className="col-span-2 p-2 border rounded"
+                placeholder="Mã ID"
+              />
 
-              <select name="status" value={form.status} onChange={handleChange}
-                className="p-2 border rounded">
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                className="p-2 border rounded"
+              >
                 <option value="Active">Active</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Inactive">Inactive</option>
               </select>
 
-              <input type="number" name="lifespan" value={form.lifespan}
+              <input
+                type="number"
+                name="lifespan"
+                value={form.lifespan}
                 onChange={handleChange}
                 className="p-2 border rounded"
-                placeholder="Tuổi thọ (năm)" />
+                placeholder="Tuổi thọ"
+              />
 
               <input
                 type="date"
@@ -289,7 +459,9 @@ export default function Table({ data = [], reload }) {
             </div>
 
           </div>
+
         </div>
+
       )}
 
     </div>
