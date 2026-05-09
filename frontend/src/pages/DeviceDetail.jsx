@@ -113,9 +113,9 @@ export default function DeviceDetail() {
       </div>
 
       {/* MAIN CARD */}
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-[1400px]">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
 
           {/* IMAGE */}
           <div>
@@ -156,7 +156,7 @@ export default function DeviceDetail() {
           </div>
 
           {/* INFO */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
