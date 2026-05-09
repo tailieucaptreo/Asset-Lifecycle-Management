@@ -66,7 +66,7 @@ export default function DeviceDetail() {
 
   return (
 
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-8 bg-gray-100 min-h-screen w-full">
 
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
