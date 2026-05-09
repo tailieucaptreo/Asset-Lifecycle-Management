@@ -4,7 +4,6 @@ import API from "../config";
 
 import Card from "../components/Card";
 import Chart from "../components/Chart";
-import AdvancedFilter from "../components/AdvancedFilter";
 import Header from "../components/Header";
 import Header from "../components/Header.jsx";
 import Card from "../components/Card.jsx";
