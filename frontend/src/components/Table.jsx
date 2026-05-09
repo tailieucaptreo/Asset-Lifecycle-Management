@@ -1,7 +1,10 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../config";
 
 export default function Table({ data = [], setData }) {
+
+  const nav = useNavigate();
 
   const [filters, setFilters] = useState({});
   const [editing, setEditing] = useState(null);
@@ -41,7 +44,7 @@ export default function Table({ data = [], setData }) {
         throw new Error("Delete failed");
       }
 
-      // 🔥 realtime remove
+      // realtime update
       setData((prev) =>
         prev.filter((d) => d.id !== id)
       );
@@ -121,7 +124,7 @@ export default function Table({ data = [], setData }) {
 
       const updated = await res.json();
 
-      // 🔥 realtime update
+      // realtime update
       setData((prev) =>
         prev.map((d) =>
           d.id === updated.id
@@ -262,7 +265,11 @@ export default function Table({ data = [], setData }) {
                 className="border-t hover:bg-gray-50"
               >
 
-                <td className="p-3 font-medium">
+                {/* CLICK PROFILE */}
+                <td
+                  className="p-3 font-medium text-blue-600 cursor-pointer hover:underline"
+                  onClick={() => nav(`/devices/${d.id}`)}
+                >
                   {d.name}
                 </td>
 
