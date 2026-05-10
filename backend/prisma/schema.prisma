@@ -44,3 +44,27 @@ model WorkOrder {
 
   device Device @relation(fields: [deviceId], references: [id])
 }
+
+model SpareDevice {
+  id            Int      @id @default(autoincrement())
+
+  name          String
+  code          String?
+  materialCode  String?
+
+  quantity      Int      @default(1)
+
+  condition     String   // New / Used / Broken
+
+  buyDate       DateTime?
+  removedDate   DateTime?
+
+  warehouse     String?
+  cabinet       String?
+  shelf         String?
+
+  image         String?
+  note          String?
+
+  createdAt     DateTime @default(now())
+}
