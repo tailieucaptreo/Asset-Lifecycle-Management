@@ -307,7 +307,7 @@ export default function SpareDevices() {
               <tr className="text-left">
 
                 <th className="p-4">
-                  Hình
+                  Hình ảnh
                 </th>
 
                 <th className="p-4">
@@ -339,7 +339,7 @@ export default function SpareDevices() {
                 </th>
 
                 <th className="p-4">
-                  Ô
+                  Khay
                 </th>
 
                 <th className="p-4">
