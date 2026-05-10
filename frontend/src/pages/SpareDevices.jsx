@@ -315,10 +315,6 @@ export default function SpareDevices() {
                 </th>
 
                 <th className="p-4">
-                  Ký hiệu
-                </th>
-
-                <th className="p-4">
                   Mã ID
                 </th>
 
