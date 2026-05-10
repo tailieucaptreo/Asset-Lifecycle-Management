@@ -657,7 +657,7 @@ export default function SpareDevices() {
               />
 
               <input
-                placeholder="Ký hiệu"
+                placeholder="Tình trạng"
                 value={form.symbol}
                 onChange={(e) =>
                   setForm({
