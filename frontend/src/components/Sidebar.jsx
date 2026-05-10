@@ -77,6 +77,13 @@ export default function Sidebar() {
               ⚠ Thiết bị lỗi
             </div>
 
+            <div
+              className={`p-2 rounded cursor-pointer ${active("/spare-devices")}`}
+              onClick={() => nav("/spare-devices")}
+            >
+              🔋 Thiết bị dự phòng
+            </div>
+
           </div>
         )}
       </div>
