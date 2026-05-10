@@ -9,6 +9,7 @@ import WorkOrders from "./pages/WorkOrders";
 import Alerts from "./pages/Alerts";
 import ImportExcel from "./pages/ImportExcel";
 import DeviceDetail from "./pages/DeviceDetail";
+import SpareDevices from "./pages/SpareDevices";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
           <Route path="/maintenance/alerts" element={<Alerts />} />
           <Route path="/import" element={<ImportExcel />} />
           <Route path="/devices/:id" element={<DeviceDetail />} />
+          <Route path="/spare-devices" element={<SpareDevices />} />
         </Routes>
 
       </div>
