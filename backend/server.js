@@ -3,6 +3,7 @@ const cors = require("cors");
 
 const deviceRoutes = require("./routes/device.routes");
 const workRoutes = require("./routes/work.routes");
+const spareRoutes = require("./routes/spare.routes");
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
@@ -22,6 +23,7 @@ app.use(express.json());
 
 app.use("/api/devices", deviceRoutes);
 app.use("/api/work-orders", workRoutes);
+app.use("/api/spare-devices", spareRoutes);
 
 app.get("/", (req, res) => {
   res.send("API RUNNING...");
