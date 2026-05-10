@@ -424,7 +424,7 @@ export default function SpareDevices() {
               <th className="p-4">Kho</th>
               <th className="p-4">Tủ</th>
               <th className="p-4">Kệ</th>
-              <th className="p-4">Ô</th>
+              <th className="p-4">Khay</th>
 
               <th className="p-4">Số lượng</th>
 
@@ -750,7 +750,7 @@ export default function SpareDevices() {
               />
 
               <input
-                placeholder="Ô"
+                placeholder="Khay"
                 value={form.slot}
                 onChange={(e) =>
                   setForm({
