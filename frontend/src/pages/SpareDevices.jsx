@@ -25,6 +25,10 @@ export default function SpareDevices() {
 
   const [editing, setEditing] = useState(null);
 
+  const [previewRows, setPreviewRows] = useState([]);
+
+  const [showPreview, setShowPreview] = useState(false);
+
   const defaultForm = {
 
     name: "",
@@ -239,7 +243,7 @@ export default function SpareDevices() {
     );
   };
 
-  // ================= IMPORT =================
+  // ================= IMPORT PREVIEW =================
   const handleImportExcel = async (file) => {
 
     try {
@@ -248,9 +252,12 @@ export default function SpareDevices() {
 
       formData.append("file", file);
 
-      await axios.post(
-        `${API}/api/spare-devices/import`,
+      const res = await axios.post(
+
+        `${API}/api/spare-devices/preview-import`,
+
         formData,
+
         {
           headers: {
             "Content-Type":
@@ -259,7 +266,39 @@ export default function SpareDevices() {
         }
       );
 
+      setPreviewRows(
+        res.data.rows || []
+      );
+
+      setShowPreview(true);
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert("❌ Import lỗi");
+    }
+  };
+  
+  // ================= CONFIRM IMPORT =================
+  const handleConfirmImport = async () => {
+
+    try {
+
+      await axios.post(
+
+        `${API}/api/spare-devices/confirm-import`,
+
+        {
+          rows: previewRows
+        }
+      );
+
       alert("✅ Import thành công");
+
+      setShowPreview(false);
+
+      setPreviewRows([]);
 
       fetchData();
 
@@ -267,7 +306,7 @@ export default function SpareDevices() {
 
       console.log(err);
 
-      alert("❌ Import lỗi");
+      alert("❌ Import thất bại");
     }
   };
 
@@ -792,6 +831,166 @@ export default function SpareDevices() {
         </div>
 
       </div>
+
+      {/* ================= PREVIEW IMPORT ================= */}
+      {showPreview && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            bg-black/40
+            flex
+            items-center
+            justify-center
+            z-50
+            p-6
+          "
+        >
+
+          <div
+            className="
+              bg-white
+              rounded-3xl
+              w-full
+              max-w-6xl
+              p-8
+              shadow-2xl
+            "
+          >
+
+            <h2
+              className="
+                text-3xl
+                font-bold
+                mb-6
+              "
+            >
+              📄 Xem trước dữ liệu import
+            </h2>
+
+            <div
+              className="
+                overflow-auto
+                border
+                rounded-2xl
+              "
+            >
+
+              <table className="w-full">
+
+                <thead className="bg-gray-100">
+
+                  <tr>
+
+                    <th className="p-3 text-left">
+                      Tên thiết bị
+                    </th>
+
+                    <th className="p-3 text-left">
+                      Mã ID
+                    </th>
+
+                    <th className="p-3 text-center">
+                      Số lượng
+                    </th>
+
+                    <th className="p-3 text-center">
+                      Đơn vị
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  {previewRows.map((r, index) => (
+
+                    <tr
+                      key={index}
+                      className="border-t"
+                    >
+
+                      <td className="p-3">
+                        {r.name}
+                      </td>
+
+                      <td className="p-3">
+                        {r.deviceId}
+                      </td>
+
+                      <td
+                        className="
+                          p-3
+                          text-center
+                          font-bold
+                          text-blue-600
+                        "
+                      >
+                        {r.initialQuantity}
+                      </td>
+
+                      <td className="p-3 text-center">
+                        {r.unit}
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+            <div
+              className="
+                flex
+                justify-end
+                gap-4
+                mt-6
+              "
+            >
+
+              <button
+                onClick={() => {
+
+                  setShowPreview(false);
+
+                  setPreviewRows([]);
+                }}
+                className="
+                  px-6
+                  py-3
+                  rounded-xl
+                  bg-gray-200
+                "
+              >
+                Hủy
+              </button>
+
+              <button
+                onClick={handleConfirmImport}
+                className="
+                  px-6
+                  py-3
+                  rounded-xl
+                  bg-blue-500
+                  hover:bg-blue-600
+                  text-white
+                "
+              >
+                Xác nhận Import
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
 
       {/* MODAL */}
       {showModal && (
