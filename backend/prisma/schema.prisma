@@ -52,23 +52,35 @@ model SpareDevice {
   name          String
 
   deviceId      String?
+
   symbol        String?
 
   materialCode  String?
 
   quantity      Int       @default(1)
 
-  condition     String    // New / Used / Broken
+  unit          String?
+
+  importQty     Int       @default(0)
+
+  exportQty     Int       @default(0)
+
+  condition     String
 
   buyDate       DateTime?
+
   removedDate   DateTime?
 
   warehouse     String?
+
   cabinet       String?
+
   shelf         String?
+
   slot          String?
 
   image         String?
+
   note          String?
 
   createdAt     DateTime  @default(now())
