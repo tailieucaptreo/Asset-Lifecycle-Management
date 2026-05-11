@@ -46,15 +46,19 @@ model WorkOrder {
 }
 
 model SpareDevice {
-  id            Int      @id @default(autoincrement())
+
+  id            Int       @id @default(autoincrement())
 
   name          String
-  code          String?
+
+  deviceId      String?
+  symbol        String?
+
   materialCode  String?
 
-  quantity      Int      @default(1)
+  quantity      Int       @default(1)
 
-  condition     String   // New / Used / Broken
+  condition     String    // New / Used / Broken
 
   buyDate       DateTime?
   removedDate   DateTime?
@@ -62,9 +66,10 @@ model SpareDevice {
   warehouse     String?
   cabinet       String?
   shelf         String?
+  slot          String?
 
   image         String?
   note          String?
 
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 }
