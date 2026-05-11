@@ -345,3 +345,29 @@ exports.uploadImage = async (req, res) => {
     });
   }
 };
+// ================= IMPORT EXCEL =================
+exports.importExcel = async (req, res) => {
+
+  try {
+
+    if (!req.file) {
+
+      return res.status(400).json({
+        error: "Không có file"
+      });
+    }
+
+    res.json({
+      ok: true,
+      file: req.file.filename
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
