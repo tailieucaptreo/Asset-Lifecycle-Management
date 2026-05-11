@@ -6,6 +6,7 @@ import {
   Plus,
   Search,
   Download,
+  Upload,
   Trash2,
   Pencil,
   Package
@@ -37,6 +38,11 @@ export default function SpareDevices() {
     slot: "",
 
     quantity: 1,
+
+    unit: "Cái",
+
+    importQty: 0,
+    exportQty: 0,
 
     image: ""
   };
@@ -105,7 +111,6 @@ export default function SpareDevices() {
 
       if (editing) {
 
-        // UPDATE
         await axios.put(
           `${API}/api/spare-devices/${editing.id}`,
           form
@@ -113,7 +118,6 @@ export default function SpareDevices() {
 
       } else {
 
-        // CREATE
         await axios.post(
           `${API}/api/spare-devices`,
           form
@@ -155,6 +159,11 @@ export default function SpareDevices() {
 
       quantity: item.quantity || 1,
 
+      unit: item.unit || "Cái",
+
+      importQty: item.importQty || 0,
+      exportQty: item.exportQty || 0,
+
       image: item.image || ""
     });
 
@@ -192,6 +201,38 @@ export default function SpareDevices() {
     );
   };
 
+  // ================= IMPORT =================
+  const handleImportExcel = async (file) => {
+
+    try {
+
+      const formData = new FormData();
+
+      formData.append("file", file);
+
+      await axios.post(
+        `${API}/api/spare-devices/import`,
+        formData,
+        {
+          headers: {
+            "Content-Type":
+              "multipart/form-data"
+          }
+        }
+      );
+
+      alert("✅ Import thành công");
+
+      fetchData();
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert("❌ Import lỗi");
+    }
+  };
+
   // ================= OPEN CREATE =================
   const openCreate = () => {
 
@@ -207,7 +248,7 @@ export default function SpareDevices() {
 
     <div className="p-6 bg-gray-100 min-h-screen">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="
         flex
         flex-col
@@ -236,7 +277,7 @@ export default function SpareDevices() {
 
         </div>
 
-        {/* SEARCH */}
+        {/* TOOLBAR */}
         <div className="
           flex
           flex-col
@@ -244,6 +285,7 @@ export default function SpareDevices() {
           gap-3
         ">
 
+          {/* SEARCH */}
           <div className="relative">
 
             <Search
@@ -309,6 +351,43 @@ export default function SpareDevices() {
 
           </select>
 
+          {/* IMPORT */}
+          <label
+            className="
+              bg-purple-500
+              hover:bg-purple-600
+              text-white
+              px-5
+              py-3
+              rounded-xl
+              flex
+              items-center
+              gap-2
+              shadow
+              cursor-pointer
+            "
+          >
+
+            <Upload size={18} />
+
+            Import
+
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              hidden
+              onChange={(e) => {
+
+                const file = e.target.files[0];
+
+                if (!file) return;
+
+                handleImportExcel(file);
+              }}
+            />
+
+          </label>
+
           {/* EXPORT */}
           <button
             onClick={handleExport}
@@ -353,7 +432,7 @@ export default function SpareDevices() {
 
       </div>
 
-      {/* ================= CARD ================= */}
+      {/* CARD */}
       <div className="
         grid
         grid-cols-2
@@ -445,197 +524,347 @@ export default function SpareDevices() {
 
       </div>
 
-      {/* ================= TABLE ================= */}
-      <div className="
-        bg-white
-        rounded-2xl
-        shadow
-        overflow-auto
-      ">
+      {/* TABLE */}
+      <div
+        className="
+          bg-white
+          rounded-3xl
+          shadow-lg
+          overflow-hidden
+          border
+          border-gray-200
+        "
+      >
 
-        <table className="w-full">
+        <div className="overflow-x-auto">
 
-          <thead className="bg-gray-50">
+          <table className="w-full min-w-[1300px]">
 
-            <tr className="text-left">
+            <thead className="bg-gray-50 border-b">
 
-              <th className="p-4">Hình ảnh</th>
-              <th className="p-4">Tên thiết bị</th>
-              <th className="p-4">Mã ID</th>
-              <th className="p-4">Tình trạng</th>
+              <tr className="text-gray-800 text-sm">
 
-              <th className="p-4">Kho</th>
-              <th className="p-4">Tủ</th>
-              <th className="p-4">Kệ</th>
-              <th className="p-4">Khay</th>
-              <th className="p-4">Nhập</th>
-              <th className="p-4">Xuất</th>
+                <th className="px-6 py-5 text-left">
+                  Hình ảnh
+                </th>
 
-              <th className="p-4">Số lượng</th>
-              <th className="p-4">ĐVT</th>
+                <th className="px-6 py-5 text-left">
+                  Tên thiết bị
+                </th>
 
-              <th className="p-4 text-center">
-                Action
-              </th>
+                <th className="px-6 py-5 text-left">
+                  Mã ID
+                </th>
 
-            </tr>
+                <th className="px-6 py-5 text-center">
+                  Tình trạng
+                </th>
 
-          </thead>
+                <th className="px-4 py-5 text-center">
+                  Kho
+                </th>
 
-          <tbody>
+                <th className="px-4 py-5 text-center">
+                  Tủ
+                </th>
 
-            {filtered.map((d) => (
+                <th className="px-4 py-5 text-center">
+                  Kệ
+                </th>
 
-              <tr
-                key={d.id}
-                className="
-                  border-t
-                  hover:bg-gray-50
-                "
-              >
+                <th className="px-4 py-5 text-center">
+                  Khay
+                </th>
 
-                {/* IMAGE */}
-                <td className="p-4">
+                <th className="px-4 py-5 text-center">
+                  Nhập
+                </th>
 
-                  {d.image ? (
+                <th className="px-4 py-5 text-center">
+                  Xuất
+                </th>
 
-                    <img
-                      src={d.image}
-                      alt=""
-                      className="
-                        w-14
-                        h-14
-                        rounded-xl
-                        object-cover
-                        border
-                      "
-                    />
+                <th className="px-4 py-5 text-center">
+                  Số lượng
+                </th>
 
-                  ) : (
+                <th className="px-4 py-5 text-center">
+                  ĐVT
+                </th>
 
-                    <div className="
-                      w-14
-                      h-14
-                      rounded-xl
-                      bg-gray-100
-                      flex
-                      items-center
-                      justify-center
-                    ">
-                      <Package />
-                    </div>
-
-                  )}
-
-                </td>
-
-                {/* NAME */}
-                <td className="p-4 font-semibold">
-                  {d.name}
-                </td>
-
-                {/* ID */}
-                <td className="p-4">
-                  {d.deviceId}
-                </td>
-
-                {/* CONDITION */}
-                <td className="p-4">
-
-                  <span className={`
-                    px-3 py-1 rounded-lg text-sm font-medium
-
-                    ${d.condition === "New"
-                      ? "bg-green-100 text-green-700"
-                      : ""}
-
-                    ${d.condition === "Used"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : ""}
-
-                    ${d.condition === "Broken"
-                      ? "bg-red-100 text-red-700"
-                      : ""}
-                  `}>
-
-                    {d.condition === "New" &&
-                      "Mới"}
-
-                    {d.condition === "Used" &&
-                      "Đã sử dụng"}
-
-                    {d.condition === "Broken" &&
-                      "Hỏng"}
-
-                  </span>
-
-                </td>
-
-                {/* LOCATION */}
-                <td className="p-4">
-                  {d.warehouse}
-                </td>
-
-                <td className="p-4">
-                  {d.cabinet}
-                </td>
-
-                <td className="p-4">
-                  {d.shelf}
-                </td>
-
-                <td className="p-4">
-                  {d.slot}
-                </td>
-
-                {/* QTY */}
-                <td className="p-4 font-bold">
-                  {d.quantity}
-                </td>
-
-                {/* ACTION */}
-                <td className="
-                  p-4
-                  flex
-                  justify-center
-                  gap-3
-                ">
-
-                  <button
-                    onClick={() => handleEdit(d)}
-                    className="
-                      text-blue-500
-                      hover:text-blue-700
-                    "
-                  >
-                    <Pencil size={18} />
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      handleDelete(d.id)
-                    }
-                    className="
-                      text-red-500
-                      hover:text-red-700
-                    "
-                  >
-                    <Trash2 size={18} />
-                  </button>
-
-                </td>
+                <th className="px-6 py-5 text-center">
+                  Action
+                </th>
 
               </tr>
 
-            ))}
+            </thead>
 
-          </tbody>
+            <tbody>
 
-        </table>
+              {filtered.length > 0 ? (
+
+                filtered.map((d) => (
+
+                  <tr
+                    key={d.id}
+                    className="
+                      border-b
+                      hover:bg-gray-50
+                      transition
+                    "
+                  >
+
+                    {/* IMAGE */}
+                    <td className="px-4 py-5">
+
+                      {d.image ? (
+
+                        <img
+                          src={d.image}
+                          alt=""
+                          className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            object-cover
+                            border
+                          "
+                        />
+
+                      ) : (
+
+                        <div
+                          className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            bg-gray-100
+                            flex
+                            items-center
+                            justify-center
+                          "
+                        >
+                          <Package size={24} />
+                        </div>
+
+                      )}
+
+                    </td>
+
+                    {/* NAME */}
+                    <td className="
+                      px-6
+                      py-5
+                      font-semibold
+                    ">
+
+                      {d.name || "-"}
+
+                    </td>
+
+                    {/* ID */}
+                    <td className="px-6 py-5">
+                      {d.deviceId || "-"}
+                    </td>
+
+                    {/* CONDITION */}
+                    <td className="
+                      px-6
+                      py-5
+                      text-center
+                    ">
+
+                      <span className={`
+                        px-4
+                        py-2
+                        rounded-xl
+                        text-sm
+                        font-semibold
+
+                        ${d.condition === "New"
+                          ? "bg-green-100 text-green-700"
+                          : ""}
+
+                        ${d.condition === "Used"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : ""}
+
+                        ${d.condition === "Broken"
+                          ? "bg-red-100 text-red-700"
+                          : ""}
+                      `}>
+
+                        {d.condition === "New" &&
+                          "Mới"}
+
+                        {d.condition === "Used" &&
+                          "Đã sử dụng"}
+
+                        {d.condition === "Broken" &&
+                          "Hỏng"}
+
+                      </span>
+
+                    </td>
+
+                    {/* LOCATION */}
+                    <td className="px-4 py-5 text-center">
+                      {d.warehouse || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.cabinet || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.shelf || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.slot || "-"}
+                    </td>
+
+                    {/* IMPORT */}
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                      text-blue-600
+                    ">
+
+                      {d.importQty || 0}
+
+                    </td>
+
+                    {/* EXPORT */}
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                      text-red-500
+                    ">
+
+                      {d.exportQty || 0}
+
+                    </td>
+
+                    {/* QTY */}
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                    ">
+
+                      {d.quantity || 0}
+
+                    </td>
+
+                    {/* UNIT */}
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                    ">
+
+                      {d.unit || "Cái"}
+
+                    </td>
+
+                    {/* ACTION */}
+                    <td className="px-6 py-5">
+
+                      <div className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-4
+                      ">
+
+                        <button
+                          onClick={() => handleEdit(d)}
+                          className="
+                            w-9
+                            h-9
+                            rounded-xl
+                            bg-blue-50
+                            text-blue-500
+                            hover:bg-blue-100
+                          "
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleDelete(d.id)
+                          }
+                          className="
+                            w-9
+                            h-9
+                            rounded-xl
+                            bg-red-50
+                            text-red-500
+                            hover:bg-red-100
+                          "
+                        >
+                          <Trash2 size={18} />
+                        </button>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              ) : (
+
+                <tr>
+
+                  <td
+                    colSpan={13}
+                    className="
+                      text-center
+                      py-16
+                      text-gray-400
+                    "
+                  >
+
+                    <div className="
+                      flex
+                      flex-col
+                      items-center
+                      gap-3
+                    ">
+
+                      <Package size={48} />
+
+                      <p className="text-lg">
+                        Chưa có thiết bị dự phòng
+                      </p>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
 
       </div>
 
-      {/* ================= MODAL ================= */}
+      {/* MODAL */}
       {showModal && (
 
         <div className="
@@ -653,7 +882,7 @@ export default function SpareDevices() {
             rounded-3xl
             p-8
             w-full
-            max-w-3xl
+            max-w-4xl
             shadow-2xl
           ">
 
@@ -662,9 +891,11 @@ export default function SpareDevices() {
               font-bold
               mb-8
             ">
+
               {editing
                 ? "✏️ Chỉnh sửa thiết bị"
                 : "➕ Thêm thiết bị dự phòng"}
+
             </h2>
 
             <div className="
@@ -784,12 +1015,50 @@ export default function SpareDevices() {
 
               <input
                 type="number"
+                placeholder="Nhập"
+                value={form.importQty}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    importQty: Number(e.target.value)
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
+
+              <input
+                type="number"
+                placeholder="Xuất"
+                value={form.exportQty}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    exportQty: Number(e.target.value)
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
+
+              <input
+                type="number"
                 placeholder="Số lượng"
                 value={form.quantity}
                 onChange={(e) =>
                   setForm({
                     ...form,
                     quantity: Number(e.target.value)
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
+
+              <input
+                placeholder="Đơn vị tính"
+                value={form.unit}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    unit: e.target.value
                   })
                 }
                 className="border rounded-xl p-4"
@@ -832,9 +1101,11 @@ export default function SpareDevices() {
                   text-white
                 "
               >
+
                 {editing
                   ? "Cập nhật"
                   : "Lưu thiết bị"}
+
               </button>
 
             </div>
