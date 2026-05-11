@@ -47,41 +47,43 @@ model WorkOrder {
 
 model SpareDevice {
 
-  id            Int       @id @default(autoincrement())
+  id               Int       @id @default(autoincrement())
 
-  name          String
+  name             String
 
-  deviceId      String?
+  deviceId         String?
 
-  symbol        String?
+  symbol           String?
 
-  materialCode  String?
+  materialCode     String?
 
-  quantity      Int       @default(1)
+  initialQuantity  Int       @default(0)
 
-  unit          String?
+  quantity         Int       @default(0)
 
-  importQty     Int       @default(0)
+  importQty        Int       @default(0)
 
-  exportQty     Int       @default(0)
+  exportQty        Int       @default(0)
 
-  condition     String
+  unit             String?
 
-  buyDate       DateTime?
+  condition        String
 
-  removedDate   DateTime?
+  buyDate          DateTime?
 
-  warehouse     String?
+  removedDate      DateTime?
 
-  cabinet       String?
+  warehouse        String?
 
-  shelf         String?
+  cabinet          String?
 
-  slot          String?
+  shelf            String?
 
-  image         String?
+  slot             String?
 
-  note          String?
+  image            String?
 
-  createdAt     DateTime  @default(now())
+  note             String?
+
+  createdAt        DateTime  @default(now())
 }
