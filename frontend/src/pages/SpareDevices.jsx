@@ -494,3 +494,187 @@ export default function SpareDevices() {
         </div>
 
       </div>
+            {/* CONTENT */}
+      <div className="
+        bg-white
+        rounded-3xl
+        shadow
+        p-10
+        text-center
+      ">
+
+        <Package
+          size={60}
+          className="mx-auto text-gray-400 mb-4"
+        />
+
+        <h2 className="
+          text-2xl
+          font-bold
+          mb-2
+        ">
+          Danh sách thiết bị dự phòng
+        </h2>
+
+        <p className="text-gray-500">
+          Hệ thống quản lý kho vật tư
+        </p>
+
+      </div>
+
+      {/* ================= PREVIEW IMPORT ================= */}
+      {showPreview && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            bg-black/40
+            flex
+            items-center
+            justify-center
+            z-50
+            p-6
+          "
+        >
+
+          <div
+            className="
+              bg-white
+              rounded-3xl
+              w-full
+              max-w-6xl
+              p-8
+              shadow-2xl
+            "
+          >
+
+            <h2 className="
+              text-3xl
+              font-bold
+              mb-6
+            ">
+              📄 Xem trước dữ liệu import
+            </h2>
+
+            <div className="
+              max-h-[500px]
+              overflow-auto
+              border
+              rounded-2xl
+            ">
+
+              <table className="w-full">
+
+                <thead className="bg-gray-100">
+
+                  <tr>
+
+                    <th className="p-3 text-left">
+                      Tên thiết bị
+                    </th>
+
+                    <th className="p-3 text-left">
+                      Mã ID
+                    </th>
+
+                    <th className="p-3 text-center">
+                      Số lượng
+                    </th>
+
+                    <th className="p-3 text-center">
+                      Đơn vị
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  {previewRows.map((r, index) => (
+
+                    <tr
+                      key={index}
+                      className="border-t"
+                    >
+
+                      <td className="p-3">
+                        {r.name}
+                      </td>
+
+                      <td className="p-3">
+                        {r.deviceId}
+                      </td>
+
+                      <td className="
+                        p-3
+                        text-center
+                        font-bold
+                        text-blue-600
+                      ">
+                        {r.initialQuantity}
+                      </td>
+
+                      <td className="p-3 text-center">
+                        {r.unit}
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+            <div className="
+              flex
+              justify-end
+              gap-4
+              mt-6
+            ">
+
+              <button
+                onClick={() => {
+
+                  setShowPreview(false);
+
+                  setPreviewRows([]);
+                }}
+                className="
+                  px-6
+                  py-3
+                  rounded-xl
+                  bg-gray-200
+                "
+              >
+                Hủy
+              </button>
+
+              <button
+                onClick={handleConfirmImport}
+                className="
+                  px-6
+                  py-3
+                  rounded-xl
+                  bg-blue-500
+                  hover:bg-blue-600
+                  text-white
+                "
+              >
+                Xác nhận Import
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+    </div>
+  );
+}
