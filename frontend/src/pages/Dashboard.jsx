@@ -17,7 +17,11 @@ import {
 
 export default function Dashboard() {
 
+  // =============================
+  // STATE
+  // =============================
   const [devices, setDevices] = useState([]);
+  const [spareDevices, setSpareDevices] = useState([]);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -32,12 +36,32 @@ export default function Dashboard() {
   // =============================
   // LOAD DATA
   // =============================
-  const fetchData = () => {
+  const fetchData = async () => {
 
-    axios
-      .get(`${API}/api/devices`)
-      .then((res) => setDevices(res.data))
-      .catch(() => setDevices([]));
+    try {
+
+      // 🔥 LOAD THIẾT BỊ CHÍNH
+      const deviceRes = await axios.get(
+        `${API}/api/devices`
+      );
+
+      setDevices(deviceRes.data);
+
+      // 🔥 LOAD THIẾT BỊ DỰ PHÒNG
+      const spareRes = await axios.get(
+        `${API}/api/spare-devices`
+      );
+
+      setSpareDevices(spareRes.data);
+
+    } catch (err) {
+
+      console.log(err);
+
+      setDevices([]);
+      setSpareDevices([]);
+
+    }
   };
 
   useEffect(() => {
@@ -69,7 +93,9 @@ export default function Dashboard() {
     return (
 
       (!filter.id ||
-        (d.deviceId || "").includes(filter.id)) &&
+        (d.deviceId || "")
+          .toLowerCase()
+          .includes(filter.id.toLowerCase())) &&
 
       (!filter.line.length ||
         filter.line.includes(d.line)) &&
@@ -121,10 +147,15 @@ export default function Dashboard() {
 
   }).length;
 
-  // 🔥 THIẾT BỊ DỰ PHÒNG
-  // Tạm thời demo = 24
-  // Sau này kết nối API riêng
-  const spareDevices = 24;
+  // =============================
+  // SPARE DEVICE COUNT
+  // =============================
+  const spareTotal = spareDevices.reduce(
+    (sum, item) => {
+      return sum + (item.quantity || 0);
+    },
+    0
+  );
 
   // =============================
   // RENDER
@@ -149,7 +180,9 @@ export default function Dashboard() {
 
           <button
             onClick={() =>
-              window.open(`${API}/api/devices/export`)
+              window.open(
+                `${API}/api/devices/export`
+              )
             }
             className="
               bg-blue-500
@@ -191,6 +224,7 @@ export default function Dashboard() {
         "
       >
 
+        {/* TOTAL */}
         <Card
           title="Tổng"
           value={total}
@@ -199,6 +233,7 @@ export default function Dashboard() {
           to="/devices"
         />
 
+        {/* ACTIVE */}
         <Card
           title="Hoạt động"
           value={active}
@@ -207,6 +242,7 @@ export default function Dashboard() {
           to="/devices?status=Active"
         />
 
+        {/* MAINTENANCE */}
         <Card
           title="Bảo trì"
           value={maintenance}
@@ -215,6 +251,7 @@ export default function Dashboard() {
           to="/devices?status=Maintenance"
         />
 
+        {/* EXPIRED */}
         <Card
           title="Hết hạn"
           value={expired}
@@ -223,10 +260,10 @@ export default function Dashboard() {
           to="/devices/expired"
         />
 
-        {/* 🔥 CARD DỰ PHÒNG */}
+        {/* SPARE DEVICE */}
         <Card
           title="Dự phòng"
-          value={spareDevices}
+          value={spareTotal}
           color="bg-cyan-500"
           icon={<BatteryCharging />}
           to="/spare-devices"
