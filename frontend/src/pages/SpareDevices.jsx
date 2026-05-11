@@ -26,6 +26,7 @@ export default function SpareDevices() {
   const [editing, setEditing] = useState(null);
 
   const defaultForm = {
+
     name: "",
     deviceId: "",
     symbol: "",
@@ -37,12 +38,19 @@ export default function SpareDevices() {
     shelf: "",
     slot: "",
 
-    quantity: 1,
+    // =========================
+    // INVENTORY
+    // =========================
 
-    unit: "Cái",
+    initialQuantity: 0,
+
+    quantity: 0,
 
     importQty: 0,
+
     exportQty: 0,
+
+    unit: "Cái",
 
     image: ""
   };
@@ -99,28 +107,44 @@ export default function SpareDevices() {
   const warehouse =
     data[0]?.warehouse || "Chưa có";
 
-  // ================= CREATE / UPDATE =================
+  // ================= SAVE =================
   const handleSave = async () => {
 
     try {
 
       if (!form.name) {
+
         alert("Nhập tên thiết bị");
+
         return;
       }
+
+      const payload = {
+
+        ...form,
+
+        initialQuantity:
+          Number(form.initialQuantity || 0),
+
+        importQty:
+          Number(form.importQty || 0),
+
+        exportQty:
+          Number(form.exportQty || 0),
+      };
 
       if (editing) {
 
         await axios.put(
           `${API}/api/spare-devices/${editing.id}`,
-          form
+          payload
         );
 
       } else {
 
         await axios.post(
           `${API}/api/spare-devices`,
-          form
+          payload
         );
       }
 
@@ -146,25 +170,39 @@ export default function SpareDevices() {
     setEditing(item);
 
     setForm({
+
       name: item.name || "",
+
       deviceId: item.deviceId || "",
+
       symbol: item.symbol || "",
 
       condition: item.condition || "New",
 
       warehouse: item.warehouse || "",
+
       cabinet: item.cabinet || "",
+
       shelf: item.shelf || "",
+
       slot: item.slot || "",
 
-      quantity: item.quantity || 1,
+      initialQuantity:
+        item.initialQuantity || 0,
 
-      unit: item.unit || "Cái",
+      quantity:
+        item.quantity || 0,
 
-      importQty: item.importQty || 0,
-      exportQty: item.exportQty || 0,
+      // reset nhập xuất mới
+      importQty: 0,
 
-      image: item.image || ""
+      exportQty: 0,
+
+      unit:
+        item.unit || "Cái",
+
+      image:
+        item.image || ""
     });
 
     setShowModal(true);
@@ -432,98 +470,6 @@ export default function SpareDevices() {
 
       </div>
 
-      {/* CARD */}
-      <div className="
-        grid
-        grid-cols-2
-        lg:grid-cols-4
-        gap-5
-        mb-8
-      ">
-
-        <div className="
-          bg-white
-          rounded-2xl
-          shadow
-          p-6
-        ">
-
-          <p className="text-gray-500">
-            Tổng thiết bị
-          </p>
-
-          <h2 className="
-            text-5xl
-            font-bold
-            mt-3
-          ">
-            {total}
-          </h2>
-
-        </div>
-
-        <div className="
-          bg-green-500
-          text-white
-          rounded-2xl
-          shadow
-          p-6
-        ">
-
-          <p>Thiết bị mới</p>
-
-          <h2 className="
-            text-5xl
-            font-bold
-            mt-3
-          ">
-            {newCount}
-          </h2>
-
-        </div>
-
-        <div className="
-          bg-yellow-500
-          text-white
-          rounded-2xl
-          shadow
-          p-6
-        ">
-
-          <p>Đã sử dụng</p>
-
-          <h2 className="
-            text-5xl
-            font-bold
-            mt-3
-          ">
-            {usedCount}
-          </h2>
-
-        </div>
-
-        <div className="
-          bg-blue-500
-          text-white
-          rounded-2xl
-          shadow
-          p-6
-        ">
-
-          <p>Kho lưu trữ</p>
-
-          <h2 className="
-            text-3xl
-            font-bold
-            mt-3
-          ">
-            {warehouse}
-          </h2>
-
-        </div>
-
-      </div>
-
       {/* TABLE */}
       <div
         className="
@@ -538,7 +484,7 @@ export default function SpareDevices() {
 
         <div className="overflow-x-auto">
 
-          <table className="w-full min-w-[1300px]">
+          <table className="w-full min-w-[1400px]">
 
             <thead className="bg-gray-50 border-b">
 
@@ -577,6 +523,10 @@ export default function SpareDevices() {
                 </th>
 
                 <th className="px-4 py-5 text-center">
+                  Ban đầu
+                </th>
+
+                <th className="px-4 py-5 text-center">
                   Nhập
                 </th>
 
@@ -585,7 +535,7 @@ export default function SpareDevices() {
                 </th>
 
                 <th className="px-4 py-5 text-center">
-                  Số lượng
+                  Tồn kho
                 </th>
 
                 <th className="px-4 py-5 text-center">
@@ -652,28 +602,15 @@ export default function SpareDevices() {
 
                     </td>
 
-                    {/* NAME */}
-                    <td className="
-                      px-6
-                      py-5
-                      font-semibold
-                    ">
-
+                    <td className="px-6 py-5 font-semibold">
                       {d.name || "-"}
-
                     </td>
 
-                    {/* ID */}
                     <td className="px-6 py-5">
                       {d.deviceId || "-"}
                     </td>
 
-                    {/* CONDITION */}
-                    <td className="
-                      px-6
-                      py-5
-                      text-center
-                    ">
+                    <td className="px-6 py-5 text-center">
 
                       <span className={`
                         px-4
@@ -708,7 +645,6 @@ export default function SpareDevices() {
 
                     </td>
 
-                    {/* LOCATION */}
                     <td className="px-4 py-5 text-center">
                       {d.warehouse || "-"}
                     </td>
@@ -725,7 +661,15 @@ export default function SpareDevices() {
                       {d.slot || "-"}
                     </td>
 
-                    {/* IMPORT */}
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                    ">
+                      {d.initialQuantity || 0}
+                    </td>
+
                     <td className="
                       px-4
                       py-5
@@ -733,12 +677,9 @@ export default function SpareDevices() {
                       font-bold
                       text-blue-600
                     ">
-
                       {d.importQty || 0}
-
                     </td>
 
-                    {/* EXPORT */}
                     <td className="
                       px-4
                       py-5
@@ -746,35 +687,23 @@ export default function SpareDevices() {
                       font-bold
                       text-red-500
                     ">
-
                       {d.exportQty || 0}
-
                     </td>
 
-                    {/* QTY */}
                     <td className="
                       px-4
                       py-5
                       text-center
                       font-bold
+                      text-green-700
                     ">
-
                       {d.quantity || 0}
-
                     </td>
 
-                    {/* UNIT */}
-                    <td className="
-                      px-4
-                      py-5
-                      text-center
-                    ">
-
+                    <td className="px-4 py-5 text-center">
                       {d.unit || "Cái"}
-
                     </td>
 
-                    {/* ACTION */}
                     <td className="px-6 py-5">
 
                       <div className="
@@ -827,7 +756,7 @@ export default function SpareDevices() {
                 <tr>
 
                   <td
-                    colSpan={13}
+                    colSpan={14}
                     className="
                       text-center
                       py-16
@@ -1013,45 +942,82 @@ export default function SpareDevices() {
                 className="border rounded-xl p-4"
               />
 
+              {/* INITIAL */}
               <input
                 type="number"
-                placeholder="Nhập"
+                placeholder="Số lượng ban đầu"
+                value={form.initialQuantity}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    initialQuantity:
+                      Number(e.target.value)
+                  })
+                }
+                disabled={editing}
+                className="
+                  border
+                  rounded-xl
+                  p-4
+                  bg-gray-50
+                "
+              />
+
+              {/* IMPORT */}
+              <input
+                type="number"
+                placeholder="Nhập thêm"
                 value={form.importQty}
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    importQty: Number(e.target.value)
+                    importQty:
+                      Number(e.target.value)
                   })
                 }
                 className="border rounded-xl p-4"
               />
 
+              {/* EXPORT */}
               <input
                 type="number"
-                placeholder="Xuất"
+                placeholder="Xuất đi"
                 value={form.exportQty}
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    exportQty: Number(e.target.value)
+                    exportQty:
+                      Number(e.target.value)
                   })
                 }
                 className="border rounded-xl p-4"
               />
 
-              <input
-                type="number"
-                placeholder="Số lượng"
-                value={form.quantity}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    quantity: Number(e.target.value)
-                  })
-                }
-                className="border rounded-xl p-4"
-              />
+              {/* STOCK */}
+              <div
+                className="
+                  border
+                  rounded-xl
+                  p-4
+                  bg-blue-50
+                  flex
+                  items-center
+                  font-bold
+                  text-blue-700
+                "
+              >
 
+                Tồn kho hiện tại:
+
+                <span className="ml-2 text-2xl">
+
+                  {form.quantity || 0}
+
+                </span>
+
+              </div>
+
+              {/* UNIT */}
               <input
                 placeholder="Đơn vị tính"
                 value={form.unit}
