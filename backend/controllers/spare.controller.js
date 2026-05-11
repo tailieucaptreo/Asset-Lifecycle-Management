@@ -488,55 +488,92 @@ exports.confirmImport = async (req, res) => {
 
   try {
 
-    const rows = req.body.rows || [];
+    const rows =
+      req.body.rows || [];
 
     for (const row of rows) {
 
       const initialQuantity =
         Number(row.initialQuantity || 0);
 
+      const importQty =
+        Number(row.importQty || 0);
+
+      const exportQty =
+        Number(row.exportQty || 0);
+
+      const quantity =
+        initialQuantity +
+        importQty -
+        exportQty;
+
       await prisma.spareDevice.create({
 
         data: {
 
+          // tên vật tư
           name:
-            row.name || "",
+            row.name ||
+            row["Tên vật tư"] ||
+            "Chưa có tên",
 
+          // mã vật tư
           deviceId:
-            row.deviceId || "",
+            String(
+              row.deviceId ||
+              row["Mã vật tư"] ||
+              ""
+            ),
 
-          symbol:
-            row.symbol || "",
-
-          condition:
-            row.condition || "New",
-
+          // kho
           warehouse:
-            row.warehouse || "",
+            row.warehouse ||
+            row["Kho"] ||
+            "Ga 19",
 
+          // tủ
           cabinet:
-            row.cabinet || "",
+            row.cabinet ||
+            row["Tủ"] ||
+            "",
 
+          // kệ
           shelf:
-            row.shelf || "",
+            row.shelf ||
+            row["Kệ"] ||
+            "",
 
+          // khay
           slot:
-            row.slot || "",
+            row.slot ||
+            row["Số khay"] ||
+            "",
 
+          // tồn đầu
           initialQuantity,
 
-          quantity:
-            initialQuantity,
+          // nhập
+          importQty,
 
-          importQty: 0,
+          // xuất
+          exportQty,
 
-          exportQty: 0,
+          // tồn hiện tại
+          quantity,
 
+          // đơn vị
           unit:
-            row.unit || "Cái",
+            row.unit ||
+            row["Đvt"] ||
+            row["ĐVT"] ||
+            "Cái",
 
-          image:
-            row.image || ""
+          // tình trạng
+          condition: "New",
+
+          symbol: "",
+
+          image: ""
         }
       });
     }
