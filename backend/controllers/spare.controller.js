@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
+const XLSX = require("xlsx");
+const fs = require("fs");
 
 // ================= HELPER =================
 const toNumber = (value, defaultValue = 0) => {
@@ -357,9 +359,78 @@ exports.importExcel = async (req, res) => {
       });
     }
 
+    // đọc file excel
+    const workbook = XLSX.readFile(req.file.path);
+
+    // sheet đầu tiên
+    const sheetName =
+      workbook.SheetNames[0];
+
+    const sheet =
+      workbook.Sheets[sheetName];
+
+    // convert json
+    const rows =
+      XLSX.utils.sheet_to_json(sheet);
+
+    // insert database
+    for (const row of rows) {
+
+      const initialQuantity =
+        Number(row.initialQuantity || 0);
+
+      await prisma.spareDevice.create({
+
+        data: {
+
+          name:
+            row.name || "",
+
+          deviceId:
+            row.deviceId || "",
+
+          symbol:
+            row.symbol || "",
+
+          condition:
+            row.condition || "New",
+
+          warehouse:
+            row.warehouse || "",
+
+          cabinet:
+            row.cabinet || "",
+
+          shelf:
+            row.shelf || "",
+
+          slot:
+            row.slot || "",
+
+          initialQuantity,
+
+          quantity:
+            initialQuantity,
+
+          importQty: 0,
+
+          exportQty: 0,
+
+          unit:
+            row.unit || "Cái",
+
+          image:
+            row.image || ""
+        }
+      });
+    }
+
+    // xóa file temp
+    fs.unlinkSync(req.file.path);
+
     res.json({
       ok: true,
-      file: req.file.filename
+      total: rows.length
     });
 
   } catch (err) {
