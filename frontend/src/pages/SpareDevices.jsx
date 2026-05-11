@@ -25,12 +25,6 @@ export default function SpareDevices() {
 
   const [editing, setEditing] = useState(null);
 
-  // ================= IMPORT PREVIEW =================
-  const [previewRows, setPreviewRows] = useState([]);
-
-  const [showPreview, setShowPreview] = useState(false);
-
-  // ================= FORM =================
   const defaultForm = {
 
     name: "",
@@ -43,6 +37,10 @@ export default function SpareDevices() {
     cabinet: "",
     shelf: "",
     slot: "",
+
+    // =========================
+    // INVENTORY
+    // =========================
 
     initialQuantity: 0,
 
@@ -59,7 +57,7 @@ export default function SpareDevices() {
 
   const [form, setForm] = useState(defaultForm);
 
-  // ================= LOAD DATA =================
+  // ================= LOAD =================
   const fetchData = () => {
 
     axios
@@ -94,6 +92,20 @@ export default function SpareDevices() {
       )
     );
   });
+
+  // ================= CARD =================
+  const total = data.length;
+
+  const newCount = data.filter(
+    d => d.condition === "New"
+  ).length;
+
+  const usedCount = data.filter(
+    d => d.condition === "Used"
+  ).length;
+
+  const warehouse =
+    data[0]?.warehouse || "Chưa có";
 
   // ================= SAVE =================
   const handleSave = async () => {
@@ -148,7 +160,7 @@ export default function SpareDevices() {
 
       console.log(err);
 
-      alert("❌ Lưu lỗi");
+      alert("❌ Lưu thiết bị lỗi");
     }
   };
 
@@ -181,6 +193,7 @@ export default function SpareDevices() {
       quantity:
         item.quantity || 0,
 
+      // reset nhập xuất mới
       importQty: 0,
 
       exportQty: 0,
@@ -218,7 +231,15 @@ export default function SpareDevices() {
     }
   };
 
-  // ================= IMPORT PREVIEW =================
+  // ================= EXPORT =================
+  const handleExport = () => {
+
+    window.open(
+      `${API}/api/spare-devices/export`
+    );
+  };
+
+  // ================= IMPORT =================
   const handleImportExcel = async (file) => {
 
     try {
@@ -227,12 +248,9 @@ export default function SpareDevices() {
 
       formData.append("file", file);
 
-      const res = await axios.post(
-
-        `${API}/api/spare-devices/preview-import`,
-
+      await axios.post(
+        `${API}/api/spare-devices/import`,
         formData,
-
         {
           headers: {
             "Content-Type":
@@ -241,39 +259,7 @@ export default function SpareDevices() {
         }
       );
 
-      setPreviewRows(
-        res.data.rows || []
-      );
-
-      setShowPreview(true);
-
-    } catch (err) {
-
-      console.log(err);
-
-      alert("❌ Import lỗi");
-    }
-  };
-
-  // ================= CONFIRM IMPORT =================
-  const handleConfirmImport = async () => {
-
-    try {
-
-      await axios.post(
-
-        `${API}/api/spare-devices/confirm-import`,
-
-        {
-          rows: previewRows
-        }
-      );
-
       alert("✅ Import thành công");
-
-      setShowPreview(false);
-
-      setPreviewRows([]);
 
       fetchData();
 
@@ -281,16 +267,8 @@ export default function SpareDevices() {
 
       console.log(err);
 
-      alert("❌ Import thất bại");
+      alert("❌ Import lỗi");
     }
-  };
-
-  // ================= EXPORT =================
-  const handleExport = () => {
-
-    window.open(
-      `${API}/api/spare-devices/export`
-    );
   };
 
   // ================= OPEN CREATE =================
@@ -303,6 +281,7 @@ export default function SpareDevices() {
     setShowModal(true);
   };
 
+  // ================= RENDER =================
   return (
 
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -331,7 +310,7 @@ export default function SpareDevices() {
           </h1>
 
           <p className="text-gray-500 mt-2">
-            Quản lý kho vật tư thiết bị
+            Quản lý kho thiết bị dự phòng
           </p>
 
         </div>
@@ -492,42 +471,78 @@ export default function SpareDevices() {
       </div>
 
       {/* TABLE */}
-      <div className="
-        bg-white
-        rounded-3xl
-        shadow-lg
-        overflow-hidden
-      ">
+      <div
+        className="
+          bg-white
+          rounded-3xl
+          shadow-lg
+          overflow-hidden
+          border
+          border-gray-200
+        "
+      >
 
         <div className="overflow-x-auto">
 
-          <table className="w-full">
+          <table className="w-full min-w-[1400px]">
 
-            <thead className="bg-gray-100">
+            <thead className="bg-gray-50 border-b">
 
-              <tr>
+              <tr className="text-gray-800 text-sm">
 
-                <th className="p-4 text-left">
-                  Thiết bị
+                <th className="px-6 py-5 text-left">
+                  Hình ảnh
                 </th>
 
-                <th className="p-4 text-left">
+                <th className="px-6 py-5 text-left">
+                  Tên thiết bị
+                </th>
+
+                <th className="px-6 py-5 text-left">
                   Mã ID
                 </th>
 
-                <th className="p-4 text-center">
+                <th className="px-6 py-5 text-center">
                   Tình trạng
                 </th>
 
-                <th className="p-4 text-center">
+                <th className="px-4 py-5 text-center">
+                  Kho
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Tủ
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Kệ
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Khay
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Ban đầu
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Nhập
+                </th>
+
+                <th className="px-4 py-5 text-center">
+                  Xuất
+                </th>
+
+                <th className="px-4 py-5 text-center">
                   Tồn kho
                 </th>
 
-                <th className="p-4 text-center">
+                <th className="px-4 py-5 text-center">
                   ĐVT
                 </th>
 
-                <th className="p-4 text-center">
+                <th className="px-6 py-5 text-center">
                   Action
                 </th>
 
@@ -537,71 +552,230 @@ export default function SpareDevices() {
 
             <tbody>
 
-              {filtered.map((d) => (
+              {filtered.length > 0 ? (
 
-                <tr
-                  key={d.id}
-                  className="border-t"
-                >
+                filtered.map((d) => (
 
-                  <td className="p-4 font-semibold">
-                    {d.name}
-                  </td>
+                  <tr
+                    key={d.id}
+                    className="
+                      border-b
+                      hover:bg-gray-50
+                      transition
+                    "
+                  >
 
-                  <td className="p-4">
-                    {d.deviceId}
-                  </td>
+                    {/* IMAGE */}
+                    <td className="px-4 py-5">
 
-                  <td className="p-4 text-center">
-                    {d.condition}
-                  </td>
+                      {d.image ? (
 
-                  <td className="
-                    p-4
-                    text-center
-                    font-bold
-                    text-green-700
-                  ">
-                    {d.quantity}
-                  </td>
+                        <img
+                          src={d.image}
+                          alt=""
+                          className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            object-cover
+                            border
+                          "
+                        />
 
-                  <td className="p-4 text-center">
-                    {d.unit}
-                  </td>
+                      ) : (
 
-                  <td className="p-4">
+                        <div
+                          className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            bg-gray-100
+                            flex
+                            items-center
+                            justify-center
+                          "
+                        >
+                          <Package size={24} />
+                        </div>
+
+                      )}
+
+                    </td>
+
+                    <td className="px-6 py-5 font-semibold">
+                      {d.name || "-"}
+                    </td>
+
+                    <td className="px-6 py-5">
+                      {d.deviceId || "-"}
+                    </td>
+
+                    <td className="px-6 py-5 text-center">
+
+                      <span className={`
+                        px-4
+                        py-2
+                        rounded-xl
+                        text-sm
+                        font-semibold
+
+                        ${d.condition === "New"
+                          ? "bg-green-100 text-green-700"
+                          : ""}
+
+                        ${d.condition === "Used"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : ""}
+
+                        ${d.condition === "Broken"
+                          ? "bg-red-100 text-red-700"
+                          : ""}
+                      `}>
+
+                        {d.condition === "New" &&
+                          "Mới"}
+
+                        {d.condition === "Used" &&
+                          "Đã sử dụng"}
+
+                        {d.condition === "Broken" &&
+                          "Hỏng"}
+
+                      </span>
+
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.warehouse || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.cabinet || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.shelf || "-"}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.slot || "-"}
+                    </td>
+
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                    ">
+                      {d.initialQuantity || 0}
+                    </td>
+
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                      text-blue-600
+                    ">
+                      {d.importQty || 0}
+                    </td>
+
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                      text-red-500
+                    ">
+                      {d.exportQty || 0}
+                    </td>
+
+                    <td className="
+                      px-4
+                      py-5
+                      text-center
+                      font-bold
+                      text-green-700
+                    ">
+                      {d.quantity || 0}
+                    </td>
+
+                    <td className="px-4 py-5 text-center">
+                      {d.unit || "Cái"}
+                    </td>
+
+                    <td className="px-6 py-5">
+
+                      <div className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-4
+                      ">
+
+                        <button
+                          onClick={() => handleEdit(d)}
+                          className="
+                            w-9
+                            h-9
+                            rounded-xl
+                            bg-blue-50
+                            text-blue-500
+                            hover:bg-blue-100
+                          "
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            handleDelete(d.id)
+                          }
+                          className="
+                            w-9
+                            h-9
+                            rounded-xl
+                            bg-red-50
+                            text-red-500
+                            hover:bg-red-100
+                          "
+                        >
+                          <Trash2 size={18} />
+                        </button>
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                ))
+
+              ) : (
+
+                <tr>
+
+                  <td
+                    colSpan={14}
+                    className="
+                      text-center
+                      py-16
+                      text-gray-400
+                    "
+                  >
 
                     <div className="
                       flex
-                      justify-center
+                      flex-col
+                      items-center
                       gap-3
                     ">
 
-                      <button
-                        onClick={() => handleEdit(d)}
-                        className="
-                          p-2
-                          rounded-xl
-                          bg-blue-100
-                          text-blue-600
-                        "
-                      >
-                        <Pencil size={18} />
-                      </button>
+                      <Package size={48} />
 
-                      <button
-                        onClick={() =>
-                          handleDelete(d.id)
-                        }
-                        className="
-                          p-2
-                          rounded-xl
-                          bg-red-100
-                          text-red-600
-                        "
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <p className="text-lg">
+                        Chưa có thiết bị dự phòng
+                      </p>
 
                     </div>
 
@@ -609,7 +783,7 @@ export default function SpareDevices() {
 
                 </tr>
 
-              ))}
+              )}
 
             </tbody>
 
@@ -619,8 +793,8 @@ export default function SpareDevices() {
 
       </div>
 
-      {/* ================= PREVIEW IMPORT ================= */}
-      {showPreview && (
+      {/* MODAL */}
+      {showModal && (
 
         <div className="
           fixed
@@ -630,111 +804,247 @@ export default function SpareDevices() {
           items-center
           justify-center
           z-50
-          p-6
         ">
 
           <div className="
             bg-white
             rounded-3xl
-            w-full
-            max-w-6xl
             p-8
+            w-full
+            max-w-4xl
             shadow-2xl
           ">
 
             <h2 className="
               text-3xl
               font-bold
-              mb-6
+              mb-8
             ">
-              📄 Xem trước dữ liệu import
+
+              {editing
+                ? "✏️ Chỉnh sửa thiết bị"
+                : "➕ Thêm thiết bị dự phòng"}
+
             </h2>
 
             <div className="
-              overflow-auto
-              border
-              rounded-2xl
+              grid
+              grid-cols-2
+              gap-5
             ">
 
-              <table className="w-full">
+              <input
+                placeholder="Tên thiết bị"
+                value={form.name}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    name: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                <thead className="bg-gray-100">
+              <input
+                placeholder="Mã ID"
+                value={form.deviceId}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    deviceId: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                  <tr>
+              <input
+                placeholder="Ký hiệu"
+                value={form.symbol}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    symbol: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                    <th className="p-3 text-left">
-                      Tên thiết bị
-                    </th>
+              <select
+                value={form.condition}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    condition: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              >
 
-                    <th className="p-3 text-left">
-                      Mã ID
-                    </th>
+                <option value="New">
+                  Thiết bị mới
+                </option>
 
-                    <th className="p-3 text-center">
-                      Số lượng
-                    </th>
+                <option value="Used">
+                  Đã sử dụng
+                </option>
 
-                    <th className="p-3 text-center">
-                      Đơn vị
-                    </th>
+                <option value="Broken">
+                  Hỏng
+                </option>
 
-                  </tr>
+              </select>
 
-                </thead>
+              <input
+                placeholder="Kho"
+                value={form.warehouse}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    warehouse: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                <tbody>
+              <input
+                placeholder="Tủ"
+                value={form.cabinet}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    cabinet: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                  {previewRows.map((r, index) => (
+              <input
+                placeholder="Kệ"
+                value={form.shelf}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    shelf: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                    <tr
-                      key={index}
-                      className="border-t"
-                    >
+              <input
+                placeholder="Khay"
+                value={form.slot}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    slot: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                      <td className="p-3">
-                        {r.name}
-                      </td>
+              {/* INITIAL */}
+              <input
+                type="number"
+                placeholder="Số lượng ban đầu"
+                value={form.initialQuantity}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    initialQuantity:
+                      Number(e.target.value)
+                  })
+                }
+                disabled={editing}
+                className="
+                  border
+                  rounded-xl
+                  p-4
+                  bg-gray-50
+                "
+              />
 
-                      <td className="p-3">
-                        {r.deviceId}
-                      </td>
+              {/* IMPORT */}
+              <input
+                type="number"
+                placeholder="Nhập thêm"
+                value={form.importQty}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    importQty:
+                      Number(e.target.value)
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                      <td className="
-                        p-3
-                        text-center
-                        font-bold
-                        text-blue-600
-                      ">
-                        {r.initialQuantity}
-                      </td>
+              {/* EXPORT */}
+              <input
+                type="number"
+                placeholder="Xuất đi"
+                value={form.exportQty}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    exportQty:
+                      Number(e.target.value)
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
-                      <td className="p-3 text-center">
-                        {r.unit}
-                      </td>
+              {/* STOCK */}
+              <div
+                className="
+                  border
+                  rounded-xl
+                  p-4
+                  bg-blue-50
+                  flex
+                  items-center
+                  font-bold
+                  text-blue-700
+                "
+              >
 
-                    </tr>
+                Tồn kho hiện tại:
 
-                  ))}
+                <span className="ml-2 text-2xl">
 
-                </tbody>
+                  {form.quantity || 0}
 
-              </table>
+                </span>
+
+              </div>
+
+              {/* UNIT */}
+              <input
+                placeholder="Đơn vị tính"
+                value={form.unit}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    unit: e.target.value
+                  })
+                }
+                className="border rounded-xl p-4"
+              />
 
             </div>
 
+            {/* BUTTON */}
             <div className="
               flex
               justify-end
               gap-4
-              mt-6
+              mt-8
             ">
 
               <button
                 onClick={() => {
-
-                  setShowPreview(false);
-
-                  setPreviewRows([]);
+                  setShowModal(false);
+                  setEditing(null);
+                  setForm(defaultForm);
                 }}
                 className="
                   px-6
@@ -747,7 +1057,7 @@ export default function SpareDevices() {
               </button>
 
               <button
-                onClick={handleConfirmImport}
+                onClick={handleSave}
                 className="
                   px-6
                   py-3
@@ -757,7 +1067,11 @@ export default function SpareDevices() {
                   text-white
                 "
               >
-                Xác nhận Import
+
+                {editing
+                  ? "Cập nhật"
+                  : "Lưu thiết bị"}
+
               </button>
 
             </div>
