@@ -22,7 +22,9 @@ export default function SpareDevices() {
 
   const [showModal, setShowModal] = useState(false);
 
-  const [form, setForm] = useState({
+  const [editing, setEditing] = useState(null);
+
+  const defaultForm = {
     name: "",
     deviceId: "",
     symbol: "",
@@ -37,7 +39,9 @@ export default function SpareDevices() {
     quantity: 1,
 
     image: ""
-  });
+  };
+
+  const [form, setForm] = useState(defaultForm);
 
   // ================= LOAD =================
   const fetchData = () => {
@@ -89,34 +93,38 @@ export default function SpareDevices() {
   const warehouse =
     data[0]?.warehouse || "Chưa có";
 
-  // ================= CREATE =================
-  const handleCreate = async () => {
+  // ================= CREATE / UPDATE =================
+  const handleSave = async () => {
 
     try {
 
-      await axios.post(
-        `${API}/api/spare-devices`,
-        form
-      );
+      if (!form.name) {
+        alert("Nhập tên thiết bị");
+        return;
+      }
+
+      if (editing) {
+
+        // UPDATE
+        await axios.put(
+          `${API}/api/spare-devices/${editing.id}`,
+          form
+        );
+
+      } else {
+
+        // CREATE
+        await axios.post(
+          `${API}/api/spare-devices`,
+          form
+        );
+      }
 
       setShowModal(false);
 
-      setForm({
-        name: "",
-        deviceId: "",
-        symbol: "",
+      setEditing(null);
 
-        condition: "New",
-
-        warehouse: "",
-        cabinet: "",
-        shelf: "",
-        slot: "",
-
-        quantity: 1,
-
-        image: ""
-      });
+      setForm(defaultForm);
 
       fetchData();
 
@@ -124,8 +132,33 @@ export default function SpareDevices() {
 
       console.log(err);
 
-      alert("❌ Thêm thiết bị lỗi");
+      alert("❌ Lưu thiết bị lỗi");
     }
+  };
+
+  // ================= EDIT =================
+  const handleEdit = (item) => {
+
+    setEditing(item);
+
+    setForm({
+      name: item.name || "",
+      deviceId: item.deviceId || "",
+      symbol: item.symbol || "",
+
+      condition: item.condition || "New",
+
+      warehouse: item.warehouse || "",
+      cabinet: item.cabinet || "",
+      shelf: item.shelf || "",
+      slot: item.slot || "",
+
+      quantity: item.quantity || 1,
+
+      image: item.image || ""
+    });
+
+    setShowModal(true);
   };
 
   // ================= DELETE =================
@@ -157,6 +190,16 @@ export default function SpareDevices() {
     window.open(
       `${API}/api/spare-devices/export`
     );
+  };
+
+  // ================= OPEN CREATE =================
+  const openCreate = () => {
+
+    setEditing(null);
+
+    setForm(defaultForm);
+
+    setShowModal(true);
   };
 
   // ================= RENDER =================
@@ -288,7 +331,7 @@ export default function SpareDevices() {
 
           {/* CREATE */}
           <button
-            onClick={() => setShowModal(true)}
+            onClick={openCreate}
             className="
               bg-blue-500
               hover:bg-blue-600
@@ -556,6 +599,7 @@ export default function SpareDevices() {
                 ">
 
                   <button
+                    onClick={() => handleEdit(d)}
                     className="
                       text-blue-500
                       hover:text-blue-700
@@ -615,7 +659,9 @@ export default function SpareDevices() {
               font-bold
               mb-8
             ">
-              ➕ Thêm thiết bị dự phòng
+              {editing
+                ? "✏️ Chỉnh sửa thiết bị"
+                : "➕ Thêm thiết bị dự phòng"}
             </h2>
 
             <div className="
@@ -633,11 +679,7 @@ export default function SpareDevices() {
                     name: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
@@ -649,15 +691,11 @@ export default function SpareDevices() {
                     deviceId: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
-                placeholder="Tình trạng"
+                placeholder="Ký hiệu"
                 value={form.symbol}
                 onChange={(e) =>
                   setForm({
@@ -665,11 +703,7 @@ export default function SpareDevices() {
                     symbol: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <select
@@ -680,11 +714,7 @@ export default function SpareDevices() {
                     condition: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               >
 
                 <option value="New">
@@ -710,11 +740,7 @@ export default function SpareDevices() {
                     warehouse: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
@@ -726,11 +752,7 @@ export default function SpareDevices() {
                     cabinet: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
@@ -742,11 +764,7 @@ export default function SpareDevices() {
                     shelf: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
@@ -758,11 +776,7 @@ export default function SpareDevices() {
                     slot: e.target.value
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
               <input
@@ -772,14 +786,10 @@ export default function SpareDevices() {
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    quantity: e.target.value
+                    quantity: Number(e.target.value)
                   })
                 }
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                "
+                className="border rounded-xl p-4"
               />
 
             </div>
@@ -793,9 +803,11 @@ export default function SpareDevices() {
             ">
 
               <button
-                onClick={() =>
-                  setShowModal(false)
-                }
+                onClick={() => {
+                  setShowModal(false);
+                  setEditing(null);
+                  setForm(defaultForm);
+                }}
                 className="
                   px-6
                   py-3
@@ -807,7 +819,7 @@ export default function SpareDevices() {
               </button>
 
               <button
-                onClick={handleCreate}
+                onClick={handleSave}
                 className="
                   px-6
                   py-3
@@ -817,7 +829,9 @@ export default function SpareDevices() {
                   text-white
                 "
               >
-                Lưu thiết bị
+                {editing
+                  ? "Cập nhật"
+                  : "Lưu thiết bị"}
               </button>
 
             </div>
