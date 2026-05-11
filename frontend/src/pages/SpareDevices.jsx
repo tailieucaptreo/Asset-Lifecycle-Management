@@ -468,8 +468,11 @@ export default function SpareDevices() {
               <th className="p-4">Tủ</th>
               <th className="p-4">Kệ</th>
               <th className="p-4">Khay</th>
+              <th className="p-4">Nhập</th>
+              <th className="p-4">Xuất</th>
 
               <th className="p-4">Số lượng</th>
+              <th className="p-4">ĐVT</th>
 
               <th className="p-4 text-center">
                 Action
