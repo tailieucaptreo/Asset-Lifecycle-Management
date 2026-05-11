@@ -6,11 +6,17 @@ const controller =
 const upload =
   require("../middleware/upload");
 
-// ================= IMPORT EXCEL =================
+// ================= PREVIEW IMPORT =================
 router.post(
-  "/import",
+  "/preview-import",
   upload.single("file"),
-  controller.importExcel
+  controller.previewImport
+);
+
+// ================= CONFIRM IMPORT =================
+router.post(
+  "/confirm-import",
+  controller.confirmImport
 );
 
 // ================= UPLOAD IMAGE =================
