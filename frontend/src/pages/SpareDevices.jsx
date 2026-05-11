@@ -943,55 +943,104 @@ export default function SpareDevices() {
               />
 
               {/* INITIAL */}
-              <input
-                type="number"
-                placeholder="Số lượng ban đầu"
-                value={form.initialQuantity}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    initialQuantity:
-                      Number(e.target.value)
-                  })
-                }
-                disabled={editing}
-                className="
-                  border
-                  rounded-xl
-                  p-4
-                  bg-gray-50
-                "
-              />
+              <div className="space-y-2">
+
+                <label className="
+                  text-sm
+                  font-semibold
+                  text-gray-700
+                ">
+                  Số lượng ban đầu
+                </label>
+
+                <input
+                  type="number"
+                  placeholder="Số lượng ban đầu"
+                  value={form.initialQuantity}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      initialQuantity:
+                        Number(e.target.value)
+                    })
+                  }
+                  disabled={editing}
+                  className="
+                     border
+                     rounded-xl
+                     p-4
+                     bg-gray-50
+                     w-full
+                  "
+                />
+
+              </div>
 
               {/* IMPORT */}
-              <input
-                type="number"
-                placeholder="Nhập thêm"
-                value={form.importQty}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    importQty:
-                      Number(e.target.value)
-                  })
-                }
-                className="border rounded-xl p-4"
-              />
+              <div className="space-y-2">
 
-              {/* EXPORT */}
-              <input
-                type="number"
-                placeholder="Xuất đi"
-                value={form.exportQty}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    exportQty:
-                      Number(e.target.value)
-                  })
-                }
-                className="border rounded-xl p-4"
-              />
+                  <label className="
+                      text-sm
+                      font-semibold
+                      text-blue-700
+                  ">
+                    Nhập thêm
+                  </label>
+
+                  <input
+                    type="number"
+                    placeholder="Nhập thêm"
+                    value={form.importQty}
+                    disabled={!editing}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        importQty:
+                          Number(e.target.value)
+                      })
+                    }
+                    className="
+                       border
+                       rounded-xl
+                       p-4
+                       w-full
+                    "
+                  />
+
+               </div>
+
+               {/* EXPORT */}
+               <div className="space-y-2">
+
+                 <label className="
+                    text-sm
+                    font-semibold
+                    text-red-600
+                 ">
+                    Xuất đi
+                 </label>
+
+                 <input
+                   type="number"
+                   placeholder="Xuất đi"
+                   value={form.exportQty}
+                   disabled={!editing}
+                   onChange={(e) =>
+                     setForm({
+                       ...form,
+                       exportQty:
+                          Number(e.target.value)
+                     })
+                   }
+                   className="
+                     border
+                     rounded-xl
+                     p-4
+                     w-full
+                   "
+                 />
+
+              </div>
 
               {/* STOCK */}
               <div
