@@ -63,7 +63,7 @@ export default function SpareDevices() {
   const fetchData = () => {
 
     axios
-      .get(`${API}/api/spare-devices`)
+      .get(`${API}/api/spare-devices/preview-import`)
       .then((res) => {
         setData(res.data);
       })
