@@ -5,65 +5,157 @@ const prisma = new PrismaClient();
 // ================= GET ALL =================
 exports.getAll = async (req, res) => {
 
-  const data = await prisma.spareDevice.findMany({
-    orderBy: {
-      id: "desc"
-    }
-  });
+  try {
 
-  res.json(data);
+    const data =
+      await prisma.spareDevice.findMany({
+        orderBy: {
+          id: "desc"
+        }
+      });
+
+    res.json(data);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
 
 // ================= GET ONE =================
 exports.getOne = async (req, res) => {
 
-  const id = Number(req.params.id);
+  try {
 
-  const data = await prisma.spareDevice.findUnique({
-    where: { id }
-  });
+    const data =
+      await prisma.spareDevice.findUnique({
+        where: {
+          id: Number(req.params.id)
+        }
+      });
 
-  res.json(data);
+    res.json(data);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
 
 // ================= CREATE =================
 exports.create = async (req, res) => {
 
-  const d = req.body;
+  try {
 
-  const data = await prisma.spareDevice.create({
-    data: {
-      ...d,
-      quantity: Number(d.quantity || 1)
-    }
-  });
+    const data =
+      await prisma.spareDevice.create({
+        data: {
+          ...req.body,
 
-  res.json(data);
+          quantity:
+            Number(req.body.quantity) || 1
+        }
+      });
+
+    res.json(data);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
 
 // ================= UPDATE =================
 exports.update = async (req, res) => {
 
-  const id = Number(req.params.id);
+  try {
 
-  const data = await prisma.spareDevice.update({
-    where: { id },
-    data: req.body
-  });
+    const data =
+      await prisma.spareDevice.update({
 
-  res.json(data);
+        where: {
+          id: Number(req.params.id)
+        },
+
+        data: {
+          ...req.body,
+
+          quantity:
+            Number(req.body.quantity) || 1
+        }
+      });
+
+    res.json(data);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
 
 // ================= DELETE =================
 exports.remove = async (req, res) => {
 
-  const id = Number(req.params.id);
+  try {
 
-  await prisma.spareDevice.delete({
-    where: { id }
-  });
+    await prisma.spareDevice.delete({
+      where: {
+        id: Number(req.params.id)
+      }
+    });
 
-  res.json({
-    ok: true
-  });
+    res.json({
+      ok: true
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
+
+// ================= UPLOAD IMAGE =================
+exports.uploadImage = async (req, res) => {
+
+  try {
+
+    if (!req.file) {
+
+      return res.status(400).json({
+        error: "No file"
+      });
+    }
+
+    res.json({
+      image: `/uploads/${req.file.filename}`
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
 };
