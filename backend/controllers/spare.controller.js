@@ -442,3 +442,116 @@ exports.importExcel = async (req, res) => {
     });
   }
 };
+// ================= PREVIEW IMPORT =================
+exports.previewImport = async (req, res) => {
+
+  try {
+
+    if (!req.file) {
+
+      return res.status(400).json({
+        error: "Không có file"
+      });
+    }
+
+    // đọc excel
+    const workbook = XLSX.readFile(req.file.path);
+
+    const sheetName =
+      workbook.SheetNames[0];
+
+    const sheet =
+      workbook.Sheets[sheetName];
+
+    const rows =
+      XLSX.utils.sheet_to_json(sheet);
+
+    // xóa file temp
+    fs.unlinkSync(req.file.path);
+
+    res.json({
+      ok: true,
+      rows
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
+// ================= CONFIRM IMPORT =================
+exports.confirmImport = async (req, res) => {
+
+  try {
+
+    const rows = req.body.rows || [];
+
+    for (const row of rows) {
+
+      const initialQuantity =
+        Number(row.initialQuantity || 0);
+
+      await prisma.spareDevice.create({
+
+        data: {
+
+          name:
+            row.name || "",
+
+          deviceId:
+            row.deviceId || "",
+
+          symbol:
+            row.symbol || "",
+
+          condition:
+            row.condition || "New",
+
+          warehouse:
+            row.warehouse || "",
+
+          cabinet:
+            row.cabinet || "",
+
+          shelf:
+            row.shelf || "",
+
+          slot:
+            row.slot || "",
+
+          initialQuantity,
+
+          quantity:
+            initialQuantity,
+
+          importQty: 0,
+
+          exportQty: 0,
+
+          unit:
+            row.unit || "Cái",
+
+          image:
+            row.image || ""
+        }
+      });
+    }
+
+    res.json({
+      ok: true,
+      total: rows.length
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
