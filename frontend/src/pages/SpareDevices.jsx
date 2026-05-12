@@ -81,19 +81,36 @@ export default function SpareDevices() {
   // ================= FILTER =================
   const filtered = data.filter((d) => {
 
-    const keyword = search.toLowerCase();
+    const keyword =
+      search.toLowerCase().trim();
+
+    const fullText = `
+
+      ${d.name || ""}
+      ${d.deviceId || ""}
+      ${d.condition || ""}
+      ${d.warehouse || ""}
+      ${d.cabinet || ""}
+      ${d.shelf || ""}
+      ${d.slot || ""}
+      ${d.unit || ""}
+      ${d.symbol || ""}
+      ${d.quantity || ""}
+      ${d.initialQuantity || ""}
+      ${d.importQty || ""}
+      ${d.exportQty || ""}
+
+    `
+      .toLowerCase();
 
     return (
-      (filter === "All" || d.condition === filter) &&
-      (
-        (d.name || "")
-          .toLowerCase()
-          .includes(keyword) ||
 
-        (d.deviceId || "")
-          .toLowerCase()
-          .includes(keyword)
-      )
+      (filter === "All" ||
+        d.condition === filter)
+
+      &&
+
+      fullText.includes(keyword)
     );
   });
 
