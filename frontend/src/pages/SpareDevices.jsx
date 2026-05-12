@@ -521,67 +521,67 @@ export default function SpareDevices() {
         "
       >
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[75vh]">
 
-          <table className="w-full min-w-[1400px]">
+          <table className="w-full text-sm table-auto">
 
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 border-b sticky top-0 z-10">
 
               <tr className="text-gray-800 text-sm">
 
-                <th className="px-6 py-5 text-left">
+                <th className="px-3 py-3 text-left">
                   Hình ảnh
                 </th>
 
-                <th className="px-6 py-5 text-left">
+                <th className="px-3 py-3 text-left">
                   Tên thiết bị
                 </th>
 
-                <th className="px-6 py-5 text-left">
+                <th className="px-3 py-3 text-left">
                   Mã ID
                 </th>
 
-                <th className="px-6 py-5 text-center">
+                <th className="px-3 py-3 text-center">
                   Tình trạng
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Kho
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Tủ
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Kệ
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Khay
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Ban đầu
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Nhập
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Xuất
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   Tồn kho
                 </th>
 
-                <th className="px-4 py-5 text-center">
+                <th className="px-2 py-3 text-center">
                   ĐVT
                 </th>
 
-                <th className="px-6 py-5 text-center">
+                <th className="px-3 py-3 text-center">
                   Action
                 </th>
 
@@ -605,7 +605,7 @@ export default function SpareDevices() {
                   >
 
                     {/* IMAGE */}
-                    <td className="px-4 py-5">
+                    <td className="px-2 py-3">
 
                       {d.image ? (
 
@@ -613,8 +613,8 @@ export default function SpareDevices() {
                           src={d.image}
                           alt=""
                           className="
-                            w-14
-                            h-14
+                            w-10
+                            h-10
                             rounded-2xl
                             object-cover
                             border
@@ -625,8 +625,8 @@ export default function SpareDevices() {
 
                         <div
                           className="
-                            w-14
-                            h-14
+                            w-10
+                            h-10
                             rounded-2xl
                             bg-gray-100
                             flex
@@ -641,15 +641,15 @@ export default function SpareDevices() {
 
                     </td>
 
-                    <td className="px-6 py-5 font-semibold">
+                    <td className="px-3 py-3 font-semibold min-w-[250px]">
                       {d.name || "-"}
                     </td>
 
-                    <td className="px-6 py-5">
+                    <td className="px-3 py-3">
                       {d.deviceId || "-"}
                     </td>
 
-                    <td className="px-6 py-5 text-center">
+                    <td className="px-3 py-3 text-center">
 
                       <span className={`
                         px-4
@@ -684,25 +684,25 @@ export default function SpareDevices() {
 
                     </td>
 
-                    <td className="px-4 py-5 text-center">
+                    <td className="px-2 py-3 text-center">
                       {d.warehouse || "-"}
                     </td>
 
-                    <td className="px-4 py-5 text-center">
+                    <td className="px-2 py-3 text-center">
                       {d.cabinet || "-"}
                     </td>
 
-                    <td className="px-4 py-5 text-center">
+                    <td className="px-2 py-3 text-center">
                       {d.shelf || "-"}
                     </td>
 
-                    <td className="px-4 py-5 text-center">
+                    <td className="px-2 py-3 text-center">
                       {d.slot || "-"}
                     </td>
 
                     <td className="
-                      px-4
-                      py-5
+                      px-2
+                      py-3
                       text-center
                       font-bold
                     ">
@@ -710,8 +710,8 @@ export default function SpareDevices() {
                     </td>
 
                     <td className="
-                      px-4
-                      py-5
+                      px-2
+                      py-3
                       text-center
                       font-bold
                       text-blue-600
@@ -720,8 +720,8 @@ export default function SpareDevices() {
                     </td>
 
                     <td className="
-                      px-4
-                      py-5
+                      px-2
+                      py-3
                       text-center
                       font-bold
                       text-red-500
@@ -730,8 +730,8 @@ export default function SpareDevices() {
                     </td>
 
                     <td className="
-                      px-4
-                      py-5
+                      px-2
+                      py-3
                       text-center
                       font-bold
                       text-green-700
@@ -739,11 +739,11 @@ export default function SpareDevices() {
                       {d.quantity || 0}
                     </td>
 
-                    <td className="px-4 py-5 text-center">
+                    <td className="px-2 py-3 text-center">
                       {d.unit || "Cái"}
                     </td>
 
-                    <td className="px-6 py-5">
+                    <td className="px-3 py-3">
 
                       <div className="
                         flex
