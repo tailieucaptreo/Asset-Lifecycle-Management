@@ -256,7 +256,10 @@ export default function SpareDevices() {
   const handleExport = () => {
 
     window.open(
-      `${API}/api/spare-devices/export`
+
+      `${API}/api/spare-devices/export`,
+
+      "_blank"
     );
   };
 

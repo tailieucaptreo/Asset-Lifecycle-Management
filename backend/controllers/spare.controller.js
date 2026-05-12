@@ -661,3 +661,98 @@ exports.confirmImport = async (req, res) => {
     });
   }
 };
+// ================= EXPORT EXCEL =================
+exports.exportExcel = async (req, res) => {
+
+  try {
+
+    const data =
+      await prisma.spareDevice.findMany({
+
+        orderBy: {
+          id: "desc"
+        }
+      });
+
+    const rows = data.map((d, index) => ({
+
+      STT: index + 1,
+
+      "Tên thiết bị":
+        d.name || "",
+
+      "Mã ID":
+        d.deviceId || "",
+
+      "Tình trạng":
+        d.condition || "",
+
+      "Kho":
+        d.warehouse || "",
+
+      "Tủ":
+        d.cabinet || "",
+
+      "Kệ":
+        d.shelf || "",
+
+      "Khay":
+        d.slot || "",
+
+      "Ban đầu":
+        d.initialQuantity || 0,
+
+      "Nhập":
+        d.importQty || 0,
+
+      "Xuất":
+        d.exportQty || 0,
+
+      "Tồn kho":
+        d.quantity || 0,
+
+      "ĐVT":
+        d.unit || ""
+    }));
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(rows);
+
+    const workbook =
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Spare Devices"
+    );
+
+    const buffer =
+      XLSX.write(workbook, {
+
+        type: "buffer",
+
+        bookType: "xlsx"
+      });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=spare-devices.xlsx"
+    );
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};

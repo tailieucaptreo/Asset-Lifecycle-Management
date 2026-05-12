@@ -26,6 +26,12 @@ router.post(
   controller.uploadImage
 );
 
+// ================= EXPORT EXCEL =================
+router.get(
+  "/export",
+  controller.exportExcel
+);
+
 // ================= CRUD =================
 router.get("/", controller.getAll);
 
@@ -34,6 +40,8 @@ router.post("/", controller.create);
 router.put("/:id", controller.update);
 
 router.delete("/:id", controller.remove);
+
+router.get("/export", controller.exportExcel);
 
 // LUÔN ĐẶT CUỐI CÙNG
 router.get("/:id", controller.getOne);
