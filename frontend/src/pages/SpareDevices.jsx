@@ -853,8 +853,8 @@ export default function SpareDevices() {
               bg-white
               rounded-3xl
               w-full
-              max-w-6xl
-              p-8
+              max-w-4xl
+              p-6
               shadow-2xl
             "
           >
@@ -874,10 +874,11 @@ export default function SpareDevices() {
                 overflow-auto
                 border
                 rounded-2xl
+                max-h-[60vh]
               "
             >
 
-              <table className="w-full">
+              <table className="w-full text-sm table-auto">
 
                 <thead className="bg-gray-100">
 
