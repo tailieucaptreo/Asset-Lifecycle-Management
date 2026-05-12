@@ -147,6 +147,18 @@ exports.create = async (req, res) => {
         }
       });
 
+      await prisma.spareHistory.create({
+
+        data: {
+
+          action: "Thêm thiết bị",
+
+          deviceName: data.name,
+
+          quantity: data.quantity
+        }
+      });
+
     res.json(data);
 
   } catch (err) {
@@ -278,6 +290,18 @@ exports.update = async (req, res) => {
         }
       });
 
+      await prisma.spareHistory.create({
+
+        data: {
+
+          action: "Cập nhật thiết bị",
+
+          deviceName: data.name,
+
+          quantity: data.quantity
+        }
+      });
+
     res.json(data);
 
   } catch (err) {
@@ -306,6 +330,18 @@ exports.remove = async (req, res) => {
 
     await prisma.spareDevice.delete({
       where: { id }
+    });
+
+    await prisma.spareHistory.create({
+
+      data: {
+
+        action: "Xóa thiết bị",
+
+        deviceName: deleted.name,
+
+        quantity: deleted.quantity
+      }
     });
 
     res.json({
@@ -647,6 +683,18 @@ exports.confirmImport = async (req, res) => {
       });
     }
 
+    await prisma.spareHistory.create({
+
+      data: {
+
+        action: "Import Excel",
+
+        deviceName: row.name,
+
+        quantity
+      }
+    });
+
     res.json({
       ok: true,
       total: rows.length
@@ -746,6 +794,31 @@ exports.exportExcel = async (req, res) => {
     );
 
     res.send(buffer);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+  }
+};
+
+// ================= HISTORY =================
+exports.getHistory = async (req, res) => {
+
+  try {
+
+    const data =
+      await prisma.spareHistory.findMany({
+
+        orderBy: {
+          id: "desc"
+        }
+      });
+
+    res.json(data);
 
   } catch (err) {
 

@@ -23,6 +23,10 @@ export default function SpareDevices() {
 
   const [showModal, setShowModal] = useState(false);
 
+  const [showHistory, setShowHistory] = useState(false);
+
+  const [historyData, setHistoryData] = useState([]);
+
   const [editing, setEditing] = useState(null);
 
   const [previewRows, setPreviewRows] = useState([]);
@@ -330,6 +334,25 @@ export default function SpareDevices() {
     }
   };
 
+  // ================= LOAD HISTORY =================
+  const loadHistory = async () => {
+
+    try {
+
+      const res = await axios.get(
+        `${API}/api/spare-devices/history`
+      );
+
+      setHistoryData(res.data);
+
+      setShowHistory(true);
+
+    } catch (err) {
+
+      console.log(err);
+    }
+  };
+
   // ================= OPEN CREATE =================
   const openCreate = () => {
 
@@ -523,6 +546,25 @@ export default function SpareDevices() {
           >
             <Plus size={18} />
             Thêm mới
+          </button>
+
+          {/* HISTORY */}
+          <button
+            onClick={loadHistory}
+            className="
+              bg-gray-800
+              hover:bg-black
+              text-white
+              px-5
+              py-3
+              rounded-xl
+              flex
+              items-center
+              gap-2
+              shadow
+            "
+          >
+            🕘 Lịch sử
           </button>
 
         </div>
@@ -1005,6 +1047,149 @@ export default function SpareDevices() {
               >
                 Xác nhận Import
               </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ================= HISTORY ================= */}
+      {showHistory && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            bg-black/40
+            flex
+            items-center
+            justify-center
+            z-50
+            p-6
+          "
+        >
+
+          <div
+            className="
+              bg-white
+              rounded-3xl
+              w-full
+              max-w-5xl
+              p-6
+              shadow-2xl
+            "
+          >
+
+            <div className="
+              flex
+              items-center
+              justify-between
+              mb-6
+            ">
+
+              <h2 className="
+                text-3xl
+                font-bold
+              ">
+                🕘 Lịch sử thay đổi
+              </h2>
+
+              <button
+                onClick={() =>
+                  setShowHistory(false)
+                }
+                className="
+                  px-4
+                  py-2
+                  rounded-xl
+                  bg-gray-200
+                "
+              >
+                Đóng
+              </button>
+
+            </div>
+
+            <div className="
+              overflow-auto
+              max-h-[70vh]
+              border
+              rounded-2xl
+            ">
+
+              <table className="w-full text-sm">
+
+                <thead className="
+                  bg-gray-100
+                  sticky
+                  top-0
+                ">
+
+                  <tr>
+
+                    <th className="px-3 py-3 text-left">
+                      Thời gian
+                    </th>
+
+                    <th className="px-3 py-3 text-left">
+                      Hành động
+                    </th>
+
+                    <th className="px-3 py-3 text-left">
+                      Thiết bị
+                    </th>
+
+                    <th className="px-3 py-3 text-center">
+                      Số lượng
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  {historyData.map((h) => (
+
+                    <tr
+                      key={h.id}
+                      className="border-t"
+                    >
+
+                      <td className="px-3 py-3">
+                        {
+                          new Date(
+                            h.createdAt
+                          ).toLocaleString("vi-VN")
+                        }
+                      </td>
+
+                      <td className="px-3 py-3">
+                        {h.action}
+                      </td>
+
+                      <td className="px-3 py-3">
+                        {h.deviceName}
+                      </td>
+
+                      <td className="
+                        px-3
+                        py-3
+                        text-center
+                        font-bold
+                      ">
+                        {h.quantity}
+                      </td>
+
+                    </tr>
+
+                  ))}
+
+                </tbody>
+
+              </table>
 
             </div>
 

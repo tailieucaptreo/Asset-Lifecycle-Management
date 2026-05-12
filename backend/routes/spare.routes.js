@@ -32,6 +32,12 @@ router.get(
   controller.exportExcel
 );
 
+// ================= HISTORY =================
+router.get(
+  "/history",
+  controller.getHistory
+);
+
 // ================= CRUD =================
 router.get("/", controller.getAll);
 

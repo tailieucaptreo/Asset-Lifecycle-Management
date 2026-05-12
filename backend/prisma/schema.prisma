@@ -87,3 +87,15 @@ model SpareDevice {
 
   createdAt        DateTime  @default(now())
 }
+model SpareHistory {
+
+  id          Int      @id @default(autoincrement())
+
+  action      String
+
+  deviceName  String
+
+  quantity    Int
+
+  createdAt   DateTime @default(now())
+}
