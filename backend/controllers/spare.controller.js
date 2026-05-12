@@ -454,8 +454,11 @@ exports.previewImport = async (req, res) => {
       });
     }
 
-    // đọc excel
-    const workbook = XLSX.readFile(req.file.path);
+    // đọc excel từ buffer
+    const workbook = XLSX.read(
+      req.file.buffer,
+      { type: "buffer" }
+    );
 
     const sheetName =
       workbook.SheetNames[0];
@@ -463,11 +466,77 @@ exports.previewImport = async (req, res) => {
     const sheet =
       workbook.Sheets[sheetName];
 
-    const rows =
+    const rawRows =
       XLSX.utils.sheet_to_json(sheet);
 
-    // xóa file temp
-    fs.unlinkSync(req.file.path);
+    const rows = rawRows.map((r) => ({
+
+      // tên vật tư
+      name:
+        r["Tên vật tư"] ||
+        r["Tên thiết bị"] ||
+        r["name"] ||
+        "",
+
+      // mã vật tư
+      deviceId:
+        String(
+          r["Mã vật tư"] ||
+          r["Mã ID"] ||
+          r["deviceId"] ||
+          ""
+        ),
+
+      // tồn đầu
+      initialQuantity:
+        Number(
+          r["Ban đầu"] ||
+          r["initialQuantity"] ||
+          0
+        ),
+
+      // nhập
+      importQty:
+        Number(
+          r["Nhập"] || 0
+        ),
+
+      // xuất
+      exportQty:
+        Number(
+          r["Xuất"] || 0
+        ),
+
+      // đơn vị
+      unit:
+        r["Đvt"] ||
+        r["ĐVT"] ||
+        r["unit"] ||
+        "Cái",
+
+      // tủ
+      cabinet:
+        r["Tủ"] || "",
+
+      // kệ
+      shelf:
+        r["Kệ"] || "",
+
+      // khay
+      slot:
+        r["Số khay"] ||
+        r["Khay"] ||
+        "",
+
+      // kho
+      warehouse:
+        r["Kho"] || "",
+
+      symbol:
+        r["Ký hiệu"] || "",
+
+      condition: "New"
+    }));
 
     res.json({
       ok: true,
