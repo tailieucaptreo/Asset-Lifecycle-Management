@@ -22,8 +22,8 @@ export default function Sidebar() {
 
       {/* DASHBOARD */}
       <div
-        className={`p-2 rounded cursor-pointer ${active("/")}`}
-        onClick={() => nav("/")}
+        className={`p-2 rounded cursor-pointer ${active("/dashboard")}`}
+        onClick={() => nav("/dashboard")}
       >
         📊 Dashboard
       </div>
