@@ -307,7 +307,7 @@ exports.update = async (req, res) => {
           quantity: data.quantity
           
           editedBy:
-            req.body.editedBy || ""
+            req.body.editedBy || "",
 
         }
       });
