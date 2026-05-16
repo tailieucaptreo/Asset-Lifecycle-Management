@@ -259,9 +259,6 @@ exports.update = async (req, res) => {
 
           unit: req.body.unit,
 
-          editedBy:
-             req.body.editedBy || "",
-
           // =========================
           // TRẠNG THÁI
           // =========================
@@ -304,7 +301,10 @@ exports.update = async (req, res) => {
 
           deviceName: data.name,
 
-          quantity: data.quantity
+          quantity: data.quantity,
+
+          editedBy:
+             req.body.editedBy || "",
           
 
         }

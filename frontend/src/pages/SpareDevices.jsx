@@ -227,6 +227,9 @@ export default function SpareDevices() {
 
       unit:
         item.unit || "Cái",
+      
+      editedBy:
+        item.editedBy || "",
 
       image:
         item.image || ""
