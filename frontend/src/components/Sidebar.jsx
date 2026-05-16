@@ -143,6 +143,18 @@ export default function Sidebar() {
         ⚙ Cài đặt
       </div>
 
+      <button
+        onClick={() => {
+      
+          localStorage.removeItem("role");
+      
+          window.location.href = "/";
+      
+        }}
+      >
+        Đăng xuất
+      </button>
+
     </div>
   );
 }
