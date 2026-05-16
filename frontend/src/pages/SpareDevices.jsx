@@ -62,6 +62,8 @@ export default function SpareDevices() {
 
     editedBy: "",
 
+    note: "",
+
     image: ""
   };
 
@@ -230,6 +232,9 @@ export default function SpareDevices() {
       
       editedBy:
         item.editedBy || "",
+
+      note:
+        item.note || "",
 
       image:
         item.image || ""
@@ -1154,6 +1159,10 @@ export default function SpareDevices() {
                       Số lượng
                     </th>
 
+                    <th className="px-3 py-3 text-left">
+                      Ghi chú
+                    </th>
+
                   </tr>
 
                 </thead>
@@ -1194,6 +1203,10 @@ export default function SpareDevices() {
                         font-bold
                       ">
                         {h.quantity}
+                      </td>
+
+                      <td className="px-3 py-3">
+                        {h.note || "-"}
                       </td>
 
                     </tr>
@@ -1516,6 +1529,41 @@ export default function SpareDevices() {
                   "
                 />
 
+              </div>
+
+              {/* NOTE */}
+              <div className="col-span-2 space-y-2">
+              
+                <label
+                  className="
+                    text-sm
+                    font-semibold
+                    text-gray-700
+                  "
+                >
+                  Ghi chú
+                </label>
+              
+                <textarea
+                  placeholder="Nhập ghi chú..."
+                  value={form.note || ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      note: e.target.value
+                    })
+                  }
+                  rows={3}
+                  className="
+                    border
+                    rounded-xl
+                    p-4
+                    w-full
+                    bg-gray-50
+                    resize-none
+                  "
+                />
+              
               </div>
 
               {/* UNIT */}
