@@ -1,28 +1,131 @@
 import { useState } from "react";
-import axios from "axios";
-import API from "../config";
 
-export default function Login({ setUser }) {
-  const [email, setEmail] = useState("");
+export default function Login() {
 
-  const login = async () => {
-    const res = await axios.post(`${API}/api/login`, { email });
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const handleLogin = () => {
+
+    // ADMIN
+    if (
+      username === "captreobn" &&
+      password === "123456"
+    ) {
+
+      localStorage.setItem(
+        "role",
+        "admin"
+      );
+
+      window.location.href =
+        "/spare-devices";
+
+      return;
+    }
+
+    // USER
+    if (
+      username === "user" &&
+      password === "123456"
+    ) {
+
+      localStorage.setItem(
+        "role",
+        "user"
+      );
+
+      window.location.href =
+        "/spare-devices";
+
+      return;
+    }
+
+    alert("Sai tài khoản");
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="bg-white p-6 rounded shadow">
+
+    <div
+      className="
+        min-h-screen
+        flex
+        items-center
+        justify-center
+        bg-gray-100
+      "
+    >
+
+      <div
+        className="
+          bg-white
+          p-10
+          rounded-3xl
+          shadow-xl
+          w-[400px]
+          space-y-5
+        "
+      >
+
+        <h1
+          className="
+            text-3xl
+            font-bold
+            text-center
+          "
+        >
+          Đăng nhập
+        </h1>
+
         <input
-          placeholder="Email"
-          onChange={e => setEmail(e.target.value)}
-          className="border p-2 mb-3"
+          type="text"
+          placeholder="Tài khoản"
+          value={username}
+          onChange={(e) =>
+            setUsername(e.target.value)
+          }
+          className="
+            border
+            p-4
+            rounded-xl
+            w-full
+          "
         />
-        <button onClick={login} className="bg-blue-500 text-white p-2 rounded">
-          Login
+
+        <input
+          type="password"
+          placeholder="Mật khẩu"
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
+          className="
+            border
+            p-4
+            rounded-xl
+            w-full
+          "
+        />
+
+        <button
+          onClick={handleLogin}
+          className="
+            bg-blue-500
+            text-white
+            w-full
+            p-4
+            rounded-xl
+            font-bold
+          "
+        >
+          Đăng nhập
         </button>
+
       </div>
+
     </div>
   );
 }
