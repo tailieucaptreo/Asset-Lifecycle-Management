@@ -305,6 +305,10 @@ exports.update = async (req, res) => {
           deviceName: data.name,
 
           quantity: data.quantity
+          
+          editedBy:
+            req.body.editedBy || ""
+
         }
       });
 
@@ -325,28 +329,36 @@ exports.remove = async (req, res) => {
 
   try {
 
-    const id = Number(req.params.id);
+    const device =
+      await prisma.spareDevice.findUnique({
 
-    if (!id) {
-
-      return res.status(400).json({
-        error: "ID không hợp lệ"
+        where: {
+          id: Number(req.params.id)
+        }
       });
-    }
 
     await prisma.spareDevice.delete({
-      where: { id }
+
+      where: {
+        id: Number(req.params.id)
+      }
     });
 
+    // ================= HISTORY =================
     await prisma.spareHistory.create({
 
       data: {
 
         action: "Xóa thiết bị",
 
-        deviceName: deleted.name,
+        deviceName:
+          device?.name || "",
 
-        quantity: deleted.quantity
+        quantity:
+          device?.quantity || 0,
+
+        editedBy:
+          req.body.editedBy || ""
       }
     });
 

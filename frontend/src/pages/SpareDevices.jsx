@@ -1144,6 +1144,10 @@ export default function SpareDevices() {
                     </th>
 
                     <th className="px-3 py-3 text-center">
+                      Người chỉnh sửa
+                    </th>
+
+                    <th className="px-3 py-3 text-center">
                       Số lượng
                     </th>
 
@@ -1174,6 +1178,10 @@ export default function SpareDevices() {
 
                       <td className="px-3 py-3">
                         {h.deviceName}
+                      </td>
+
+                      <td className="px-3 py-3 text-center">
+                        {h.editedBy || "-"}
                       </td>
 
                       <td className="

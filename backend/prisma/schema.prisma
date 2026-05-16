@@ -99,5 +99,7 @@ model SpareHistory {
 
   quantity    Int
 
+  editedBy    String?
+
   createdAt   DateTime @default(now())
 }
