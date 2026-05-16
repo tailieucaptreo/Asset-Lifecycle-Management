@@ -13,7 +13,7 @@ export default function Login() {
     // ADMIN
     if (
       username === "captreobn" &&
-      password === "123456"
+      password === "123456admin"
     ) {
 
       localStorage.setItem(
@@ -29,7 +29,7 @@ export default function Login() {
 
     // USER
     if (
-      username === "user" &&
+      username === "captreobn" &&
       password === "123456"
     ) {
 
