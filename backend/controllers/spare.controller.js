@@ -358,7 +358,7 @@ exports.remove = async (req, res) => {
           device?.quantity || 0,
 
         editedBy:
-          req.body.editedBy || ""
+          req.body.editedBy || "",
 
         note:
           req.body.note || "",
