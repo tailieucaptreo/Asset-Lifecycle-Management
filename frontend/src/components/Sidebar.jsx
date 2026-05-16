@@ -151,6 +151,16 @@ export default function Sidebar() {
           window.location.href = "/";
       
         }}
+        className="
+          mt-10
+          w-full
+          bg-red-500
+          hover:bg-red-600
+          p-3
+          rounded-xl
+          font-semibold
+          transition-all
+        "
       >
         Đăng xuất
       </button>
