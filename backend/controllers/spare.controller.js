@@ -306,6 +306,8 @@ exports.update = async (req, res) => {
           editedBy:
              req.body.editedBy || "",
           
+          note:
+             req.body.note || "",
 
         }
       });
@@ -357,6 +359,9 @@ exports.remove = async (req, res) => {
 
         editedBy:
           req.body.editedBy || ""
+
+        note:
+          req.body.note || "",
       }
     });
 
