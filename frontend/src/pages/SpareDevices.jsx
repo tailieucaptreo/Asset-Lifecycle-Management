@@ -555,25 +555,27 @@ export default function SpareDevices() {
           )}
 
           {/* EXPORT */}
-          <button
-            onClick={handleExport}
-            className="
-              bg-green-500
-              hover:bg-green-600
-              text-white
-              px-5
-              py-3
-              rounded-xl
-              flex
-              items-center
-              gap-2
-              shadow
-            "
-          >
-            <Download size={18} />
-            Export
-          </button>
-
+          {role === "admin" && (
+            <button
+              onClick={handleExport}
+              className="
+                bg-green-500
+                hover:bg-green-600
+                text-white
+                px-5
+                py-3
+                rounded-xl
+                flex
+                items-center
+                gap-2
+                shadow
+              "
+            >
+              <Download size={18} />
+              Export
+            </button>
+          )}
+      
           {/* CREATE */}
           {role === "admin" && (
 
@@ -1474,7 +1476,7 @@ export default function SpareDevices() {
                   type="number"
                   placeholder="Nhập thêm"
                   value={form.importQty}
-                  disabled={!editing}
+                  disabled={role === "user"}
                   onChange={(e) =>
                     setForm({
                       ...form,
