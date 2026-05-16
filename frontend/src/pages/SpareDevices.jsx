@@ -60,6 +60,8 @@ export default function SpareDevices() {
 
     unit: "Cái",
 
+    editedBy: "",
+
     image: ""
   };
 
@@ -1468,6 +1470,40 @@ export default function SpareDevices() {
                   {form.quantity || 0}
 
                 </span>
+
+              </div>
+
+              {/* EDITED BY */}
+              <div className="space-y-2">
+
+                <label
+                  className="
+                    text-sm
+                    font-semibold
+                    text-gray-700
+                  "
+                >
+                  Người chỉnh sửa
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="Nhập tên người chỉnh sửa"
+                  value={form.editedBy || ""}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      editedBy: e.target.value
+                    })
+                  }
+                  className="
+                    border
+                    rounded-xl
+                    p-4
+                    w-full
+                    bg-gray-50
+                  "
+                />
 
               </div>
 

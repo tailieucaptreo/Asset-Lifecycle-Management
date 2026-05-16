@@ -112,6 +112,9 @@ exports.create = async (req, res) => {
 
           unit: req.body.unit || "Cái",
 
+          editedBy:
+             req.body.editedBy || "",
+
           // =========================
           // TRẠNG THÁI
           // =========================
@@ -255,6 +258,9 @@ exports.update = async (req, res) => {
           quantity,
 
           unit: req.body.unit,
+
+          editedBy:
+             req.body.editedBy || "",
 
           // =========================
           // TRẠNG THÁI

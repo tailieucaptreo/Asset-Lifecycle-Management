@@ -85,6 +85,8 @@ model SpareDevice {
 
   note             String?
 
+  editedBy         String?
+
   createdAt        DateTime  @default(now())
 }
 model SpareHistory {
