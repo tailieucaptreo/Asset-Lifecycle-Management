@@ -15,6 +15,8 @@ import {
 export default function SpareDevices() {
 
   // ================= STATE =================
+  const role = localStorage.getItem("role");
+  
   const [data, setData] = useState([]);
 
   const [search, setSearch] = useState("");
@@ -482,41 +484,45 @@ export default function SpareDevices() {
           </select>
 
           {/* IMPORT */}
-          <label
-            className="
-              bg-purple-500
-              hover:bg-purple-600
-              text-white
-              px-5
-              py-3
-              rounded-xl
-              flex
-              items-center
-              gap-2
-              shadow
-              cursor-pointer
-            "
-          >
+          {role === "admin" && (
 
-            <Upload size={18} />
-
-            Import
-
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              hidden
-              onChange={(e) => {
-
-                const file = e.target.files[0];
-
-                if (!file) return;
-
-                handleImportExcel(file);
-              }}
-            />
-
-          </label>
+            <label
+              className="
+                bg-purple-500
+                hover:bg-purple-600
+                text-white
+                px-5
+                py-3
+                rounded-xl
+                flex
+                items-center
+                gap-2
+                shadow
+                cursor-pointer
+              "
+            >
+          
+              <Upload size={18} />
+          
+              Import
+          
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                hidden
+                onChange={(e) => {
+          
+                  const file = e.target.files[0];
+          
+                  if (!file) return;
+          
+                  handleImportExcel(file);
+                }}
+              />
+          
+            </label>
+          
+          )}
 
           {/* EXPORT */}
           <button
@@ -539,24 +545,28 @@ export default function SpareDevices() {
           </button>
 
           {/* CREATE */}
-          <button
-            onClick={openCreate}
-            className="
-              bg-blue-500
-              hover:bg-blue-600
-              text-white
-              px-5
-              py-3
-              rounded-xl
-              flex
-              items-center
-              gap-2
-              shadow
-            "
-          >
-            <Plus size={18} />
-            Thêm mới
-          </button>
+          {role === "admin" && (
+
+            <button
+              onClick={openCreate}
+              className="
+                bg-blue-500
+                hover:bg-blue-600
+                text-white
+                px-5
+                py-3
+                rounded-xl
+                flex
+                items-center
+                gap-2
+                shadow
+              "
+            >
+              <Plus size={18} />
+              Thêm mới
+            </button>
+          
+          )}
 
           {/* HISTORY */}
           <button
@@ -838,21 +848,25 @@ export default function SpareDevices() {
                           <Pencil size={18} />
                         </button>
 
-                        <button
-                          onClick={() =>
-                            handleDelete(d.id)
-                          }
-                          className="
-                            w-9
-                            h-9
-                            rounded-xl
-                            bg-red-50
-                            text-red-500
-                            hover:bg-red-100
-                          "
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {role === "admin" && (
+
+                          <button
+                            onClick={() =>
+                              handleDelete(d.id)
+                            }
+                            className="
+                              w-9
+                              h-9
+                              rounded-xl
+                              bg-red-50
+                              text-red-500
+                              hover:bg-red-100
+                            "
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        
+                        )}
 
                       </div>
 
@@ -1267,6 +1281,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Tên thiết bị"
                 value={form.name}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1279,6 +1294,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Mã ID"
                 value={form.deviceId}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1291,6 +1307,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Ký hiệu"
                 value={form.symbol}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1302,6 +1319,7 @@ export default function SpareDevices() {
 
               <select
                 value={form.condition}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1328,6 +1346,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Kho"
                 value={form.warehouse}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1340,6 +1359,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Tủ"
                 value={form.cabinet}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1352,6 +1372,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Kệ"
                 value={form.shelf}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1364,6 +1385,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Khay"
                 value={form.slot}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
@@ -1570,6 +1592,7 @@ export default function SpareDevices() {
               <input
                 placeholder="Đơn vị tính"
                 value={form.unit}
+                disabled={role === "user"}
                 onChange={(e) =>
                   setForm({
                     ...form,
