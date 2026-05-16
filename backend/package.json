@@ -11,7 +11,7 @@
 
     "start": "node server.js",
 
-    "build": "prisma generate && prisma migrate deploy",
+    "build": "prisma generate",
 
     "dev": "nodemon server.js"
   },
