@@ -22,7 +22,7 @@ export default function Login() {
       );
 
       window.location.href =
-        "/spare-devices";
+        "/dashboard";
 
       return;
     }
