@@ -593,111 +593,87 @@ exports.confirmImport = async (req, res) => {
 
   try {
 
-    const rows =
-      req.body.rows || [];
+    const rows = req.body.rows || [];
 
     for (const row of rows) {
 
-      const initialQuantity =
-        Number(row.initialQuantity || 0);
-
-      const importQty =
-        Number(row.importQty || 0);
-
-      const exportQty =
-        Number(row.exportQty || 0);
-
       const quantity =
-        initialQuantity +
-        importQty -
-        exportQty;
+
+        Number(row.initialQuantity || 0)
+
+        +
+
+        Number(row.importQty || 0)
+
+        -
+
+        Number(row.exportQty || 0);
 
       await prisma.spareDevice.create({
 
         data: {
 
-          // tên vật tư
-          name:
-            row.name ||
-            row["Tên vật tư"] ||
-            "Chưa có tên",
+          name: row.name || "",
 
-          // mã vật tư
           deviceId:
-            String(
-              row.deviceId ||
-              row["Mã vật tư"] ||
-              ""
-            ),
+            row.deviceId || "",
 
-          // kho
-          warehouse:
-            row.warehouse ||
-            row["Kho"] ||
-            "Ga 19",
-
-          // tủ
-          cabinet:
-            row.cabinet ||
-            row["Tủ"] ||
-            "",
-
-          // kệ
-          shelf:
-            row.shelf ||
-            row["Kệ"] ||
-            "",
-
-          // khay
-          slot:
-            row.slot ||
-            row["Số khay"] ||
-            "",
-
-          // tồn đầu
-          initialQuantity,
-
-          // nhập
-          importQty,
-
-          // xuất
-          exportQty,
-
-          // tồn hiện tại
           quantity,
 
-          // đơn vị
+          initialQuantity:
+            Number(
+              row.initialQuantity || 0
+            ),
+
+          importQty:
+            Number(
+              row.importQty || 0
+            ),
+
+          exportQty:
+            Number(
+              row.exportQty || 0
+            ),
+
           unit:
-            row.unit ||
-            row["Đvt"] ||
-            row["ĐVT"] ||
-            "Cái",
+            row.unit || "Cái",
 
-          // tình trạng
-          condition: "New",
+          warehouse:
+            row.warehouse || "",
 
-          symbol: "",
+          cabinet:
+            row.cabinet || "",
 
-          image: ""
+          shelf:
+            row.shelf || "",
+
+          slot:
+            row.slot || "",
+
+          symbol:
+            row.symbol || "",
+
+          condition:
+            row.condition || "New"
+        }
+      });
+
+      // ================= HISTORY =================
+      await prisma.spareHistory.create({
+
+        data: {
+
+          action: "Import Excel",
+
+          deviceName: row.name,
+
+          quantity
         }
       });
     }
 
-    await prisma.spareHistory.create({
-
-      data: {
-
-        action: "Import Excel",
-
-        deviceName: row.name,
-
-        quantity
-      }
-    });
-
     res.json({
-      ok: true,
-      total: rows.length
+      ok: true
     });
 
   } catch (err) {
