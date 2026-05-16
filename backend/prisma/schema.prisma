@@ -101,5 +101,7 @@ model SpareHistory {
 
   editedBy    String?
 
+  note        String?
+
   createdAt   DateTime @default(now())
 }
