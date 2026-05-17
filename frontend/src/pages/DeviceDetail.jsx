@@ -112,7 +112,7 @@ export default function DeviceDetail() {
                 </button>
     
               </div>
-            )}
+            )
         )}
       </div>
 
