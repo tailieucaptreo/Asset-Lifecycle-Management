@@ -37,6 +37,8 @@ export default function ImportExcel({ onDone }) {
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const role =
+  localStorage.getItem("role");
 
   // 📥 PREVIEW FILE
   const handlePreview = (f) => {
@@ -110,6 +112,17 @@ export default function ImportExcel({ onDone }) {
     setLoading(false);
     setProgress(0);
   };
+
+  if (role !== "admin") {
+
+    return (
+      <div className="p-10">
+        <h1 className="text-3xl font-bold text-red-500">
+          Không có quyền truy cập
+        </h1>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white p-6 rounded-xl shadow mt-4">
