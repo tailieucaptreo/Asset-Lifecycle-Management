@@ -9,6 +9,9 @@ export default function Sidebar() {
   const [openDevice, setOpenDevice] = useState(true);
   const [openMaintenance, setOpenMaintenance] = useState(false);
 
+  const role =
+  localStorage.getItem("role");
+
   // 🔥 ACTIVE CHECK (hỗ trợ cả sub route)
   const active = (path) =>
     location.pathname.startsWith(path)
@@ -49,20 +52,25 @@ export default function Sidebar() {
               📋 Tổng thiết bị
             </div>
 
-            <div
-              className={`p-2 rounded cursor-pointer ${active("/add")}`}
-              onClick={() => nav("/add")}
-            >
-              ➕ Nhập thiết bị
-            </div>
-            
-            <div
-              className={`p-2 rounded cursor-pointer ${active("/import")}`}
-              onClick={() => nav("/import")}
-            >
-              📥 Import Excel
-            </div>
+            {role === "admin" && (
 
+              <div
+                className={`p-2 rounded cursor-pointer ${active("/add")}`}
+                onClick={() => nav("/add")}
+              >
+                ➕ Nhập thiết bị
+              </div>
+            )}
+
+            {role === "admin" && (
+              <div
+                className={`p-2 rounded cursor-pointer ${active("/import")}`}
+                onClick={() => nav("/import")}
+              >
+                📥 Import Excel
+              </div>
+            )}
+            
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
               onClick={() => nav("/category")}
