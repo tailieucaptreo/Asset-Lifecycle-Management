@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 export default function AddDevice() {
   const navigate = useNavigate();
 
+  const role =
+  localStorage.getItem("role");
+
   const [form, setForm] = useState({
     name: "",
     line: "",
@@ -77,6 +80,20 @@ export default function AddDevice() {
       alert("❌ Lỗi khi thêm!");
     }
   };
+
+  if (role !== "admin") {
+
+    return (
+  
+      <div className="p-10">
+  
+        <h1 className="text-3xl font-bold text-red-500">
+          Không có quyền truy cập
+        </h1>
+  
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen w-full">
