@@ -9,6 +9,8 @@ export default function Table({ data = [], setData }) {
   const [filters, setFilters] = useState({});
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
+  const role =
+  localStorage.getItem("role");
 
   // ================= FILTER =================
   const filteredData = useMemo(() => {
@@ -329,21 +331,29 @@ export default function Table({ data = [], setData }) {
                 </td>
 
                 <td className="p-3 text-center space-x-2">
-
-                  <button
-                    onClick={() => openEdit(d)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(d.id)}
-                    className="text-red-600 hover:underline"
-                  >
-                    Delete
-                  </button>
-
+                
+                  {role === "admin" && (
+                
+                    <>
+                
+                      <button
+                        onClick={() => openEdit(d)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                
+                      <button
+                        onClick={() => handleDelete(d.id)}
+                        className="text-red-600 hover:underline"
+                      >
+                        Delete
+                      </button>
+                
+                    </>
+                
+                  )}
+                
                 </td>
 
               </tr>
