@@ -8,6 +8,8 @@ export default function DeviceDetail() {
 
   const [device, setDevice] = useState(null);
   const [edit, setEdit] = useState(false);
+  const role =
+  localStorage.getItem("role");
 
   useEffect(() => {
     fetch(`${API}/api/devices`)
@@ -83,33 +85,35 @@ export default function DeviceDetail() {
 
         </div>
 
-        {!edit ? (
-          <button
-            onClick={() => setEdit(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow"
-          >
-            ✏️ Chỉnh sửa
-          </button>
-        ) : (
-          <div className="flex gap-2">
+        {role === "admin" && (
 
-            <button
-              onClick={() => setEdit(false)}
-              className="bg-gray-300 hover:bg-gray-400 px-5 py-2 rounded-xl"
-            >
-              Hủy
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow"
-            >
-              💾 Lưu
-            </button>
-
-          </div>
+            {!edit ? (
+              <button
+                onClick={() => setEdit(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow"
+              >
+                ✏️ Chỉnh sửa
+              </button>
+            ) : (
+              <div className="flex gap-2">
+    
+                <button
+                  onClick={() => setEdit(false)}
+                  className="bg-gray-300 hover:bg-gray-400 px-5 py-2 rounded-xl"
+                >
+                  Hủy
+                </button>
+    
+                <button
+                  onClick={handleSave}
+                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow"
+                >
+                  💾 Lưu
+                </button>
+    
+              </div>
+            )}
         )}
-
       </div>
 
       {/* MAIN CARD */}
