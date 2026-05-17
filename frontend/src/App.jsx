@@ -28,7 +28,7 @@ function Layout() {
 
   return (
 
-    <div className="flex">
+    <div className="flex w-full overflow-x-auto">
 
       {!isLoginPage && <Sidebar />}
 

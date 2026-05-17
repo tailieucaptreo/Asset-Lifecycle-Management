@@ -19,7 +19,7 @@ export default function Sidebar() {
       : "hover:bg-gray-700";
 
   return (
-    <div className="w-64 bg-[#0f172a] text-white min-h-screen p-4">
+    <div className="w-64 min-w-[260px] bg-[#0f172a] text-white min-h-screen p-4 overflow-y-auto">
 
       <h2 className="text-lg font-bold mb-6">⚙ Asset Manager</h2>
 

@@ -55,12 +55,12 @@ export default function DeviceList() {
 
   return (
 
-    <div className="p-6">
+    <div className="p-3 md:p-6 w-full">
 
       {/* TITLE */}
       <div className="flex justify-between items-center mb-5">
 
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-lg md:text-2xl font-bold">
 
           📋 Danh sách thiết bị
 
@@ -74,7 +74,7 @@ export default function DeviceList() {
 
         <button
           onClick={fetchDevices}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm md:px-4 rounded-lg shadow"
         >
           🔄 Reload
         </button>

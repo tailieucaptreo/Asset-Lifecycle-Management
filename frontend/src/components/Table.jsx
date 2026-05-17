@@ -150,9 +150,9 @@ export default function Table({ data = [], setData }) {
     <div className="bg-white rounded-xl shadow">
 
       {/* TABLE */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto w-full">
 
-        <table className="w-full text-sm border border-gray-200">
+        <table className="min-w-[1200px] text-sm border border-gray-200">
 
           {/* FILTER */}
           <thead className="bg-gray-100 sticky top-0 z-10">
