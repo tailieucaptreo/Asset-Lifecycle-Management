@@ -87,7 +87,7 @@ export default function DeviceDetail() {
 
         {role === "admin" && (
 
-            {!edit ? (
+            !edit ? (
               <button
                 onClick={() => setEdit(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow"
