@@ -1273,29 +1273,40 @@ export default function SpareDevices() {
       {/* MODAL */}
       {showModal && (
 
-        <div className="
-          bg-white
-          rounded-3xl
-          p-8
-          w-full
-          max-w-4xl
-          shadow-2xl
-        ">
+        <div
+          className="
+            fixed
+            inset-0
+            bg-black/40
+            z-50
+            flex
+            items-center
+            justify-center
+            p-4
+          "
+        >
 
-          <div className="
-            bg-white
-            rounded-3xl
-            p-5
-            w-full
-            max-w-3xl
-            shadow-2xl
-          ">
+          <div
+            className="
+              bg-white
+              rounded-3xl
+              p-5
+              w-full
+              max-w-4xl
+              shadow-2xl
+              max-h-[90vh]
+              overflow-y-auto
+            "
+          >
 
-            <h2 className="
-              text-3xl
-              font-bold
-              mb-8
-            ">
+            {/* TITLE */}
+            <h2
+              className="
+                text-2xl
+                font-bold
+                mb-6
+              "
+            >
 
               {editing
                 ? "✏️ Chỉnh sửa thiết bị"
@@ -1303,15 +1314,17 @@ export default function SpareDevices() {
 
             </h2>
 
+            {/* FORM */}
             <div
               className="
                 grid
                 grid-cols-1
                 md:grid-cols-2
-                gap-4
+                gap-3
               "
             >
 
+              {/* NAME */}
               <input
                 placeholder="Tên thiết bị"
                 value={form.name}
@@ -1325,6 +1338,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* ID */}
               <input
                 placeholder="Mã ID"
                 value={form.deviceId}
@@ -1338,6 +1352,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* SYMBOL */}
               <input
                 placeholder="Ký hiệu"
                 value={form.symbol}
@@ -1351,6 +1366,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* CONDITION */}
               <select
                 value={form.condition}
                 disabled={role === "user"}
@@ -1377,6 +1393,7 @@ export default function SpareDevices() {
 
               </select>
 
+              {/* WAREHOUSE */}
               <input
                 placeholder="Kho"
                 value={form.warehouse}
@@ -1390,6 +1407,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* CABINET */}
               <input
                 placeholder="Tủ"
                 value={form.cabinet}
@@ -1403,6 +1421,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* SHELF */}
               <input
                 placeholder="Kệ"
                 value={form.shelf}
@@ -1416,6 +1435,7 @@ export default function SpareDevices() {
                 className="border rounded-xl p-3"
               />
 
+              {/* SLOT */}
               <input
                 placeholder="Khay"
                 value={form.slot}
@@ -1430,28 +1450,22 @@ export default function SpareDevices() {
               />
 
               {/* INITIAL */}
-              <div className="space-y-2">
+              <div className="space-y-1">
 
-                <label className="
-                  text-sm
-                  font-semibold
-                  text-gray-700
-                ">
+                <label className="text-sm font-semibold text-gray-700">
                   Số lượng ban đầu
                 </label>
 
                 <input
                   type="number"
-                  placeholder="Số lượng ban đầu"
                   value={form.initialQuantity}
+                  disabled={editing}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      initialQuantity:
-                        Number(e.target.value)
+                      initialQuantity: Number(e.target.value)
                     })
                   }
-                  disabled={editing}
                   className="
                     border
                     rounded-xl
@@ -1464,26 +1478,20 @@ export default function SpareDevices() {
               </div>
 
               {/* IMPORT */}
-              <div className="space-y-2">
+              <div className="space-y-1">
 
-                <label className="
-                  text-sm
-                  font-semibold
-                  text-blue-700
-                ">
+                <label className="text-sm font-semibold text-blue-700">
                   Nhập thêm
                 </label>
 
                 <input
                   type="number"
-                  placeholder="Nhập thêm"
                   value={form.importQty}
                   disabled={role === "user"}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      importQty:
-                        Number(e.target.value)
+                      importQty: Number(e.target.value)
                     })
                   }
                   className="
@@ -1497,26 +1505,20 @@ export default function SpareDevices() {
               </div>
 
               {/* EXPORT */}
-              <div className="space-y-2">
+              <div className="space-y-1">
 
-                <label className="
-                  text-sm
-                  font-semibold
-                  text-red-600
-                ">
+                <label className="text-sm font-semibold text-red-600">
                   Xuất đi
                 </label>
 
                 <input
                   type="number"
-                  placeholder="Xuất đi"
                   value={form.exportQty}
                   disabled={!editing}
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      exportQty:
-                        Number(e.target.value)
+                      exportQty: Number(e.target.value)
                     })
                   }
                   className="
@@ -1545,7 +1547,7 @@ export default function SpareDevices() {
 
                 Tồn kho hiện tại:
 
-                <span className="ml-2 text-xl md:text-2xl">
+                <span className="ml-2 text-2xl">
 
                   {form.quantity || 0}
 
@@ -1554,15 +1556,9 @@ export default function SpareDevices() {
               </div>
 
               {/* EDITED BY */}
-              <div className="space-y-2">
+              <div className="space-y-1">
 
-                <label
-                  className="
-                    text-sm
-                    font-semibold
-                    text-gray-700
-                  "
-                >
+                <label className="text-sm font-semibold text-gray-700">
                   Người chỉnh sửa
                 </label>
 
@@ -1579,7 +1575,7 @@ export default function SpareDevices() {
                   className="
                     border
                     rounded-xl
-                    p-4
+                    p-3
                     w-full
                     bg-gray-50
                   "
@@ -1587,19 +1583,27 @@ export default function SpareDevices() {
 
               </div>
 
+              {/* UNIT */}
+              <input
+                placeholder="Đơn vị tính"
+                value={form.unit}
+                disabled={role === "user"}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    unit: e.target.value
+                  })
+                }
+                className="border rounded-xl p-3"
+              />
+
               {/* NOTE */}
-              <div className="col-span-2 space-y-2">
-              
-                <label
-                  className="
-                    text-sm
-                    font-semibold
-                    text-gray-700
-                  "
-                >
+              <div className="md:col-span-2 space-y-1">
+
+                <label className="text-sm font-semibold text-gray-700">
                   Ghi chú
                 </label>
-              
+
                 <textarea
                   placeholder="Nhập ghi chú..."
                   value={form.note || ""}
@@ -1620,32 +1624,20 @@ export default function SpareDevices() {
                     resize-none
                   "
                 />
-              
-              </div>
 
-              {/* UNIT */}
-              <input
-                placeholder="Đơn vị tính"
-                value={form.unit}
-                disabled={role === "user"}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    unit: e.target.value
-                  })
-                }
-                className="border rounded-xl p-3"
-              />
+              </div>
 
             </div>
 
             {/* BUTTON */}
-            <div className="
-              flex
-              justify-end
-              gap-4
-              mt-8
-            ">
+            <div
+              className="
+                flex
+                justify-end
+                gap-3
+                mt-6
+              "
+            >
 
               <button
                 onClick={() => {
@@ -1654,7 +1646,7 @@ export default function SpareDevices() {
                   setForm(defaultForm);
                 }}
                 className="
-                  px-6
+                  px-5
                   py-3
                   rounded-xl
                   bg-gray-200
@@ -1666,7 +1658,7 @@ export default function SpareDevices() {
               <button
                 onClick={handleSave}
                 className="
-                  px-6
+                  px-5
                   py-3
                   rounded-xl
                   bg-blue-500
