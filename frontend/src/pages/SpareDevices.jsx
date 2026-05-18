@@ -1290,9 +1290,9 @@ export default function SpareDevices() {
           <div className="
             bg-white
             rounded-3xl
-            p-8
+            p-5
             w-full
-            max-w-4xl
+            max-w-3xl
             shadow-2xl
           ">
 
