@@ -1273,15 +1273,19 @@ export default function SpareDevices() {
       {/* MODAL */}
       {showModal && (
 
-        <div className="
-          fixed
-          inset-0
-          bg-black/40
-          flex
-          items-center
-          justify-center
-          z-50
-        ">
+        <div
+          className="
+            bg-white
+            rounded-3xl
+            p-4
+            md:p-6
+            w-[95vw]
+            max-w-5xl
+            max-h-[90vh]
+            overflow-y-auto
+            shadow-2xl
+          "
+        >
 
           <div className="
             bg-white
@@ -1304,11 +1308,14 @@ export default function SpareDevices() {
 
             </h2>
 
-            <div className="
-              grid
-              grid-cols-2
-              gap-5
-            ">
+            <div
+              className="
+                grid
+                grid-cols-1
+                md:grid-cols-2
+                gap-4
+              "
+            >
 
               <input
                 placeholder="Tên thiết bị"
@@ -1320,7 +1327,7 @@ export default function SpareDevices() {
                     name: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <input
@@ -1333,7 +1340,7 @@ export default function SpareDevices() {
                     deviceId: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <input
@@ -1346,7 +1353,7 @@ export default function SpareDevices() {
                     symbol: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <select
@@ -1358,7 +1365,7 @@ export default function SpareDevices() {
                     condition: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               >
 
                 <option value="New">
@@ -1385,7 +1392,7 @@ export default function SpareDevices() {
                     warehouse: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <input
@@ -1398,7 +1405,7 @@ export default function SpareDevices() {
                     cabinet: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <input
@@ -1411,7 +1418,7 @@ export default function SpareDevices() {
                     shelf: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               <input
@@ -1424,7 +1431,7 @@ export default function SpareDevices() {
                     slot: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
               {/* INITIAL */}
@@ -1453,7 +1460,7 @@ export default function SpareDevices() {
                   className="
                     border
                     rounded-xl
-                    p-4
+                    p-3
                     bg-gray-50
                     w-full
                   "
@@ -1487,7 +1494,7 @@ export default function SpareDevices() {
                   className="
                     border
                     rounded-xl
-                    p-4
+                    p-3
                     w-full
                   "
                 />
@@ -1520,7 +1527,7 @@ export default function SpareDevices() {
                   className="
                     border
                     rounded-xl
-                    p-4
+                    p-3
                     w-full
                   "
                 />
@@ -1532,7 +1539,7 @@ export default function SpareDevices() {
                 className="
                   border
                   rounded-xl
-                  p-4
+                  p-3
                   bg-blue-50
                   flex
                   items-center
@@ -1543,7 +1550,7 @@ export default function SpareDevices() {
 
                 Tồn kho hiện tại:
 
-                <span className="ml-2 text-2xl">
+                <span className="ml-2 text-xl md:text-2xl">
 
                   {form.quantity || 0}
 
@@ -1611,7 +1618,8 @@ export default function SpareDevices() {
                   className="
                     border
                     rounded-xl
-                    p-4
+                    p-3
+                    text-sm
                     w-full
                     bg-gray-50
                     resize-none
@@ -1631,7 +1639,7 @@ export default function SpareDevices() {
                     unit: e.target.value
                   })
                 }
-                className="border rounded-xl p-4"
+                className="border rounded-xl p-3"
               />
 
             </div>
