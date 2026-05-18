@@ -1273,19 +1273,14 @@ export default function SpareDevices() {
       {/* MODAL */}
       {showModal && (
 
-        <div
-          className="
-            bg-white
-            rounded-3xl
-            p-4
-            md:p-6
-            w-[95vw]
-            max-w-5xl
-            max-h-[90vh]
-            overflow-y-auto
-            shadow-2xl
-          "
-        >
+        <div className="
+          bg-white
+          rounded-3xl
+          p-8
+          w-full
+          max-w-4xl
+          shadow-2xl
+        ">
 
           <div className="
             bg-white
