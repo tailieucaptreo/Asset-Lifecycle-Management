@@ -1,131 +1,217 @@
 import { useState } from "react";
+import axios from "axios";
+import API from "../config";
 
 export default function Login() {
 
-  const [username, setUsername] =
-    useState("");
+const [username,setUsername]=
+useState("");
 
-  const [password, setPassword] =
-    useState("");
+const [password,setPassword]=
+useState("");
 
-  const handleLogin = () => {
+const [loading,setLoading]=
+useState(false);
 
-    // ADMIN
-    if (
-      username === "captreobn" &&
-      password === "123456admin"
-    ) {
 
-      localStorage.setItem(
-        "role",
-        "admin"
-      );
+const handleLogin=
+async()=>{
 
-      window.location.href =
-        "/dashboard";
+try{
 
-      return;
-    }
+setLoading(true);
 
-    // USER
-    if (
-      username === "captreobn" &&
-      password === "123456"
-    ) {
+const res=
+await axios.post(
 
-      localStorage.setItem(
-        "role",
-        "user"
-      );
+`${API}/api/auth/login`,
 
-      window.location.href =
-        "/spare-devices";
+{
+username,
+password
+}
 
-      return;
-    }
+);
 
-    alert("Sai tài khoản");
-  };
 
-  return (
+// lưu token
 
-    <div
-      className="
-        min-h-screen
-        flex
-        items-center
-        justify-center
-        bg-gray-100
-      "
-    >
+localStorage.setItem(
+"token",
+res.data.token
+);
 
-      <div
-        className="
-          bg-white
-          p-10
-          rounded-3xl
-          shadow-xl
-          w-[400px]
-          space-y-5
-        "
-      >
 
-        <h1
-          className="
-            text-3xl
-            font-bold
-            text-center
-          "
-        >
-          Đăng nhập
-        </h1>
+// lưu role
 
-        <input
-          type="text"
-          placeholder="Tài khoản"
-          value={username}
-          onChange={(e) =>
-            setUsername(e.target.value)
-          }
-          className="
-            border
-            p-4
-            rounded-xl
-            w-full
-          "
-        />
+localStorage.setItem(
+"role",
+res.data.user.role
+);
 
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-          className="
-            border
-            p-4
-            rounded-xl
-            w-full
-          "
-        />
 
-        <button
-          onClick={handleLogin}
-          className="
-            bg-blue-500
-            text-white
-            w-full
-            p-4
-            rounded-xl
-            font-bold
-          "
-        >
-          Đăng nhập
-        </button>
+// lưu tên
 
-      </div>
+localStorage.setItem(
+"username",
+res.data.user.username
+);
 
-    </div>
-  );
+
+// chuyển trang
+
+if(
+res.data.user.role==="admin"
+){
+
+window.location.href=
+"/dashboard";
+
+}else{
+
+window.location.href=
+"/spare-devices";
+
+}
+
+}
+
+catch(err){
+
+alert(
+
+err.response?.data?.message ||
+
+"Đăng nhập thất bại"
+
+);
+
+}
+
+finally{
+
+setLoading(false);
+
+}
+
+};
+
+return(
+
+<div
+className="
+min-h-screen
+flex
+justify-center
+items-center
+bg-gray-100
+"
+>
+
+<div
+className="
+bg-white
+w-[420px]
+rounded-3xl
+shadow-xl
+p-10
+space-y-5
+"
+>
+
+<h1
+className="
+text-3xl
+font-bold
+text-center
+"
+>
+
+Đăng nhập
+
+</h1>
+
+
+<input
+
+type="text"
+
+placeholder="Tài khoản"
+
+value={username}
+
+onChange={(e)=>
+setUsername(
+e.target.value
+)
+}
+
+className="
+border
+p-4
+rounded-xl
+w-full
+"
+
+/>
+
+
+<input
+
+type="password"
+
+placeholder="Mật khẩu"
+
+value={password}
+
+onChange={(e)=>
+setPassword(
+e.target.value
+)
+}
+
+className="
+border
+p-4
+rounded-xl
+w-full
+"
+
+/>
+
+
+<button
+
+onClick={handleLogin}
+
+disabled={loading}
+
+className="
+w-full
+bg-blue-600
+hover:bg-blue-700
+text-white
+rounded-xl
+p-4
+font-bold
+"
+
+>
+
+{
+loading
+?
+"Đang đăng nhập..."
+:
+"Đăng nhập"
+}
+
+</button>
+
+</div>
+
+</div>
+
+);
+
 }
