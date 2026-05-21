@@ -25,6 +25,11 @@ app.use("/api/devices", deviceRoutes);
 app.use("/api/work-orders", workRoutes);
 app.use("/api/spare-devices", spareRoutes);
 
+app.use(
+"/api/auth",
+require("./routes/auth.routes")
+);
+
 app.get("/", (req, res) => {
   res.send("API RUNNING...");
 });
