@@ -70,48 +70,116 @@ export default function ImportExcel({ onDone }) {
   };
 
   // 🚀 IMPORT
-  const handleImport = async () => {
-    if (!file) return;
+ const handleImport = async () => {
 
-    setLoading(true);
-    setProgress(0);
+  if (!file) {
+    alert("Chọn file trước");
+    return;
+  }
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+  setLoading(true);
+  setProgress(0);
 
-      const res = await axios.post(
+  try {
+
+    const token =
+      localStorage.getItem("token");
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "file",
+      file
+    );
+
+    const res =
+      await axios.post(
+
         `${API}/api/devices/import`,
+
         formData,
+
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+
+            Authorization:
+              `Bearer ${token}`,
+
+            "Content-Type":
+              "multipart/form-data"
+
+          },
+
           onUploadProgress: (p) => {
-            if (!p.total) return;
-            const percent = Math.round((p.loaded * 100) / p.total);
-            setProgress(percent);
+
+            if (!p.total)
+              return;
+
+            setProgress(
+              Math.round(
+                (p.loaded * 100) /
+                p.total
+              )
+            );
+
           }
+
         }
+
       );
 
-      alert(`
-✅ Thành công: ${res.data.success}
-❌ Lỗi: ${res.data.failed}
-📊 Tổng: ${res.data.total}
-      `);
+    console.log(
+      "IMPORT RESULT:",
+      res.data
+    );
 
-      setFile(null);
-      setPreview([]);
+    alert(
+`
+✅ Import thành công
 
-      if (onDone) onDone();
+Tổng:
+${res.data.total}
 
-    } catch (err) {
-      console.error("IMPORT ERROR:", err.response?.data || err);
-      alert("❌ Import lỗi - xem console");
-    }
+Thành công:
+${res.data.success}
+
+Bỏ qua:
+${res.data.failed}
+`
+    );
+
+    setFile(null);
+
+    setPreview([]);
+
+    if (onDone)
+      onDone();
+
+  }
+
+  catch (err) {
+
+    console.log(
+      err.response?.data
+    );
+
+    alert(
+      err.response?.data?.message ||
+      "Import lỗi"
+    );
+
+  }
+
+  finally {
 
     setLoading(false);
+
     setProgress(0);
-  };
+
+  }
+
+};
 
   if (role !== "admin") {
 
