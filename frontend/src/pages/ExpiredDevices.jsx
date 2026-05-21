@@ -5,38 +5,142 @@ import Table from "../components/Table";
 
 export default function ExpiredDevices() {
 
-  const [data, setData] = useState([]);
+  const [data, setData] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    axios.get(`${API}/api/devices`)
-      .then(res => {
 
-        const now = new Date();
+    const fetchExpired =
+      async () => {
 
-        const expired = res.data.filter(d => {
-          if (!d.installDate || !d.lifespan) return false;
+      try {
 
-          const exp = new Date(d.installDate);
-          exp.setFullYear(exp.getFullYear() + d.lifespan);
+        const token =
+          localStorage.getItem(
+            "token"
+          );
 
-          return exp < now;
-        });
+        const res =
+          await axios.get(
 
-        setData(expired);
+            `${API}/api/devices`,
 
-      })
-      .catch(() => setData([]));
+            {
+              headers:{
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+
+          );
+
+        const now =
+          new Date();
+
+        const expired =
+          res.data.filter((d)=>{
+
+            if(
+              !d.installDate ||
+              !d.lifespan
+            ){
+              return false;
+            }
+
+            const exp =
+              new Date(
+                d.installDate
+              );
+
+            exp.setFullYear(
+              exp.getFullYear()
+              +
+              Number(
+                d.lifespan
+              )
+            );
+
+            return (
+              exp < now
+            );
+
+          });
+
+        setData(
+          expired
+        );
+
+      }
+
+      catch(err){
+
+        console.log(
+          "LOAD EXPIRED ERROR",
+          err
+        );
+
+        setData([]);
+
+      }
+
+      finally{
+
+        setLoading(false);
+
+      }
+
+    };
+
+    fetchExpired();
+
   }, []);
 
   return (
+
     <div className="p-6">
 
-      <h1 className="text-xl font-bold mb-4 text-red-500">
+      <h1
+        className="
+          text-2xl
+          font-bold
+          text-red-500
+          mb-5
+        "
+      >
         ⛔ Thiết bị hết hạn
       </h1>
 
-      <Table data={data} />
+      {
+
+      loading
+
+      ?
+
+      <div
+        className="
+          bg-white
+          rounded-xl
+          p-8
+          text-center
+        "
+      >
+        Đang tải...
+      </div>
+
+      :
+
+      <Table
+        data={data}
+        setData={setData}
+      />
+
+      }
 
     </div>
+
   );
+
 }
