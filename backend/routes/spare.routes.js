@@ -6,6 +6,10 @@ const controller =
 const upload =
   require("../middleware/upload");
 
+const auth = require("../middleware/auth");
+
+const role = require("../middleware/role");
+
 // ================= PREVIEW IMPORT =================
 router.post(
   "/preview-import",
@@ -41,11 +45,11 @@ router.get(
 // ================= CRUD =================
 router.get("/", controller.getAll);
 
-router.post("/", controller.create);
+router.post("/create", auth, role("admin"), controller.create);
 
-router.put("/:id", controller.update);
+router.put("/:id", auth, role("admin","user"), controller.update);
 
-router.delete("/:id", controller.remove);
+router.delete("/:id", auth, role("admin"), controller.remove);
 
 router.get("/export", controller.exportExcel);
 
