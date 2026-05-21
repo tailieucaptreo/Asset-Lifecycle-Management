@@ -18,10 +18,8 @@ storage:
 multer.memoryStorage()
 });
 
-
 // ====================
-// XEM THIẾT BỊ
-// ADMIN + USER
+// DANH SÁCH
 // ====================
 
 router.get(
@@ -32,8 +30,19 @@ controller.getDevices
 
 
 // ====================
-// THÊM THIẾT BỊ
-// CHỈ ADMIN
+// CHI TIẾT THIẾT BỊ
+// THÊM ĐOẠN NÀY
+// ====================
+
+router.get(
+"/:id",
+auth,
+controller.getOne
+);
+
+
+// ====================
+// THÊM
 // ====================
 
 router.post(
@@ -45,8 +54,7 @@ controller.createDevice
 
 
 // ====================
-// SỬA THIẾT BỊ
-// CHỈ ADMIN
+// SỬA
 // ====================
 
 router.put(
@@ -58,8 +66,7 @@ controller.updateDevice
 
 
 // ====================
-// XÓA THIẾT BỊ
-// CHỈ ADMIN
+// XÓA
 // ====================
 
 router.delete(
@@ -72,7 +79,6 @@ controller.deleteDevice
 
 // ====================
 // IMPORT
-// CHỈ ADMIN
 // ====================
 
 router.post(
