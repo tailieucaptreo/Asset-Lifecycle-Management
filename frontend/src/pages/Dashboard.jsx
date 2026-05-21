@@ -40,32 +40,79 @@ export default function Dashboard() {
   // =============================
   const fetchData = async () => {
 
-    try {
+  try {
 
-      // 🔥 LOAD THIẾT BỊ CHÍNH
-      const deviceRes = await axios.get(
-        `${API}/api/devices`
+    const token =
+      localStorage.getItem("token");
+
+    const headers = {
+      Authorization:
+        `Bearer ${token}`
+    };
+
+    // LOAD DEVICE
+    const deviceRes =
+      await axios.get(
+        `${API}/api/devices`,
+        {
+          headers
+        }
       );
 
-      setDevices(deviceRes.data);
+    console.log(
+      "DEVICE",
+      deviceRes.data
+    );
 
-      // 🔥 LOAD THIẾT BỊ DỰ PHÒNG
-      const spareRes = await axios.get(
-        `${API}/api/spare-devices`
+    setDevices(
+
+      Array.isArray(
+        deviceRes.data
+      )
+
+      ? deviceRes.data
+
+      : deviceRes.data.devices || []
+
+    );
+
+    // LOAD SPARE
+    const spareRes =
+      await axios.get(
+        `${API}/api/spare-devices`,
+        {
+          headers
+        }
       );
 
-      setSpareDevices(spareRes.data);
+    setSpareDevices(
 
-    } catch (err) {
+      Array.isArray(
+        spareRes.data
+      )
 
-      console.log(err);
+      ? spareRes.data
 
-      setDevices([]);
-      setSpareDevices([]);
+      : spareRes.data.data || []
 
-    }
-  };
+    );
 
+  }
+
+  catch (err) {
+
+    console.log(
+      "FETCH ERROR",
+      err.response?.data ||
+      err.message
+    );
+
+    setDevices([]);
+    setSpareDevices([]);
+
+  }
+
+};
   useEffect(() => {
     fetchData();
   }, []);
