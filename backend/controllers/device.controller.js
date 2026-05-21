@@ -344,3 +344,63 @@ err.message
 }
 
 };
+
+// ================= GET ONE =================
+
+exports.getOne =
+async (
+req,
+res
+)=>{
+
+try{
+
+const id =
+Number(
+req.params.id
+);
+
+const data =
+await prisma.device.findUnique({
+
+where:{
+id
+}
+
+});
+
+if(!data){
+
+return res
+.status(404)
+.json({
+
+message:
+"Không tìm thấy thiết bị"
+
+});
+
+}
+
+res.json(
+data
+);
+
+}
+
+catch(err){
+
+console.log(err);
+
+res
+.status(500)
+.json({
+
+error:
+err.message
+
+});
+
+}
+
+};
