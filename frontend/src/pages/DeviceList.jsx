@@ -17,35 +17,77 @@ export default function DeviceList() {
   // ================= LOAD DATA =================
   const fetchDevices = async () => {
 
-    try {
+  try {
 
-      setLoading(true);
+    setLoading(true);
 
-      const res = await axios.get(`${API}/api/devices`);
+    const token =
+      localStorage.getItem(
+        "token"
+      );
 
-      let result = res.data;
+    const res =
+      await axios.get(
 
-      // FILTER STATUS URL
-      if (status) {
+        `${API}/api/devices`,
 
-        result = result.filter(
-          (d) => d.status === status
+        {
+          headers: {
+
+            Authorization:
+              `Bearer ${token}`
+
+          }
+
+        }
+
+      );
+
+    let result =
+      Array.isArray(
+        res.data
+      )
+        ? res.data
+        : [];
+
+    if (status) {
+
+      result =
+        result.filter(
+          d =>
+            d.status === status
         );
-      }
 
-      setData(result);
-
-    } catch (err) {
-
-      console.log("LOAD DEVICE ERROR:", err);
-
-      alert("Không tải được dữ liệu");
-
-    } finally {
-
-      setLoading(false);
     }
-  };
+
+    setData(result);
+
+  }
+
+  catch (err) {
+
+    console.log(
+      "LOAD DEVICE ERROR",
+      err.response?.data
+    );
+
+    alert(
+      err.response?.data?.message
+      ||
+      "Không tải được thiết bị"
+    );
+
+    setData([]);
+
+  }
+
+  finally {
+
+    setLoading(false);
+
+  }
+
+};
 
   useEffect(() => {
 
