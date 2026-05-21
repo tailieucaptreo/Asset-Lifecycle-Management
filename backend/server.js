@@ -1,62 +1,170 @@
 const express = require("express");
 const cors = require("cors");
 
-const deviceRoutes = require("./routes/device.routes");
-const workRoutes = require("./routes/work.routes");
-const spareRoutes = require("./routes/spare.routes");
+const deviceRoutes =
+require("./routes/device.routes");
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const workRoutes =
+require("./routes/work.routes");
 
-const app = express();
+const spareRoutes =
+require("./routes/spare.routes");
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://asset-lifecycle-management.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
+const authRoutes =
+require("./routes/auth.routes");
 
-app.use(express.json());
+const { PrismaClient } =
+require("@prisma/client");
 
-app.use("/api/devices", deviceRoutes);
-app.use("/api/work-orders", workRoutes);
-app.use("/api/spare-devices", spareRoutes);
+const prisma =
+new PrismaClient();
+
+const app =
+express();
+
+
+// ===== CORS =====
+
+app.use(
+
+cors({
+
+origin:[
+
+"http://localhost:5173",
+
+"https://asset-lifecycle-management.vercel.app"
+
+],
+
+methods:[
+
+"GET",
+"POST",
+"PUT",
+"DELETE",
+"OPTIONS"
+
+],
+
+credentials:true
+
+})
+
+);
+
+app.options(
+"*",
+cors()
+);
+
+
+// ===== BODY =====
+
+app.use(
+express.json()
+);
+
+
+// ===== ROUTES =====
 
 app.use(
 "/api/auth",
-require("./routes/auth.routes")
+authRoutes
 );
 
-app.get("/", (req, res) => {
-  res.send("API RUNNING...");
+app.use(
+"/api/devices",
+deviceRoutes
+);
+
+app.use(
+"/api/work-orders",
+workRoutes
+);
+
+app.use(
+"/api/spare-devices",
+spareRoutes
+);
+
+
+// ===== TEST =====
+
+app.get(
+"/",
+(req,res)=>{
+
+res.send(
+"API RUNNING..."
+);
+
+}
+);
+
+
+// ===== FIX DB =====
+
+app.get(
+"/fix-db",
+
+async(
+req,
+res
+)=>{
+
+try{
+
+await prisma.$executeRawUnsafe(`
+
+DROP INDEX IF EXISTS "Device_deviceId_key"
+
+`);
+
+res.json({
+
+ok:true,
+
+message:
+
+"Đã xóa unique"
+
 });
 
-app.listen(5000, () => {
-  console.log("Server chạy tại port 5000");
+}
+
+catch(err){
+
+console.log(err);
+
+res.status(500).json({
+
+ok:false,
+
+error:
+err.message
+
 });
 
-app.get("/fix-db", async (req, res) => {
-  try {
+}
 
-    await prisma.$executeRawUnsafe(`
-      DROP INDEX IF EXISTS "Device_deviceId_key";
-    `);
+}
+);
 
-    res.json({
-      ok: true,
-      message: "Đã xóa unique deviceId"
-    });
 
-  } catch (err) {
+// ===== START =====
 
-    console.log(err);
+const PORT =
+process.env.PORT ||
+5000;
 
-    res.json({
-      ok: false,
-      error: err.message
-    });
-  }
-});
+app.listen(
+PORT,
+()=>{
+
+console.log(
+`Server chạy ${PORT}`
+);
+
+}
+);
