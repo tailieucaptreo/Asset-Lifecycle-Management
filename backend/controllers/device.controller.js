@@ -184,105 +184,163 @@ exports.deleteDevice = async (req, res) => {
 // ================= IMPORT =================
 exports.importExcel = async (req, res) => {
 
-  try {
+try {
 
-    if (!req.file) {
-      return res.status(400).json({
-        error: "Không có file"
-      });
-    }
+if (!req.file) {
 
-    const workbook = XLSX.read(req.file.buffer, {
-      type: "buffer"
-    });
+return res.status(400).json({
+error:"Không có file"
+});
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+}
 
-    // 🔥 FIX QUAN TRỌNG
-    const rows = XLSX.utils.sheet_to_json(sheet, {
-      raw: true,
-      defval: ""
-    });
+const workbook =
+XLSX.read(
+req.file.buffer,
+{
+type:"buffer"
+}
+);
 
-    let success = 0;
-    let failed = 0;
+const sheet =
+workbook.Sheets[
+workbook.SheetNames[0]
+];
 
-    for (let row of rows) {
+const rows =
+XLSX.utils.sheet_to_json(
+sheet,
+{
+raw:true,
+defval:null
+}
+);
 
-      try {
+let inserted = 0;
 
-        const data = {
+for (const row of rows) {
 
-          deviceId: normalize(
-            getField(row, ["ma id", "id"]),
-            null
-          ),
+try {
 
-          name: normalize(
-            getField(row, ["ten thiet bi", "ten"])
-          ),
+await prisma.device.create({
 
-          line: normalize(
-            getField(row, ["tuyen cap", "tuyen"])
-          ),
+data:{
 
-          station: normalize(
-            getField(row, ["nha ga", "ga"])
-          ),
+deviceId:
+String(
+getField(
+row,
+["ma id"]
+) || ""
+),
 
-          code: normalize(
-            getField(row, ["ky hieu"]),
-            null
-          ),
+name:
+String(
+getField(
+row,
+["ten"]
+) || "Không tên"
+),
 
-          area: normalize(
-            getField(row, ["khu vuc"]),
-            null
-          ),
+line:
+String(
+getField(
+row,
+["tuyen"]
+)||""
+),
 
-          status: normalizeStatus(
-            getField(row, ["active", "trang thai", "status"])
-          ),
+station:
+String(
+getField(
+row,
+["ga"]
+)||""
+),
 
-          installDate: parseDate(
-            getField(row, ["ngay lap dat", "ngay lap"])
-          ),
+code:
+String(
+getField(
+row,
+["ky hieu"]
+)||""
+),
 
-          lifespan:
-            Number(
-              getField(row, ["tuoi tho thiet bi", "tuoi tho"])
-            ) || null
-        };
+area:
+String(
+getField(
+row,
+["khu vuc"]
+)||""
+),
 
-        console.log("IMPORT DATA:", data);
+status:
+normalizeStatus(
+getField(
+row,
+["trang thai"]
+)
+),
 
-        await prisma.device.create({
-          data
-        });
+installDate:
+parseDate(
+getField(
+row,
+["ngay lap"]
+)
+),
 
-        success++;
+lifespan:
+Number(
+getField(
+row,
+["tuoi tho"]
+)
+)||0
 
-      } catch (err) {
+}
 
-        console.log("❌ IMPORT ERROR:", err.message);
-        console.log("ROW:", row);
+});
 
-        failed++;
-      }
-    }
+inserted++;
 
-    res.json({
-      success,
-      failed,
-      total: rows.length
-    });
+}
 
-  } catch (err) {
+catch(err){
 
-    console.log(err);
+console.log(
+"IMPORT SKIP",
+err.message
+);
 
-    res.status(500).json({
-      error: err.message
-    });
-  }
+}
+
+}
+
+return res.json({
+
+ok:true,
+
+inserted,
+
+total:
+rows.length
+
+});
+
+}
+
+catch(err){
+
+console.log(err);
+
+res.status(500).json({
+
+error:
+err.message
+
+});
+
+}
+
 };
