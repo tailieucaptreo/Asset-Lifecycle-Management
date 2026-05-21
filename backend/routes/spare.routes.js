@@ -1,59 +1,80 @@
 const router = require("express").Router();
 
 const controller =
-  require("../controllers/spare.controller");
+require("../controllers/spare.controller");
 
 const upload =
-  require("../middleware/upload");
+require("../middleware/upload");
 
-const auth = require("../middleware/auth");
+const auth =
+require("../middleware/auth");
 
-const role = require("../middleware/role");
+const role =
+require("../middleware/role");
 
-// ================= PREVIEW IMPORT =================
+// IMPORT
 router.post(
-  "/preview-import",
-  upload.single("file"),
-  controller.previewImport
+"/preview-import",
+upload.single("file"),
+controller.previewImport
 );
 
-// ================= CONFIRM IMPORT =================
 router.post(
-  "/confirm-import",
-  controller.confirmImport
+"/confirm-import",
+controller.confirmImport
 );
 
-// ================= UPLOAD IMAGE =================
+// IMAGE
 router.post(
-  "/upload",
-  upload.single("image"),
-  controller.uploadImage
+"/upload",
+upload.single("image"),
+controller.uploadImage
 );
 
-// ================= EXPORT EXCEL =================
+// EXPORT
 router.get(
-  "/export",
-  controller.exportExcel
+"/export",
+controller.exportExcel
 );
 
-// ================= HISTORY =================
+// HISTORY
 router.get(
-  "/history",
-  controller.getHistory
+"/history",
+controller.getHistory
 );
 
-// ================= CRUD =================
-router.get("/", controller.getAll);
+// CRUD
+router.get(
+"/",
+controller.getAll
+);
 
-router.post("/create", auth, role("admin"), controller.create);
+// ĐỔI create
+router.post(
+"/",
+auth,
+role("admin"),
+controller.create
+);
 
-router.put("/:id", auth, role("admin","user"), controller.update);
+router.put(
+"/:id",
+auth,
+role("admin","user"),
+controller.update
+);
 
-router.delete("/:id", auth, role("admin"), controller.remove);
+router.delete(
+"/:id",
+auth,
+role("admin"),
+controller.remove
+);
 
-router.get("/export", controller.exportExcel);
+router.get(
+"/:id",
+controller.getOne
+);
 
-// LUÔN ĐẶT CUỐI CÙNG
-router.get("/:id", controller.getOne);
-
-module.exports = router;
+module.exports =
+router;
