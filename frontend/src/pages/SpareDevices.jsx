@@ -16,6 +16,8 @@ export default function SpareDevices() {
 
   // ================= STATE =================
   const role = localStorage.getItem("role");
+
+  const token = localStorage.getItem("token");
   
   const [data, setData] = useState([]);
 
@@ -74,8 +76,18 @@ export default function SpareDevices() {
   // ================= LOAD =================
   const fetchData = () => {
 
-    axios
-      .get(`${API}/api/spare-devices`)
+    axios.get(
+
+    `${API}/api/spare-devices`,
+    
+    {
+    headers:{
+    Authorization:
+    `Bearer ${token}`
+    }
+    }
+    
+    )
       .then((res) => {
         setData(res.data);
       })
@@ -167,15 +179,35 @@ export default function SpareDevices() {
       if (editing) {
 
         await axios.put(
-          `${API}/api/spare-devices/${editing.id}`,
-          payload
+        
+        `${API}/api/spare-devices/${editing.id}`,
+        
+        payload,
+        
+        {
+        headers:{
+        Authorization:
+        `Bearer ${token}`
+        }
+        }
+        
         );
 
       } else {
 
         await axios.post(
-          `${API}/api/spare-devices`,
-          payload
+        
+        `${API}/api/spare-devices`,
+        
+        payload,
+        
+        {
+        headers:{
+        Authorization:
+        `Bearer ${token}`
+        }
+        }
+        
         );
       }
 
@@ -255,7 +287,16 @@ export default function SpareDevices() {
     try {
 
       await axios.delete(
-        `${API}/api/spare-devices/${id}`
+
+      `${API}/api/spare-devices/${id}`,
+      
+      {
+      headers:{
+      Authorization:
+      `Bearer ${token}`
+      }
+      }
+      
       );
 
       fetchData();
