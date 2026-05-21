@@ -1,24 +1,5 @@
-const prisma = require("../prisma");
-
-const jwt = require("jsonwebtoken");
-
-exports.login = async (req, res) => {
-
-try {
-
-const {
-username,
-password
-} = req.body;
-
-const user =
-await prisma.user.findUnique({
-
-where:{
-username
-}
-
-});
+const jwt =
+require("jsonwebtoken");
 
 exports.login =
 async (
@@ -127,6 +108,8 @@ role:
 }
 
 
+// SAI
+
 return res
 .status(401)
 .json({
@@ -138,9 +121,11 @@ message:
 
 }
 
-catch{
+catch(err){
 
-res
+console.log(err);
+
+return res
 .status(500)
 .json({
 
