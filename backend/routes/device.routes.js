@@ -1,14 +1,87 @@
 const express = require("express");
 const router = express.Router();
+
 const multer = require("multer");
-const controller = require("../controllers/device.controller");
 
-const upload = multer({ storage: multer.memoryStorage() });
+const controller =
+require("../controllers/device.controller");
 
-router.get("/", controller.getDevices);
-router.post("/", controller.createDevice);
-router.put("/:id", controller.updateDevice);   // 👈 BẮT BUỘC PHẢI CÓ
-router.delete("/:id", controller.deleteDevice);
-router.post("/import", upload.single("file"), controller.importExcel);
+const auth =
+require("../middleware/auth");
 
-module.exports = router;
+const role =
+require("../middleware/role");
+
+const upload =
+multer({
+storage:
+multer.memoryStorage()
+});
+
+
+// ====================
+// XEM THIẾT BỊ
+// ADMIN + USER
+// ====================
+
+router.get(
+"/",
+auth,
+controller.getDevices
+);
+
+
+// ====================
+// THÊM THIẾT BỊ
+// CHỈ ADMIN
+// ====================
+
+router.post(
+"/",
+auth,
+role("admin"),
+controller.createDevice
+);
+
+
+// ====================
+// SỬA THIẾT BỊ
+// CHỈ ADMIN
+// ====================
+
+router.put(
+"/:id",
+auth,
+role("admin"),
+controller.updateDevice
+);
+
+
+// ====================
+// XÓA THIẾT BỊ
+// CHỈ ADMIN
+// ====================
+
+router.delete(
+"/:id",
+auth,
+role("admin"),
+controller.deleteDevice
+);
+
+
+// ====================
+// IMPORT
+// CHỈ ADMIN
+// ====================
+
+router.post(
+"/import",
+auth,
+role("admin"),
+upload.single("file"),
+controller.importExcel
+);
+
+module.exports =
+router;
