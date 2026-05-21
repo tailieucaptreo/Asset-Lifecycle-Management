@@ -11,14 +11,52 @@ export default function DeviceDetail() {
   const role =
   localStorage.getItem("role");
 
-  useEffect(() => {
-    fetch(`${API}/api/devices`)
-      .then(res => res.json())
-      .then(data => {
-        const found = data.find(d => d.id == id);
-        setDevice(found);
-      });
-  }, [id]);
+ useEffect(() => {
+
+  const loadDevice = async () => {
+
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+      const res =
+        await fetch(
+          `${API}/api/devices/${id}`,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+        );
+
+      if (!res.ok) {
+        throw new Error(
+          "Không tải được thiết bị"
+        );
+      }
+
+      const data =
+        await res.json();
+
+      setDevice(data);
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert(
+        "Không tải được hồ sơ thiết bị"
+      );
+
+    }
+
+  };
+
+  loadDevice();
+
+}, [id]);
 
   const handleChange = (e) => {
     setDevice({
@@ -32,14 +70,26 @@ export default function DeviceDetail() {
     try {
 
       const res = await fetch(
-        `${API}/api/devices/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(device)
-        }
+      `${API}/api/devices/${id}`,
+      {
+      method:"PUT",
+      
+      headers:{
+      "Content-Type":
+      "application/json",
+      
+      Authorization:
+      `Bearer ${
+      localStorage.getItem(
+      "token"
+      )
+      }`
+      },
+      
+      body:
+      JSON.stringify(device)
+      
+      }
       );
 
       const updated = await res.json();
