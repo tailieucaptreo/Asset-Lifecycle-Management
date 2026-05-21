@@ -34,30 +34,79 @@ export default function Table({ data = [], setData }) {
   // ================= DELETE =================
   const handleDelete = async (id) => {
 
-    if (!confirm("Xóa thiết bị này?")) return;
+  if (
+    !window.confirm(
+      "Xóa thiết bị này?"
+    )
+  ) return;
 
-    try {
+  try {
 
-      const res = await fetch(`${API}/api/devices/${id}`, {
-        method: "DELETE"
-      });
-
-      if (!res.ok) {
-        throw new Error("Delete failed");
-      }
-
-      // realtime update
-      setData((prev) =>
-        prev.filter((d) => d.id !== id)
+    const token =
+      localStorage.getItem(
+        "token"
       );
 
-    } catch (err) {
+    const res =
+      await fetch(
 
-      console.log(err);
+        `${API}/api/devices/${id}`,
 
-      alert("Xóa lỗi");
+        {
+
+          method:
+            "DELETE",
+
+          headers:{
+
+            Authorization:
+              `Bearer ${token}`
+
+          }
+
+        }
+
+      );
+
+    if (!res.ok) {
+
+      const err =
+        await res.json();
+
+      throw new Error(
+        err.message ||
+        "Delete lỗi"
+      );
+
     }
-  };
+
+    setData(
+      prev =>
+      prev.filter(
+        d =>
+        d.id !== id
+      )
+    );
+
+    alert(
+      "Xóa thành công"
+    );
+
+  }
+
+  catch(err){
+
+    console.log(
+      err
+    );
+
+    alert(
+      err.message
+    );
+
+  }
+
+};
 
   // ================= OPEN EDIT =================
   const openEdit = (d) => {
@@ -110,8 +159,14 @@ export default function Table({ data = [], setData }) {
         `${API}/api/devices/${editing.id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
+          headers:{
+
+          Authorization:
+          `Bearer ${localStorage.getItem("token")}`,
+          
+          "Content-Type":
+          "application/json"
+          
           },
           body: JSON.stringify(payload)
         }
