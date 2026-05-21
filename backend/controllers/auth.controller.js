@@ -20,54 +20,59 @@ username
 
 });
 
-if(!user){
+exports.login =
+async (
+req,
+res
+)=>{
 
-return res
-.status(401)
-.json({
-message:"Sai tài khoản"
-});
+try{
 
-}
+const {
+username,
+password
+}=
+req.body;
 
-if(password!==user.password){
 
-return res
-.status(401)
-.json({
-message:"Sai mật khẩu"
-});
+// ADMIN
 
-}
+if(
+username==="captreobn" &&
+password==="123456admin"
+){
 
-const token =
+const token=
 jwt.sign(
 
 {
-id:user.id,
-role:user.role,
-username:user.username
+username:
+"captreobn",
+
+role:
+"admin"
 },
 
 process.env.JWT_SECRET,
 
 {
-expiresIn:"7d"
+expiresIn:
+"7d"
 }
 
 );
 
-res.json({
+return res.json({
 
 token,
 
 user:{
 
 username:
-user.username,
+"captreobn",
 
 role:
-user.role
+"admin"
 
 }
 
@@ -75,14 +80,73 @@ user.role
 
 }
 
-catch(err){
 
-console.log(err);
+// USER
+
+if(
+username==="captreobn" &&
+password==="123456"
+){
+
+const token=
+jwt.sign(
+
+{
+username:
+"captreobn",
+
+role:
+"user"
+},
+
+process.env.JWT_SECRET,
+
+{
+expiresIn:
+"7d"
+}
+
+);
+
+return res.json({
+
+token,
+
+user:{
+
+username:
+"captreobn",
+
+role:
+"user"
+
+}
+
+});
+
+}
+
+
+return res
+.status(401)
+.json({
+
+message:
+"Sai tài khoản"
+
+});
+
+}
+
+catch{
 
 res
 .status(500)
 .json({
-message:"Server error"
+
+message:
+"Lỗi server"
+
 });
 
 }
