@@ -50,87 +50,98 @@ alert(
 
 };
 
-return(
+return (
 
 <div
 className="
+relative
 min-h-screen
+overflow-hidden
 flex
 items-center
 justify-center
-relative
-overflow-hidden
 bg-gradient-to-br
-from-indigo-700
-via-blue-600
-to-cyan-500
+from-[#3B1EFF]
+via-[#246BFF]
+to-[#00C6FF]
 "
 >
 
+{/* nền blur */}
+
 <div
 className="
 absolute
-top-[-150px]
-left-[-150px]
-w-[450px]
-h-[450px]
-rounded-full
+top-[-200px]
+left-[-100px]
+w-[500px]
+h-[500px]
 bg-pink-500/30
-blur-3xl
-animate-pulse
+rounded-full
+blur-[180px]
 "
 />
 
 <div
 className="
 absolute
-bottom-[-150px]
+bottom-[-200px]
 right-[-150px]
-w-[500px]
-h-[500px]
-rounded-full
+w-[600px]
+h-[600px]
 bg-cyan-300/30
-blur-3xl
-animate-pulse
+rounded-full
+blur-[220px]
 "
 />
+
+
+{/* CARD */}
 
 <div
 className="
 relative
 z-10
-w-[420px]
+w-[450px]
+max-w-[90vw]
+rounded-[36px]
 bg-white/15
-backdrop-blur-xl
+backdrop-blur-2xl
 border
 border-white/20
-rounded-[30px]
-shadow-2xl
+shadow-[0_20px_80px_rgba(0,0,0,.25)]
 p-10
 "
 >
 
+<div className="text-center">
+
+<div className="text-6xl mb-4">
+🔐
+</div>
+
 <h1
 className="
-text-center
-text-5xl
-mb-4
-"
->
-🔐
-</h1>
-
-<h2
-className="
-text-center
 text-white
-font-bold
-text-3xl
-mb-8
+font-black
+text-4xl
+mb-2
 "
 >
 Đăng nhập
-</h2>
+</h1>
+
+<p
+className="
+text-white/70
+mb-8
+"
+>
+Asset Lifecycle Management
+</p>
+
+</div>
+
 
 <input
 type="text"
@@ -139,19 +150,23 @@ value={username}
 onChange={(e)=>
 setUsername(
 e.target.value
-)
-}
+)}
 className="
 w-full
 mb-5
-p-4
+p-5
 rounded-2xl
-bg-white/20
+bg-white/15
+border
+border-white/20
 text-white
-placeholder:text-white/60
+placeholder-white/50
 outline-none
+focus:ring-2
+focus:ring-cyan-300
 "
 />
+
 
 <input
 type="password"
@@ -160,52 +175,46 @@ value={password}
 onChange={(e)=>
 setPassword(
 e.target.value
-)
-}
+)}
 className="
 w-full
 mb-6
-p-4
+p-5
 rounded-2xl
-bg-white/20
+bg-white/15
+border
+border-white/20
 text-white
-placeholder:text-white/60
+placeholder-white/50
 outline-none
+focus:ring-2
+focus:ring-cyan-300
 "
 />
+
 
 <button
 onClick={handleLogin}
 className="
 w-full
-p-4
+p-5
 rounded-2xl
 font-bold
+text-lg
 text-white
 bg-gradient-to-r
 from-cyan-400
-to-blue-500
+to-blue-600
 hover:scale-[1.02]
 transition
+duration-300
+shadow-lg
 "
 >
 
 Đăng nhập
 
 </button>
-
-<p
-className="
-mt-6
-text-center
-text-white/70
-text-sm
-"
->
-
-Asset Lifecycle Management
-
-</p>
 
 </div>
 
