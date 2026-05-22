@@ -96,122 +96,181 @@ setLoading(false);
 
 };
 
-return(
+return (
 
 <div
 className="
 min-h-screen
+relative
+overflow-hidden
+bg-gradient-to-br
+from-indigo-700
+via-blue-600
+to-cyan-500
 flex
-justify-center
 items-center
-bg-gray-100
+justify-center
 "
 >
 
+{/* nền hiệu ứng */}
+
 <div
 className="
-bg-white
+absolute
+top-[-150px]
+left-[-150px]
+w-[450px]
+h-[450px]
+bg-pink-500/30
+rounded-full
+blur-3xl
+animate-pulse
+"
+/>
+
+<div
+className="
+absolute
+bottom-[-200px]
+right-[-150px]
+w-[500px]
+h-[500px]
+bg-cyan-300/30
+rounded-full
+blur-3xl
+animate-pulse
+"
+/>
+
+
+{/* CARD LOGIN */}
+
+<div
+className="
+relative
+z-10
 w-[420px]
-rounded-3xl
-shadow-xl
+backdrop-blur-xl
+bg-white/15
+border
+border-white/20
+rounded-[30px]
+shadow-2xl
 p-10
-space-y-5
 "
 >
 
 <h1
 className="
+text-5xl
+font-black
+text-white
+text-center
+mb-3
+"
+>
+🔐
+</h1>
+
+<h2
+className="
 text-3xl
 font-bold
 text-center
+text-white
+mb-8
 "
 >
-
 Đăng nhập
-
-</h1>
-
+</h2>
 
 <input
-
 type="text"
-
 placeholder="Tài khoản"
-
 value={username}
-
 onChange={(e)=>
 setUsername(
 e.target.value
 )
 }
-
 className="
-border
-p-4
-rounded-xl
 w-full
+mb-5
+p-4
+rounded-2xl
+bg-white/20
+text-white
+placeholder-white/70
+outline-none
+border
+border-white/20
+focus:border-cyan-300
 "
-
 />
 
-
 <input
-
 type="password"
-
 placeholder="Mật khẩu"
-
 value={password}
-
 onChange={(e)=>
 setPassword(
 e.target.value
 )
 }
-
 className="
-border
-p-4
-rounded-xl
 w-full
+mb-6
+p-4
+rounded-2xl
+bg-white/20
+text-white
+placeholder-white/70
+outline-none
+border
+border-white/20
+focus:border-cyan-300
 "
-
 />
 
-
 <button
-
 onClick={handleLogin}
-
-disabled={loading}
-
 className="
 w-full
-bg-blue-600
-hover:bg-blue-700
-text-white
-rounded-xl
 p-4
+rounded-2xl
 font-bold
+text-lg
+bg-gradient-to-r
+from-cyan-400
+to-blue-500
+text-white
+hover:scale-[1.02]
+transition
+duration-300
+shadow-lg
 "
-
 >
 
-{
-loading
-?
-"Đang đăng nhập..."
-:
-"Đăng nhập"
-}
+Đăng nhập
 
 </button>
+
+<p
+className="
+text-center
+text-white/70
+mt-6
+text-sm
+"
+>
+
+Asset Lifecycle Management
+
+</p>
 
 </div>
 
 </div>
 
 );
-
-}
