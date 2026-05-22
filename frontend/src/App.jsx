@@ -26,79 +26,97 @@ function Layout() {
   const isLoginPage =
     location.pathname === "/";
 
-  return (
-
-    <div className="flex w-full overflow-x-auto">
-
-      {!isLoginPage && <Sidebar />}
-
+  // LOGIN -> KHÔNG DÙNG LAYOUT
+  if (isLoginPage) {
+    return (
       <Routes>
-
-        {/* LOGIN */}
         <Route
           path="/"
           element={<Login />}
         />
-
-        {/* DASHBOARD */}
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-        {/* DEVICES */}
-        <Route
-          path="/devices"
-          element={<DeviceList />}
-        />
-
-        <Route
-          path="/devices/expired"
-          element={<ExpiredDevices />}
-        />
-
-        <Route
-          path="/add"
-          element={<AddDevice />}
-        />
-
-        {/* MAINTENANCE */}
-        <Route
-          path="/maintenance/schedule"
-          element={<MaintenanceSchedule />}
-        />
-
-        <Route
-          path="/maintenance/work"
-          element={<WorkOrders />}
-        />
-
-        <Route
-          path="/maintenance/alerts"
-          element={<Alerts />}
-        />
-
-        {/* IMPORT */}
-        <Route
-          path="/import"
-          element={<ImportExcel />}
-        />
-
-        {/* DETAIL */}
-        <Route
-          path="/devices/:id"
-          element={<DeviceDetail />}
-        />
-
-        {/* SPARE */}
-        <Route
-          path="/spare-devices"
-          element={<SpareDevices />}
-        />
-
       </Routes>
+    );
+  }
+
+  // CÁC TRANG KHÁC
+  return (
+
+    <div
+      className="
+      flex
+      w-screen
+      h-screen
+      overflow-hidden
+      "
+    >
+
+      <Sidebar />
+
+      <main
+        className="
+        flex-1
+        overflow-auto
+        "
+      >
+
+        <Routes>
+
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="/devices"
+            element={<DeviceList />}
+          />
+
+          <Route
+            path="/devices/expired"
+            element={<ExpiredDevices />}
+          />
+
+          <Route
+            path="/add"
+            element={<AddDevice />}
+          />
+
+          <Route
+            path="/maintenance/schedule"
+            element={<MaintenanceSchedule />}
+          />
+
+          <Route
+            path="/maintenance/work"
+            element={<WorkOrders />}
+          />
+
+          <Route
+            path="/maintenance/alerts"
+            element={<Alerts />}
+          />
+
+          <Route
+            path="/import"
+            element={<ImportExcel />}
+          />
+
+          <Route
+            path="/devices/:id"
+            element={<DeviceDetail />}
+          />
+
+          <Route
+            path="/spare-devices"
+            element={<SpareDevices />}
+          />
+
+        </Routes>
+
+      </main>
 
     </div>
+
   );
 }
 
