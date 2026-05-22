@@ -1,6 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
-import API from "../config";
 
 export default function Login() {
 
@@ -10,110 +8,64 @@ useState("");
 const [password,setPassword]=
 useState("");
 
-const [loading,setLoading]=
-useState(false);
+const handleLogin=()=>{
 
-
-const handleLogin=
-async()=>{
-
-try{
-
-setLoading(true);
-
-const res=
-await axios.post(
-
-`${API}/api/auth/login`,
-
-{
-username,
-password
-}
-
-);
-
-
-// lưu token
-
-localStorage.setItem(
-"token",
-res.data.token
-);
-
-
-// lưu role
+if(
+username==="captreobn" &&
+password==="123456admin"
+){
 
 localStorage.setItem(
 "role",
-res.data.user.role
+"admin"
 );
-
-
-// lưu tên
-
-localStorage.setItem(
-"username",
-res.data.user.username
-);
-
-
-// chuyển trang
-
-if(
-res.data.user.role==="admin"
-){
 
 window.location.href=
 "/dashboard";
 
-}else{
+return;
+
+}
+
+if(
+username==="captreobn" &&
+password==="123456"
+){
+
+localStorage.setItem(
+"role",
+"user"
+);
 
 window.location.href=
 "/spare-devices";
 
-}
+return;
 
 }
-
-catch(err){
 
 alert(
-
-err.response?.data?.message ||
-
-"Đăng nhập thất bại"
-
+"Sai tài khoản"
 );
-
-}
-
-finally{
-
-setLoading(false);
-
-}
 
 };
 
-return (
+return(
 
 <div
 className="
 min-h-screen
+flex
+items-center
+justify-center
 relative
 overflow-hidden
 bg-gradient-to-br
 from-indigo-700
 via-blue-600
 to-cyan-500
-flex
-items-center
-justify-center
 "
 >
-
-{/* nền hiệu ứng */}
 
 <div
 className="
@@ -122,8 +74,8 @@ top-[-150px]
 left-[-150px]
 w-[450px]
 h-[450px]
-bg-pink-500/30
 rounded-full
+bg-pink-500/30
 blur-3xl
 animate-pulse
 "
@@ -132,27 +84,24 @@ animate-pulse
 <div
 className="
 absolute
-bottom-[-200px]
+bottom-[-150px]
 right-[-150px]
 w-[500px]
 h-[500px]
-bg-cyan-300/30
 rounded-full
+bg-cyan-300/30
 blur-3xl
 animate-pulse
 "
 />
-
-
-{/* CARD LOGIN */}
 
 <div
 className="
 relative
 z-10
 w-[420px]
-backdrop-blur-xl
 bg-white/15
+backdrop-blur-xl
 border
 border-white/20
 rounded-[30px]
@@ -163,11 +112,9 @@ p-10
 
 <h1
 className="
-text-5xl
-font-black
-text-white
 text-center
-mb-3
+text-5xl
+mb-4
 "
 >
 🔐
@@ -175,10 +122,10 @@ mb-3
 
 <h2
 className="
-text-3xl
-font-bold
 text-center
 text-white
+font-bold
+text-3xl
 mb-8
 "
 >
@@ -201,11 +148,8 @@ p-4
 rounded-2xl
 bg-white/20
 text-white
-placeholder-white/70
+placeholder:text-white/60
 outline-none
-border
-border-white/20
-focus:border-cyan-300
 "
 />
 
@@ -225,11 +169,8 @@ p-4
 rounded-2xl
 bg-white/20
 text-white
-placeholder-white/70
+placeholder:text-white/60
 outline-none
-border
-border-white/20
-focus:border-cyan-300
 "
 />
 
@@ -240,15 +181,12 @@ w-full
 p-4
 rounded-2xl
 font-bold
-text-lg
+text-white
 bg-gradient-to-r
 from-cyan-400
 to-blue-500
-text-white
 hover:scale-[1.02]
 transition
-duration-300
-shadow-lg
 "
 >
 
@@ -258,9 +196,9 @@ shadow-lg
 
 <p
 className="
+mt-6
 text-center
 text-white/70
-mt-6
 text-sm
 "
 >
@@ -274,3 +212,5 @@ Asset Lifecycle Management
 </div>
 
 );
+
+}
