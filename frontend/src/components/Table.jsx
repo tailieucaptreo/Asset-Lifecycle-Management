@@ -202,12 +202,12 @@ export default function Table({ data = [], setData }) {
 
   return (
 
-    <div className="bg-white rounded-xl shadow">
+    <div className="bg-white rounded-xl shadow w-full overflow-hidden">
 
       {/* TABLE */}
-      <div className="overflow-x-auto w-full">
+      <div className="w-full overflow-auto">
 
-        <table className="min-w-[1200px] text-sm border border-gray-200">
+        <table className="w-full table-auto text-sm border border-gray-200">
 
           {/* FILTER */}
           <thead className="bg-gray-100 sticky top-0 z-10">
@@ -313,7 +313,7 @@ export default function Table({ data = [], setData }) {
           </thead>
 
           {/* BODY */}
-          <tbody>
+          <tbody className="divide-y">
 
             {filteredData.map((d) => (
 
