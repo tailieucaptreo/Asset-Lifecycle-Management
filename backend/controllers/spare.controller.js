@@ -607,105 +607,187 @@ exports.previewImport = async (req, res) => {
       return res.status(400).json({
         error: "Không có file"
       });
+
     }
 
-    // đọc excel từ buffer
     const workbook = XLSX.read(
-      req.file.buffer,
-      { type: "buffer" }
+      req.file.buffer,{ type:"buffer" }
     );
 
-    const sheetName =
-      workbook.SheetNames[0];
+    const sheet = workbook.Sheets[
+      workbook.SheetNames[0]
+    ];
 
-    const sheet =
-      workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(
+      sheet
+    );
 
-    const rawRows =
-      XLSX.utils.sheet_to_json(sheet);
+    const rows = rawRows.map((r)=>{
+      const initialQuantity = Number(
 
-    const rows = rawRows.map((r) => ({
+        r["SL"]
 
-      // tên vật tư
+        ??
+
+        r["Số lượng"]
+
+        ??
+
+        r["Ban đầu"]
+
+        ??
+
+        0
+
+        );
+
+      const importQty = Number(
+        r["Nhập"] || 0
+      );
+
+      const exportQty = Number(
+        r["Xuất"] || 0
+      );
+
+     return {
+
       name:
-        r["Tên vật tư"] ||
-        r["Tên thiết bị"] ||
-        r["name"] ||
-        "",
 
-      // mã vật tư
+      r["Tên vật tư"]
+
+      ||
+
+      r["Tên thiết bị"]
+
+      ||
+
+      "",
+
+
       deviceId:
+
         String(
-          r["Mã vật tư"] ||
-          r["Mã ID"] ||
-          r["deviceId"] ||
-          ""
+
+        r["Mã vật tư"]
+
+        ||
+
+        r["Mã ID"]
+
+        ||
+
+        ""
+
         ),
 
-      // tồn đầu
-      initialQuantity:
-        Number(
-          r["Ban đầu"] ||
-          r["initialQuantity"] ||
-          0
-        ),
-
-      // nhập
-      importQty:
-        Number(
-          r["Nhập"] || 0
-        ),
-
-      // xuất
-      exportQty:
-        Number(
-          r["Xuất"] || 0
-        ),
-
-      // đơn vị
-      unit:
-        r["Đvt"] ||
-        r["ĐVT"] ||
-        r["unit"] ||
-        "Cái",
-
-      // tủ
-      cabinet:
-        r["Tủ"] || "",
-
-      // kệ
-      shelf:
-        r["Kệ"] || "",
-
-      // khay
-      slot:
-        r["Số khay"] ||
-        r["Khay"] ||
-        "",
-
-      // kho
-      warehouse:
-        r["Kho"] || "",
-
-      symbol:
-        r["Ký hiệu"] || "",
-
-      condition: "New"
-    }));
-
-    res.json({
-      ok: true,
-      rows
+  
+  // QUAN TRỌNG
+  quantity:
+  
+  initialQuantity,
+  
+  initialQuantity,
+  
+  importQty,
+  
+  exportQty,
+  
+  
+  unit:
+  
+  r["Đvt"]
+  
+  ||
+  
+  r["ĐVT"]
+  
+  ||
+  
+  "Cái",
+  
+  
+  cabinet:
+  
+  r["Tủ"]
+  
+  ||
+  
+  "",
+  
+  
+  shelf:
+  
+  r["Ngăn"]
+  
+  ||
+  
+  r["Kệ"]
+  
+  ||
+  
+  "",
+  
+  
+  slot:
+  
+  r["Số khay"]
+  
+  ||
+  
+  r["Khay"]
+  
+  ||
+  
+  "",
+  
+  
+  warehouse:
+  
+  r["Kho"]
+  
+  ||
+  
+  "",
+  
+  
+  symbol:
+  
+  r["Ký hiệu"]
+  
+  ||
+  
+  "",
+  
+  
+  condition:
+  
+  "New"
+  
+  };
+  
+  });
+  
+  res.json({
+  
+    ok:true, rows
+  
     });
-
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      error: err.message
-    });
+  
   }
+  
+  catch(err){
+  
+    console.log(err);
+  
+      res.status(500).json({
+  
+        error:
+        err.message
+  
+      });
+  
+  }
+
 };
 // ================= CONFIRM IMPORT =================
 exports.confirmImport = async (req, res) => {
