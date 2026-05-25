@@ -8,7 +8,6 @@ import Chart from "../components/Chart.jsx";
 import AdvancedFilter from "../components/AdvancedFilter.jsx";
 import Table from "../components/Table.jsx";
 
-
 import {
   Cpu,
   CheckCircle,
