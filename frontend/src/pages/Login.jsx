@@ -137,7 +137,7 @@ text-white/70
 mb-8
 "
 >
-Asset Lifecycle Management
+Hệ Thống Quản Lý Thiết Bị
 </p>
 
 </div>
