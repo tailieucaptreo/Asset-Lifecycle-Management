@@ -299,7 +299,7 @@ const calcStatus = (d) => {
 
           <button
             onClick={() =>
-              const token =
+            const token =
               localStorage.getItem(
               "token"
               );
