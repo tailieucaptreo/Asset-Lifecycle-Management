@@ -9,7 +9,6 @@ const normalize = (v, def = "") =>
     : v.toString().trim();
 
 // ================= DATE =================
-// ================= DATE =================
 const parseDate = (v) => {
 
 if (
@@ -589,7 +588,6 @@ err.message
 };
 
 // ================= GET ONE =================
-
 exports.getOne =
 async (
 req,
@@ -603,7 +601,7 @@ Number(
 req.params.id
 );
 
-const data =
+const device =
 await prisma.device.findUnique({
 
 where:{
@@ -612,7 +610,7 @@ id
 
 });
 
-if(!data){
+if(!device){
 
 return res
 .status(404)
@@ -624,6 +622,18 @@ message:
 });
 
 }
+
+// tính trạng thái giống dashboard
+const data={
+
+...device,
+
+status:
+calcMaintenance(
+device
+)
+
+};
 
 res.json(
 data
