@@ -152,7 +152,7 @@ export default function Dashboard() {
         filter.station.includes(d.station)) &&
 
       (!filter.status ||
-        d.status === filter.status) &&
+        calcStatus(d) === filter.status) &&
 
       (
         (d.name || "")
