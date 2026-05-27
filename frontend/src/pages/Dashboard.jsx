@@ -167,33 +167,104 @@ export default function Dashboard() {
   });
 
   // =============================
+// TÍNH TRẠNG THÁI THEO TUỔI THỌ
+// =============================
+
+const calcStatus = (d) => {
+
+    if (
+      !d.installDate
+      ||
+      !d.lifespan
+      ){
+    
+    return "Active";
+  
+  }
+  
+  const now = new Date();
+  
+  const install = new Date(d.installDate);
+  
+  // số năm đã dùng
+  const usedYear =
+  
+    (
+    now-install
+    )
+    
+    /
+    
+    (
+    1000*
+    60*
+    60*
+    24*
+    365
+  );
+  
+  // % tuổi thọ
+  const percent =
+  
+    usedYear
+    /
+    Number(
+    d.lifespan
+  );
+  
+  // quá tuổi thọ
+  if(
+   percent>=1
+  ){
+  
+  return "Expired";
+  
+  }
+  
+  // tới ngưỡng bảo trì
+  if(
+   percent>=0.7
+  ){
+  
+  return "Maintenance";
+  
+  }
+  
+  return "Active";
+
+};
+
+
+  // =============================
   // STATS
   // =============================
-  const total = filtered.length;
-
-  const active = filtered.filter(
-    (d) => d.status === "Active"
+  
+  const total =
+  filtered.length;
+  
+  const active =
+  filtered.filter(
+  d=>
+  calcStatus(d)
+  ===
+  "Active"
   ).length;
-
-  const maintenance = filtered.filter(
-    (d) => d.status === "Maintenance"
+  
+  const maintenance =
+  filtered.filter(
+  d=>
+  calcStatus(d)
+  ===
+  "Maintenance"
   ).length;
-
-  const expired = filtered.filter((d) => {
-
-    if (!d.installDate || !d.lifespan) {
-      return false;
-    }
-
-    const exp = new Date(d.installDate);
-
-    exp.setFullYear(
-      exp.getFullYear() + d.lifespan
-    );
-
-    return exp < now;
-
-  }).length;
+  
+  const expired =
+  filtered.filter(
+  d=>
+  calcStatus(d)
+  ===
+  "Expired"
+  ).length;
 
   // =============================
   // SPARE DEVICE COUNT
