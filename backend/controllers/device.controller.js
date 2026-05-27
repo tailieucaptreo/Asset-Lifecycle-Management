@@ -59,6 +59,67 @@ const normalizeStatus = (v) => {
   return "Inactive";
 };
 
+// ================= AUTO MAINTENANCE =================
+
+const calcMaintenance = (device) => {
+
+if(
+!device.installDate
+||
+!device.lifespan
+){
+
+return "Inactive";
+
+}
+
+const now =
+new Date();
+
+const install =
+new Date(
+device.installDate
+);
+
+const totalDays =
+Number(
+device.lifespan
+) * 365;
+
+const usedDays =
+(
+now - install
+)
+/86400000;
+
+const percent =
+usedDays
+/
+totalDays;
+
+// HẾT HẠN
+if(
+percent >= 1
+){
+
+return "Expired";
+
+}
+
+// ĐẾN KỲ BẢO TRÌ
+if(
+percent >= 0.7
+){
+
+return "Maintenance";
+
+}
+
+// ĐANG HOẠT ĐỘNG
+return "Active";
+
+};
+
 // ================= GET FIELD =================
 const getField = (row, keys) => {
 
@@ -83,10 +144,25 @@ exports.getDevices = async (req, res) => {
 
   try {
 
-    const data = await prisma.device.findMany({
-      orderBy: { id: "desc" }
-    });
-
+      const raw = await prisma.device.findMany({
+  
+        orderBy:{
+        id:"desc"
+        }
+  
+      });
+  
+      const data = raw.map(d=>({
+         ...d,
+      
+        status:
+        calcMaintenance(
+        d
+        )
+      
+      })
+  );
+  
     res.json(data);
 
   } catch (err) {
