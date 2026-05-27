@@ -28,6 +28,14 @@ auth,
 controller.getDevices
 );
 
+// ====================
+// EXPORT
+// ====================
+router.get(
+"/export",
+auth,
+controller.exportDevices
+);
 
 // ====================
 // CHI TIẾT THIẾT BỊ
@@ -92,11 +100,3 @@ controller.importExcel
 module.exports =
 router;
 
-// ====================
-// EXPORT
-// ====================
-router.get(
-"/export",
-auth,
-controller.exportDevices
-);
