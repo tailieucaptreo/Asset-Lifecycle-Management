@@ -345,7 +345,7 @@ const calcStatus = (d) => {
 
         {/* TOTAL */}
         <Card
-          title="Tổng Thiết bị đang sử dụng"
+          title="Tổng Thiết bị đang lắp đặt sử dụng"
           value={total}
           color="bg-blue-500"
           icon={<Cpu />}
@@ -354,7 +354,7 @@ const calcStatus = (d) => {
 
         {/* ACTIVE */}
         <Card
-          title="Thiết bị còn tuổi thọ"
+          title="Thiết bị đang sử dụng còn tuổi thọ"
           value={active}
           color="bg-green-500"
           icon={<CheckCircle />}
@@ -363,7 +363,7 @@ const calcStatus = (d) => {
 
         {/* MAINTENANCE */}
         <Card
-          title="Thiết bị cần bảo trì"
+          title="Thiết bị đang sử dụng cần bảo trì"
           value={maintenance}
           color="bg-yellow-500"
           icon={<Wrench />}
@@ -372,7 +372,7 @@ const calcStatus = (d) => {
 
         {/* EXPIRED */}
         <Card
-          title="Thiết bị Quá tuổi thọ"
+          title="Thiết bị đang dử dụng quá tuổi thọ"
           value={expired}
           color="bg-red-500"
           icon={<AlertTriangle />}
