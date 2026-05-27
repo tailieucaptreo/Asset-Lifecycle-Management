@@ -657,3 +657,105 @@ err.message
 }
 
 };
+
+// ================= EXPORT =================
+exports.exportDevices = async (req,res)=>{
+
+try{
+
+const devices =
+await prisma.device.findMany({
+
+orderBy:{
+id:"asc"
+}
+
+});
+
+const rows =
+devices.map(d=>({
+
+"Tên thiết bị":
+d.name,
+
+"Tuyến":
+d.line,
+
+"Nhà ga":
+d.station,
+
+"Ký hiệu":
+d.code,
+
+"Khu vực":
+d.area,
+
+"Mã ID":
+d.deviceId,
+
+"Trạng thái":
+calcMaintenance(d),
+
+"Ngày lắp":
+d.installDate
+? d.installDate
+.toISOString()
+.split("T")[0]
+: "",
+
+"Tuổi thọ":
+d.lifespan
+
+}));
+
+const wb =
+XLSX.utils.book_new();
+
+const ws =
+XLSX.utils.json_to_sheet(
+rows
+);
+
+XLSX.utils.book_append_sheet(
+wb,
+ws,
+"Devices"
+);
+
+const buffer =
+XLSX.write(
+wb,
+{
+bookType:"xlsx",
+type:"buffer"
+}
+);
+
+res.setHeader(
+"Content-Type",
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+);
+
+res.setHeader(
+"Content-Disposition",
+"attachment; filename=devices.xlsx"
+);
+
+res.send(buffer);
+
+}
+
+catch(err){
+
+console.log(err);
+
+res
+.status(500)
+.json({
+error:err.message
+});
+
+}
+
+};
+
