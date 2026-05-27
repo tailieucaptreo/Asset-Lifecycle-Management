@@ -299,9 +299,48 @@ const calcStatus = (d) => {
 
           <button
             onClick={() =>
-              window.open(
-                `${API}/api/devices/export`
-              )
+              const token =
+              localStorage.getItem(
+              "token"
+              );
+              
+              const res =
+              await fetch(
+              
+              `${API}/api/devices/export`,
+              
+              {
+              
+              headers:{
+              
+              Authorization:
+              `Bearer ${token}`
+              
+              }
+              
+              }
+              
+              );
+              
+              const blob =
+              await res.blob();
+              
+              const url =
+              window.URL.createObjectURL(
+              blob
+              );
+              
+              const a =
+              document.createElement(
+              "a"
+              );
+              
+              a.href=url;
+              
+              a.download=
+              "devices.xlsx";
+              
+              a.click();
             }
             className="
               bg-blue-500
