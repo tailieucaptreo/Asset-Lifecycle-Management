@@ -372,7 +372,7 @@ const calcStatus = (d) => {
 
         {/* EXPIRED */}
         <Card
-          title="Hết hạn"
+          title="Quá tuổi thọ"
           value={expired}
           color="bg-red-500"
           icon={<AlertTriangle />}
