@@ -139,6 +139,32 @@ const getField = (row, keys) => {
   return null;
 };
 
+// ================= VALIDATE IMPORT =================
+
+function validateRow(data){
+
+const errors=[];
+
+if(!data.deviceId){
+
+errors.push(
+"Thiếu mã ID"
+);
+
+}
+
+if(!data.name){
+
+errors.push(
+"Thiếu tên thiết bị"
+);
+
+}
+
+return errors;
+
+}
+
 // ================= GET =================
 exports.getDevices = async (req, res) => {
 
@@ -294,20 +320,18 @@ defval:null
 
 let inserted = 0;
 
-for (const row of rows) {
+const failed=[];
 
-try {
+for(const row of rows){
 
-await prisma.device.create({
-
-data:{
+const data={
 
 deviceId:
 String(
 getField(
 row,
 ["ma id"]
-) || ""
+)||""
 ),
 
 name:
@@ -315,7 +339,7 @@ String(
 getField(
 row,
 ["ten"]
-) || "Không tên"
+)||""
 ),
 
 line:
@@ -334,7 +358,7 @@ row,
 )||""
 ),
 
-code:
+symbol:
 String(
 getField(
 row,
@@ -374,7 +398,34 @@ row,
 )
 )||0
 
+};
+
+const errors=
+validateRow(
+data
+);
+
+if(
+errors.length
+){
+
+failed.push({
+
+row,
+
+errors
+
+});
+
+continue;
+
 }
+
+try{
+
+await prisma.device.create({
+
+data
 
 });
 
@@ -384,10 +435,15 @@ inserted++;
 
 catch(err){
 
-console.log(
-"IMPORT SKIP",
+failed.push({
+
+row,
+
+errors:[
 err.message
-);
+]
+
+});
 
 }
 
@@ -398,6 +454,8 @@ return res.json({
 ok:true,
 
 inserted,
+
+failed,
 
 total:
 rows.length
