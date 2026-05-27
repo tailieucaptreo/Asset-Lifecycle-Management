@@ -91,3 +91,12 @@ controller.importExcel
 
 module.exports =
 router;
+
+// ====================
+// EXPORT
+// ====================
+router.get(
+"/export",
+auth,
+controller.exportDevices
+);
