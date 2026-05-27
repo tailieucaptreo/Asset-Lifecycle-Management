@@ -9,19 +9,104 @@ const normalize = (v, def = "") =>
     : v.toString().trim();
 
 // ================= DATE =================
+// ================= DATE =================
 const parseDate = (v) => {
 
-  if (!v) return null;
+if (
+v === undefined ||
+v === null ||
+v === ""
+){
+return null;
+}
 
-  // Excel serial
-  if (typeof v === "number") {
-    const d = new Date((v - 25569) * 86400000);
-    return isNaN(d.getTime()) ? null : d;
-  }
+// Date object
+if (
+v instanceof Date
+){
+return v;
+}
 
-  const d = new Date(v);
+// Excel serial
+if (
+typeof v === "number"
+){
 
-  return isNaN(d.getTime()) ? null : d;
+const utcDays =
+Math.floor(
+v - 25569
+);
+
+const utcValue =
+utcDays *
+86400;
+
+const date =
+new Date(
+utcValue * 1000
+);
+
+return isNaN(
+date.getTime()
+)
+? null
+: date;
+
+}
+
+// Chuỗi dd/mm/yyyy
+if(
+typeof v === "string"
+){
+
+const s =
+v.trim();
+
+const parts =
+s.split("/");
+
+if(
+parts.length===3
+){
+
+const [
+day,
+month,
+year
+]=parts;
+
+const date =
+new Date(
+
+Number(year),
+
+Number(month)-1,
+
+Number(day)
+
+);
+
+return isNaN(
+date.getTime()
+)
+? null
+: date;
+
+}
+
+const date =
+new Date(s);
+
+return isNaN(
+date.getTime()
+)
+? null
+: date;
+
+}
+
+return null;
+
 };
 
 // ================= STATUS =================
@@ -389,18 +474,36 @@ installDate:
 parseDate(
 getField(
 row,
-["ngay lap"]
+[
+"ngay lap",
+"ngay lap dat",
+"ngay lap dat ",
+"ngày lắp",
+"ngày lắp đặt"
+]
 )
 ),
 
 lifespan:
+getField(
+row,
+[
+"tuoi tho",
+"tuoi tho thiet bi"
+]
+)
+?
 Number(
 getField(
 row,
-["tuoi tho"]
+[
+"tuoi tho",
+"tuoi tho thiet bi"
+]
 )
-)||0
-
+)
+:null
+  
 };
 
 const errors=
