@@ -277,6 +277,90 @@ const calcStatus = (d) => {
   );
 
   // =============================
+  // EXPORT EXCEL
+  // =============================
+  const handleExport = async () => {
+  
+  try{
+  
+  const token =
+  localStorage.getItem(
+  "token"
+  );
+  
+  const res =
+  await fetch(
+  
+  `${API}/api/devices/export`,
+  
+  {
+  
+  headers:{
+  
+  Authorization:
+  `Bearer ${token}`
+  
+  }
+  
+  }
+  
+  );
+  
+  if(!res.ok){
+  
+  throw new Error(
+  "Export thất bại"
+  );
+  
+  }
+  
+  const blob =
+  await res.blob();
+  
+  const url =
+  window.URL.createObjectURL(
+  blob
+  );
+  
+  const a =
+  document.createElement(
+  "a"
+  );
+  
+  a.href =
+  url;
+  
+  a.download =
+  "devices.xlsx";
+  
+  document.body.appendChild(
+  a
+  );
+  
+  a.click();
+  
+  a.remove();
+  
+  window.URL
+  .revokeObjectURL(
+  url
+  );
+  
+  }
+  
+  catch(err){
+  
+  console.log(err);
+  
+  alert(
+  err.message
+  );
+  
+  }
+  
+  };
+
+  // =============================
   // RENDER
   // =============================
   return (
@@ -298,51 +382,8 @@ const calcStatus = (d) => {
           />
 
           <button
-            onClick={() =>
-            const token =
-              localStorage.getItem(
-              "token"
-              );
-              
-              const res =
-              await fetch(
-              
-              `${API}/api/devices/export`,
-              
-              {
-              
-              headers:{
-              
-              Authorization:
-              `Bearer ${token}`
-              
-              }
-              
-              }
-              
-              );
-              
-              const blob =
-              await res.blob();
-              
-              const url =
-              window.URL.createObjectURL(
-              blob
-              );
-              
-              const a =
-              document.createElement(
-              "a"
-              );
-              
-              a.href=url;
-              
-              a.download=
-              "devices.xlsx";
-              
-              a.click();
-            }
-            className="
+              onClick={handleExport}
+              className="
               bg-blue-500
               hover:bg-blue-600
               text-white
@@ -351,7 +392,8 @@ const calcStatus = (d) => {
               rounded-xl
               shadow
               transition
-            "
+              "
+
           >
             Export
           </button>
