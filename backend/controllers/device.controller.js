@@ -358,11 +358,14 @@ row,
 )||""
 ),
 
-symbol:
+code:
 String(
 getField(
 row,
-["ky hieu"]
+[
+"ky hieu",
+"code"
+]
 )||""
 ),
 
@@ -453,12 +456,15 @@ return res.json({
 
 ok:true,
 
-inserted,
+message:"Import thành công",
 
-failed,
+total: rows.length,
 
-total:
-rows.length
+success: inserted,
+
+failedCount: failed.length,
+
+failed
 
 });
 
