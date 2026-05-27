@@ -1,4 +1,8 @@
 import { useState } from "react";
+import axios from "axios";
+import API from "../config";
+
+import { useState } from "react";
 
 export default function Login() {
 
@@ -8,45 +12,73 @@ useState("");
 const [password,setPassword]=
 useState("");
 
-const handleLogin=()=>{
+const handleLogin = async () => {
 
-if(
-username==="captreobn" &&
-password==="123456admin"
-){
+try{
+
+const res =
+await axios.post(
+
+`${API}/api/auth/login`,
+
+{
+username,
+password
+}
+
+);
+
+localStorage.setItem(
+"token",
+res.data.token
+);
+
+localStorage.setItem(
+"user",
+JSON.stringify(
+res.data.user
+));
 
 localStorage.setItem(
 "role",
-"admin"
+res.data.user.role
 );
 
-window.location.href=
+if(
+res.data.user.role
+===
+"admin"
+){
+
+window.location.href =
 "/dashboard";
 
-return;
+}else{
 
-}
-
-if(
-username==="captreobn" &&
-password==="123456"
-){
-
-localStorage.setItem(
-"role",
-"user"
-);
-
-window.location.href=
+window.location.href =
 "/spare-devices";
 
-return;
+}
 
 }
 
+catch(err){
+
+console.log(err);
+
 alert(
-"Sai tài khoản"
+
+err.response
+?.data
+?.message
+
+||
+
+"Đăng nhập thất bại"
+
 );
+
+}
 
 };
 
