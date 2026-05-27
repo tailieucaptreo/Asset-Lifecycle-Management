@@ -16,23 +16,130 @@ export default function Chart({ data = [] }) {
   }
 
   // ======================
-  // 🎯 PIE (TRẠNG THÁI)
-  // ======================
-  const active = data.filter(d => d?.status === "Active").length;
-  const maintenance = data.filter(d => d?.status === "Maintenance").length;
-  const inactive = data.filter(d => d?.status === "Inactive").length;
+// 🎯 PIE (TRẠNG THÁI)
+// ======================
 
-  const pieData = [
-    { name: "Active", value: active },
-    { name: "Maintenance", value: maintenance },
-    { name: "Inactive", value: inactive }
-  ];
+const calcStatus = (d) => {
 
-  const COLORS = {
-    Active: "#22c55e",
-    Maintenance: "#eab308",
-    Inactive: "#6b7280"
-  };
+  if (
+    !d?.installDate ||
+    !d?.lifespan
+  ) {
+    return "Active";
+  }
+
+  const now =
+    new Date();
+
+  const install =
+    new Date(
+      d.installDate
+    );
+
+  const usedYear =
+
+    (
+      now - install
+    )
+
+    /
+
+    (
+      1000 *
+      60 *
+      60 *
+      24 *
+      365
+    );
+
+  const percent =
+    usedYear
+    /
+    Number(
+      d.lifespan
+    );
+
+  // quá tuổi thọ
+  if (
+    percent >= 1
+  ) {
+    return "Expired";
+  }
+
+  // cần bảo trì
+  if (
+    percent >= 0.7
+  ) {
+    return "Maintenance";
+  }
+
+  return "Active";
+};
+
+const active =
+  data.filter(
+  d =>
+  calcStatus(d)
+  ===
+  "Active"
+  ).length;
+
+const maintenance =
+  data.filter(
+  d =>
+  calcStatus(d)
+  ===
+  "Maintenance"
+  ).length;
+
+const expired =
+  data.filter(
+  d =>
+  calcStatus(d)
+  ===
+  "Expired"
+  ).length;
+
+const pieData = [
+
+  {
+  name:
+  "Hoạt động",
+  
+  value:
+  active
+  },
+  
+  {
+  name:
+  "Bảo trì",
+  
+  value:
+  maintenance
+  },
+  
+  {
+  name:
+  "Quá tuổi thọ",
+  
+  value:
+  expired
+  }
+
+];
+
+const COLORS = {
+
+  "Hoạt động":
+  "#22c55e",
+  
+  "Bảo trì":
+  "#eab308",
+  
+  "Quá tuổi thọ":
+  "#ef4444"
+
+};
 
   // ======================
   // 📊 BAR (THEO TUYẾN)
