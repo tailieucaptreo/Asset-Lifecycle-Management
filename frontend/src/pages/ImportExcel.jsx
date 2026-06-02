@@ -28,7 +28,7 @@ const isDateField = (key) => {
   return (
     k.includes("ngày") ||
     k.includes("date") ||
-    k.includes("lắp") 
+    k.includes("lắp")
   );
 };
 
@@ -38,7 +38,7 @@ export default function ImportExcel({ onDone }) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const role =
-  localStorage.getItem("role");
+    localStorage.getItem("role");
 
   // 📥 PREVIEW FILE
   const handlePreview = (f) => {
@@ -70,72 +70,72 @@ export default function ImportExcel({ onDone }) {
   };
 
   // 🚀 IMPORT
- const handleImport = async () => {
+  const handleImport = async () => {
 
-  if (!file) {
-    alert("Chọn file trước");
-    return;
-  }
+    if (!file) {
+      alert("Chọn file trước");
+      return;
+    }
 
-  setLoading(true);
-  setProgress(0);
+    setLoading(true);
+    setProgress(0);
 
-  try {
+    try {
 
-    const token =
-      localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token");
 
-    const formData =
-      new FormData();
+      const formData =
+        new FormData();
 
-    formData.append(
-      "file",
-      file
-    );
+      formData.append(
+        "file",
+        file
+      );
 
-    const res =
-      await axios.post(
+      const res =
+        await axios.post(
 
-        `${API}/api/devices/import`,
+          `${API}/api/devices/import`,
 
-        formData,
+          formData,
 
-        {
-          headers: {
+          {
+            headers: {
 
-            Authorization:
-              `Bearer ${token}`,
+              Authorization:
+                `Bearer ${token}`,
 
-            "Content-Type":
-              "multipart/form-data"
+              "Content-Type":
+                "multipart/form-data"
 
-          },
+            },
 
-          onUploadProgress: (p) => {
+            onUploadProgress: (p) => {
 
-            if (!p.total)
-              return;
+              if (!p.total)
+                return;
 
-            setProgress(
-              Math.round(
-                (p.loaded * 100) /
-                p.total
-              )
-            );
+              setProgress(
+                Math.round(
+                  (p.loaded * 100) /
+                  p.total
+                )
+              );
+
+            }
 
           }
 
-        }
+        );
 
+      console.log(
+        "IMPORT RESULT:",
+        res.data
       );
 
-    console.log(
-      "IMPORT RESULT:",
-      res.data
-    );
-
-    alert(
-`
+      alert(
+        `
 ✅ Import thành công
 
 Tổng:
@@ -147,39 +147,39 @@ ${res.data.success}
 Bỏ qua:
 ${res.data.failed}
 `
-    );
+      );
 
-    setFile(null);
+      setFile(null);
 
-    setPreview([]);
+      setPreview([]);
 
-    if (onDone)
-      onDone();
+      if (onDone)
+        onDone();
 
-  }
+    }
 
-  catch (err) {
+    catch (err) {
 
-    console.log(
-      err.response?.data
-    );
+      console.log(
+        err.response?.data
+      );
 
-    alert(
-      err.response?.data?.message ||
-      "Import lỗi"
-    );
+      alert(
+        err.response?.data?.message ||
+        "Import lỗi"
+      );
 
-  }
+    }
 
-  finally {
+    finally {
 
-    setLoading(false);
+      setLoading(false);
 
-    setProgress(0);
+      setProgress(0);
 
-  }
+    }
 
-};
+  };
 
   if (role !== "admin") {
 

@@ -4,37 +4,37 @@ const router = express.Router();
 const multer = require("multer");
 
 const controller =
-require("../controllers/device.controller");
+    require("../controllers/device.controller");
 
 const auth =
-require("../middleware/auth");
+    require("../middleware/auth");
 
 const role =
-require("../middleware/role");
+    require("../middleware/role");
 
 const upload =
-multer({
-storage:
-multer.memoryStorage()
-});
+    multer({
+        storage:
+            multer.memoryStorage()
+    });
 
 // ====================
 // DANH SÁCH
 // ====================
 
 router.get(
-"/",
-auth,
-controller.getDevices
+    "/",
+    auth,
+    controller.getDevices
 );
 
 // ====================
 // EXPORT
 // ====================
 router.get(
-"/export",
-auth,
-controller.exportDevices
+    "/export",
+    auth,
+    controller.exportDevices
 );
 
 // ====================
@@ -43,9 +43,9 @@ controller.exportDevices
 // ====================
 
 router.get(
-"/:id",
-auth,
-controller.getOne
+    "/:id",
+    auth,
+    controller.getOne
 );
 
 
@@ -54,10 +54,10 @@ controller.getOne
 // ====================
 
 router.post(
-"/",
-auth,
-role("admin"),
-controller.createDevice
+    "/",
+    auth,
+    role("admin"),
+    controller.createDevice
 );
 
 
@@ -66,10 +66,10 @@ controller.createDevice
 // ====================
 
 router.put(
-"/:id",
-auth,
-role("admin"),
-controller.updateDevice
+    "/:id",
+    auth,
+    role("admin"),
+    controller.updateDevice
 );
 
 
@@ -78,10 +78,10 @@ controller.updateDevice
 // ====================
 
 router.delete(
-"/:id",
-auth,
-role("admin"),
-controller.deleteDevice
+    "/:id",
+    auth,
+    role("admin"),
+    controller.deleteDevice
 );
 
 
@@ -90,13 +90,13 @@ controller.deleteDevice
 // ====================
 
 router.post(
-"/import",
-auth,
-role("admin"),
-upload.single("file"),
-controller.importExcel
+    "/import",
+    auth,
+    role("admin"),
+    upload.single("file"),
+    controller.importExcel
 );
 
 module.exports =
-router;
+    router;
 

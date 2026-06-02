@@ -1,139 +1,139 @@
 const jwt =
-require("jsonwebtoken");
+    require("jsonwebtoken");
 
 exports.login =
-async (
-req,
-res
-)=>{
+    async (
+        req,
+        res
+    ) => {
 
-try{
+        try {
 
-const {
-username,
-password
-}=
-req.body;
-
-
-// ADMIN
-
-if(
-username==="captreobn" &&
-password==="123456admin"
-){
-
-const token=
-jwt.sign(
-
-{
-username:
-"captreobn",
-
-role:
-"admin"
-},
-
-process.env.JWT_SECRET,
-
-{
-expiresIn:
-"7d"
-}
-
-);
-
-return res.json({
-
-token,
-
-user:{
-
-username:
-"captreobn",
-
-role:
-"admin"
-
-}
-
-});
-
-}
+            const {
+                username,
+                password
+            } =
+                req.body;
 
 
-// USER
+            // ADMIN
 
-if(
-username==="captreobn" &&
-password==="123456"
-){
+            if (
+                username === "captreobn" &&
+                password === "123456admin"
+            ) {
 
-const token=
-jwt.sign(
+                const token =
+                    jwt.sign(
 
-{
-username:
-"captreobn",
+                        {
+                            username:
+                                "captreobn",
 
-role:
-"user"
-},
+                            role:
+                                "admin"
+                        },
 
-process.env.JWT_SECRET,
+                        process.env.JWT_SECRET,
 
-{
-expiresIn:
-"7d"
-}
+                        {
+                            expiresIn:
+                                "7d"
+                        }
 
-);
+                    );
 
-return res.json({
+                return res.json({
 
-token,
+                    token,
 
-user:{
+                    user: {
 
-username:
-"captreobn",
+                        username:
+                            "captreobn",
 
-role:
-"user"
+                        role:
+                            "admin"
 
-}
+                    }
 
-});
+                });
 
-}
+            }
 
 
-// SAI
+            // USER
 
-return res
-.status(401)
-.json({
+            if (
+                username === "captreobn" &&
+                password === "123456"
+            ) {
 
-message:
-"Sai tài khoản"
+                const token =
+                    jwt.sign(
 
-});
+                        {
+                            username:
+                                "captreobn",
 
-}
+                            role:
+                                "user"
+                        },
 
-catch(err){
+                        process.env.JWT_SECRET,
 
-console.log(err);
+                        {
+                            expiresIn:
+                                "7d"
+                        }
 
-return res
-.status(500)
-.json({
+                    );
 
-message:
-"Lỗi server"
+                return res.json({
 
-});
+                    token,
 
-}
+                    user: {
 
-};
+                        username:
+                            "captreobn",
+
+                        role:
+                            "user"
+
+                    }
+
+                });
+
+            }
+
+
+            // SAI
+
+            return res
+                .status(401)
+                .json({
+
+                    message:
+                        "Sai tài khoản"
+
+                });
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            return res
+                .status(500)
+                .json({
+
+                    message:
+                        "Lỗi server"
+
+                });
+
+        }
+
+    };

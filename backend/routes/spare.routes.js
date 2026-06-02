@@ -1,80 +1,80 @@
 const router = require("express").Router();
 
 const controller =
-require("../controllers/spare.controller");
+    require("../controllers/spare.controller");
 
 const upload =
-require("../middleware/upload");
+    require("../middleware/upload");
 
 const auth =
-require("../middleware/auth");
+    require("../middleware/auth");
 
 const role =
-require("../middleware/role");
+    require("../middleware/role");
 
 // IMPORT
 router.post(
-"/preview-import",
-upload.single("file"),
-controller.previewImport
+    "/preview-import",
+    upload.single("file"),
+    controller.previewImport
 );
 
 router.post(
-"/confirm-import",
-controller.confirmImport
+    "/confirm-import",
+    controller.confirmImport
 );
 
 // IMAGE
 router.post(
-"/upload",
-upload.single("image"),
-controller.uploadImage
+    "/upload",
+    upload.single("image"),
+    controller.uploadImage
 );
 
 // EXPORT
 router.get(
-"/export",
-controller.exportExcel
+    "/export",
+    controller.exportExcel
 );
 
 // HISTORY
 router.get(
-"/history",
-controller.getHistory
+    "/history",
+    controller.getHistory
 );
 
 // CRUD
 router.get(
-"/",
-controller.getAll
+    "/",
+    controller.getAll
 );
 
 // ĐỔI create
 router.post(
-"/",
-auth,
-role("admin"),
-controller.create
+    "/",
+    auth,
+    role("admin"),
+    controller.create
 );
 
 router.put(
-"/:id",
-auth,
-role("admin","user"),
-controller.update
+    "/:id",
+    auth,
+    role("admin", "user"),
+    controller.update
 );
 
 router.delete(
-"/:id",
-auth,
-role("admin"),
-controller.remove
+    "/:id",
+    auth,
+    role("admin"),
+    controller.remove
 );
 
 router.get(
-"/:id",
-controller.getOne
+    "/:id",
+    controller.getOne
 );
 
 module.exports =
-router;
+    router;

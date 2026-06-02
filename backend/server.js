@@ -2,169 +2,169 @@ const express = require("express");
 const cors = require("cors");
 
 const deviceRoutes =
-require("./routes/device.routes");
+    require("./routes/device.routes");
 
 const workRoutes =
-require("./routes/work.routes");
+    require("./routes/work.routes");
 
 const spareRoutes =
-require("./routes/spare.routes");
+    require("./routes/spare.routes");
 
 const authRoutes =
-require("./routes/auth.routes");
+    require("./routes/auth.routes");
 
 const { PrismaClient } =
-require("@prisma/client");
+    require("@prisma/client");
 
 const prisma =
-new PrismaClient();
+    new PrismaClient();
 
 const app =
-express();
+    express();
 
 
 // ===== CORS =====
 
 app.use(
 
-cors({
+    cors({
 
-origin:[
+        origin: [
 
-"http://localhost:5173",
+            "http://localhost:5173",
 
-"https://asset-lifecycle-management.vercel.app"
+            "https://asset-lifecycle-management.vercel.app"
 
-],
+        ],
 
-methods:[
+        methods: [
 
-"GET",
-"POST",
-"PUT",
-"DELETE",
-"OPTIONS"
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
 
-],
+        ],
 
-credentials:true
+        credentials: true
 
-})
+    })
 
 );
 
 app.options(
-"*",
-cors()
+    "*",
+    cors()
 );
 
 
 // ===== BODY =====
 
 app.use(
-express.json()
+    express.json()
 );
 
 
 // ===== ROUTES =====
 
 app.use(
-"/api/auth",
-authRoutes
+    "/api/auth",
+    authRoutes
 );
 
 app.use(
-"/api/devices",
-deviceRoutes
+    "/api/devices",
+    deviceRoutes
 );
 
 app.use(
-"/api/work-orders",
-workRoutes
+    "/api/work-orders",
+    workRoutes
 );
 
 app.use(
-"/api/spare-devices",
-spareRoutes
+    "/api/spare-devices",
+    spareRoutes
 );
 
 
 // ===== TEST =====
 
 app.get(
-"/",
-(req,res)=>{
+    "/",
+    (req, res) => {
 
-res.send(
-"API RUNNING..."
-);
+        res.send(
+            "API RUNNING..."
+        );
 
-}
+    }
 );
 
 
 // ===== FIX DB =====
 
 app.get(
-"/fix-db",
+    "/fix-db",
 
-async(
-req,
-res
-)=>{
+    async (
+        req,
+        res
+    ) => {
 
-try{
+        try {
 
-await prisma.$executeRawUnsafe(`
+            await prisma.$executeRawUnsafe(`
 
 DROP INDEX IF EXISTS "Device_deviceId_key"
 
 `);
 
-res.json({
+            res.json({
 
-ok:true,
+                ok: true,
 
-message:
+                message:
 
-"Đã xóa unique"
+                    "Đã xóa unique"
 
-});
+            });
 
-}
+        }
 
-catch(err){
+        catch (err) {
 
-console.log(err);
+            console.log(err);
 
-res.status(500).json({
+            res.status(500).json({
 
-ok:false,
+                ok: false,
 
-error:
-err.message
+                error:
+                    err.message
 
-});
+            });
 
-}
+        }
 
-}
+    }
 );
 
 
 // ===== START =====
 
 const PORT =
-process.env.PORT ||
-5000;
+    process.env.PORT ||
+    5000;
 
 app.listen(
-PORT,
-()=>{
+    PORT,
+    () => {
 
-console.log(
-`Server chạy ${PORT}`
-);
+        console.log(
+            `Server chạy ${PORT}`
+        );
 
-}
+    }
 );

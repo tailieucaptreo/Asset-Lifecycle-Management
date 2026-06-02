@@ -10,7 +10,7 @@ export default function Sidebar() {
   const [openMaintenance, setOpenMaintenance] = useState(false);
 
   const role =
-  localStorage.getItem("role");
+    localStorage.getItem("role");
 
   // 🔥 ACTIVE CHECK (hỗ trợ cả sub route)
   const active = (path) =>
@@ -70,7 +70,7 @@ export default function Sidebar() {
                 📥 Import Excel
               </div>
             )}
-            
+
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
               onClick={() => nav("/category")}
@@ -139,7 +139,7 @@ export default function Sidebar() {
       <div
         className={`mt-4 p-2 rounded cursor-pointer ${active("/report")}`}
         onClick={() => nav("/report")}
-      >
+      >s
         📊 Báo cáo
       </div>
 
@@ -153,11 +153,11 @@ export default function Sidebar() {
 
       <button
         onClick={() => {
-      
+
           localStorage.removeItem("role");
-      
+
           window.location.href = "/";
-      
+
         }}
         className="
           mt-10

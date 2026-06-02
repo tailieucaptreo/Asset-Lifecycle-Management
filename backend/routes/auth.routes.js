@@ -1,13 +1,13 @@
 const router =
-require("express").Router();
+    require("express").Router();
 
 const auth =
-require("../controllers/auth.controller");
+    require("../controllers/auth.controller");
 
 router.post(
-"/login",
-auth.login
+    "/login",
+    auth.login
 );
 
 module.exports =
-router;
+    router;

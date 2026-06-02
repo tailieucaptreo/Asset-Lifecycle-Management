@@ -1,73 +1,73 @@
 const jwt =
-require("jsonwebtoken");
+    require("jsonwebtoken");
 
 module.exports =
-(req,res,next)=>{
+    (req, res, next) => {
 
-try{
+        try {
 
-const authHeader =
-req.headers.authorization;
+            const authHeader =
+                req.headers.authorization;
 
-if(!authHeader){
+            if (!authHeader) {
 
-return res
-.status(401)
-.json({
+                return res
+                    .status(401)
+                    .json({
 
-message:
-"Unauthorized"
+                        message:
+                            "Unauthorized"
 
-});
+                    });
 
-}
+            }
 
-const token =
-authHeader
-.split(" ")[1];
+            const token =
+                authHeader
+                    .split(" ")[1];
 
-if(!token){
+            if (!token) {
 
-return res
-.status(401)
-.json({
+                return res
+                    .status(401)
+                    .json({
 
-message:
-"Token missing"
+                        message:
+                            "Token missing"
 
-});
+                    });
 
-}
+            }
 
-req.user =
-jwt.verify(
+            req.user =
+                jwt.verify(
 
-token,
+                    token,
 
-process.env.JWT_SECRET
+                    process.env.JWT_SECRET
 
-);
+                );
 
-next();
+            next();
 
-}
+        }
 
-catch(err){
+        catch (err) {
 
-console.log(
-"AUTH ERROR:",
-err.message
-);
+            console.log(
+                "AUTH ERROR:",
+                err.message
+            );
 
-return res
-.status(401)
-.json({
+            return res
+                .status(401)
+                .json({
 
-message:
-"Invalid token"
+                    message:
+                        "Invalid token"
 
-});
+                });
 
-}
+        }
 
-};
+    };
