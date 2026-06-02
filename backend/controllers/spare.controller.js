@@ -113,7 +113,7 @@ exports.create = async (req, res) => {
           unit: req.body.unit || "Cái",
 
           editedBy:
-             req.body.editedBy || "",
+            req.body.editedBy || "",
 
           // =========================
           // TRẠNG THÁI
@@ -150,25 +150,25 @@ exports.create = async (req, res) => {
         }
       });
 
-      await prisma.spareHistory.create({
+    await prisma.spareHistory.create({
 
-         data:{
-      
-            action:"Thêm thiết bị",
-            
-            deviceName:data.name,
-            
-            quantity:data.initialQuantity,
-            
-            editedBy:
-            req.body.editedBy || "",
-            
-            note:
-            req.body.note || ""
-      
-        }
-      
-      });
+      data: {
+
+        action: "Thêm thiết bị",
+
+        deviceName: data.name,
+
+        quantity: data.initialQuantity,
+
+        editedBy:
+          req.body.editedBy || "",
+
+        note:
+          req.body.note || ""
+
+      }
+
+    });
 
     res.json(data);
 
@@ -188,7 +188,7 @@ exports.update = async (req, res) => {
   try {
 
     const id =
-    Number(req.params.id);
+      Number(req.params.id);
 
     if (!id) {
 
@@ -197,228 +197,228 @@ exports.update = async (req, res) => {
       });
 
     }
-  
-  // ======================
-  // LẤY THIẾT BỊ HIỆN TẠI
-  // ======================
-  
-  const current =
-    await prisma.spareDevice.findUnique({
-      where: { id }
-  
-    });
-  
-  if (!current) {
-  
-    return res.status(404).json({
-      error: "Không tìm thấy thiết bị"
-    });
-  
-  }
-  
-  // ======================
-  // NHẬP / XUẤT
-  // ======================
-  
-  const importQty =
-    toNumber(req.body.importQty, 0);
-  
-  const exportQty =
-    toNumber(req.body.exportQty, 0);
-  
-  // tổng nhập
-  const totalImport =
-    current.importQty + importQty;
-  
-  // tổng xuất
-  const totalExport =
-    current.exportQty + exportQty;
-  
-  // tồn kho mới
-  const quantity =
-  
-    current.initialQuantity
-    
-    +
-    
-    totalImport
-    
-    -
-    
-    totalExport;
-  
-  
-  // ======================
-  // KHÔNG CHO ÂM KHO
-  // ======================
-  
-  if (quantity < 0) {
-  
-    return res.status(400).json({
-      error: "Số lượng tồn không đủ"
-  
-    });
-  
-  }
-  
-  // ======================
-  // UPDATE DB
-  // ======================
-  
-  const data =
-    await prisma.spareDevice.update({
-      where: { id },
-  
-      data: {
-  
-        name:
-        req.body.name,
-        
-        deviceId:
-        req.body.deviceId,
-        
-        symbol:
-        req.body.symbol,
-        
-        materialCode:
-        req.body.materialCode,
-        
-        // ===== KHO =====
-        
-        importQty:
-        totalImport,
-        
-        exportQty:
-        totalExport,
-        
-        quantity,
-        
-        unit:
-        req.body.unit,
-        
-        // ===== TRẠNG THÁI =====
-        
-        condition:
-        req.body.condition,
-        
-        // ===== THỜI GIAN =====
-        
-        buyDate:
-        req.body.buyDate
-        || null,
-        
-        removedDate:
-        req.body.removedDate
-        || null,
-        
-        // ===== VỊ TRÍ =====
-        
-        warehouse:
-        req.body.warehouse,
-        
-        cabinet:
-        req.body.cabinet,
-        
-        shelf:
-        req.body.shelf,
-        
-        slot:
-        req.body.slot,
-        
-        // ===== KHÁC =====
-        
-        image:
-        req.body.image,
-        
-        note:
-        req.body.note
-  
-      }
-  
-    });
-  
-  
-  // ======================
-  // HISTORY
-  // ======================
-  
-  let action =
-  "Cập nhật thiết bị";
-  
-  let historyQty =
-  0;
-  
-  
-  // nhập thêm
-  if (importQty > 0) {
-  
-  action =
-  "Nhập thiết bị";
-  
-  historyQty =
-  importQty;
-  
-  }
-  
-  // xuất đi
-  if (exportQty > 0) {
-  
-  action =
-  "Xuất thiết bị";
-  
-  historyQty =
-  exportQty;
-  
-  }
-  
-  
-  await prisma.spareHistory.create({
-  
-    data: {
-  
-      action,
-  
-      deviceName: data.name,
-      
-      quantity: historyQty,
-      
-      editedBy: req.body.editedBy || "",
-      
-      note: req.body.note || "",
-  
+
+    // ======================
+    // LẤY THIẾT BỊ HIỆN TẠI
+    // ======================
+
+    const current =
+      await prisma.spareDevice.findUnique({
+        where: { id }
+
+      });
+
+    if (!current) {
+
+      return res.status(404).json({
+        error: "Không tìm thấy thiết bị"
+      });
+
     }
-  
-  });
-  
-  
-  // ======================
-  // RESPONSE
-  // ======================
-  
-  res.json({
-  
-    ok: true,
-    
-    message:
-    "Cập nhật thành công",
-    
-    data
-    
+
+    // ======================
+    // NHẬP / XUẤT
+    // ======================
+
+    const importQty =
+      toNumber(req.body.importQty, 0);
+
+    const exportQty =
+      toNumber(req.body.exportQty, 0);
+
+    // tổng nhập
+    const totalImport =
+      current.importQty + importQty;
+
+    // tổng xuất
+    const totalExport =
+      current.exportQty + exportQty;
+
+    // tồn kho mới
+    const quantity =
+
+      current.initialQuantity
+
+      +
+
+      totalImport
+
+      -
+
+      totalExport;
+
+
+    // ======================
+    // KHÔNG CHO ÂM KHO
+    // ======================
+
+    if (quantity < 0) {
+
+      return res.status(400).json({
+        error: "Số lượng tồn không đủ"
+
+      });
+
+    }
+
+    // ======================
+    // UPDATE DB
+    // ======================
+
+    const data =
+      await prisma.spareDevice.update({
+        where: { id },
+
+        data: {
+
+          name:
+            req.body.name,
+
+          deviceId:
+            req.body.deviceId,
+
+          symbol:
+            req.body.symbol,
+
+          materialCode:
+            req.body.materialCode,
+
+          // ===== KHO =====
+
+          importQty:
+            totalImport,
+
+          exportQty:
+            totalExport,
+
+          quantity,
+
+          unit:
+            req.body.unit,
+
+          // ===== TRẠNG THÁI =====
+
+          condition:
+            req.body.condition,
+
+          // ===== THỜI GIAN =====
+
+          buyDate:
+            req.body.buyDate
+            || null,
+
+          removedDate:
+            req.body.removedDate
+            || null,
+
+          // ===== VỊ TRÍ =====
+
+          warehouse:
+            req.body.warehouse,
+
+          cabinet:
+            req.body.cabinet,
+
+          shelf:
+            req.body.shelf,
+
+          slot:
+            req.body.slot,
+
+          // ===== KHÁC =====
+
+          image:
+            req.body.image,
+
+          note:
+            req.body.note
+
+        }
+
+      });
+
+
+    // ======================
+    // HISTORY
+    // ======================
+
+    let action =
+      "Cập nhật thiết bị";
+
+    let historyQty =
+      0;
+
+
+    // nhập thêm
+    if (importQty > 0) {
+
+      action =
+        "Nhập thiết bị";
+
+      historyQty =
+        importQty;
+
+    }
+
+    // xuất đi
+    if (exportQty > 0) {
+
+      action =
+        "Xuất thiết bị";
+
+      historyQty =
+        exportQty;
+
+    }
+
+
+    await prisma.spareHistory.create({
+
+      data: {
+
+        action,
+
+        deviceName: data.name,
+
+        quantity: historyQty,
+
+        editedBy: req.body.editedBy || "",
+
+        note: req.body.note || "",
+
+      }
+
     });
-  
+
+
+    // ======================
+    // RESPONSE
+    // ======================
+
+    res.json({
+
+      ok: true,
+
+      message:
+        "Cập nhật thành công",
+
+      data
+
+    });
+
   }
-  
+
   catch (err) {
-  
+
     console.log(err);
-    
+
     res.status(500).json({
-    
+
       error:
-      err.message
-    
+        err.message
+
     });
-  
+
   }
 
 };
@@ -611,7 +611,7 @@ exports.previewImport = async (req, res) => {
     }
 
     const workbook = XLSX.read(
-      req.file.buffer,{ type:"buffer" }
+      req.file.buffer, { type: "buffer" }
     );
 
     const sheet = workbook.Sheets[
@@ -622,7 +622,7 @@ exports.previewImport = async (req, res) => {
       sheet
     );
 
-    const rows = rawRows.map((r)=>{
+    const rows = rawRows.map((r) => {
       const initialQuantity = Number(
 
         r["SL"]
@@ -639,7 +639,7 @@ exports.previewImport = async (req, res) => {
 
         0
 
-        );
+      );
 
       const importQty = Number(
         r["Nhập"] || 0
@@ -649,143 +649,143 @@ exports.previewImport = async (req, res) => {
         r["Xuất"] || 0
       );
 
-     return {
+      return {
 
-      name:
+        name:
 
-      r["Tên vật tư"]
+          r["Tên vật tư"]
 
-      ||
+          ||
 
-      r["Tên thiết bị"]
+          r["Tên thiết bị"]
 
-      ||
+          ||
 
-      "",
+          "",
 
 
-      deviceId:
+        deviceId:
 
-        String(
+          String(
 
-        r["Mã vật tư"]
+            r["Mã vật tư"]
 
-        ||
+            ||
 
-        r["Mã ID"]
+            r["Mã ID"]
 
-        ||
+            ||
 
-        ""
+            ""
 
-        ),
+          ),
 
-  
-  // QUAN TRỌNG
-  quantity:
-  
-  initialQuantity,
-  
-  initialQuantity,
-  
-  importQty,
-  
-  exportQty,
-  
-  
-  unit:
-  
-  r["Đvt"]
-  
-  ||
-  
-  r["ĐVT"]
-  
-  ||
-  
-  "Cái",
-  
-  
-  cabinet:
-  
-  r["Tủ"]
-  
-  ||
-  
-  "",
-  
-  
-  shelf:
-  
-  r["Ngăn"]
-  
-  ||
-  
-  r["Kệ"]
-  
-  ||
-  
-  "",
-  
-  
-  slot:
-  
-  r["Số khay"]
-  
-  ||
-  
-  r["Khay"]
-  
-  ||
-  
-  "",
-  
-  
-  warehouse:
-  
-  r["Kho"]
-  
-  ||
-  
-  "",
-  
-  
-  symbol:
-  
-  r["Ký hiệu"]
-  
-  ||
-  
-  "",
-  
-  
-  condition:
-  
-  "New"
-  
-  };
-  
-  });
-  
-  res.json({
-  
-    ok:true, rows
-  
+
+        // QUAN TRỌNG
+        quantity:
+
+          initialQuantity,
+
+        initialQuantity,
+
+        importQty,
+
+        exportQty,
+
+
+        unit:
+
+          r["Đvt"]
+
+          ||
+
+          r["ĐVT"]
+
+          ||
+
+          "Cái",
+
+
+        cabinet:
+
+          r["Tủ"]
+
+          ||
+
+          "",
+
+
+        shelf:
+
+          r["Ngăn"]
+
+          ||
+
+          r["Kệ"]
+
+          ||
+
+          "",
+
+
+        slot:
+
+          r["Số khay"]
+
+          ||
+
+          r["Khay"]
+
+          ||
+
+          "",
+
+
+        warehouse:
+
+          r["Kho"]
+
+          ||
+
+          "",
+
+
+        symbol:
+
+          r["Ký hiệu"]
+
+          ||
+
+          "",
+
+
+        condition:
+
+          "New"
+
+      };
+
     });
-  
+
+    res.json({
+
+      ok: true, rows
+
+    });
+
   }
-  
-  catch(err){
-  
+
+  catch (err) {
+
     console.log(err);
-  
-      res.status(500).json({
-  
-        error:
+
+    res.status(500).json({
+
+      error:
         err.message
-  
-      });
-  
+
+    });
+
   }
 
 };

@@ -39,79 +39,79 @@ export default function Dashboard() {
   // =============================
   const fetchData = async () => {
 
-  try {
+    try {
 
-    const token =
-      localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token");
 
-    const headers = {
-      Authorization:
-        `Bearer ${token}`
-    };
+      const headers = {
+        Authorization:
+          `Bearer ${token}`
+      };
 
-    // LOAD DEVICE
-    const deviceRes =
-      await axios.get(
-        `${API}/api/devices`,
-        {
-          headers
-        }
-      );
+      // LOAD DEVICE
+      const deviceRes =
+        await axios.get(
+          `${API}/api/devices`,
+          {
+            headers
+          }
+        );
 
-    console.log(
-      "DEVICE",
-      deviceRes.data
-    );
-
-    setDevices(
-
-      Array.isArray(
+      console.log(
+        "DEVICE",
         deviceRes.data
-      )
-
-      ? deviceRes.data
-
-      : deviceRes.data.devices || []
-
-    );
-
-    // LOAD SPARE
-    const spareRes =
-      await axios.get(
-        `${API}/api/spare-devices`,
-        {
-          headers
-        }
       );
 
-    setSpareDevices(
+      setDevices(
 
-      Array.isArray(
-        spareRes.data
-      )
+        Array.isArray(
+          deviceRes.data
+        )
 
-      ? spareRes.data
+          ? deviceRes.data
 
-      : spareRes.data.data || []
+          : deviceRes.data.devices || []
 
-    );
+      );
 
-  }
+      // LOAD SPARE
+      const spareRes =
+        await axios.get(
+          `${API}/api/spare-devices`,
+          {
+            headers
+          }
+        );
 
-  catch (err) {
+      setSpareDevices(
 
-    console.log(
-      "FETCH ERROR",
-      err.response?.data ||
-      err.message
-    );
+        Array.isArray(
+          spareRes.data
+        )
 
-    setDevices([]);
-    setSpareDevices([]);
+          ? spareRes.data
 
-  }
+          : spareRes.data.data || []
 
-};
+      );
+
+    }
+
+    catch (err) {
+
+      console.log(
+        "FETCH ERROR",
+        err.response?.data ||
+        err.message
+      );
+
+      setDevices([]);
+      setSpareDevices([]);
+
+    }
+
+  };
   useEffect(() => {
     fetchData();
   }, []);
@@ -167,104 +167,104 @@ export default function Dashboard() {
   });
 
   // =============================
-// TÍNH TRẠNG THÁI THEO TUỔI THỌ
-// =============================
+  // TÍNH TRẠNG THÁI THEO TUỔI THỌ
+  // =============================
 
-const calcStatus = (d) => {
+  const calcStatus = (d) => {
 
     if (
       !d.installDate
       ||
       !d.lifespan
-      ){
-    
-    return "Active";
-  
-  }
-  
-  const now = new Date();
-  
-  const install = new Date(d.installDate);
-  
-  // số năm đã dùng
-  const usedYear =
-  
-    (
-    now-install
-    )
-    
-    /
-    
-    (
-    1000*
-    60*
-    60*
-    24*
-    365
-  );
-  
-  // % tuổi thọ
-  const percent =
-  
-    usedYear
-    /
-    Number(
-    d.lifespan
-  );
-  
-  // quá tuổi thọ
-  if(
-   percent>=1
-  ){
-  
-  return "Expired";
-  
-  }
-  
-  // tới ngưỡng bảo trì
-  if(
-   percent>=0.7
-  ){
-  
-  return "Maintenance";
-  
-  }
-  
-  return "Active";
+    ) {
 
-};
+      return "Active";
+
+    }
+
+    const now = new Date();
+
+    const install = new Date(d.installDate);
+
+    // số năm đã dùng
+    const usedYear =
+
+      (
+        now - install
+      )
+
+      /
+
+      (
+        1000 *
+        60 *
+        60 *
+        24 *
+        365
+      );
+
+    // % tuổi thọ
+    const percent =
+
+      usedYear
+      /
+      Number(
+        d.lifespan
+      );
+
+    // quá tuổi thọ
+    if (
+      percent >= 1
+    ) {
+
+      return "Expired";
+
+    }
+
+    // tới ngưỡng bảo trì
+    if (
+      percent >= 0.7
+    ) {
+
+      return "Maintenance";
+
+    }
+
+    return "Active";
+
+  };
 
 
   // =============================
   // STATS
   // =============================
-  
+
   const total =
-  filtered.length;
-  
+    filtered.length;
+
   const active =
-  filtered.filter(
-  d=>
-  calcStatus(d)
-  ===
-  "Active"
-  ).length;
-  
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Active"
+    ).length;
+
   const maintenance =
-  filtered.filter(
-  d=>
-  calcStatus(d)
-  ===
-  "Maintenance"
-  ).length;
-  
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Maintenance"
+    ).length;
+
   const expired =
-  filtered.filter(
-  d=>
-  calcStatus(d)
-  ===
-  "Expired"
-  ).length;
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Expired"
+    ).length;
 
   // =============================
   // SPARE DEVICE COUNT
@@ -280,84 +280,84 @@ const calcStatus = (d) => {
   // EXPORT EXCEL
   // =============================
   const handleExport = async () => {
-  
-  try{
-  
-  const token =
-  localStorage.getItem(
-  "token"
-  );
-  
-  const res =
-  await fetch(
-  
-  `${API}/api/devices/export`,
-  
-  {
-  
-  headers:{
-  
-  Authorization:
-  `Bearer ${token}`
-  
-  }
-  
-  }
-  
-  );
-  
-  if(!res.ok){
-  
-  throw new Error(
-  "Export thất bại"
-  );
-  
-  }
-  
-  const blob =
-  await res.blob();
-  
-  const url =
-  window.URL.createObjectURL(
-  blob
-  );
-  
-  const a =
-  document.createElement(
-  "a"
-  );
-  
-  a.href =
-  url;
-  
-  a.download =
-  "devices.xlsx";
-  
-  document.body.appendChild(
-  a
-  );
-  
-  a.click();
-  
-  a.remove();
-  
-  window.URL
-  .revokeObjectURL(
-  url
-  );
-  
-  }
-  
-  catch(err){
-  
-  console.log(err);
-  
-  alert(
-  err.message
-  );
-  
-  }
-  
+
+    try {
+
+      const token =
+        localStorage.getItem(
+          "token"
+        );
+
+      const res =
+        await fetch(
+
+          `${API}/api/devices/export`,
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
+
+            }
+
+          }
+
+        );
+
+      if (!res.ok) {
+
+        throw new Error(
+          "Export thất bại"
+        );
+
+      }
+
+      const blob =
+        await res.blob();
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+      const a =
+        document.createElement(
+          "a"
+        );
+
+      a.href =
+        url;
+
+      a.download =
+        "devices.xlsx";
+
+      document.body.appendChild(
+        a
+      );
+
+      a.click();
+
+      a.remove();
+
+      window.URL
+        .revokeObjectURL(
+          url
+        );
+
+    }
+
+    catch (err) {
+
+      console.log(err);
+
+      alert(
+        err.message
+      );
+
+    }
+
   };
 
   // =============================
@@ -382,8 +382,8 @@ const calcStatus = (d) => {
           />
 
           <button
-              onClick={handleExport}
-              className="
+            onClick={handleExport}
+            className="
               bg-blue-500
               hover:bg-blue-600
               text-white

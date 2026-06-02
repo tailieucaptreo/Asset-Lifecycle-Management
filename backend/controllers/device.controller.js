@@ -11,100 +11,100 @@ const normalize = (v, def = "") =>
 // ================= DATE =================
 const parseDate = (v) => {
 
-if (
-v === undefined ||
-v === null ||
-v === ""
-){
-return null;
-}
+  if (
+    v === undefined ||
+    v === null ||
+    v === ""
+  ) {
+    return null;
+  }
 
-// Date object
-if (
-v instanceof Date
-){
-return v;
-}
+  // Date object
+  if (
+    v instanceof Date
+  ) {
+    return v;
+  }
 
-// Excel serial
-if (
-typeof v === "number"
-){
+  // Excel serial
+  if (
+    typeof v === "number"
+  ) {
 
-const utcDays =
-Math.floor(
-v - 25569
-);
+    const utcDays =
+      Math.floor(
+        v - 25569
+      );
 
-const utcValue =
-utcDays *
-86400;
+    const utcValue =
+      utcDays *
+      86400;
 
-const date =
-new Date(
-utcValue * 1000
-);
+    const date =
+      new Date(
+        utcValue * 1000
+      );
 
-return isNaN(
-date.getTime()
-)
-? null
-: date;
+    return isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
 
-}
+  }
 
-// Chuỗi dd/mm/yyyy
-if(
-typeof v === "string"
-){
+  // Chuỗi dd/mm/yyyy
+  if (
+    typeof v === "string"
+  ) {
 
-const s =
-v.trim();
+    const s =
+      v.trim();
 
-const parts =
-s.split("/");
+    const parts =
+      s.split("/");
 
-if(
-parts.length===3
-){
+    if (
+      parts.length === 3
+    ) {
 
-const [
-day,
-month,
-year
-]=parts;
+      const [
+        day,
+        month,
+        year
+      ] = parts;
 
-const date =
-new Date(
+      const date =
+        new Date(
 
-Number(year),
+          Number(year),
 
-Number(month)-1,
+          Number(month) - 1,
 
-Number(day)
+          Number(day)
 
-);
+        );
 
-return isNaN(
-date.getTime()
-)
-? null
-: date;
+      return isNaN(
+        date.getTime()
+      )
+        ? null
+        : date;
 
-}
+    }
 
-const date =
-new Date(s);
+    const date =
+      new Date(s);
 
-return isNaN(
-date.getTime()
-)
-? null
-: date;
+    return isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
 
-}
+  }
 
-return null;
+  return null;
 
 };
 
@@ -147,60 +147,60 @@ const normalizeStatus = (v) => {
 
 const calcMaintenance = (device) => {
 
-if(
-!device.installDate
-||
-!device.lifespan
-){
+  if (
+    !device.installDate
+    ||
+    !device.lifespan
+  ) {
 
-return "Inactive";
+    return "Inactive";
 
-}
+  }
 
-const now =
-new Date();
+  const now =
+    new Date();
 
-const install =
-new Date(
-device.installDate
-);
+  const install =
+    new Date(
+      device.installDate
+    );
 
-const totalDays =
-Number(
-device.lifespan
-) * 365;
+  const totalDays =
+    Number(
+      device.lifespan
+    ) * 365;
 
-const usedDays =
-(
-now - install
-)
-/86400000;
+  const usedDays =
+    (
+      now - install
+    )
+    / 86400000;
 
-const percent =
-usedDays
-/
-totalDays;
+  const percent =
+    usedDays
+    /
+    totalDays;
 
-// HẾT HẠN
-if(
-percent >= 1
-){
+  // HẾT HẠN
+  if (
+    percent >= 1
+  ) {
 
-return "Expired";
+    return "Expired";
 
-}
+  }
 
-// ĐẾN KỲ BẢO TRÌ
-if(
-percent >= 0.7
-){
+  // ĐẾN KỲ BẢO TRÌ
+  if (
+    percent >= 0.7
+  ) {
 
-return "Maintenance";
+    return "Maintenance";
 
-}
+  }
 
-// ĐANG HOẠT ĐỘNG
-return "Active";
+  // ĐANG HOẠT ĐỘNG
+  return "Active";
 
 };
 
@@ -225,27 +225,27 @@ const getField = (row, keys) => {
 
 // ================= VALIDATE IMPORT =================
 
-function validateRow(data){
+function validateRow(data) {
 
-const errors=[];
+  const errors = [];
 
-if(!data.deviceId){
+  if (!data.deviceId) {
 
-errors.push(
-"Thiếu mã ID"
-);
+    errors.push(
+      "Thiếu mã ID"
+    );
 
-}
+  }
 
-if(!data.name){
+  if (!data.name) {
 
-errors.push(
-"Thiếu tên thiết bị"
-);
+    errors.push(
+      "Thiếu tên thiết bị"
+    );
 
-}
+  }
 
-return errors;
+  return errors;
 
 }
 
@@ -254,25 +254,25 @@ exports.getDevices = async (req, res) => {
 
   try {
 
-      const raw = await prisma.device.findMany({
-  
-        orderBy:{
-        id:"desc"
-        }
-  
-      });
-  
-      const data = raw.map(d=>({
-         ...d,
-      
-        status:
+    const raw = await prisma.device.findMany({
+
+      orderBy: {
+        id: "desc"
+      }
+
+    });
+
+    const data = raw.map(d => ({
+      ...d,
+
+      status:
         calcMaintenance(
-        d
+          d
         )
-      
-      })
-  );
-  
+
+    })
+    );
+
     res.json(data);
 
   } catch (err) {
@@ -370,392 +370,392 @@ exports.deleteDevice = async (req, res) => {
 // ================= IMPORT =================
 exports.importExcel = async (req, res) => {
 
-try {
+  try {
 
-if (!req.file) {
+    if (!req.file) {
 
-return res.status(400).json({
-error:"Không có file"
-});
+      return res.status(400).json({
+        error: "Không có file"
+      });
 
-}
+    }
 
-const workbook =
-XLSX.read(
-req.file.buffer,
-{
-type:"buffer"
-}
-);
+    const workbook =
+      XLSX.read(
+        req.file.buffer,
+        {
+          type: "buffer"
+        }
+      );
 
-const sheet =
-workbook.Sheets[
-workbook.SheetNames[0]
-];
+    const sheet =
+      workbook.Sheets[
+      workbook.SheetNames[0]
+      ];
 
-const rows =
-XLSX.utils.sheet_to_json(
-sheet,
-{
-raw:true,
-defval:null
-}
-);
+    const rows =
+      XLSX.utils.sheet_to_json(
+        sheet,
+        {
+          raw: true,
+          defval: null
+        }
+      );
 
-let inserted = 0;
+    let inserted = 0;
 
-const failed=[];
+    const failed = [];
 
-for(const row of rows){
+    for (const row of rows) {
 
-const data={
+      const data = {
 
-deviceId:
-String(
-getField(
-row,
-["ma id"]
-)||""
-),
+        deviceId:
+          String(
+            getField(
+              row,
+              ["ma id"]
+            ) || ""
+          ),
 
-name:
-String(
-getField(
-row,
-["ten"]
-)||""
-),
+        name:
+          String(
+            getField(
+              row,
+              ["ten"]
+            ) || ""
+          ),
 
-line:
-String(
-getField(
-row,
-["tuyen"]
-)||""
-),
+        line:
+          String(
+            getField(
+              row,
+              ["tuyen"]
+            ) || ""
+          ),
 
-station:
-String(
-getField(
-row,
-["ga"]
-)||""
-),
+        station:
+          String(
+            getField(
+              row,
+              ["ga"]
+            ) || ""
+          ),
 
-code:
-String(
-getField(
-row,
-[
-"ky hieu",
-"code"
-]
-)||""
-),
+        code:
+          String(
+            getField(
+              row,
+              [
+                "ky hieu",
+                "code"
+              ]
+            ) || ""
+          ),
 
-area:
-String(
-getField(
-row,
-["khu vuc"]
-)||""
-),
+        area:
+          String(
+            getField(
+              row,
+              ["khu vuc"]
+            ) || ""
+          ),
 
-status:
-normalizeStatus(
-getField(
-row,
-["trang thai"]
-)
-),
+        status:
+          normalizeStatus(
+            getField(
+              row,
+              ["trang thai"]
+            )
+          ),
 
-installDate:
-parseDate(
-getField(
-row,
-[
-"ngay lap",
-"ngay lap dat",
-"ngay lap dat ",
-"ngày lắp",
-"ngày lắp đặt"
-]
-)
-),
+        installDate:
+          parseDate(
+            getField(
+              row,
+              [
+                "ngay lap",
+                "ngay lap dat",
+                "ngay lap dat ",
+                "ngày lắp",
+                "ngày lắp đặt"
+              ]
+            )
+          ),
 
-lifespan:
-getField(
-row,
-[
-"tuoi tho",
-"tuoi tho thiet bi"
-]
-)
-?
-Number(
-getField(
-row,
-[
-"tuoi tho",
-"tuoi tho thiet bi"
-]
-)
-)
-:null
-  
-};
+        lifespan:
+          getField(
+            row,
+            [
+              "tuoi tho",
+              "tuoi tho thiet bi"
+            ]
+          )
+            ?
+            Number(
+              getField(
+                row,
+                [
+                  "tuoi tho",
+                  "tuoi tho thiet bi"
+                ]
+              )
+            )
+            : null
 
-const errors=
-validateRow(
-data
-);
+      };
 
-if(
-errors.length
-){
+      const errors =
+        validateRow(
+          data
+        );
 
-failed.push({
+      if (
+        errors.length
+      ) {
 
-row,
+        failed.push({
 
-errors
+          row,
 
-});
+          errors
 
-continue;
+        });
 
-}
+        continue;
 
-try{
+      }
 
-await prisma.device.create({
+      try {
 
-data
+        await prisma.device.create({
 
-});
+          data
 
-inserted++;
+        });
 
-}
+        inserted++;
 
-catch(err){
+      }
 
-failed.push({
+      catch (err) {
 
-row,
+        failed.push({
 
-errors:[
-err.message
-]
+          row,
 
-});
+          errors: [
+            err.message
+          ]
 
-}
+        });
 
-}
+      }
 
-return res.json({
+    }
 
-ok:true,
+    return res.json({
 
-message:"Import thành công",
+      ok: true,
 
-total: rows.length,
+      message: "Import thành công",
 
-success: inserted,
+      total: rows.length,
 
-failedCount: failed.length,
+      success: inserted,
 
-failed
+      failedCount: failed.length,
 
-});
+      failed
 
-}
+    });
 
-catch(err){
+  }
 
-console.log(err);
+  catch (err) {
 
-res.status(500).json({
+    console.log(err);
 
-error:
-err.message
+    res.status(500).json({
 
-});
+      error:
+        err.message
 
-}
+    });
+
+  }
 
 };
 
 // ================= GET ONE =================
 exports.getOne =
-async (
-req,
-res
-)=>{
+  async (
+    req,
+    res
+  ) => {
 
-try{
+    try {
 
-const id =
-Number(
-req.params.id
-);
+      const id =
+        Number(
+          req.params.id
+        );
 
-const device =
-await prisma.device.findUnique({
+      const device =
+        await prisma.device.findUnique({
 
-where:{
-id
-}
+          where: {
+            id
+          }
 
-});
+        });
 
-if(!device){
+      if (!device) {
 
-return res
-.status(404)
-.json({
+        return res
+          .status(404)
+          .json({
 
-message:
-"Không tìm thấy thiết bị"
+            message:
+              "Không tìm thấy thiết bị"
 
-});
+          });
 
-}
+      }
 
-// tính trạng thái giống dashboard
-const data={
+      // tính trạng thái giống dashboard
+      const data = {
 
-...device,
+        ...device,
 
-status:
-calcMaintenance(
-device
-)
+        status:
+          calcMaintenance(
+            device
+          )
 
-};
+      };
 
-res.json(
-data
-);
+      res.json(
+        data
+      );
 
-}
+    }
 
-catch(err){
+    catch (err) {
 
-console.log(err);
+      console.log(err);
 
-res
-.status(500)
-.json({
+      res
+        .status(500)
+        .json({
 
-error:
-err.message
+          error:
+            err.message
 
-});
+        });
 
-}
+    }
 
-};
+  };
 
 // ================= EXPORT =================
-exports.exportDevices = async (req,res)=>{
+exports.exportDevices = async (req, res) => {
 
-try{
+  try {
 
-const devices =
-await prisma.device.findMany({
+    const devices =
+      await prisma.device.findMany({
 
-orderBy:{
-id:"asc"
-}
+        orderBy: {
+          id: "asc"
+        }
 
-});
+      });
 
-const rows =
-devices.map(d=>({
+    const rows =
+      devices.map(d => ({
 
-"Tên thiết bị":
-d.name,
+        "Tên thiết bị":
+          d.name,
 
-"Tuyến":
-d.line,
+        "Tuyến":
+          d.line,
 
-"Nhà ga":
-d.station,
+        "Nhà ga":
+          d.station,
 
-"Ký hiệu":
-d.code,
+        "Ký hiệu":
+          d.code,
 
-"Khu vực":
-d.area,
+        "Khu vực":
+          d.area,
 
-"Mã ID":
-d.deviceId,
+        "Mã ID":
+          d.deviceId,
 
-"Trạng thái":
-calcMaintenance(d),
+        "Trạng thái":
+          calcMaintenance(d),
 
-"Ngày lắp":
-d.installDate
-? d.installDate
-.toISOString()
-.split("T")[0]
-: "",
+        "Ngày lắp":
+          d.installDate
+            ? d.installDate
+              .toISOString()
+              .split("T")[0]
+            : "",
 
-"Tuổi thọ":
-d.lifespan
+        "Tuổi thọ":
+          d.lifespan
 
-}));
+      }));
 
-const wb =
-XLSX.utils.book_new();
+    const wb =
+      XLSX.utils.book_new();
 
-const ws =
-XLSX.utils.json_to_sheet(
-rows
-);
+    const ws =
+      XLSX.utils.json_to_sheet(
+        rows
+      );
 
-XLSX.utils.book_append_sheet(
-wb,
-ws,
-"Devices"
-);
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Devices"
+    );
 
-const buffer =
-XLSX.write(
-wb,
-{
-bookType:"xlsx",
-type:"buffer"
-}
-);
+    const buffer =
+      XLSX.write(
+        wb,
+        {
+          bookType: "xlsx",
+          type: "buffer"
+        }
+      );
 
-res.setHeader(
-"Content-Type",
-"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
 
-res.setHeader(
-"Content-Disposition",
-"attachment; filename=devices.xlsx"
-);
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=devices.xlsx"
+    );
 
-res.send(buffer);
+    res.send(buffer);
 
-}
+  }
 
-catch(err){
+  catch (err) {
 
-console.log(err);
+    console.log(err);
 
-res
-.status(500)
-.json({
-error:err.message
-});
+    res
+      .status(500)
+      .json({
+        error: err.message
+      });
 
-}
+  }
 
 };
 
