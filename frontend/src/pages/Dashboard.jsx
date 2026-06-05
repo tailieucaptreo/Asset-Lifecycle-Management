@@ -402,7 +402,7 @@ export default function Dashboard() {
       </div>
 
       {/* FILTER */}
-      <div className="bg-white rounded-2xl shadow p-4">
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-4">
 
         <AdvancedFilter
           devices={devices}
