@@ -47,6 +47,7 @@ function Layout() {
       w-screen
       h-screen
       overflow-hidden
+      bg-[#eef2f7]
       "
     >
 
@@ -56,6 +57,10 @@ function Layout() {
         className="
         flex-1
         overflow-auto
+        bg-gradient-to-br
+        from-slate-100
+        via-slate-50
+        to-blue-50
         "
       >
 
