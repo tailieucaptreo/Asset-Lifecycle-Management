@@ -365,7 +365,7 @@ export default function Dashboard() {
   // =============================
   return (
 
-    <div className="flex-1 min-h-screen bg-gray-100 p-4 md:p-6">
+    <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 p-4 md:p-6">
 
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6">
