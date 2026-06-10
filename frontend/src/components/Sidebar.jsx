@@ -85,6 +85,13 @@ export default function Sidebar() {
               ⚠ Thiết bị lỗi
             </div>
 
+            <Link
+              to="/vacon"
+              className="menu-item"
+            >
+              ⚡ Biến tần Vacon
+            </Link>
+            
             <div
               className={`p-2 rounded cursor-pointer ${active("/spare-devices")}`}
               onClick={() => nav("/spare-devices")}
