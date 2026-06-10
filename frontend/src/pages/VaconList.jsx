@@ -7,9 +7,11 @@ export default function VaconList() {
 
   const [data, setData] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState("");
+  const [station, setStation] = useState("");
+  const [tandem, setTandem] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   const handleImport = async (e) => {
 
@@ -52,6 +54,57 @@ export default function VaconList() {
       alert("Import thất bại");
   
     }
+  
+  };
+
+  const filteredData = data.filter(item => {
+  
+    return (
+  
+      (!search ||
+        item.deviceName?.toLowerCase()
+          .includes(search.toLowerCase()) ||
+  
+        item.serialNumber?.toLowerCase()
+          .includes(search.toLowerCase())
+      )
+  
+      &&
+  
+      (!station ||
+        item.station === station)
+  
+      &&
+  
+      (!tandem ||
+        item.tandem === tandem)
+  
+    );
+  
+  });
+
+  const deleteItem = async (id) => {
+
+    if (!window.confirm("Xóa bản ghi?"))
+      return;
+  
+    const token =
+      localStorage.getItem("token");
+  
+    await axios.delete(
+  
+      `${API}/api/vacon/${id}`,
+  
+      {
+        headers: {
+          Authorization:
+            `Bearer ${token}`
+        }
+      }
+  
+    );
+  
+    fetchData();
   
   };
 
@@ -115,36 +168,43 @@ export default function VaconList() {
 
       <div className="flex justify-between items-center mb-6">
 
-        <div className="flex items-center gap-3">
-          <span className="text-4xl">⚡</span>
+        <h1 className="text-3xl font-bold">
+          ⚡ Biến tần Vacon
+        </h1>
       
-          <h1 className="text-4xl font-bold">
-            Biến tần Vacon
-          </h1>
-        </div>
-      
-        <label
-          className="
-          bg-green-600
-          hover:bg-green-700
-          text-white
-          px-5
-          py-2
-          rounded-lg
-          cursor-pointer
-          font-medium
-          shadow
-          "
-        >
-          📥 Import Excel
+        <div className="flex gap-3">
       
           <input
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={handleImport}
+            placeholder="Tên thiết bị..."
+            value={search}
+            onChange={(e)=>setSearch(e.target.value)}
+            className="border px-3 py-2 rounded"
           />
-        </label>
+      
+          <input
+            placeholder="Station"
+            value={station}
+            onChange={(e)=>setStation(e.target.value)}
+            className="border px-3 py-2 rounded w-28"
+          />
+      
+          <input
+            placeholder="Tandem"
+            value={tandem}
+            onChange={(e)=>setTandem(e.target.value)}
+            className="border px-3 py-2 rounded w-32"
+          />
+      
+          {user?.role === "admin" && (
+            <button
+              onClick={handleImport}
+              className="bg-green-600 text-white px-4 py-2 rounded"
+            >
+              📥 Import Excel
+            </button>
+          )}
+      
+        </div>
       
       </div>
 
@@ -244,22 +304,33 @@ export default function VaconList() {
                 {row.note}
               </td>
         
-              <td className="border p-2">
-        
+              <td>
+              
                 <button
-                  onClick={() =>
-                    setSelected(row)
-                  }
-                  className="
-                    px-3 py-1
-                    bg-blue-500
-                    text-white
-                    rounded
-                  "
+                  onClick={() => openDetail(item)}
+                  className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
                 >
                   Xem
                 </button>
-        
+              
+                {user?.role === "admin" && (
+                  <>
+                    <button
+                      onClick={() => editItem(item)}
+                      className="bg-yellow-500 text-white px-3 py-1 rounded mr-2"
+                    >
+                      Sửa
+                    </button>
+              
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="bg-red-500 text-white px-3 py-1 rounded"
+                    >
+                      Xóa
+                    </button>
+                  </>
+                )}
+              
               </td>
         
             </tr>
