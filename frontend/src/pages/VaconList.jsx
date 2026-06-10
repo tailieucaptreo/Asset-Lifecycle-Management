@@ -90,9 +90,9 @@ export default function VaconList() {
 
         <table
           className="
-          min-w-[2500px]
-          border-collapse
           w-full
+          border-collapse
+          table-auto
           "
         >
 
