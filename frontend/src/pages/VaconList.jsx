@@ -160,18 +160,23 @@ export default function VaconList() {
         localStorage.getItem("token");
 
       await axios.put(
-
         `${API}/api/vacon/${editing.id}`,
-
-        editing,
-
+        {
+          application: editing.application,
+          powerUnitDate: editing.powerUnitDate,
+          serialNumber: editing.serialNumber,
+          operationHours: editing.operationHours,
+          faultHistory: editing.faultHistory,
+          description: editing.description,
+          possibleCause: editing.possibleCause,
+          correctiveActions: editing.correctiveActions,
+          note: editing.note
+        },
         {
           headers: {
-            Authorization:
-              `Bearer ${token}`
+            Authorization: `Bearer ${token}`
           }
         }
-
       );
 
       alert("Đã cập nhật");
@@ -642,7 +647,7 @@ export default function VaconList() {
           </div>
 
         )}
-        
+
         {editing && (
 
           <div
@@ -660,7 +665,9 @@ export default function VaconList() {
               bg-white
               rounded-xl
               p-6
-              w-[700px]
+              w-[1100px]
+              max-h-[90vh]
+              overflow-y-auto
               "
             >
 
@@ -668,52 +675,202 @@ export default function VaconList() {
                 Chỉnh sửa biến tần
               </h2>
 
-              <label className="block mb-2">
-                Note
-              </label>
+              <div className="space-y-4">
+                <div>
+                  <label className="font-semibold">
+                    Record Date
+                  </label>
 
-              <textarea
-                value={
-                  editing.note || ""
-                }
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    note:
-                      e.target.value
-                  })
-                }
-                className="
-                  border
-                  p-2
-                  w-full
-                  h-24
-                  mb-4
-                  "
-              />
+                  <input
+                    type="date"
+                    value={
+                      editing.recordDate
+                        ? new Date(editing.recordDate)
+                          .toISOString()
+                          .split("T")[0]
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        recordDate: e.target.value
+                      })
+                    }
+                    className="
+                    border
+                    p-2
+                    rounded
+                    w-full
+                    "
+                  />
+                </div>
 
-              <label className="block mb-2">
-                Corrective Actions
-              </label>
+                {/* Application */}
+                <div>
+                  <label className="font-semibold">
+                    Application
+                  </label>
 
-              <textarea
-                value={
-                  editing.correctiveActions || ""
-                }
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    correctiveActions:
-                      e.target.value
-                  })
-                }
-                className="
-                border
-                p-2
-                w-full
-                h-40
-                "
-              />
+                  <textarea
+                    value={editing.application || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        application: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-24"
+                  />
+                </div>
+
+                {/* Power Unit Date */}
+                <div>
+                  <label className="font-semibold">
+                    Power Unit Date
+                  </label>
+
+                  <input
+                    type="text"
+                    value={editing.powerUnitDate || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        powerUnitDate: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full"
+                  />
+                </div>
+
+                {/* Serial Number */}
+                <div>
+                  <label className="font-semibold">
+                    Serial Number
+                  </label>
+
+                  <input
+                    type="text"
+                    value={editing.serialNumber || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        serialNumber: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full"
+                  />
+                </div>
+
+                {/* Operation Hours */}
+                <div>
+                  <label className="font-semibold">
+                    Operation Hours
+                  </label>
+
+                  <input
+                    type="text"
+                    value={editing.operationHours || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        operationHours: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full"
+                  />
+                </div>
+
+                {/* Fault History */}
+                <div>
+                  <label className="font-semibold">
+                    Fault History
+                  </label>
+
+                  <textarea
+                    value={editing.faultHistory || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        faultHistory: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-32"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="font-semibold">
+                    Description
+                  </label>
+
+                  <textarea
+                    value={editing.description || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        description: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-32"
+                  />
+                </div>
+
+                {/* Possible Cause */}
+                <div>
+                  <label className="font-semibold">
+                    Possible Cause
+                  </label>
+
+                  <textarea
+                    value={editing.possibleCause || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        possibleCause: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-32"
+                  />
+                </div>
+
+                {/* Corrective Actions */}
+                <div>
+                  <label className="font-semibold">
+                    Corrective Actions
+                  </label>
+
+                  <textarea
+                    value={editing.correctiveActions || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        correctiveActions: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-32"
+                  />
+                </div>
+
+                {/* Note */}
+                <div>
+                  <label className="font-semibold">
+                    Note
+                  </label>
+
+                  <textarea
+                    value={editing.note || ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        note: e.target.value
+                      })
+                    }
+                    className="border p-2 rounded w-full h-24"
+                  />
+                </div>
+
+              </div>
 
               <div className="mt-4 flex gap-3">
 

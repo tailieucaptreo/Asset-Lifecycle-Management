@@ -103,18 +103,21 @@ exports.update = async (req, res) => {
 
   try {
 
-    const id =
-      Number(req.params.id);
+    const id = Number(req.params.id);
+
+    const data = {
+      ...req.body
+    };
+
+    if (data.recordDate) {
+      data.recordDate =
+        new Date(data.recordDate);
+    }
 
     const item =
       await prisma.vaconRecord.update({
-
-        where: {
-          id
-        },
-
-        data: req.body
-
+        where: { id },
+        data
       });
 
     res.json(item);
@@ -130,7 +133,6 @@ exports.update = async (req, res) => {
   }
 
 };
-
 
 // ============================
 // DELETE
