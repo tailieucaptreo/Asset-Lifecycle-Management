@@ -8,6 +8,9 @@ const vaconController =
 const auth =
   require("../middleware/auth");
 
+const adminOnly =
+  require("../middleware/adminOnly");
+
 const upload = multer({
   storage: multer.memoryStorage()
 });
@@ -38,6 +41,7 @@ router.post(
 router.put(
   "/:id",
   auth,
+  adminOnly,
   vaconController.update
 );
 
@@ -45,12 +49,14 @@ router.put(
 router.delete(
   "/:id",
   auth,
+  adminOnly,
   vaconController.remove
 );
 
 router.post(
   "/import",
   auth,
+  adminOnly,
   upload.single("file"),
   vaconController.importExcel
 );
