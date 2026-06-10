@@ -398,60 +398,54 @@ export default function VaconList() {
 
                 <td>{row.note}</td>
 
-                <td>
+                <td className="border p-2">
 
-                  <button
-                    onClick={() =>
-                      setSelected(row)
-                    }
-                    className="
-                bg-blue-500
-                text-white
-                px-3
-                py-1
-                rounded
-                mr-2
-                "
-                  >
-                    Xem
-                  </button>
+                  <div className="flex justify-center items-center gap-4">
 
-                  {isAdmin && (
-
-                    <>
-                      <button
-                        onClick={() =>
-                          setEditing(row)
-                        }
+                    <button
+                      onClick={() =>
+                        setSelected(row)
+                      }
                         className="
-                    bg-yellow-500
-                    text-white
-                    px-3
-                    py-1
-                    rounded
-                    mr-2
-                    "
-                      >
-                        Sửa
-                      </button>
+                        text-blue-600
+                        hover:underline
+                        font-medium
+                        "
+                    >
+                      Xem
+                    </button>
 
-                      <button
-                        onClick={() =>
-                          deleteItem(row.id)
-                        }
-                        className="
-                    bg-red-600
-                    text-white
-                    px-3
-                    py-1
-                    rounded
-                    "
-                      >
-                        Xóa
-                      </button>
-                    </>
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setEditing(row)
+                          }
+                          className="
+                          text-amber-600
+                          hover:underline
+                          font-medium
+                          "
+                        >
+                          Sửa
+                        </button>
 
-                  )}
+                        <button
+                          onClick={() =>
+                            deleteItem(row.id)
+                          }
+                          className="
+                          text-red-600
+                          hover:underline
+                          font-medium
+                          "
+                        >
+                          Xóa
+                        </button>
+                      </>
+                    )}
+
+                  </div>
 
                 </td>
 
