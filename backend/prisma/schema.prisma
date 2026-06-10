@@ -118,35 +118,26 @@ model SpareHistory {
   createdAt   DateTime @default(now())
 }
 
-model VaconFault {
+model VaconRecord {
+  id                Int      @id @default(autoincrement())
 
-  id               Int      @id @default(autoincrement())
+  recordDate        DateTime?
+  station           String?
+  tandem            String?
 
-  recordDate       DateTime?
+  deviceName        String?
+  serialNumber      String?
+  application       String?
 
-  station          String?
+  powerUnitDate     String?
 
-  Tandem           String?
+  faultHistory      String?   @db.Text
+  operationHours    String?
 
-  deviceName       String?
+  description       String?   @db.Text
+  possibleCause     String?   @db.Text
+  correctiveActions String?   @db.Text
+  note              String?   @db.Text
 
-  serialNumber     String?
-
-  application      String?
-
-  powerUnitDate    String?
-
-  faultHistory     String?
-
-  operationHour    String?
-
-  description      String?
-
-  possibleCause    String?
-
-  correctiveAction String?
-
-  note             String?
-
-  createdAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
 }
