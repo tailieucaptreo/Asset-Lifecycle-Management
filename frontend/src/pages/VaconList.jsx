@@ -445,8 +445,6 @@ export default function VaconList() {
           
           ))}
           
-          </tbody>
-          
         </tbody>
           
         </table>
