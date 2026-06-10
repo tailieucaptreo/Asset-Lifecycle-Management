@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 
 const vaconController =
   require("../controllers/vacon.controller");
 
 const auth =
   require("../middleware/auth");
+
+const upload = multer({
+  storage: multer.memoryStorage()
+});
 
 
 // Danh sách
@@ -41,6 +46,13 @@ router.delete(
   "/:id",
   auth,
   vaconController.remove
+);
+
+router.post(
+  "/import",
+  auth,
+  upload.single("file"),
+  vaconController.importExcel
 );
 
 module.exports = router;
