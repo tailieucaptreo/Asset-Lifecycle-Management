@@ -197,92 +197,112 @@ exports.importExcel = async (req, res) => {
     function excelDateToJS(value) {
 
       if (!value) return null;
-
-      // Excel serial number
+    
       if (typeof value === "number") {
-
+    
+        const excelEpoch =
+          new Date(
+            Date.UTC(
+              1899,
+              11,
+              30
+            )
+          );
+    
         return new Date(
-          (value - 25569) *
-          86400 *
-          1000
+          excelEpoch.getTime()
+          +
+          value * 86400000
         );
-
+    
       }
-
-      // Date string
+    
       const d = new Date(value);
-
+    
       return isNaN(d)
         ? null
         : d;
-
+    
     }
 
-    let imported = 0;
+    const data = rows.map(row => ({
 
-    for (const row of rows) {
-
-      await prisma.vaconRecord.create({
-
-        data: {
-
-          recordDate:
-            row["Record Date"]
-              ? excelDateToJS(row["Record Date"])
-              : null,
-
-          station:
-            String(row["Station"] || ""),
-          
-          tandem:
-            String(row["Tandem"] || ""),
-          
-          deviceName:
-            String(row["The Device Name"] || ""),
-          
-          serialNumber:
-            String(row["Serial number"] || ""),
-          
-          application:
-            String(row["Application"] || ""),
-          
-          powerUnitDate:
-            String(row["Power Unit Date"] || ""),
-          
-          faultHistory:
-            String(row["Fault history"] || ""),
-          
-          operationHours:
-            String(row["Operation Hours"] || ""),
-          
-          description:
-            String(row["Description"] || ""),
-          
-          possibleCause:
-            String(row["Possible Cause"] || ""),
-          
-          correctiveActions:
-            String(row["Corrective actions"] || ""),
-          
-          note:
-            String(row["note"] || "")
-                  }
-
-      });
-
-      imported++;
-
-    }
-
-    res.json({
-
-      success: true,
-      imported
-
+      recordDate:
+        excelDateToJS(
+          row["Record Date"]
+        ),
+    
+      station:
+        row["Station"]
+          ? String(row["Station"])
+          : null,
+    
+      tandem:
+        row["Tandem"]
+          ? String(row["Tandem"])
+          : null,
+    
+      deviceName:
+        row["The Device Name"]
+          ? String(row["The Device Name"])
+          : null,
+    
+      serialNumber:
+        row["Serial number"]
+          ? String(row["Serial number"])
+          : null,
+    
+      application:
+        row["Application"]
+          ? String(row["Application"])
+          : null,
+    
+      powerUnitDate:
+        row["Power Unit Date"]
+          ? String(row["Power Unit Date"])
+          : null,
+    
+      faultHistory:
+        row["Fault history"]
+          ? String(row["Fault history"])
+          : null,
+    
+      operationHours:
+        row["Operation Hour"]
+          ? String(row["Operation Hour"])
+          : null,
+    
+      description:
+        row["Description"]
+          ? String(row["Description"])
+          : null,
+    
+      possibleCause:
+        row["Possible Cause"]
+          ? String(row["Possible Cause"])
+          : null,
+    
+      correctiveActions:
+        row["Corrective actions"]
+          ? String(row["Corrective actions"])
+          : null,
+    
+      note:
+        row["note"]
+          ? String(row["note"])
+          : null
+    
+    }));
+    
+    await prisma.vaconRecord.createMany({
+      data
     });
-
-  }
-
+    
+    res.json({
+      success: true,
+      imported: data.length
+    });
+    
   catch (err) {
 
     console.log(err);
