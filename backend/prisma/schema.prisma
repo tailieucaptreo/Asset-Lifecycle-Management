@@ -117,3 +117,36 @@ model SpareHistory {
 
   createdAt   DateTime @default(now())
 }
+
+model VaconFault {
+
+  id               Int      @id @default(autoincrement())
+
+  recordDate       DateTime?
+
+  station          String?
+
+  Tandem           String?
+
+  deviceName       String?
+
+  serialNumber     String?
+
+  application      String?
+
+  powerUnitDate    String?
+
+  faultHistory     String?
+
+  operationHour    String?
+
+  description      String?
+
+  possibleCause    String?
+
+  correctiveAction String?
+
+  note             String?
+
+  createdAt        DateTime @default(now())
+}
