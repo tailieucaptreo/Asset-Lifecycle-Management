@@ -18,6 +18,7 @@ import ImportExcel from "./pages/ImportExcel";
 import DeviceDetail from "./pages/DeviceDetail";
 import SpareDevices from "./pages/SpareDevices";
 import Login from "./pages/Login";
+import VaconList from "./pages/VaconList";
 
 function Layout() {
 
@@ -114,6 +115,11 @@ function Layout() {
           <Route
             path="/spare-devices"
             element={<SpareDevices />}
+          />
+
+          <Route
+            path="/vacon"
+            element={<VaconList />}
           />
 
         </Routes>
