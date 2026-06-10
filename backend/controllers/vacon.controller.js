@@ -303,7 +303,7 @@ exports.importExcel = async (req, res) => {
       imported: data.length
     });
     
-  catch (err) {
+  } catch (err) {
 
     console.log(err);
 
