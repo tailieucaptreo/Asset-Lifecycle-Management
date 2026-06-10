@@ -5,13 +5,23 @@ import API from "../config";
 
 export default function VaconList() {
 
+  const user = JSON.parse(
+  localStorage.getItem("user") || "{}"
+  );
+  
+  const isAdmin =
+    user.role === "admin";
+  
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
   const [selected, setSelected] = useState(null);
+  
+  const [editing, setEditing] = useState(null);
+  
   const [search, setSearch] = useState("");
   const [station, setStation] = useState("");
   const [tandem, setTandem] = useState("");
-
-  const [loading, setLoading] = useState(true);
 
   const handleImport = async (e) => {
 
@@ -19,9 +29,13 @@ export default function VaconList() {
   
     if (!file) return;
   
-    const formData = new FormData();
+    const formData =
+      new FormData();
   
-    formData.append("file", file);
+    formData.append(
+      "file",
+      file
+    );
   
     try {
   
@@ -36,8 +50,10 @@ export default function VaconList() {
   
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data"
+            Authorization:
+              `Bearer ${token}`,
+            "Content-Type":
+              "multipart/form-data"
           }
         }
   
@@ -47,9 +63,11 @@ export default function VaconList() {
   
       loadData();
   
-    } catch (err) {
+    }
   
-      console.error(err);
+    catch (err) {
+  
+      console.log(err);
   
       alert("Import thất bại");
   
@@ -57,64 +75,130 @@ export default function VaconList() {
   
   };
 
-  const filteredData = data.filter(item => {
+  const filteredData =
+    data.filter((item) => {
   
-    return (
+      return (
   
-      (!search ||
-        item.deviceName?.toLowerCase()
-          .includes(search.toLowerCase()) ||
+        (!search ||
   
-        item.serialNumber?.toLowerCase()
-          .includes(search.toLowerCase())
-      )
+          item.deviceName
+            ?.toLowerCase()
+            .includes(
+              search.toLowerCase()
+            )
   
-      &&
+          ||
   
-      (!station ||
-        item.station === station)
+          item.serialNumber
+            ?.toLowerCase()
+            .includes(
+              search.toLowerCase()
+            )
   
-      &&
+        )
   
-      (!tandem ||
-        item.tandem === tandem)
+        &&
   
-    );
+        (!station ||
+          item.station === station)
+  
+        &&
+  
+        (!tandem ||
+          item.tandem === tandem)
+  
+      );
   
   });
 
   const deleteItem = async (id) => {
 
-    if (!window.confirm("Xóa bản ghi?"))
-      return;
+    if (
+      !window.confirm(
+        "Xóa bản ghi?"
+      )
+    ) return;
   
-    const token =
-      localStorage.getItem("token");
+    try {
   
-    await axios.delete(
+      const token =
+        localStorage.getItem("token");
   
-      `${API}/api/vacon/${id}`,
+      await axios.delete(
   
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`
+        `${API}/api/vacon/${id}`,
+  
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
         }
-      }
   
-    );
+      );
   
-    fetchData();
+      loadData();
+  
+    }
+  
+    catch (err) {
+  
+      console.log(err);
+  
+      alert("Không thể xóa");
+  
+    }
+  
+  };
+
+  const saveEdit = async () => {
+
+    try {
+  
+      const token =
+        localStorage.getItem("token");
+  
+      await axios.put(
+  
+        `${API}/api/vacon/${editing.id}`,
+  
+        editing,
+  
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        }
+  
+      );
+  
+      alert("Đã cập nhật");
+  
+      setEditing(null);
+  
+      loadData();
+  
+    }
+  
+    catch (err) {
+  
+      console.log(err);
+  
+      alert("Cập nhật thất bại");
+  
+    }
   
   };
 
   const loadData = async () => {
 
     try {
-
+  
       const token =
         localStorage.getItem("token");
-
+  
       const res =
         await axios.get(
           `${API}/api/vacon`,
@@ -125,42 +209,26 @@ export default function VaconList() {
             }
           }
         );
-
+  
       setData(res.data);
-
-    }
-
-    catch (err) {
-
+  
+    } catch (err) {
+  
       console.log(err);
-
-      alert("Không tải được dữ liệu");
-
-    }
-
-    finally {
-
+  
+    } finally {
+  
       setLoading(false);
-
+  
     }
-
+  
   };
-
+  
   useEffect(() => {
-
+  
     loadData();
-
+  
   }, []);
-
-  if (loading) {
-
-    return (
-      <div className="p-6">
-        Đang tải...
-      </div>
-    );
-
-  }
 
   return (
 
@@ -172,38 +240,67 @@ export default function VaconList() {
           ⚡ Biến tần Vacon
         </h1>
       
-        <div className="flex gap-3">
-      
+        <div className="flex gap-3 flex-wrap mb-5">
+
           <input
-            placeholder="Tên thiết bị..."
+            placeholder="Tìm thiết bị..."
             value={search}
-            onChange={(e)=>setSearch(e.target.value)}
+            onChange={(e)=>
+              setSearch(
+                e.target.value
+              )
+            }
             className="border px-3 py-2 rounded"
           />
-      
+        
           <input
             placeholder="Station"
             value={station}
-            onChange={(e)=>setStation(e.target.value)}
-            className="border px-3 py-2 rounded w-28"
+            onChange={(e)=>
+              setStation(
+                e.target.value
+              )
+            }
+            className="border px-3 py-2 rounded"
           />
-      
+        
           <input
             placeholder="Tandem"
             value={tandem}
-            onChange={(e)=>setTandem(e.target.value)}
-            className="border px-3 py-2 rounded w-32"
+            onChange={(e)=>
+              setTandem(
+                e.target.value
+              )
+            }
+            className="border px-3 py-2 rounded"
           />
-      
-          {user?.role === "admin" && (
-            <button
-              onClick={handleImport}
-              className="bg-green-600 text-white px-4 py-2 rounded"
+        
+          {isAdmin && (
+        
+            <label
+              className="
+              bg-green-600
+              text-white
+              px-4
+              py-2
+              rounded
+              cursor-pointer
+              "
             >
+        
               📥 Import Excel
-            </button>
+        
+              <input
+                type="file"
+                hidden
+                accept=".xlsx,.xls"
+                onChange={handleImport}
+              />
+        
+            </label>
+        
           )}
-      
+        
         </div>
       
       </div>
@@ -262,81 +359,94 @@ export default function VaconList() {
             </tr>
 
           </thead>
-
           <tbody>
-        
-          {data.map((row) => (
-        
-            <tr
-              key={row.id}
-              className="hover:bg-gray-50"
-            >
-        
-              <td className="border p-2">
-                {row.recordDate
-                  ? new Date(
-                      row.recordDate
-                    ).toLocaleDateString()
-                  : ""}
-              </td>
-        
-              <td className="border p-2">
-                {row.station}
-              </td>
-        
-              <td className="border p-2">
-                {row.tandem}
-              </td>
-        
-              <td className="border p-2">
-                {row.deviceName}
-              </td>
-        
-              <td className="border p-2">
-                {row.serialNumber}
-              </td>
-        
-              <td className="border p-2">
-                {row.operationHours}
-              </td>
-        
-              <td className="border p-2">
-                {row.note}
-              </td>
-        
-              <td>
-              
-                <button
-                  onClick={() => openDetail(item)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded mr-2"
-                >
-                  Xem
-                </button>
-              
-                {user?.role === "admin" && (
-                  <>
-                    <button
-                      onClick={() => editItem(item)}
-                      className="bg-yellow-500 text-white px-3 py-1 rounded mr-2"
-                    >
-                      Sửa
-                    </button>
-              
-                    <button
-                      onClick={() => deleteItem(item.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded"
-                    >
-                      Xóa
-                    </button>
-                  </>
-                )}
-              
-              </td>
-        
-            </tr>
-        
+
+          {filteredData.map((row) => (
+          
+          <tr key={row.id}>
+          
+            <td>{row.recordDate
+              ? new Date(
+                  row.recordDate
+                ).toLocaleDateString()
+              : ""}
+            </td>
+          
+            <td>{row.station}</td>
+          
+            <td>{row.tandem}</td>
+          
+            <td>{row.deviceName}</td>
+          
+            <td>{row.serialNumber}</td>
+          
+            <td>{row.operationHours}</td>
+          
+            <td>{row.note}</td>
+          
+            <td>
+          
+              <button
+                onClick={() =>
+                  setSelected(row)
+                }
+                className="
+                bg-blue-500
+                text-white
+                px-3
+                py-1
+                rounded
+                mr-2
+                "
+              >
+                Xem
+              </button>
+          
+              {isAdmin && (
+          
+                <>
+                  <button
+                    onClick={() =>
+                      setEditing(row)
+                    }
+                    className="
+                    bg-yellow-500
+                    text-white
+                    px-3
+                    py-1
+                    rounded
+                    mr-2
+                    "
+                  >
+                    Sửa
+                  </button>
+          
+                  <button
+                    onClick={() =>
+                      deleteItem(row.id)
+                    }
+                    className="
+                    bg-red-600
+                    text-white
+                    px-3
+                    py-1
+                    rounded
+                    "
+                  >
+                    Xóa
+                  </button>
+                </>
+          
+              )}
+          
+            </td>
+          
+          </tr>
+          
           ))}
-        
+          
+          </tbody>
+          
         </tbody>
           
         </table>
