@@ -5,14 +5,8 @@ import API from "../config";
 import Header from "../components/Header.jsx";
 import Card from "../components/Card.jsx";
 import Chart from "../components/Chart.jsx";
-<<<<<<< Updated upstream
 import AdvancedFilter from "../components/AdvancedFilter.jsx";
 import Table from "../components/Table.jsx";
-=======
-import Table from "../components/Table.jsx";
-import AdvancedFilter from "../components/AdvancedFilter.jsx";
-//import ImportExcel from "../components/ImportExcel.jsx";
->>>>>>> Stashed changes
 
 import {
   Cpu,
