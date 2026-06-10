@@ -22,6 +22,13 @@ const prisma =
 const app =
     express();
 
+const vaconRoutes =
+  require("./routes/vacon.routes");
+
+app.use(
+  "/api/vacon",
+  vaconRoutes
+);
 
 // ===== CORS =====
 
