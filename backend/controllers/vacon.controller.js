@@ -194,6 +194,30 @@ exports.importExcel = async (req, res) => {
         defval: ""
       });
 
+    function excelDateToJS(value) {
+
+      if (!value) return null;
+
+      // Excel serial number
+      if (typeof value === "number") {
+
+        return new Date(
+          (value - 25569) *
+          86400 *
+          1000
+        );
+
+      }
+
+      // Date string
+      const d = new Date(value);
+
+      return isNaN(d)
+        ? null
+        : d;
+
+    }
+
     let imported = 0;
 
     for (const row of rows) {
@@ -204,46 +228,45 @@ exports.importExcel = async (req, res) => {
 
           recordDate:
             row["Record Date"]
-              ? new Date(row["Record Date"])
+              ? excelDateToJS(row["Record Date"])
               : null,
 
           station:
-            row["Station"] || "",
-
+            String(row["Station"] || ""),
+          
           tandem:
-            row["Tandem"] || "",
-
+            String(row["Tandem"] || ""),
+          
           deviceName:
-            row["The Device Name"] || "",
-
+            String(row["The Device Name"] || ""),
+          
           serialNumber:
-            row["Serial number"] || "",
-
+            String(row["Serial number"] || ""),
+          
           application:
-            row["Application"] || "",
-
+            String(row["Application"] || ""),
+          
           powerUnitDate:
-            row["Power Unit Date"] || "",
-
+            String(row["Power Unit Date"] || ""),
+          
           faultHistory:
-            row["Fault history"] || "",
-
+            String(row["Fault history"] || ""),
+          
           operationHours:
-            row["Operation Hours"] || "",
-
+            String(row["Operation Hours"] || ""),
+          
           description:
-            row["Description"] || "",
-
+            String(row["Description"] || ""),
+          
           possibleCause:
-            row["Possible Cause"] || "",
-
+            String(row["Possible Cause"] || ""),
+          
           correctiveActions:
-            row["Corrective actions"] || "",
-
+            String(row["Corrective actions"] || ""),
+          
           note:
-            row["note"] || ""
-
-        }
+            String(row["note"] || "")
+                  }
 
       });
 
