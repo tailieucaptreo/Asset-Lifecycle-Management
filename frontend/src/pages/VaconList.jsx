@@ -11,6 +11,50 @@ export default function VaconList() {
   const [loading, setLoading] =
     useState(true);
 
+  const handleImport = async (e) => {
+
+    const file = e.target.files[0];
+  
+    if (!file) return;
+  
+    const formData = new FormData();
+  
+    formData.append("file", file);
+  
+    try {
+  
+      const token =
+        localStorage.getItem("token");
+  
+      await axios.post(
+  
+        `${API}/api/vacon/import`,
+  
+        formData,
+  
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        }
+  
+      );
+  
+      alert("Import thành công");
+  
+      loadData();
+  
+    } catch (err) {
+  
+      console.error(err);
+  
+      alert("Import thất bại");
+  
+    }
+  
+  };
+
   const loadData = async () => {
 
     try {
@@ -69,14 +113,39 @@ export default function VaconList() {
 
     <div className="p-6">
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-6">
 
-        <h1 className="text-3xl font-bold">
-
-          ⚡ Biến tần Vacon
-
-        </h1>
-
+        <div className="flex items-center gap-3">
+          <span className="text-4xl">⚡</span>
+      
+          <h1 className="text-4xl font-bold">
+            Biến tần Vacon
+          </h1>
+        </div>
+      
+        <label
+          className="
+          bg-green-600
+          hover:bg-green-700
+          text-white
+          px-5
+          py-2
+          rounded-lg
+          cursor-pointer
+          font-medium
+          shadow
+          "
+        >
+          📥 Import Excel
+      
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleImport}
+          />
+        </label>
+      
       </div>
 
       <div
