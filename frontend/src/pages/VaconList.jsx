@@ -230,6 +230,15 @@ export default function VaconList() {
   
   }, []);
 
+  if (loading) {
+    return (
+      <div className="p-6">
+        Đang tải dữ liệu...
+      </div>
+    );
+  
+  }
+
   return (
 
     <div className="p-6">
