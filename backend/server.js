@@ -28,38 +28,23 @@ const vaconRoutes =
 // ===== CORS =====
 
 app.use(
-
-    cors({
-
-        origin: [
-
-            "http://localhost:5173",
-
-            "https://asset-lifecycle-management.vercel.app"
-
-        ],
-
-        methods: [
-
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "OPTIONS"
-
-        ],
-
-        credentials: true
-
-    })
-
+  cors({
+    origin: true,
+    credentials: true,
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS"
+    ]
+  })
 );
 
-app.options(
-    "*",
-    cors()
-);
-
+app.options("*", cors({
+  origin: true,
+  credentials: true
+}));
 
 // ===== BODY =====
 
