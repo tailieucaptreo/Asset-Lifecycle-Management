@@ -89,7 +89,7 @@ export default function Sidebar() {
               className={`p-2 rounded cursor-pointer ${active("/vacon")}`}
               onClick={() => nav("/vacon")}
             >
-              ⚡ Biến tần Vacon
+              ⚡ Lịch sử lỗi biến tần Vacon
             </div>
             
             <div
