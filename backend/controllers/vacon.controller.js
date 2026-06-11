@@ -219,6 +219,26 @@ exports.importExcel = async (req, res) => {
     
       }
     
+      if (
+        typeof value === "string" &&
+        value.includes("/")
+      ) {
+    
+        const parts =
+          value.split("/");
+    
+        if (parts.length === 3) {
+    
+          return new Date(
+            Number(parts[2]),
+            Number(parts[1]) - 1,
+            Number(parts[0])
+          );
+    
+        }
+    
+      }
+    
       const d =
         new Date(value);
     
