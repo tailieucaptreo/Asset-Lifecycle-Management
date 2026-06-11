@@ -196,7 +196,39 @@ exports.importExcel = async (req, res) => {
         defval: ""
       });
 
-  function excelTimeToString(value) {
+    function excelDateToJS(value) {
+
+      if (!value) return null;
+    
+      if (typeof value === "number") {
+    
+        const excelEpoch =
+          new Date(
+            Date.UTC(
+              1899,
+              11,
+              30
+            )
+          );
+    
+        return new Date(
+          excelEpoch.getTime()
+          +
+          value * 86400000
+        );
+    
+      }
+    
+      const d =
+        new Date(value);
+    
+      return isNaN(d)
+        ? null
+        : d;
+    
+    }
+        
+    function excelTimeToString(value) {
     
       if (!value) return "";
     
