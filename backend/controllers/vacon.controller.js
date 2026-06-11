@@ -266,75 +266,89 @@ exports.importExcel = async (req, res) => {
       return String(value);
     
     }
+    let currentRecordDate = null;
+    const data = rows.map((row) => {
 
-    const data = rows.map(row => ({
-
-      recordDate:
-        excelDateToJS(
-          row["Record Date"]
-        ),
-
-      station:
-        row["Station"]
-          ? String(row["Station"])
-          : null,
-
-      tandem:
-        row["Tandem"]
-          ? String(row["Tandem"])
-          : null,
-
-      deviceName:
-        row["The Device Name"]
-          ? String(row["The Device Name"])
-          : null,
-
-      serialNumber:
-        row["Serial number"]
-          ? String(row["Serial number"])
-          : null,
-
-      application:
-        row["Application"]
-          ? String(row["Application"])
-          : null,
-
-      powerUnitDate:
-        row["Power Unit Date"]
-          ? String(row["Power Unit Date"])
-          : null,
-
-      faultHistory:
-        row["Fault history"]
-          ? String(row["Fault history"])
-          : null,
-
-      operationHours:
-      excelTimeToString(
-        row["Operation Hours"]
-      ),
-
-      description:
-        row["Description"]
-          ? String(row["Description"])
-          : null,
-
-      possibleCause:
-        row["Possible Cause"]
-          ? String(row["Possible Cause"])
-          : null,
-
-      correctiveActions:
-        row["Corrective actions"]
-          ? String(row["Corrective actions"])
-          : null,
-
-      note:
-        row["note"]
-          ? String(row["note"])
-          : null
-
-    }));
+      if (
+        row["Record Date"] &&
+        String(row["Record Date"]).trim() !== ""
+      ) {
+    
+        currentRecordDate =
+          excelDateToJS(
+            row["Record Date"]
+          );
+    
+      }
+    
+      return {
+    
+        recordDate:
+          currentRecordDate,
+    
+        station:
+          row["Station"]
+            ? String(row["Station"])
+            : null,
+    
+        tandem:
+          row["Tandem"]
+            ? String(row["Tandem"])
+            : null,
+    
+        deviceName:
+          row["The Device Name"]
+            ? String(row["The Device Name"])
+            : null,
+    
+        serialNumber:
+          row["Serial number"]
+            ? String(row["Serial number"])
+            : null,
+    
+        application:
+          row["Application"]
+            ? String(row["Application"])
+            : null,
+    
+        powerUnitDate:
+          row["Power Unit Date"]
+            ? String(row["Power Unit Date"])
+            : null,
+    
+        faultHistory:
+          row["Fault history"]
+            ? String(row["Fault history"])
+            : null,
+    
+        operationHours:
+          excelTimeToString(
+            row["Operation Hours"]
+          ),
+    
+        description:
+          row["Description"]
+            ? String(row["Description"])
+            : null,
+    
+        possibleCause:
+          row["Possible Cause"]
+            ? String(row["Possible Cause"])
+            : null,
+    
+        correctiveActions:
+          row["Corrective actions"]
+            ? String(row["Corrective actions"])
+            : null,
+    
+        note:
+          row["note"]
+            ? String(row["note"])
+            : null
+    
+      };
+    
+    });
 
     await prisma.vaconRecord.createMany({
       data
