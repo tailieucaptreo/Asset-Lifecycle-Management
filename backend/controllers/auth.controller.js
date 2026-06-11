@@ -109,6 +109,10 @@ exports.login =
 
 
             // SAI
+            console.log(
+              "LOGIN FAIL:",
+              username
+            );
 
             return res
                 .status(401)
