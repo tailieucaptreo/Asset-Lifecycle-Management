@@ -333,12 +333,13 @@ export default function VaconList() {
           w-full
           border-collapse
           table-auto
+          text-center
           "
         >
 
           <thead>
 
-            <tr className="bg-yellow-400 text-black">
+            <tr className="bg-yellow-400 text-black text-center">
 
               <th className="border p-2">
                 Record Date
@@ -379,26 +380,39 @@ export default function VaconList() {
 
               <tr key={row.id}>
 
-                <td>{row.recordDate
-                  ? new Date(
-                    row.recordDate
-                  ).toLocaleDateString()
-                  : ""}
+                <td className="border p-3 text-center align-middle">
+                  {row.recordDate
+                    ? new Date(
+                      row.recordDate
+                    ).toLocaleDateString()
+                    : ""}
                 </td>
 
-                <td>{row.station}</td>
-
-                <td>{row.tandem}</td>
-
-                <td>{row.deviceName}</td>
-
-                <td>{row.serialNumber}</td>
-
-                <td>{row.operationHours}</td>
-
-                <td>{row.note}</td>
-
-                <td className="border p-2">
+                <td className="border p-3 text-center align-middle">
+                  {row.station}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
+                  {row.tandem}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
+                  {row.deviceName}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
+                  {row.serialNumber}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
+                  {row.operationHours}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
+                  {row.note}
+                </td>
+              
+                <td className="border p-3 text-center align-middle">
 
                   <div className="flex justify-center items-center gap-4">
 
