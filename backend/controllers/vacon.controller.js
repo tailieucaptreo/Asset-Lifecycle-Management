@@ -196,35 +196,43 @@ exports.importExcel = async (req, res) => {
         defval: ""
       });
 
-    function excelDateToJS(value) {
-
-      if (!value) return null;
-
+  function excelTimeToString(value) {
+    
+      if (!value) return "";
+    
+      // Excel time
       if (typeof value === "number") {
-
-        const excelEpoch =
-          new Date(
-            Date.UTC(
-              1899,
-              11,
-              30
-            )
+    
+        const totalSeconds =
+          Math.round(
+            value * 24 * 60 * 60
           );
-
-        return new Date(
-          excelEpoch.getTime()
-          +
-          value * 86400000
-        );
-
+    
+        const hours =
+          String(
+            Math.floor(
+              totalSeconds / 3600
+            )
+          ).padStart(2, "0");
+    
+        const minutes =
+          String(
+            Math.floor(
+              (totalSeconds % 3600) / 60
+            )
+          ).padStart(2, "0");
+    
+        const seconds =
+          String(
+            totalSeconds % 60
+          ).padStart(2, "0");
+    
+        return `${hours}:${minutes}:${seconds}`;
+    
       }
-
-      const d = new Date(value);
-
-      return isNaN(d)
-        ? null
-        : d;
-
+    
+      return String(value);
+    
     }
 
     const data = rows.map(row => ({
@@ -270,11 +278,9 @@ exports.importExcel = async (req, res) => {
           : null,
 
       operationHours:
-        String(
-          row["Operation Hours"] ||
-          row["Operation Hour"] ||
-          ""
-        ),
+      excelTimeToString(
+        row["Operation Hours"]
+      ),
 
       description:
         row["Description"]
