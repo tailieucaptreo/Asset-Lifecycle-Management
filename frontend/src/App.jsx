@@ -19,6 +19,7 @@ import DeviceDetail from "./pages/DeviceDetail";
 import SpareDevices from "./pages/SpareDevices";
 import Login from "./pages/Login";
 import VaconList from "./pages/VaconList";
+import Category from "./pages/Category";
 
 function Layout() {
 
@@ -120,6 +121,11 @@ function Layout() {
           <Route
             path="/vacon"
             element={<VaconList />}
+          />
+
+          <Route
+            path="/category"
+            element={<Category />}
           />
 
         </Routes>
