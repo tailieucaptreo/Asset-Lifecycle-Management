@@ -48,9 +48,6 @@ model Device {
   createdAt       DateTime @default(now())
   workOrders      WorkOrder[]
 
-  categoryId Int?
-
-  category Category? @relation(fields: [categoryId], references: [id])
 }
 
 model WorkOrder {
@@ -148,14 +145,4 @@ model VaconRecord {
   createdAt         DateTime @default(now())
 }
 
-model Category {
-  id          Int      @id @default(autoincrement())
-  code        String   @unique
-  name        String
-  description String?
-
-  devices     Device[]
-
-  createdAt   DateTime @default(now())
-}
 
