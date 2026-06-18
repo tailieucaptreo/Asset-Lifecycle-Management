@@ -30,6 +30,8 @@ model Device {
   line            String
   station         String
 
+  category        String?
+
   code            String?
   area            String?
 
@@ -45,14 +47,6 @@ model Device {
 
   createdAt       DateTime @default(now())
   workOrders      WorkOrder[]
-
-  categoryId  Int?
-
-  category    Category?
-    @relation(
-      fields: [categoryId],
-      references: [id]
-    )
 }
 
 model WorkOrder {
