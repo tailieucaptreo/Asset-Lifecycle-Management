@@ -64,38 +64,76 @@ export default function Category() {
 
           <div
             key={item.id}
-            className="
-              bg-white
-              rounded-xl
-              shadow-md
-              p-6
-              cursor-pointer
-              hover:shadow-xl
-              hover:-translate-y-1
-              transition
-            "
             onClick={() =>
               navigate(
                 `/category/${encodeURIComponent(item.name)}`
               )
             }
+            className="
+              bg-white
+              rounded-2xl
+              shadow-md
+              p-6
+              cursor-pointer
+              border
+              border-gray-100
+              hover:shadow-2xl
+              hover:-translate-y-2
+              transition-all
+              duration-300
+            "
           >
-
-            <div className="text-5xl mb-3">
-              {getIcon(item.name)}
+        
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                mb-4
+              "
+            >
+        
+              <div className="text-5xl">
+                {getIcon(item.name)}
+              </div>
+        
+              <div
+                className="
+                  px-3
+                  py-1
+                  rounded-full
+                  bg-blue-100
+                  text-blue-700
+                  font-semibold
+                  text-sm
+                "
+              >
+                {item.count} thiết bị
+              </div>
+        
             </div>
-
-            <h2 className="font-bold text-xl">
+        
+            <h2
+              className="
+                text-xl
+                font-bold
+                text-gray-800
+              "
+            >
               {item.name}
             </h2>
-
-            <p className="text-gray-500 mt-2">
-              {item.count}
-              {" "}thiết bị
+        
+            <p
+              className="
+                text-gray-500
+                mt-2
+              "
+            >
+              Nhấn để xem chi tiết
             </p>
-
+        
           </div>
-
+        
         ))}
 
       </div>
