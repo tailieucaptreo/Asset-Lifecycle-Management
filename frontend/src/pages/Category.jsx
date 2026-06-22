@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import API from "../config";
 
 export default function Category() {
 
+  const navigate = useNavigate();
   const [categories, setCategories] =
     useState([]);
 
