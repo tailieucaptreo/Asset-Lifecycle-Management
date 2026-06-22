@@ -885,10 +885,11 @@ exports.getByCategory = async (req, res) => {
         await prisma.device.findMany({
 
           where: {
-            OR: [
-              { category: null },
-              { category: "" }
-            ]
+            category: null
+          },
+
+          orderBy: {
+            name: "asc"
           }
 
         });
@@ -900,6 +901,10 @@ exports.getByCategory = async (req, res) => {
 
           where: {
             category
+          },
+
+          orderBy: {
+            name: "asc"
           }
 
         });
