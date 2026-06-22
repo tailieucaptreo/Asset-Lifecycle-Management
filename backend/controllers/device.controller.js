@@ -759,3 +759,55 @@ exports.exportDevices = async (req, res) => {
 
 };
 
+exports.getCategories = async (req, res) => {
+
+  try {
+
+    const devices =
+      await prisma.device.findMany();
+
+    const map = {};
+
+    devices.forEach(device => {
+
+      const category =
+        device.category || "Chưa phân loại";
+
+      if (!map[category]) {
+
+        map[category] = 0;
+
+      }
+
+      map[category]++;
+
+    });
+
+    const result =
+      Object.keys(map).map(
+        (key, index) => ({
+
+          id: index + 1,
+
+          name: key,
+
+          count: map[key]
+
+        })
+      );
+
+    res.json(result);
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+
+};
