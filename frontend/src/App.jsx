@@ -20,6 +20,7 @@ import SpareDevices from "./pages/SpareDevices";
 import Login from "./pages/Login";
 import VaconList from "./pages/VaconList";
 import Category from "./pages/Category";
+import CategoryDetail from "./pages/CategoryDetail";
 
 function Layout() {
 
@@ -126,6 +127,11 @@ function Layout() {
           <Route
             path="/category"
             element={<Category />}
+          />
+
+          <Route
+            path="/category/:id"
+            element={<CategoryDetail />}
           />
 
         </Routes>
