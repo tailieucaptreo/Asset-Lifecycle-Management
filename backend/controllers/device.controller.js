@@ -850,40 +850,33 @@ exports.getCategories = async (req, res) => {
 
   try {
 
-    const devices =
-      await prisma.device.findMany();
-
-    const map = {};
-
-    devices.forEach(device => {
-
-      const category =
-        device.category || "Chưa phân loại";
-
-      if (!map[category]) {
-
-        map[category] = 0;
-
-      }
-
-      map[category]++;
-
-    });
-
     const result =
-      Object.keys(map).map(
-        (key, index) => ({
+      await prisma.device.groupBy({
 
-          id: index + 1,
+        by: ["category"],
 
-          name: key,
+        _count: {
+          id: true
+        }
 
-          count: map[key]
+      });
 
-        })
-      );
+    res.json(
 
-    res.json(result);
+      result.map(item => ({
+
+        id:
+          item.category || "unknown",
+
+        name:
+          item.category || "Chưa phân loại",
+
+        count:
+          item._count.id
+
+      }))
+
+    );
 
   }
 
