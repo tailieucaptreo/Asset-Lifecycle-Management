@@ -865,3 +865,38 @@ exports.updateCategories = async (req, res) => {
   });
 
 };
+exports.getByCategory = async (req, res) => {
+
+  try {
+
+    const devices =
+      await prisma.device.findMany({
+
+        where: {
+          category:
+            decodeURIComponent(
+              req.params.name
+            )
+        },
+
+        orderBy: {
+          name: "asc"
+        }
+
+      });
+
+    res.json(devices);
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+
+};
