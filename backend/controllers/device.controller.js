@@ -869,21 +869,42 @@ exports.getByCategory = async (req, res) => {
 
   try {
 
-    const devices =
-      await prisma.device.findMany({
+    const category =
+      decodeURIComponent(
+        req.params.name
+      );
 
-        where: {
-          category:
-            decodeURIComponent(
-              req.params.name
-            )
-        },
+    let devices;
 
-        orderBy: {
-          name: "asc"
-        }
+    if (
+      category ===
+      "Chưa phân loại"
+    ) {
 
-      });
+      devices =
+        await prisma.device.findMany({
+
+          where: {
+            OR: [
+              { category: null },
+              { category: "" }
+            ]
+          }
+
+        });
+
+    } else {
+
+      devices =
+        await prisma.device.findMany({
+
+          where: {
+            category
+          }
+
+        });
+
+    }
 
     res.json(devices);
 
