@@ -14,7 +14,7 @@ export default function Category() {
   const loadData = async () => {
 
     const res = await axios.get(
-      `${API}/api/categories`
+      `${API}/api/devices/categories`
     );
 
     setCategories(res.data);
