@@ -906,20 +906,21 @@ exports.updateCategories = async (req, res) => {
 
   for (const device of devices) {
 
-    let category = "Khác";
-
     const category =
       detectCategory(
         device.name
       );
 
     await prisma.device.update({
+
       where: {
         id: device.id
       },
+
       data: {
         category
       }
+
     });
 
   }
@@ -929,6 +930,7 @@ exports.updateCategories = async (req, res) => {
   });
 
 };
+
 exports.getByCategory = async (req, res) => {
 
   try {
