@@ -73,8 +73,9 @@ export default function Category() {
               transition
             "
             onClick={() =>
-              window.location.href =
-              `/category/${item.id}`
+              navigate(
+                `/category/${encodeURIComponent(item.name)}`
+              )
             }
           >
 
