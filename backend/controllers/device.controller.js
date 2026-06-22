@@ -811,3 +811,57 @@ exports.getCategories = async (req, res) => {
   }
 
 };
+
+exports.updateCategories = async (req, res) => {
+
+  const devices =
+    await prisma.device.findMany();
+
+  for (const device of devices) {
+
+    let category = "Khác";
+
+    const name =
+      (device.name || "")
+      .toLowerCase();
+
+    if (
+      name.includes("vacon") ||
+      name.includes("biến tần")
+    ) {
+      category = "Biến tần";
+    }
+    else if (
+      name.includes("motor") ||
+      name.includes("động cơ")
+    ) {
+      category = "Động cơ";
+    }
+    else if (
+      name.includes("plc")
+    ) {
+      category = "PLC";
+    }
+    else if (
+      name.includes("encoder") ||
+      name.includes("sensor")
+    ) {
+      category = "Cảm biến";
+    }
+
+    await prisma.device.update({
+      where: {
+        id: device.id
+      },
+      data: {
+        category
+      }
+    });
+
+  }
+
+  res.json({
+    ok: true
+  });
+
+};
