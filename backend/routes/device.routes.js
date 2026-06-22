@@ -45,6 +45,10 @@ router.get(
   controller.getCategories
 );
 
+router.get(
+  "/update-categories",
+  controller.updateCategories
+);
 // ====================
 // CHI TIẾT THIẾT BỊ
 // THÊM ĐOẠN NÀY
