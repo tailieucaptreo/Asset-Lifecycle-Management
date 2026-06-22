@@ -13,12 +13,20 @@ export default function Category() {
 
   const loadData = async () => {
 
-    const res = await axios.get(
-      `${API}/api/devices/categories`
-    );
+  const token =
+    localStorage.getItem("token");
 
-    setCategories(res.data);
-  };
+  const res = await axios.get(
+    `${API}/api/devices/categories`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  setCategories(res.data);
+};
 
   const getIcon = (name) => {
 
