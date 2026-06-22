@@ -143,6 +143,84 @@ const normalizeStatus = (v) => {
   return "Inactive";
 };
 
+// ================= CATEGORY =================
+
+const detectCategory = (name = "") => {
+
+  const t = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // BIẾN TẦN
+  if (
+    t.includes("vacon") ||
+    t.includes("danfoss") ||
+    t.includes("inverter") ||
+    t.includes("bien tan")
+  ) {
+    return "Biến tần";
+  }
+
+  // PLC
+  if (
+    t.includes("plc") ||
+    t.includes("cpu") ||
+    t.includes("s7-") ||
+    t.includes("s7 ")
+  ) {
+    return "PLC";
+  }
+
+  // AN TOÀN (PILZ)
+  if (
+    t.includes("pilz") ||
+    t.includes("pssu") ||
+    t.includes("safety") ||
+    t.includes("pnz")
+  ) {
+    return "An toàn";
+  }
+
+  // CẢM BIẾN
+  if (
+    t.includes("sensor") ||
+    t.includes("encoder") ||
+    t.includes("prox") ||
+    t.includes("photo") ||
+    t.includes("cam bien")
+  ) {
+    return "Cảm biến";
+  }
+
+  // ĐỘNG CƠ
+  if (
+    t.includes("motor") ||
+    t.includes("dong co") ||
+    t.includes("gearbox") ||
+    t.includes("brake")
+  ) {
+    return "Động cơ";
+  }
+
+  // ĐIỆN ĐIỀU KHIỂN
+  if (
+    t.includes("relay") ||
+    t.includes("contactor") ||
+    t.includes("switch") ||
+    t.includes("terminal") ||
+    t.includes("4di") ||
+    t.includes("4do") ||
+    t.includes("8di") ||
+    t.includes("8do") ||
+    t.includes("io")
+  ) {
+    return "Điện điều khiển";
+  }
+
+  return "Khác";
+};
+
 // ================= AUTO MAINTENANCE =================
 
 const calcMaintenance = (device) => {
@@ -425,6 +503,15 @@ exports.importExcel = async (req, res) => {
               ["ten"]
             ) || ""
           ),
+
+        category: detectCategory(
+          String(
+            getField(
+              row,
+              ["ten"]
+            ) || ""
+          )
+        ),
 
         line:
           String(
@@ -821,33 +908,10 @@ exports.updateCategories = async (req, res) => {
 
     let category = "Khác";
 
-    const name =
-      (device.name || "")
-      .toLowerCase();
-
-    if (
-      name.includes("vacon") ||
-      name.includes("biến tần")
-    ) {
-      category = "Biến tần";
-    }
-    else if (
-      name.includes("motor") ||
-      name.includes("động cơ")
-    ) {
-      category = "Động cơ";
-    }
-    else if (
-      name.includes("plc")
-    ) {
-      category = "PLC";
-    }
-    else if (
-      name.includes("encoder") ||
-      name.includes("sensor")
-    ) {
-      category = "Cảm biến";
-    }
+    const category =
+      detectCategory(
+        device.name
+      );
 
     await prisma.device.update({
       where: {
