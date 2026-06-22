@@ -86,7 +86,7 @@ export default function Category() {
               {item.name}
             </h2>
 
-            <<p className="text-gray-500 mt-2">
+            <p className="text-gray-500 mt-2">
               {item.count}
               {" "}thiết bị
             </p>
