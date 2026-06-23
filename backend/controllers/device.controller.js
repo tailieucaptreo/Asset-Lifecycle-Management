@@ -158,12 +158,12 @@ const detectCategory = (name = "") => {
     t.includes("danfoss") ||
     t.includes("inverter") ||
     t.includes("bien tan") ||
-    t.includes("bien tan ABB") ||
-    t.includes("ACS") ||
-    t.includes("DCS") ||
-    t.includes("NXI") ||
-    t.includes("NXB") ||
-    t.includes("NXA") ||
+    t.includes("bien tan abb") ||
+    t.includes("acs") ||
+    t.includes("dcs") ||
+    t.includes("nxi") ||
+    t.includes("nxb") ||
+    t.includes("nxa")
   ) {
     return "Biến tần";
   }
@@ -172,24 +172,23 @@ const detectCategory = (name = "") => {
   if (
     t.includes("plc") ||
     t.includes("cpu") ||
-    t.includes("PSS") ||
-    t.includes("PSSu") ||
-    t.includes("P10") ||
-    t.includes("PSSU") ||
-    t.includes("pilz") ||
+    t.includes("pss") ||
+    t.includes("pssu") ||
+    t.includes("p10") ||
+    t.includes("pilz")
   ) {
     return "PLC";
   }
   
   // BECKHOFF
   if (
-    t.includes("BECKHOFF") ||
-    t.includes("KL") ||
-    t.includes("EL") ||
-    t.includes("BK") ||
-    t.includes("MODULE") ||
-    t.includes("BUS") ||
-    t.includes("Thiet bi dau cuoi") ||
+    t.includes("beckhoff") ||
+    t.includes("kl") ||
+    t.includes("el") ||
+    t.includes("bk") ||
+    t.includes("module") ||
+    t.includes("bus") ||
+    t.includes("thiet bi dau cuoi")
   ) {
     return "BECKHOFF";
   }
@@ -216,8 +215,8 @@ const detectCategory = (name = "") => {
     t.includes("motor") ||
     t.includes("dong co") ||
     t.includes("gearbox") ||
-    t.includes("brake")
-    t.includes("Tacho") ||
+    t.includes("brake") ||
+    t.includes("tacho")
   ) {
     return "Động cơ";
   }
@@ -228,15 +227,15 @@ const detectCategory = (name = "") => {
     t.includes("contactor") ||
     t.includes("switch") ||
     t.includes("chong set") ||
-    t.includes("ABB MS") ||
-    t.includes("RELAY") ||
-    t.includes("MCCB") ||
-    t.includes("MCB") ||
-    t.includes("MCR")
+    t.includes("abb ms") ||
+    t.includes("relay") ||
+    t.includes("mccb") ||
+    t.includes("mcb") ||
+    t.includes("mcr") ||
     t.includes("role nhiet") ||
     t.includes("relay nhiet") ||
     t.includes("bo chong set") ||
-    t.includes("ELR") ||
+    t.includes("elr")
   ) {
     return "Điện điều khiển";
   }
