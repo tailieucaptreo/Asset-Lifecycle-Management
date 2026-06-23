@@ -195,7 +195,7 @@ const detectCategory = (name = "") => {
   
   // AN TOÀN (PILZ)
   if (
-    t.includes("safety") ||
+    t.includes("safety")
   ) {
     return "An toàn";
   }
