@@ -152,98 +152,151 @@ const detectCategory = (name = "") => {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  // BIẾN TẦN
+  // =====================
+  // PLC & SAFETY PLC
+  // =====================
+
   if (
-    t.includes("vacon") ||
-    t.includes("danfoss") ||
-    t.includes("inverter") ||
-    t.includes("bien tan") ||
-    t.includes("bien tan abb") ||
-    t.includes("acs") ||
-    t.includes("dcs") ||
-    t.includes("nxi") ||
-    t.includes("nxb") ||
-    t.includes("nxa")
+    /^pss/i.test(name) ||
+    /^pssu/i.test(name) ||
+    /^p10/i.test(name) ||
+    /\bplc\b/i.test(name) ||
+    /\bcpu\b/i.test(name) ||
+    /\bpilz\b/i.test(name)
   ) {
-    return "Biến tần";
+    return "PLC & Safety PLC";
   }
 
-  // PLC
+  // =====================
+  // SAFETY
+  // =====================
+
   if (
-    t.includes("plc") ||
-    t.includes("cpu") ||
-    t.includes("pss") ||
-    t.includes("pssu") ||
-    t.includes("p10") ||
-    t.includes("pilz")
+    /^pnoz/i.test(name) ||
+    /^psen/i.test(name) ||
+    /\bsafety\b/i.test(name) ||
+    /\bemergency\b/i.test(name) ||
+    /\bestop\b/i.test(t) ||
+    /\be-stop\b/i.test(t)
   ) {
-    return "PLC";
+    return "Safety";
   }
-  
-  // BECKHOFF
+
+  // =====================
+  // BECKHOFF I/O
+  // =====================
+
   if (
-    t.includes("beckhoff") ||
-    t.includes("module") ||
-    t.includes("bus") ||
     /^el\d+/i.test(name) ||
     /^kl\d+/i.test(name) ||
     /^bk\d+/i.test(name) ||
     /^ek\d+/i.test(name) ||
-    t.includes("thiet bi dau cuoi")
+    /\bbeckhoff\b/i.test(name) ||
+    /\bbus coupler\b/i.test(t)
   ) {
-    return "BECKHOFF";
-  }
-  
-  // AN TOÀN (PILZ)
-  if (
-    t.includes("safety")
-  ) {
-    return "An toàn";
+    return "Beckhoff I/O";
   }
 
-  // CẢM BIẾN
+  // =====================
+  // BIẾN TẦN
+  // =====================
+
   if (
-    t.includes("sensor") ||
-    t.includes("encoder") ||
-    t.includes("prox") ||
-    t.includes("cam bien")
+    /\bvacon\b/i.test(name) ||
+    /\bdanfoss\b/i.test(name) ||
+    /\binverter\b/i.test(name) ||
+    /bien tan/i.test(t) ||
+
+    /^acs\d*/i.test(name) ||
+    /^nxa/i.test(name) ||
+    /^nxb/i.test(name) ||
+    /^nxc/i.test(name) ||
+    /^nxi/i.test(name) ||
+    /^nxp/i.test(name)
+  ) {
+    return "Biến tần";
+  }
+
+  // =====================
+  // CẢM BIẾN
+  // =====================
+
+  if (
+    /sensor/i.test(name) ||
+    /encoder/i.test(name) ||
+    /prox/i.test(name) ||
+    /cam bien/i.test(t) ||
+
+    /^ifm/i.test(name) ||
+    /^sick/i.test(name) ||
+    /^pepperl/i.test(name)
   ) {
     return "Cảm biến";
   }
 
-  // ĐỘNG CƠ
+  // =====================
+  // ĐỘNG CƠ & PHANH
+  // =====================
+
   if (
-    t.includes("motor") ||
-    t.includes("dong co") ||
-    t.includes("gearbox") ||
-    t.includes("brake") ||
-    t.includes("tacho")
+    /motor/i.test(name) ||
+    /dong co/i.test(t) ||
+    /gearbox/i.test(name) ||
+    /brake/i.test(name) ||
+    /tacho/i.test(name) ||
+
+    /^sew/i.test(name) ||
+    /^nord/i.test(name)
   ) {
-    return "Động cơ";
+    return "Động cơ & Phanh";
   }
 
-  // ĐIỆN ĐIỀU KHIỂN
+  // =====================
+  // MẠNG & TRUYỀN THÔNG
+  // =====================
+
   if (
-    t.includes("relay") ||
-    t.includes("contactor") ||
-    t.includes("switch") ||
-    t.includes("chong set") ||
-    t.includes("abb ms") ||
-    t.includes("relay") ||
-    t.includes("mccb") ||
-    t.includes("mcb") ||
-    t.includes("mcr") ||
-    t.includes("role nhiet") ||
-    t.includes("relay nhiet") ||
-    t.includes("bo chong set") ||
-    t.includes("elr")
+    /switch/i.test(name) ||
+    /ethernet/i.test(name) ||
+    /profinet/i.test(name) ||
+    /profibus/i.test(name) ||
+    /fiber/i.test(name) ||
+    /gateway/i.test(name) ||
+    /router/i.test(name) ||
+    /converter/i.test(name)
+  ) {
+    return "Mạng & Truyền thông";
+  }
+
+  // =====================
+  // ĐIỆN ĐIỀU KHIỂN
+  // =====================
+
+  if (
+    /^relay/i.test(name) ||
+    /^ro le/i.test(t) ||
+
+    /^elr/i.test(name) ||
+
+    /^mcb/i.test(name) ||
+    /^mccb/i.test(name) ||
+    /^mcr/i.test(name) ||
+
+    /^contactor/i.test(name) ||
+
+    /relay nhiet/i.test(t) ||
+    /role nhiet/i.test(t) ||
+
+    /abb ms/i.test(t) ||
+
+    /chong set/i.test(t) ||
+    /surge/i.test(name)
   ) {
     return "Điện điều khiển";
   }
 
   return "Khác";
 };
-
 // ================= AUTO MAINTENANCE =================
 
 const calcMaintenance = (device) => {
