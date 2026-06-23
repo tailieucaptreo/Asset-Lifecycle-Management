@@ -187,14 +187,16 @@ const detectCategory = (name = "") => {
   // =====================
 
   if (
+    t.includes("beckhoff") ||
+    t.includes("module") ||
+    t.includes("bus") ||
     /^el\d+/i.test(name) ||
     /^kl\d+/i.test(name) ||
     /^bk\d+/i.test(name) ||
     /^ek\d+/i.test(name) ||
-    /\bbeckhoff\b/i.test(name) ||
-    /\bbus coupler\b/i.test(t)
+    t.includes("thiet bi dau cuoi")
   ) {
-    return "Beckhoff";
+    return "BECKHOFF";
   }
 
   // =====================
