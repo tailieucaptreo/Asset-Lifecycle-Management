@@ -153,7 +153,7 @@ const detectCategory = (name = "") => {
     .replace(/[\u0300-\u036f]/g, "");
 
   // =====================
-  // PLC & SAFETY PLC
+  // PLC
   // =====================
 
   if (
@@ -164,7 +164,7 @@ const detectCategory = (name = "") => {
     /\bcpu\b/i.test(name) ||
     /\bpilz\b/i.test(name)
   ) {
-    return "PLC & Safety PLC";
+    return "PLC";
   }
 
   // =====================
@@ -237,7 +237,7 @@ const detectCategory = (name = "") => {
   }
 
   // =====================
-  // ĐỘNG CƠ & PHANH
+  // ĐỘNG CƠ
   // =====================
 
   if (
@@ -250,7 +250,7 @@ const detectCategory = (name = "") => {
     /^sew/i.test(name) ||
     /^nord/i.test(name)
   ) {
-    return "Động cơ & Phanh";
+    return "Động cơ";
   }
 
   // =====================
@@ -267,7 +267,7 @@ const detectCategory = (name = "") => {
     /router/i.test(name) ||
     /converter/i.test(name)
   ) {
-    return "Mạng & Truyền thông";
+    return "Truyền thông";
   }
 
   // =====================
