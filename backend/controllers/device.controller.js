@@ -183,7 +183,7 @@ const detectCategory = (name = "") => {
   }
 
   // =====================
-  // BECKHOFF I/O
+  // BECKHOFF
   // =====================
 
   if (
