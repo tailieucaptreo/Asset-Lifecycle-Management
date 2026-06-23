@@ -183,11 +183,12 @@ const detectCategory = (name = "") => {
   // BECKHOFF
   if (
     t.includes("beckhoff") ||
-    t.includes("kl") ||
-    t.includes("el") ||
-    t.includes("bk") ||
     t.includes("module") ||
     t.includes("bus") ||
+    /^el\d+/i.test(name) ||
+    /^kl\d+/i.test(name) ||
+    /^bk\d+/i.test(name) ||
+    /^ek\d+/i.test(name) ||
     t.includes("thiet bi dau cuoi")
   ) {
     return "BECKHOFF";
