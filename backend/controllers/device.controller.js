@@ -236,6 +236,7 @@ const detectCategory = (name = "") => {
     t.includes("role nhiet") ||
     t.includes("relay nhiet") ||
     t.includes("bo chong set") ||
+    t.includes("ELR") ||
   ) {
     return "Điện điều khiển";
   }
