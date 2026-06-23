@@ -194,7 +194,7 @@ const detectCategory = (name = "") => {
     /\bbeckhoff\b/i.test(name) ||
     /\bbus coupler\b/i.test(t)
   ) {
-    return "Beckhoff I/O";
+    return "Beckhoff";
   }
 
   // =====================
