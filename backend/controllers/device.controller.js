@@ -492,7 +492,12 @@ exports.importExcel = async (req, res) => {
           String(
             getField(
               row,
-              ["ma id"]
+              [
+                "ma id",
+                "device id",
+                "id",
+                "ma thiet bi"
+              ]
             ) || ""
           ),
 
