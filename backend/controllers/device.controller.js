@@ -152,40 +152,35 @@ const detectCategory = (name = "") => {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  // =====================
-  // PLC
-  // =====================
-
+  // BIẾN TẦN
   if (
-    /^pss/i.test(name) ||
-    /^pssu/i.test(name) ||
-    /^p10/i.test(name) ||
-    /\bplc\b/i.test(name) ||
-    /\bcpu\b/i.test(name) ||
-    /\bpilz\b/i.test(name)
+    t.includes("vacon") ||
+    t.includes("danfoss") ||
+    t.includes("inverter") ||
+    t.includes("bien tan") ||
+    t.includes("bien tan abb") ||
+    t.includes("acs") ||
+    t.includes("dcs") ||
+    t.includes("nxi") ||
+    t.includes("nxb") ||
+    t.includes("nxa")
+  ) {
+    return "Biến tần";
+  }
+
+  // PLC
+  if (
+    t.includes("plc") ||
+    t.includes("cpu") ||
+    t.includes("pss") ||
+    t.includes("pssu") ||
+    t.includes("p10") ||
+    t.includes("pilz")
   ) {
     return "PLC";
   }
-
-  // =====================
-  // SAFETY
-  // =====================
-
-  if (
-    /^pnoz/i.test(name) ||
-    /^psen/i.test(name) ||
-    /\bsafety\b/i.test(name) ||
-    /\bemergency\b/i.test(name) ||
-    /\bestop\b/i.test(t) ||
-    /\be-stop\b/i.test(t)
-  ) {
-    return "Safety";
-  }
-
-  // =====================
+  
   // BECKHOFF
-  // =====================
-
   if (
     t.includes("beckhoff") ||
     t.includes("module") ||
@@ -198,101 +193,50 @@ const detectCategory = (name = "") => {
   ) {
     return "BECKHOFF";
   }
-
-  // =====================
-  // BIẾN TẦN
-  // =====================
-
+  
+  // AN TOÀN (PILZ)
   if (
-    /\bvacon\b/i.test(name) ||
-    /\bdanfoss\b/i.test(name) ||
-    /\binverter\b/i.test(name) ||
-    /bien tan/i.test(t) ||
-
-    /^acs\d*/i.test(name) ||
-    /^nxa/i.test(name) ||
-    /^nxb/i.test(name) ||
-    /^nxc/i.test(name) ||
-    /^nxi/i.test(name) ||
-    /^nxp/i.test(name)
+    t.includes("safety")
   ) {
-    return "Biến tần";
+    return "An toàn";
   }
 
-  // =====================
   // CẢM BIẾN
-  // =====================
-
   if (
-    /sensor/i.test(name) ||
-    /encoder/i.test(name) ||
-    /prox/i.test(name) ||
-    /cam bien/i.test(t) ||
-
-    /^ifm/i.test(name) ||
-    /^sick/i.test(name) ||
-    /^pepperl/i.test(name)
+    t.includes("sensor") ||
+    t.includes("encoder") ||
+    t.includes("prox") ||
+    t.includes("cam bien")
   ) {
     return "Cảm biến";
   }
 
-  // =====================
   // ĐỘNG CƠ
-  // =====================
-
   if (
-    /motor/i.test(name) ||
-    /dong co/i.test(t) ||
-    /gearbox/i.test(name) ||
-    /brake/i.test(name) ||
-    /tacho/i.test(name) ||
-
-    /^sew/i.test(name) ||
-    /^nord/i.test(name)
+    t.includes("motor") ||
+    t.includes("dong co") ||
+    t.includes("gearbox") ||
+    t.includes("brake") ||
+    t.includes("tacho")
   ) {
     return "Động cơ";
   }
 
-  // =====================
-  // MẠNG & TRUYỀN THÔNG
-  // =====================
-
-  if (
-    /switch/i.test(name) ||
-    /ethernet/i.test(name) ||
-    /profinet/i.test(name) ||
-    /profibus/i.test(name) ||
-    /fiber/i.test(name) ||
-    /gateway/i.test(name) ||
-    /router/i.test(name) ||
-    /converter/i.test(name)
-  ) {
-    return "Truyền thông";
-  }
-
-  // =====================
   // ĐIỆN ĐIỀU KHIỂN
-  // =====================
-
   if (
-    /^relay/i.test(name) ||
-    /^ro le/i.test(t) ||
-
-    /^elr/i.test(name) ||
-
-    /^mcb/i.test(name) ||
-    /^mccb/i.test(name) ||
-    /^mcr/i.test(name) ||
-
-    /^contactor/i.test(name) ||
-
-    /relay nhiet/i.test(t) ||
-    /role nhiet/i.test(t) ||
-
-    /abb ms/i.test(t) ||
-
-    /chong set/i.test(t) ||
-    /surge/i.test(name)
+    t.includes("relay") ||
+    t.includes("contactor") ||
+    t.includes("switch") ||
+    t.includes("chong set") ||
+    t.includes("abb ms") ||
+    t.includes("relay") ||
+    t.includes("mccb") ||
+    t.includes("mcb") ||
+    t.includes("mcr") ||
+    t.includes("role nhiet") ||
+    t.includes("relay nhiet") ||
+    t.includes("bo chong set") ||
+    t.includes("elr")
   ) {
     return "Điện điều khiển";
   }
