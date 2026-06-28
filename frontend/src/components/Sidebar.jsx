@@ -3,9 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Sidebar({
 
-    mobile = false,
-    setOpen
-
+        mobile = false,
+        setOpen
+    
 }) {
 
   const nav = useNavigate();
@@ -16,6 +16,17 @@ export default function Sidebar({
 
   const role =
     localStorage.getItem("role");
+  const go = (path) => {
+
+      nav(path);
+    
+      if (mobile && setOpen) {
+    
+        setOpen(false);
+    
+      }
+    
+  };
 
   // 🔥 ACTIVE CHECK (hỗ trợ cả sub route)
   const active = (path) =>
