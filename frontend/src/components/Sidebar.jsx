@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export default function Sidebar() {
+export default function Sidebar({
+
+    mobile = false,
+    setOpen
+
+}) {
 
   const nav = useNavigate();
   const location = useLocation();
