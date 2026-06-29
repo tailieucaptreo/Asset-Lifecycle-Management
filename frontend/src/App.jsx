@@ -5,6 +5,9 @@ import {
   useLocation
 } from "react-router-dom";
 
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+
 import Sidebar from "./components/Sidebar";
 
 import Dashboard from "./pages/Dashboard";
@@ -25,6 +28,8 @@ import CategoryDetail from "./pages/CategoryDetail";
 function Layout() {
 
   const location = useLocation();
+
+  const [open, setOpen] = useState(false);
 
   const isLoginPage =
     location.pathname === "/";
@@ -53,10 +58,65 @@ function Layout() {
       bg-[#eef2f7]
       "
     >
-
-      <Sidebar />
-
+    
+      {/* ================= Desktop Sidebar ================= */}
+    
+      <div className="hidden md:block">
+    
+        <Sidebar />
+    
+      </div>
+    
+      {/* ================= Mobile Drawer ================= */}
+    
+      {open && (
+    
+        <>
+    
+          <div
+    
+            className="
+            fixed
+            inset-0
+            bg-black/40
+            z-40
+            "
+    
+            onClick={() => setOpen(false)}
+    
+          />
+    
+          <div
+    
+            className="
+            fixed
+            left-0
+            top-0
+            w-72
+            h-full
+            z-50
+            "
+    
+          >
+    
+            <Sidebar
+    
+              mobile
+    
+              setOpen={setOpen}
+    
+            />
+    
+          </div>
+    
+        </>
+    
+      )}
+    
+      {/* ================= Content ================= */}
+    
       <main
+    
         className="
         flex-1
         overflow-auto
@@ -65,8 +125,55 @@ function Layout() {
         via-slate-50
         to-blue-50
         "
+    
       >
-
+    
+        {/* Mobile Header */}
+    
+        <div
+    
+          className="
+          md:hidden
+          sticky
+          top-0
+          z-30
+          bg-white
+          shadow
+          px-4
+          py-3
+          flex
+          items-center
+          justify-between
+          "
+    
+        >
+    
+          <button
+    
+            onClick={() => setOpen(true)}
+    
+          >
+    
+            <Menu size={28} />
+    
+          </button>
+    
+          <h2
+    
+            className="
+            font-bold
+            text-lg
+            "
+    
+          >
+    
+            Asset Manager
+    
+          </h2>
+    
+          <div className="w-7"/>
+    
+        </div>
         <Routes>
 
           <Route
