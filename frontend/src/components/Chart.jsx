@@ -181,13 +181,13 @@ const COLORS = {
   const lineData = Object.values(timeMap);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
 
       {/* 📊 BAR */}
-      <div className="bg-white p-4 rounded-xl shadow">
+      <div className="bg-white rounded-2xl shadow p-5 flex flex-col min-h-[360px]">
         <h2 className="font-bold mb-2">Theo tuyến</h2>
 
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart data={barData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="line" />
@@ -199,10 +199,10 @@ const COLORS = {
       </div>
 
       {/* 🎨 PIE */}
-      <div className="bg-white p-4 rounded-xl shadow">
+      <div className="bg-white rounded-2xl shadow p-5 flex flex-col min-h-[360px]">
         <h2 className="font-bold mb-2">Trạng thái</h2>
 
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie data={pieData} dataKey="value" outerRadius={80} label>
               {pieData.map((entry, index) => (
@@ -215,10 +215,10 @@ const COLORS = {
       </div>
 
       {/* 📈 LINE */}
-      <div className="bg-white p-4 rounded-xl shadow">
+      <div className="bg-white rounded-2xl shadow p-5 flex flex-col min-h-[360px]">
         <h2 className="font-bold mb-2">Xu hướng</h2>
 
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height="100%">
           <LineChart data={lineData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" />
