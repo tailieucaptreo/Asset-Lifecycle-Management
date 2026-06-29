@@ -365,16 +365,16 @@ export default function Dashboard() {
   // =============================
   return (
 
-    <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 p-4 md:p-6">
+    <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-6">
 
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
 
         <h1 className="text-3xl font-bold">
           📊 Dashboard
         </h1>
 
-        <div className="flex gap-3">
+        <div className="flex w-full md:w-auto flex-col sm:flex-row gap-3">
 
           <Header
             onSearch={setSearchInput}
@@ -384,16 +384,17 @@ export default function Dashboard() {
           <button
             onClick={handleExport}
             className="
-              bg-blue-500
-              hover:bg-blue-600
+              w-full
+              sm:w-auto
+              bg-blue-600
+              hover:bg-blue-700
               text-white
-              px-5
-              py-2
               rounded-xl
-              shadow
+              px-5
+              py-3
+              font-semibold
               transition
               "
-
           >
             Export
           </button>
@@ -402,7 +403,7 @@ export default function Dashboard() {
       </div>
 
       {/* FILTER */}
-      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-4">
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-3 md:p-5">
 
         <AdvancedFilter
           devices={devices}
@@ -418,7 +419,8 @@ export default function Dashboard() {
           grid
           grid-cols-1
           sm:grid-cols-2
-          xl:grid-cols-5
+          lg:grid-cols-3
+          2xl:grid-cols-5
           gap-5
           mt-6
         "
