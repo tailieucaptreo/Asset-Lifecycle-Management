@@ -37,7 +37,29 @@ export default function Sidebar({
   return (
     <div className="w-72 md:w-64 bg-[#0f172a] text-white min-h-screen p-4 overflow-y-auto">
 
-      <h2 className="text-lg font-bold mb-6">⚙ Asset Manager</h2>
+      <div className="flex justify-between items-center mb-6">
+        
+            <h2 className="text-lg font-bold">
+                ⚙ Asset Manager
+            </h2>
+        
+            {mobile && (
+        
+                <button
+        
+                    onClick={() => setOpen(false)}
+        
+                    className="text-white"
+        
+                >
+        
+                    ✕
+        
+                </button>
+        
+            )}
+        
+      </div>
 
       {/* DASHBOARD */}
       <div
