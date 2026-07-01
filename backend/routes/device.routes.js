@@ -36,6 +36,24 @@ router.get(
     auth,
     controller.exportDevices
 );
+// ====================
+// CATEGORIES
+// ====================
+router.get(
+  "/categories",
+  auth,
+  controller.getCategories
+);
+
+router.get(
+  "/update-categories",
+  controller.updateCategories
+);
+router.get(
+  "/category/:name",
+  auth,
+  controller.getByCategory
+);
 
 // ====================
 // CHI TIẾT THIẾT BỊ

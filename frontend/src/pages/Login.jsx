@@ -63,20 +63,31 @@ export default function Login() {
 
         catch (err) {
 
-            console.log(err);
-
+          console.log(err);
+        
+          if (err.response?.status === 401) {
+        
             alert(
-
-                err.response
-                    ?.data
-                    ?.message
-
-                ||
-
-                "Đăng nhập thất bại"
-
+              "Sai tên đăng nhập hoặc mật khẩu"
             );
-
+        
+            return;
+          }
+        
+          if (err.response?.status === 500) {
+        
+            alert(
+              "Lỗi máy chủ, vui lòng thử lại"
+            );
+        
+            return;
+          }
+        
+          alert(
+            err.response?.data?.message ||
+            "Đăng nhập thất bại"
+          );
+        
         }
 
     };

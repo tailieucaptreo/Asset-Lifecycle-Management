@@ -30,6 +30,8 @@ model Device {
   line            String
   station         String
 
+  category        String?
+
   code            String?
   area            String?
 
@@ -45,6 +47,7 @@ model Device {
 
   createdAt       DateTime @default(now())
   workOrders      WorkOrder[]
+
 }
 
 model WorkOrder {
@@ -141,3 +144,5 @@ model VaconRecord {
 
   createdAt         DateTime @default(now())
 }
+
+

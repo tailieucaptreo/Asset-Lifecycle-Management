@@ -5,15 +5,24 @@ import API from "../config";
 import Header from "../components/Header.jsx";
 import Card from "../components/Card.jsx";
 import Chart from "../components/Chart.jsx";
-import Table from "../components/Table.jsx";
 import AdvancedFilter from "../components/AdvancedFilter.jsx";
-//import ImportExcel from "../components/ImportExcel.jsx";
+import Table from "../components/Table.jsx";
 
-import { Cpu, CheckCircle, Wrench, AlertTriangle } from "lucide-react";
-import toast from "react-hot-toast";
+import {
+  Cpu,
+  CheckCircle,
+  Wrench,
+  AlertTriangle,
+  BatteryCharging
+} from "lucide-react";
 
 export default function Dashboard() {
+
+  // =============================
+  // STATE
+  // =============================
   const [devices, setDevices] = useState([]);
+  const [spareDevices, setSpareDevices] = useState([]);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -25,124 +34,450 @@ export default function Dashboard() {
     status: ""
   });
 
-  // 🚀 LOAD DATA
-  const fetchData = () => {
-    axios.get(`${API}/api/devices`)
-      .then(res => setDevices(res.data))
-      .catch(() => setDevices([]));
-  };
+  // =============================
+  // LOAD DATA
+  // =============================
+  const fetchData = async () => {
 
+    try {
+
+      const token =
+        localStorage.getItem("token");
+
+      const headers = {
+        Authorization:
+          `Bearer ${token}`
+      };
+
+      // LOAD DEVICE
+      const deviceRes =
+        await axios.get(
+          `${API}/api/devices`,
+          {
+            headers
+          }
+        );
+
+      console.log(
+        "DEVICE",
+        deviceRes.data
+      );
+
+      setDevices(
+
+        Array.isArray(
+          deviceRes.data
+        )
+
+          ? deviceRes.data
+
+          : deviceRes.data.devices || []
+
+      );
+
+      // LOAD SPARE
+      const spareRes =
+        await axios.get(
+          `${API}/api/spare-devices`,
+          {
+            headers
+          }
+        );
+
+      setSpareDevices(
+
+        Array.isArray(
+          spareRes.data
+        )
+
+          ? spareRes.data
+
+          : spareRes.data.data || []
+
+      );
+
+    }
+
+    catch (err) {
+
+      console.log(
+        "FETCH ERROR",
+        err.response?.data ||
+        err.message
+      );
+
+      setDevices([]);
+      setSpareDevices([]);
+
+    }
+
+  };
   useEffect(() => {
     fetchData();
   }, []);
 
-  // 🔥 debounce search
+  // =============================
+  // SEARCH DELAY
+  // =============================
   useEffect(() => {
-    const timer = setTimeout(() => {
+
+    const t = setTimeout(() => {
       setSearch(searchInput);
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(t);
+
   }, [searchInput]);
 
   const now = new Date();
 
-  // 🔍 FILTER + SEARCH
-  const filtered = devices.filter(d => {
+  // =============================
+  // FILTER
+  // =============================
+  const filtered = devices.filter((d) => {
+
     const keyword = search.toLowerCase();
 
     return (
-      (!filter.id || (d.deviceId || "").toString().includes(filter.id)) &&
-      (!filter.line.length || filter.line.includes(d.line)) &&
-      (!filter.station.length || filter.station.includes(d.station)) &&
-      (!filter.status || d.status === filter.status) &&
+
+      (!filter.id ||
+        (d.deviceId || "")
+          .toLowerCase()
+          .includes(filter.id.toLowerCase())) &&
+
+      (!filter.line.length ||
+        filter.line.includes(d.line)) &&
+
+      (!filter.station.length ||
+        filter.station.includes(d.station)) &&
+
+      (!filter.status ||
+        calcStatus(d) === filter.status) &&
+
       (
-        (d.name || "").toLowerCase().includes(keyword) ||
-        (d.deviceId || "").toString().toLowerCase().includes(keyword) ||
-        (d.line || "").toLowerCase().includes(keyword) ||
-        (d.station || "").toLowerCase().includes(keyword)
+        (d.name || "")
+          .toLowerCase()
+          .includes(keyword) ||
+
+        (d.deviceId || "")
+          .toLowerCase()
+          .includes(keyword)
       )
     );
   });
 
-  // 📊 STATS
-  const total = filtered.length;
-  const active = filtered.filter(d => d.status === "Active").length;
-  const maintenance = filtered.filter(d => d.status === "Maintenance").length;
-  const expired = filtered.filter(
-    d => d.expiryDate && new Date(d.expiryDate) < now
-  ).length;
+  // =============================
+  // TÍNH TRẠNG THÁI THEO TUỔI THỌ
+  // =============================
 
-  // 🔔 cảnh báo
-  useEffect(() => {
-    filtered.forEach(d => {
-      if (!d.expiryDate) return;
+  const calcStatus = (d) => {
 
-      const diff =
-        (new Date(d.expiryDate) - new Date()) / (1000 * 60 * 60 * 24);
+    if (
+      !d.installDate
+      ||
+      !d.lifespan
+    ) {
 
-      if (diff <= 7 && diff >= 0) {
-        toast.error(`⚠ ${d.name} sắp hết hạn`);
+      return "Active";
+
+    }
+
+    const now = new Date();
+
+    const install = new Date(d.installDate);
+
+    // số năm đã dùng
+    const usedYear =
+
+      (
+        now - install
+      )
+
+      /
+
+      (
+        1000 *
+        60 *
+        60 *
+        24 *
+        365
+      );
+
+    // % tuổi thọ
+    const percent =
+
+      usedYear
+      /
+      Number(
+        d.lifespan
+      );
+
+    // quá tuổi thọ
+    if (
+      percent >= 1
+    ) {
+
+      return "Expired";
+
+    }
+
+    // tới ngưỡng bảo trì
+    if (
+      percent >= 0.7
+    ) {
+
+      return "Maintenance";
+
+    }
+
+    return "Active";
+
+  };
+
+
+  // =============================
+  // STATS
+  // =============================
+
+  const total =
+    filtered.length;
+
+  const active =
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Active"
+    ).length;
+
+  const maintenance =
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Maintenance"
+    ).length;
+
+  const expired =
+    filtered.filter(
+      d =>
+        calcStatus(d)
+        ===
+        "Expired"
+    ).length;
+
+  // =============================
+  // SPARE DEVICE COUNT
+  // =============================
+  const spareTotal = spareDevices.reduce(
+    (sum, item) => {
+      return sum + (item.quantity || 0);
+    },
+    0
+  );
+
+  // =============================
+  // EXPORT EXCEL
+  // =============================
+  const handleExport = async () => {
+
+    try {
+
+      const token =
+        localStorage.getItem(
+          "token"
+        );
+
+      const res =
+        await fetch(
+
+          `${API}/api/devices/export`,
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
+
+            }
+
+          }
+
+        );
+
+      if (!res.ok) {
+
+        throw new Error(
+          "Export thất bại"
+        );
+
       }
-    });
-  }, [filtered]);
 
+      const blob =
+        await res.blob();
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+      const a =
+        document.createElement(
+          "a"
+        );
+
+      a.href =
+        url;
+
+      a.download =
+        "devices.xlsx";
+
+      document.body.appendChild(
+        a
+      );
+
+      a.click();
+
+      a.remove();
+
+      window.URL
+        .revokeObjectURL(
+          url
+        );
+
+    }
+
+    catch (err) {
+
+      console.log(err);
+
+      alert(
+        err.message
+      );
+
+    }
+
+  };
+
+  // =============================
+  // RENDER
+  // =============================
   return (
-    <div className="flex-1 p-4 md:p-6 bg-gray-100 min-h-screen">
 
-      {/* 🔥 HEADER PRO */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+    <div className="flex-1 min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-6">
 
-        {/* TITLE */}
-        <h1 className="text-2xl font-bold flex items-center gap-2">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+
+        <h1 className="text-3xl font-bold">
           📊 Dashboard
         </h1>
 
-        {/* SEARCH + BUTTON */}
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex w-full md:w-auto flex-col sm:flex-row gap-3">
 
-          <div className="w-full md:w-[420px] lg:w-[480px]">
-            <Header
-              onSearch={setSearchInput}
-              devices={devices}
-            />
-          </div>
+          <Header
+            onSearch={setSearchInput}
+            devices={devices}
+          />
 
           <button
-            onClick={() => window.open(`${API}/api/devices/export`)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow whitespace-nowrap"
+            onClick={handleExport}
+            className="
+              w-full
+              sm:w-auto
+              bg-blue-600
+              hover:bg-blue-700
+              text-white
+              rounded-xl
+              px-5
+              py-3
+              font-semibold
+              transition
+              "
           >
-            📤 Export
+            Export
           </button>
+
         </div>
       </div>
 
       {/* FILTER */}
-      <AdvancedFilter
-        devices={devices}
-        filter={filter}
-        setFilter={setFilter}
-      />
+      <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-3 md:p-5">
 
-      {/* IMPORT */}
-      <ImportExcel />
+        <AdvancedFilter
+          devices={devices}
+          filter={filter}
+          setFilter={setFilter}
+        />
+
+      </div>
 
       {/* CARD */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
-        <Card title="Tổng thiết bị" value={total} color="bg-blue-500" icon={<Cpu />} />
-        <Card title="Hoạt động" value={active} color={active ? "bg-green-500" : "bg-gray-400"} icon={<CheckCircle />} />
-        <Card title="Bảo trì" value={maintenance} color={maintenance ? "bg-yellow-500" : "bg-gray-400"} icon={<Wrench />} />
-        <Card title="Hết hạn" value={expired} color={expired ? "bg-red-500" : "bg-gray-400"} icon={<AlertTriangle />} />
+      <div
+        className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          lg:grid-cols-3
+          2xl:grid-cols-5
+          gap-5
+          mt-6
+        "
+      >
+
+        {/* TOTAL */}
+        <Card
+          title="Tổng Thiết bị đang lắp đặt sử dụng"
+          value={total}
+          color="bg-blue-500"
+          icon={<Cpu />}
+          to="/devices"
+        />
+
+        {/* ACTIVE */}
+        <Card
+          title="Thiết bị đang sử dụng còn tuổi thọ"
+          value={active}
+          color="bg-green-500"
+          icon={<CheckCircle />}
+          to="/devices?status=Active"
+        />
+
+        {/* MAINTENANCE */}
+        <Card
+          title="Thiết bị đang sử dụng cần bảo trì"
+          value={maintenance}
+          color="bg-yellow-500"
+          icon={<Wrench />}
+          to="/devices?status=Maintenance"
+        />
+
+        {/* EXPIRED */}
+        <Card
+          title="Thiết bị đang dử dụng quá tuổi thọ"
+          value={expired}
+          color="bg-red-500"
+          icon={<AlertTriangle />}
+          to="/devices/expired"
+        />
+
+        {/* SPARE DEVICE */}
+        <Card
+          title="Tổng số lượng thiết bị Dự phòng"
+          value={spareTotal}
+          color="bg-cyan-500"
+          icon={<BatteryCharging />}
+          to="/spare-devices"
+        />
+
       </div>
 
       {/* CHART */}
-      <div className="mt-8">
-        <Chart data={filtered} />
-      </div>
-
-      {/* TABLE */}
       <div className="mt-6">
-        <Table data={filtered} />
+
+        <Chart data={filtered} />
+
       </div>
 
     </div>

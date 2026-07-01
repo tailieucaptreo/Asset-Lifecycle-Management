@@ -143,6 +143,106 @@ const normalizeStatus = (v) => {
   return "Inactive";
 };
 
+// ================= CATEGORY =================
+
+const detectCategory = (name = "") => {
+
+  const t = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // BIẾN TẦN
+  if (
+    t.includes("vacon") ||
+    t.includes("danfoss") ||
+    t.includes("inverter") ||
+    t.includes("bien tan") ||
+    t.includes("bien tan abb") ||
+    t.includes("acs") ||
+    t.includes("dcs") ||
+    t.includes("nxi") ||
+    t.includes("nxb") ||
+    t.includes("nxa")
+  ) {
+    return "Biến tần";
+  }
+
+  // PLC
+  if (
+    t.includes("plc") ||
+    t.includes("cpu") ||
+    t.includes("pss") ||
+    t.includes("pssu") ||
+    t.includes("p10") ||
+    t.includes("pilz")
+  ) {
+    return "PLC";
+  }
+  
+  // BECKHOFF
+  if (
+    t.includes("beckhoff") ||
+    t.includes("module") ||
+    t.includes("bus") ||
+    /^el\d+/i.test(name) ||
+    /^kl\d+/i.test(name) ||
+    /^bk\d+/i.test(name) ||
+    /^ek\d+/i.test(name) ||
+    t.includes("thiet bi dau cuoi")
+  ) {
+    return "BECKHOFF";
+  }
+  
+  // AN TOÀN (PILZ)
+  if (
+    t.includes("safety")
+  ) {
+    return "An toàn";
+  }
+
+  // CẢM BIẾN
+  if (
+    t.includes("sensor") ||
+    t.includes("encoder") ||
+    t.includes("prox") ||
+    t.includes("cam bien")
+  ) {
+    return "Cảm biến";
+  }
+
+  // ĐỘNG CƠ
+  if (
+    t.includes("motor") ||
+    t.includes("dong co") ||
+    t.includes("gearbox") ||
+    t.includes("brake") ||
+    t.includes("tacho")
+  ) {
+    return "Động cơ";
+  }
+
+  // ĐIỆN ĐIỀU KHIỂN
+  if (
+    t.includes("relay") ||
+    t.includes("contactor") ||
+    t.includes("switch") ||
+    t.includes("chong set") ||
+    t.includes("abb ms") ||
+    t.includes("relay") ||
+    t.includes("mccb") ||
+    t.includes("mcb") ||
+    t.includes("mcr") ||
+    t.includes("role nhiet") ||
+    t.includes("relay nhiet") ||
+    t.includes("bo chong set") ||
+    t.includes("elr")
+  ) {
+    return "Điện điều khiển";
+  }
+
+  return "Khác";
+};
 // ================= AUTO MAINTENANCE =================
 
 const calcMaintenance = (device) => {
@@ -414,7 +514,12 @@ exports.importExcel = async (req, res) => {
           String(
             getField(
               row,
-              ["ma id"]
+              [
+                "ma id",
+                "device id",
+                "id",
+                "ma thiet bi"
+              ]
             ) || ""
           ),
 
@@ -425,6 +530,15 @@ exports.importExcel = async (req, res) => {
               ["ten"]
             ) || ""
           ),
+
+        category: detectCategory(
+          String(
+            getField(
+              row,
+              ["ten"]
+            ) || ""
+          )
+        ),
 
         line:
           String(
@@ -759,3 +873,142 @@ exports.exportDevices = async (req, res) => {
 
 };
 
+exports.getCategories = async (req, res) => {
+
+  try {
+
+    const result =
+      await prisma.device.groupBy({
+
+        by: ["category"],
+
+        _count: {
+          id: true
+        }
+
+      });
+
+    res.json(
+
+      result.map(item => ({
+
+        id:
+          item.category || "unknown",
+
+        name:
+          item.category || "Chưa phân loại",
+
+        count:
+          item._count.id
+
+      }))
+
+    );
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+
+};
+
+exports.updateCategories = async (req, res) => {
+
+  const devices =
+    await prisma.device.findMany();
+
+  for (const device of devices) {
+
+    const category =
+      detectCategory(
+        device.name
+      );
+
+    await prisma.device.update({
+
+      where: {
+        id: device.id
+      },
+
+      data: {
+        category
+      }
+
+    });
+
+  }
+
+  res.json({
+    ok: true
+  });
+
+};
+
+exports.getByCategory = async (req, res) => {
+
+  try {
+
+    const category =
+      decodeURIComponent(
+        req.params.name
+      );
+
+    let devices;
+
+    if (
+      category ===
+      "Chưa phân loại"
+    ) {
+
+      devices =
+        await prisma.device.findMany({
+
+          where: {
+            category: null
+          },
+
+          orderBy: {
+            name: "asc"
+          }
+
+        });
+
+    } else {
+
+      devices =
+        await prisma.device.findMany({
+
+          where: {
+            category
+          },
+
+          orderBy: {
+            name: "asc"
+          }
+
+        });
+
+    }
+
+    res.json(devices);
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
+  }
+
+};

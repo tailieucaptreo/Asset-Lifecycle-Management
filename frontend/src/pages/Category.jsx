@@ -1,0 +1,143 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import API from "../config";
+
+export default function Category() {
+
+  const navigate = useNavigate();
+  const [categories, setCategories] =
+    useState([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+
+  const token =
+    localStorage.getItem("token");
+
+  const res = await axios.get(
+    `${API}/api/devices/categories`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  setCategories(res.data);
+};
+
+  const getIcon = (name) => {
+
+    if (name === "Động cơ") return "⚙️";
+    if (name === "Biến tần") return "⚡";
+    if (name === "PLC") return "🖥";
+    if (name === "Cảm biến") return "📡";
+    if (name === "An toàn") return "🛡";
+    if (name === "Điện điều khiển") return "🔌";
+
+    return "📁";
+  };
+
+  return (
+
+    <div className="p-6">
+
+      <h1 className="text-3xl font-bold mb-6">
+        Phân loại thiết bị
+      </h1>
+
+      <div
+        className="
+          grid
+          grid-cols-1
+          md:grid-cols-2
+          lg:grid-cols-4
+          gap-6
+        "
+      >
+
+        {categories.map((item) => (
+
+          <div
+            key={item.id}
+            onClick={() =>
+              navigate(
+                `/category/${encodeURIComponent(item.name)}`
+              )
+            }
+            className="
+              bg-white
+              rounded-2xl
+              shadow-md
+              p-6
+              cursor-pointer
+              border
+              border-gray-100
+              hover:shadow-2xl
+              hover:-translate-y-2
+              transition-all
+              duration-300
+            "
+          >
+        
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                mb-4
+              "
+            >
+        
+              <div className="text-5xl">
+                {getIcon(item.name)}
+              </div>
+        
+              <div
+                className="
+                  px-3
+                  py-1
+                  rounded-full
+                  bg-blue-100
+                  text-blue-700
+                  font-semibold
+                  text-sm
+                "
+              >
+                {item.count} thiết bị
+              </div>
+        
+            </div>
+        
+            <h2
+              className="
+                text-xl
+                font-bold
+                text-gray-800
+              "
+            >
+              {item.name}
+            </h2>
+        
+            <p
+              className="
+                text-gray-500
+                mt-2
+              "
+            >
+              Nhấn để xem chi tiết
+            </p>
+        
+          </div>
+        
+        ))}
+
+      </div>
+
+    </div>
+  );
+}

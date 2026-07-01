@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-export default function Sidebar() {
+export default function Sidebar({
+
+        mobile = false,
+        setOpen
+    
+}) {
 
   const nav = useNavigate();
   const location = useLocation();
@@ -11,6 +16,17 @@ export default function Sidebar() {
 
   const role =
     localStorage.getItem("role");
+  const go = (path) => {
+
+      nav(path);
+    
+      if (mobile && setOpen) {
+    
+        setOpen(false);
+    
+      }
+    
+  };
 
   // 🔥 ACTIVE CHECK (hỗ trợ cả sub route)
   const active = (path) =>
@@ -19,14 +35,36 @@ export default function Sidebar() {
       : "hover:bg-gray-700";
 
   return (
-    <div className="w-64 min-w-[260px] bg-[#0f172a] text-white min-h-screen p-4 overflow-y-auto">
+    <div className="w-72 md:w-64 bg-[#0f172a] text-white min-h-screen p-4 overflow-y-auto">
 
-      <h2 className="text-lg font-bold mb-6">⚙ Asset Manager</h2>
+      <div className="flex justify-between items-center mb-6">
+        
+            <h2 className="text-lg font-bold">
+                ⚙ Asset Manager
+            </h2>
+        
+            {mobile && (
+        
+                <button
+        
+                    onClick={() => setOpen(false)}
+        
+                    className="text-white"
+        
+                >
+        
+                    ✕
+        
+                </button>
+        
+            )}
+        
+      </div>
 
       {/* DASHBOARD */}
       <div
         className={`p-2 rounded cursor-pointer ${active("/dashboard")}`}
-        onClick={() => nav("/dashboard")}
+        onClick={() => go("/dashboard")}
       >
         📊 Dashboard
       </div>
@@ -47,7 +85,7 @@ export default function Sidebar() {
 
             <div
               className={`p-2 rounded cursor-pointer ${active("/devices")}`}
-              onClick={() => nav("/devices")}
+              onClick={() => go("/devices")}
             >
               📋 Tổng thiết bị
             </div>
@@ -56,7 +94,7 @@ export default function Sidebar() {
 
               <div
                 className={`p-2 rounded cursor-pointer ${active("/add")}`}
-                onClick={() => nav("/add")}
+                onClick={() => go("/add")}
               >
                 ➕ Nhập thiết bị
               </div>
@@ -65,7 +103,7 @@ export default function Sidebar() {
             {role === "admin" && (
               <div
                 className={`p-2 rounded cursor-pointer ${active("/import")}`}
-                onClick={() => nav("/import")}
+                onClick={() => go("/import")}
               >
                 📥 Import Excel
               </div>
@@ -73,28 +111,28 @@ export default function Sidebar() {
 
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
-              onClick={() => nav("/category")}
+              onClick={() => go("/category")}
             >
               📂 Phân loại
             </div>
 
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
-              onClick={() => nav("/devices/error")}
+              onClick={() => go("/devices/error")}
             >
               ⚠ Thiết bị lỗi
             </div>
 
             <div
               className={`p-2 rounded cursor-pointer ${active("/vacon")}`}
-              onClick={() => nav("/vacon")}
+              onClick={() => go("/vacon")}
             >
               ⚡ Lịch sử lỗi biến tần Vacon
             </div>
             
             <div
               className={`p-2 rounded cursor-pointer ${active("/spare-devices")}`}
-              onClick={() => nav("/spare-devices")}
+              onClick={() => go("/spare-devices")}
             >
               🔋 Thiết bị dự phòng
             </div>
@@ -119,21 +157,21 @@ export default function Sidebar() {
 
             <div
               className={`p-2 cursor-pointer rounded ${active("/maintenance/schedule")}`}
-              onClick={() => nav("/maintenance/schedule")}
+              onClick={() => go("/maintenance/schedule")}
             >
               📅 Lịch bảo trì
             </div>
 
             <div
               className={`p-2 cursor-pointer rounded ${active("/maintenance/work")}`}
-              onClick={() => nav("/maintenance/work")}
+              onClick={() => go("/maintenance/work")}
             >
               🛠 Công việc
             </div>
 
             <div
               className={`p-2 cursor-pointer rounded ${active("/maintenance/alerts")}`}
-              onClick={() => nav("/maintenance/alerts")}
+              onClick={() => go("/maintenance/alerts")}
             >
               🚨 Cảnh báo
             </div>
@@ -145,15 +183,15 @@ export default function Sidebar() {
       {/* REPORT */}
       <div
         className={`mt-4 p-2 rounded cursor-pointer ${active("/report")}`}
-        onClick={() => nav("/report")}
-      >s
+        onClick={() => go("/report")}
+      >
         📊 Báo cáo
       </div>
 
       {/* SETTINGS */}
       <div
         className={`mt-4 p-2 rounded cursor-pointer ${active("/settings")}`}
-        onClick={() => nav("/settings")}
+        onClick={() => go("/settings")}
       >
         ⚙ Cài đặt
       </div>
