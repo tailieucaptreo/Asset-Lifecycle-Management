@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 import { useLocation } from "react-router-dom";
-import Table from "../components/Table";
+##import Table from "../components/Table";
+import DeviceTable from "../components/device/DeviceTable";
 
 export default function DeviceList() {
 
@@ -134,9 +135,29 @@ export default function DeviceList() {
 
       ) : (
 
-        <Table
-          data={data}
-          setData={setData}
+        <DeviceTable
+
+            data={data}
+        
+            onView={(device) => {
+        
+                window.location.href =
+                    `/devices/${device.id}`;
+        
+            }}
+        
+            onEdit={(device) => {
+        
+                console.log(device);
+        
+            }}
+        
+            onDelete={(device) => {
+        
+                console.log(device);
+        
+            }}
+        
         />
 
       )}
