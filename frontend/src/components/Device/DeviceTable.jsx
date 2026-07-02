@@ -1,173 +1,272 @@
-import DeviceStatus from "./DeviceStatus";
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../config";
+import EditDeviceModal from "./Device/EditDeviceModal";
+import DeviceRow from "./Device/DeviceRow";
+import DeviceFilter from "./Device/DeviceFilter";
+import DeviceHeader from "./Device/DeviceHeader";
 
-export default function DeviceTable({
+export default function Table({ data = [], setData }) {
 
-    data = [],
+  const nav = useNavigate();
 
-    onView,
+  const [filters, setFilters] = useState({});
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({});
+  const role =
+  localStorage.getItem("role");
 
-    onEdit,
+  // ================= FILTER =================
+  const filteredData = useMemo(() => {
 
-    onDelete
+    return data.filter((d) => {
 
-}) {
+      return (
+        (!filters.name ||
+          d.name?.toLowerCase().includes(filters.name.toLowerCase())) &&
 
-    return (
+        (!filters.station ||
+          d.station?.toLowerCase().includes(filters.station.toLowerCase())) &&
 
-        <div
-            className="
-                bg-white
-                rounded-2xl
-                shadow
-                overflow-hidden
-            "
-        >
+        (!filters.status ||
+          d.status === filters.status)
+      );
+    });
 
-            <div className="overflow-x-auto">
+  }, [data, filters]);
 
-                <table className="min-w-full">
+  // ================= DELETE =================
+  const handleDelete = async (id) => {
 
-                    <thead
-                        className="
-                            bg-slate-100
-                            sticky
-                            top-0
-                            z-10
-                        "
-                    >
+  if (
+    !window.confirm(
+      "Xóa thiết bị này?"
+    )
+  ) return;
 
-                        <tr>
+  try {
 
-                            <th className="px-4 py-3 text-left">
-                                ID
-                            </th>
+    const token =
+      localStorage.getItem(
+        "token"
+      );
 
-                            <th className="px-4 py-3 text-left">
-                                Tên thiết bị
-                            </th>
+    const res =
+      await fetch(
 
-                            <th className="px-4 py-3 text-left">
-                                Phân loại
-                            </th>
+        `${API}/api/devices/${id}`,
 
-                            <th className="px-4 py-3 text-left">
-                                Tuyến
-                            </th>
+        {
 
-                            <th className="px-4 py-3 text-left">
-                                Nhà ga
-                            </th>
+          method:
+            "DELETE",
 
-                            <th className="px-4 py-3 text-center">
-                                Trạng thái
-                            </th>
+          headers:{
 
-                            <th className="px-4 py-3 text-center">
-                                Thao tác
-                            </th>
+            Authorization:
+              `Bearer ${token}`
 
-                        </tr>
+          }
 
-                    </thead>
+        }
 
-                    <tbody>
+      );
 
-                        {data.map(device => (
+    if (!res.ok) {
 
-                            <tr
+      const err =
+        await res.json();
 
-                                key={device.id}
+      throw new Error(
+        err.message ||
+        "Delete lỗi"
+      );
 
-                                className="
-                                    border-t
-                                    hover:bg-slate-50
-                                    transition
-                                "
+    }
 
-                            >
-
-                                <td className="px-4 py-3">
-
-                                    {device.deviceId}
-
-                                </td>
-
-                                <td className="px-4 py-3 font-medium">
-
-                                    {device.name}
-
-                                </td>
-
-                                <td className="px-4 py-3">
-
-                                    {device.category}
-
-                                </td>
-
-                                <td className="px-4 py-3">
-
-                                    {device.line}
-
-                                </td>
-
-                                <td className="px-4 py-3">
-
-                                    {device.station}
-
-                                </td>
-
-                                <td className="px-4 py-3 text-center">
-
-                                    <DeviceStatus
-                                        status={device.status}
-                                    />
-
-                                </td>
-
-                                <td className="px-4 py-3">
-
-                                    <div
-                                        className="
-                                            flex
-                                            justify-center
-                                            gap-2
-                                        "
-                                    >
-
-                                        <button
-                                            onClick={() => onView(device)}
-                                        >
-                                            👁
-                                        </button>
-
-                                        <button
-                                            onClick={() => onEdit(device)}
-                                        >
-                                            ✏
-                                        </button>
-
-                                        <button
-                                            onClick={() => onDelete(device)}
-                                        >
-                                            🗑
-                                        </button>
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-
-                        ))}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
+    setData(
+      prev =>
+      prev.filter(
+        d =>
+        d.id !== id
+      )
     );
 
+    alert(
+      "Xóa thành công"
+    );
+
+  }
+
+  catch(err){
+
+    console.log(
+      err
+    );
+
+    alert(
+      err.message
+    );
+
+  }
+
+};
+
+  // ================= OPEN EDIT =================
+  const openEdit = (d) => {
+
+    setEditing(d);
+
+    setForm({
+      name: d.name || "",
+      line: d.line || "",
+      station: d.station || "",
+      code: d.code || "",
+      area: d.area || "",
+      deviceId: d.deviceId || "",
+      status: d.status || "Inactive",
+      lifespan: d.lifespan || "",
+
+      installDate: d.installDate
+        ? new Date(d.installDate)
+            .toISOString()
+            .split("T")[0]
+        : ""
+    });
+  };
+
+  // ================= CHANGE =================
+  const handleChange = (e) => {
+
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  // ================= UPDATE =================
+  const handleUpdate = async () => {
+
+    try {
+
+      const payload = {
+        ...form,
+
+        lifespan: form.lifespan
+          ? Number(form.lifespan)
+          : null,
+
+        installDate: form.installDate || null
+      };
+
+      const res = await fetch(
+        `${API}/api/devices/${editing.id}`,
+        {
+          method: "PUT",
+          headers:{
+
+          Authorization:
+          `Bearer ${localStorage.getItem("token")}`,
+          
+          "Content-Type":
+          "application/json"
+          
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      if (!res.ok) {
+
+        const err = await res.text();
+
+        throw new Error(err);
+      }
+
+      const updated = await res.json();
+
+      // realtime update
+      setData((prev) =>
+        prev.map((d) =>
+          d.id === updated.id
+            ? updated
+            : d
+        )
+      );
+
+      setEditing(null);
+
+    } catch (err) {
+
+      console.log("UPDATE ERROR:", err);
+
+      alert("Update lỗi: " + err.message);
+    }
+  };
+
+  return (
+
+    <div className="bg-white rounded-xl shadow w-full overflow-hidden">
+
+      {/* TABLE */}
+      <div className="w-full overflow-auto">
+
+        <table className="w-full table-auto text-sm border border-gray-200">
+
+          {/* FILTER */}
+          <thead className="sticky top-0 z-20">
+
+              <DeviceFilter
+          
+                  filters={filters}
+          
+                  setFilters={setFilters}
+          
+              />
+          
+              <DeviceHeader />
+          
+          </thead>
+
+          {/* BODY */}
+          <tbody className="divide-y">
+          
+            {filteredData.map((device) => (
+          
+              <DeviceRow
+          
+                key={device.id}
+          
+                device={device}
+          
+                role={role}
+          
+                onEdit={openEdit}
+          
+                onDelete={handleDelete}
+          
+              />
+          
+            ))}
+          
+          </tbody>
+
+        </table>
+
+      </div>
+      <EditDeviceModal
+
+          editing={editing}
+        
+          form={form}
+        
+          onChange={handleChange}
+        
+          onClose={() => setEditing(null)}
+        
+          onSave={handleUpdate}
+        
+        />
+    </div>
+  );
 }
