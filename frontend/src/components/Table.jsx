@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../config";
+import EditDeviceModal from "./device/EditDeviceModal";
 
 export default function Table({ data = [], setData }) {
 
@@ -420,122 +421,19 @@ export default function Table({ data = [], setData }) {
         </table>
 
       </div>
+      <EditDeviceModal
 
-      {/* ================= MODAL ================= */}
-      {editing && (
-
-        <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-          <div className="bg-white p-6 rounded-xl w-[600px] shadow-lg">
-
-            <h2 className="font-bold mb-4 text-lg">
-              ✏️ Chỉnh sửa thiết bị
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
-
-              <input
-                name="name"
-                value={form.name}
-                onChange={handleChange}
-                className="col-span-2 p-2 border rounded"
-                placeholder="Tên thiết bị"
-              />
-
-              <input
-                name="line"
-                value={form.line}
-                onChange={handleChange}
-                className="p-2 border rounded"
-                placeholder="Tuyến"
-              />
-
-              <input
-                name="station"
-                value={form.station}
-                onChange={handleChange}
-                className="p-2 border rounded"
-                placeholder="Nhà ga"
-              />
-
-              <input
-                name="code"
-                value={form.code}
-                onChange={handleChange}
-                className="p-2 border rounded"
-                placeholder="Ký hiệu"
-              />
-
-              <input
-                name="area"
-                value={form.area}
-                onChange={handleChange}
-                className="p-2 border rounded"
-                placeholder="Khu vực"
-              />
-
-              <input
-                name="deviceId"
-                value={form.deviceId}
-                onChange={handleChange}
-                className="col-span-2 p-2 border rounded"
-                placeholder="Mã ID"
-              />
-
-              <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="p-2 border rounded"
-              >
-                <option value="Active">Active</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-
-              <input
-                type="number"
-                name="lifespan"
-                value={form.lifespan}
-                onChange={handleChange}
-                className="p-2 border rounded"
-                placeholder="Tuổi thọ"
-              />
-
-              <input
-                type="date"
-                name="installDate"
-                value={form.installDate}
-                onChange={handleChange}
-                className="col-span-2 p-2 border rounded"
-              />
-
-            </div>
-
-            <div className="flex justify-end gap-2 mt-5">
-
-              <button
-                onClick={() => setEditing(null)}
-                className="px-4 py-2 bg-gray-300 rounded"
-              >
-                Hủy
-              </button>
-
-              <button
-                onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Lưu
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
+          editing={editing}
+        
+          form={form}
+        
+          onChange={handleChange}
+        
+          onClose={() => setEditing(null)}
+        
+          onSave={handleUpdate}
+        
+        />
     </div>
   );
 }
