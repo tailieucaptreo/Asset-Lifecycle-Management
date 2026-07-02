@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../config";
 import EditDeviceModal from "./device/EditDeviceModal";
 import EditDeviceModal from "./device/DeviceRow";
+import EditDeviceModal from "./device/DeviceFilter";
 
 export default function Table({ data = [], setData }) {
 
