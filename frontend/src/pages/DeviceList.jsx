@@ -137,26 +137,8 @@ export default function DeviceList() {
         <DeviceTable
 
             data={data}
-        
-            onView={(device) => {
-        
-                window.location.href =
-                    `/devices/${device.id}`;
-        
-            }}
-        
-            onEdit={(device) => {
-        
-                console.log(device);
-        
-            }}
-        
-            onDelete={(device) => {
-        
-                console.log(device);
-        
-            }}
-        
+            setData={setData}
+    
         />
 
       )}
