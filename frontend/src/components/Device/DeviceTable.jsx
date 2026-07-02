@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../config";
+import API from "../../config";
 import EditDeviceModal from "./EditDeviceModal";
 import DeviceRow from "./DeviceRow";
 import DeviceFilter from "./DeviceFilter";
 import DeviceHeader from "./DeviceHeader";
 
-export default function Table({ data = [], setData }) {
+export default function DeviceTable({ data = [], setData }) {
 
   const nav = useNavigate();
 
