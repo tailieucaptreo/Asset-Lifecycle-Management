@@ -6,7 +6,7 @@ import Header from "../components/Header.jsx";
 import Card from "../components/Card.jsx";
 import Chart from "../components/Chart.jsx";
 import AdvancedFilter from "../components/AdvancedFilter.jsx";
-import Table from "../components/Table.jsx";
+import DeviceTable from "../components/Device/DeviceTable";
 
 import {
   Cpu,
