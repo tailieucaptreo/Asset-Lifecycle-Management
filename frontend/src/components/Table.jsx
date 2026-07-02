@@ -316,107 +316,25 @@ export default function Table({ data = [], setData }) {
 
           {/* BODY */}
           <tbody className="divide-y">
-
-            {filteredData.map((d) => (
-
-              <tr
-                key={d.id}
-                className="border-t hover:bg-gray-50"
-              >
-
-                {/* CLICK PROFILE */}
-                <td
-                  className="p-3 font-medium text-blue-600 cursor-pointer hover:underline"
-                  onClick={() => nav(`/devices/${d.id}`)}
-                >
-                  {d.name}
-                </td>
-
-                <td className="p-3 text-center">
-                  {d.line}
-                </td>
-
-                <td className="p-3">
-                  {d.station}
-                </td>
-
-                {/* STATUS */}
-                <td className="p-3">
-
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-semibold
-
-                    ${
-                      d.status === "Active"
-                        ? "bg-green-100 text-green-700"
-
-                        : d.status === "Maintenance"
-                        ? "bg-yellow-100 text-yellow-700"
-
-                        : "bg-gray-200 text-gray-600"
-                    }
-                    `}
-                  >
-                    {d.status || "Inactive"}
-                  </span>
-
-                </td>
-
-                <td className="p-3">
-                  {d.code || "-"}
-                </td>
-
-                <td className="p-3">
-                  {d.area || "-"}
-                </td>
-
-                <td className="p-3 font-mono">
-                  {d.deviceId}
-                </td>
-
-                <td className="p-3">
-
-                  {d.installDate
-                    ? new Date(d.installDate)
-                        .toLocaleDateString("vi-VN")
-                    : "-"}
-
-                </td>
-
-                <td className="p-3 text-center">
-                  {d.lifespan || "-"}
-                </td>
-
-                <td className="p-3 text-center space-x-2">
-                
-                  {role === "admin" && (
-                
-                    <>
-                
-                      <button
-                        onClick={() => openEdit(d)}
-                        className="text-blue-600 hover:underline"
-                      >
-                        Edit
-                      </button>
-                
-                      <button
-                        onClick={() => handleDelete(d.id)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                
-                    </>
-                
-                  )}
-                
-                </td>
-
-              </tr>
-
+          
+            {filteredData.map((device) => (
+          
+              <DeviceRow
+          
+                key={device.id}
+          
+                device={device}
+          
+                role={role}
+          
+                onEdit={openEdit}
+          
+                onDelete={handleDelete}
+          
+              />
+          
             ))}
-
+          
           </tbody>
 
         </table>
