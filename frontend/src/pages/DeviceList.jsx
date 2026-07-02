@@ -3,7 +3,7 @@ import axios from "axios";
 import API from "../config";
 import { useLocation } from "react-router-dom";
 ##import Table from "../components/Table";
-import DeviceTable from "../components/device/DeviceTable";
+import DeviceTable from "../components/Device/DeviceTable";
 
 export default function DeviceList() {
 
