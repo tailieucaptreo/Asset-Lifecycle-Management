@@ -4,6 +4,7 @@ import API from "../config";
 import EditDeviceModal from "./device/EditDeviceModal";
 import EditDeviceModal from "./device/DeviceRow";
 import EditDeviceModal from "./device/DeviceFilter";
+import EditDeviceModal from "./device/DeviceHeader";
 
 export default function Table({ data = [], setData }) {
 
@@ -213,106 +214,18 @@ export default function Table({ data = [], setData }) {
         <table className="w-full table-auto text-sm border border-gray-200">
 
           {/* FILTER */}
-          <thead className="bg-gray-100 sticky top-0 z-10">
+          <thead className="sticky top-0 z-20">
 
-            <tr>
-
-              <th className="p-2">
-                <input
-                  placeholder="Tên"
-                  className="border p-1 w-full"
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      name: e.target.value
-                    })
-                  }
-                />
-              </th>
-
-              <th></th>
-
-              <th className="p-2">
-                <input
-                  placeholder="Nhà ga"
-                  className="border p-1 w-full"
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      station: e.target.value
-                    })
-                  }
-                />
-              </th>
-
-              <th className="p-2">
-
-                <select
-                  className="border p-1 w-full"
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      status: e.target.value
-                    })
-                  }
-                >
-                  <option value="">All</option>
-                  <option value="Active">Active</option>
-                  <option value="Maintenance">Maintenance</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-
-              </th>
-
-              <th colSpan="6"></th>
-
-            </tr>
-
-            {/* HEADER */}
-            <tr className="text-left text-gray-700">
-
-              <th className="p-3 w-[220px]">
-                Tên
-              </th>
-
-              <th className="p-3 w-[60px] text-center">
-                Tuyến
-              </th>
-
-              <th className="p-3 w-[120px]">
-                Nhà ga
-              </th>
-
-              <th className="p-3 w-[120px]">
-                Trạng thái
-              </th>
-
-              <th className="p-3 w-[90px]">
-                Ký hiệu
-              </th>
-
-              <th className="p-3 w-[120px]">
-                Khu vực
-              </th>
-
-              <th className="p-3 w-[130px]">
-                Mã ID
-              </th>
-
-              <th className="p-3 w-[110px]">
-                Ngày lắp
-              </th>
-
-              <th className="p-3 w-[80px] text-center">
-                Tuổi thọ
-              </th>
-
-              <th className="p-3 w-[120px] text-center">
-                Action
-              </th>
-
-            </tr>
-
+              <DeviceFilter
+          
+                  filters={filters}
+          
+                  setFilters={setFilters}
+          
+              />
+          
+              <DeviceHeader />
+          
           </thead>
 
           {/* BODY */}
