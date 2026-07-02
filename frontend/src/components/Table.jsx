@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../config";
-import EditDeviceModal from "./device/EditDeviceModal";
-import DeviceRow from "./device/DeviceRow";
-import DeviceFilter from "./device/DeviceFilter";
-import DeviceHeader from "./device/DeviceHeader";
+import EditDeviceModal from "./Device/EditDeviceModal";
+import DeviceRow from "./Device/DeviceRow";
+import DeviceFilter from "./Device/DeviceFilter";
+import DeviceHeader from "./Device/DeviceHeader";
 
 export default function Table({ data = [], setData }) {
 
