@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import API from "../config";
-import Table from "../components/Table";
+import DeviceTable from "../components/Device/DeviceTable";
 
 export default function ExpiredDevices() {
 
