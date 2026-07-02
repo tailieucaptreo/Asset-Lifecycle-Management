@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../config";
 import EditDeviceModal from "./device/EditDeviceModal";
+import EditDeviceModal from "./device/DeviceRow";
 
 export default function Table({ data = [], setData }) {
 
