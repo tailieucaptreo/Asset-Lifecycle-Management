@@ -1,4 +1,4 @@
-import {RefreshCw,Plus,Download} from "lucide-react";
+import {RefreshCw, Plus, Download} from "lucide-react";
 
 export default function DeviceToolbar({
 
