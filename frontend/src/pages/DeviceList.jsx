@@ -108,9 +108,9 @@ export default function DeviceList() {
       
           onReload={fetchDevices}
       
-          onExport={handleExport}
-      
-          onAdd={() => navigate("/add")}
+          onExport={() => {}}
+
+          onAdd={() => {}}
       
       />
 
