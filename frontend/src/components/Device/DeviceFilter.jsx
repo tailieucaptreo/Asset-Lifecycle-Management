@@ -1,140 +1,223 @@
+import { Search, RotateCcw } from "lucide-react";
+
 export default function DeviceFilter({
 
-  filters,
+    filters,
 
-  setFilters
+    setFilters,
+
+    data = []
 
 }) {
 
-  return (
+    const stations = [
+        ...new Set(
+            data
+                .map(d => d.station)
+                .filter(Boolean)
+        )
+    ];
 
-    <tr>
+    return (
 
-      {/* TÊN */}
-
-      <th className="p-2">
-
-        <input
-
-          placeholder="Tên"
-
-          className="
-            border
-            rounded
-            p-2
-            w-full
-          "
-
-          value={filters.name || ""}
-
-          onChange={(e) =>
-
-            setFilters({
-
-              ...filters,
-
-              name: e.target.value
-
-            })
-
-          }
-
-        />
-
-      </th>
-
-      {/* TUYẾN */}
-
-      <th></th>
-
-      {/* NHÀ GA */}
-
-      <th className="p-2">
-
-        <input
-
-          placeholder="Nhà ga"
-
-          className="
-            border
-            rounded
-            p-2
-            w-full
-          "
-
-          value={filters.station || ""}
-
-          onChange={(e) =>
-
-            setFilters({
-
-              ...filters,
-
-              station: e.target.value
-
-            })
-
-          }
-
-        />
-
-      </th>
-
-      {/* TRẠNG THÁI */}
-
-      <th className="p-2">
-
-        <select
-
-          className="
-            border
-            rounded
-            p-2
-            w-full
-          "
-
-          value={filters.status || ""}
-
-          onChange={(e) =>
-
-            setFilters({
-
-              ...filters,
-
-              status: e.target.value
-
-            })
-
-          }
-
+        <div
+            className="
+                bg-white
+                rounded-2xl
+                shadow
+                p-4
+                mb-5
+            "
         >
 
-          <option value="">
-            Tất cả
-          </option>
+            <div
+                className="
+                    grid
+                    grid-cols-1
+                    md:grid-cols-4
+                    gap-4
+                "
+            >
 
-          <option value="Active">
-            Active
-          </option>
+                {/* SEARCH */}
 
-          <option value="Maintenance">
-            Maintenance
-          </option>
+                <div className="relative">
 
-          <option value="Inactive">
-            Inactive
-          </option>
+                    <Search
+                        size={18}
+                        className="
+                            absolute
+                            left-3
+                            top-3
+                            text-gray-400
+                        "
+                    />
 
-        </select>
+                    <input
 
-      </th>
+                        type="text"
 
-      {/* CÁC CỘT KHÁC */}
+                        placeholder="Tên thiết bị..."
 
-      <th colSpan="6"></th>
+                        value={filters.name || ""}
 
-    </tr>
+                        onChange={(e)=>
 
-  );
+                            setFilters({
+
+                                ...filters,
+
+                                name:e.target.value
+
+                            })
+
+                        }
+
+                        className="
+                            w-full
+                            border
+                            rounded-lg
+                            pl-10
+                            pr-3
+                            py-2
+                            focus:ring-2
+                            focus:ring-blue-500
+                        "
+
+                    />
+
+                </div>
+
+                {/* STATION */}
+
+                <select
+
+                    value={filters.station || ""}
+
+                    onChange={(e)=>
+
+                        setFilters({
+
+                            ...filters,
+
+                            station:e.target.value
+
+                        })
+
+                    }
+
+                    className="
+                        border
+                        rounded-lg
+                        px-3
+                        py-2
+                    "
+
+                >
+
+                    <option value="">
+                        Tất cả nhà ga
+                    </option>
+
+                    {stations.map(station=>(
+
+                        <option
+                            key={station}
+                            value={station}
+                        >
+                            {station}
+                        </option>
+
+                    ))}
+
+                </select>
+
+                {/* STATUS */}
+
+                <select
+
+                    value={filters.status || ""}
+
+                    onChange={(e)=>
+
+                        setFilters({
+
+                            ...filters,
+
+                            status:e.target.value
+
+                        })
+
+                    }
+
+                    className="
+                        border
+                        rounded-lg
+                        px-3
+                        py-2
+                    "
+
+                >
+
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
+
+                    <option value="Active">
+                        Active
+                    </option>
+
+                    <option value="Maintenance">
+                        Maintenance
+                    </option>
+
+                    <option value="Expired">
+                        Expired
+                    </option>
+
+                </select>
+
+                {/* RESET */}
+
+                <button
+
+                    onClick={()=>{
+
+                        setFilters({
+
+                            name:"",
+
+                            station:"",
+
+                            status:""
+
+                        });
+
+                    }}
+
+                    className="
+                        flex
+                        items-center
+                        justify-center
+                        gap-2
+                        rounded-lg
+                        bg-gray-200
+                        hover:bg-gray-300
+                        transition
+                    "
+
+                >
+
+                    <RotateCcw size={18}/>
+
+                    Reset
+
+                </button>
+
+            </div>
+
+        </div>
+
+    );
 
 }
