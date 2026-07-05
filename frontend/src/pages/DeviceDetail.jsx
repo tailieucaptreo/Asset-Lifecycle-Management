@@ -117,6 +117,43 @@ export default function DeviceDetail() {
     );
   }
 
+  const install =
+    device.installDate
+      ? new Date(device.installDate)
+      : null;
+  
+  const now = new Date();
+  
+  const usedYear =
+    install
+      ? (
+          (now - install) /
+          (1000 * 60 * 60 * 24 * 365)
+        ).toFixed(1)
+      : 0;
+  
+  const remainYear =
+    device.lifespan
+      ? Math.max(
+          0,
+          (
+            Number(device.lifespan) -
+            Number(usedYear)
+          ).toFixed(1)
+        )
+      : 0;
+  
+  const percent =
+    device.lifespan
+      ? Math.min(
+          100,
+          (
+            Number(usedYear) /
+            Number(device.lifespan)
+          ) * 100
+        )
+      : 0;
+  
   return (
 
     <div className="p-8 bg-gray-100 min-h-screen w-full">
@@ -250,33 +287,60 @@ export default function DeviceDetail() {
       </div>
 
       {/* MAIN CARD */}
-      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-[1400px]">
+      <div className="bg-white rounded-3xl shadow-xl p-8">
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+        <div className="flex flex-col lg:flex-row gap-10">
 
           {/* IMAGE */}
-          <div>
+          <div className="w-full lg:w-80">
 
-            <div className="border-2 border-dashed rounded-2xl h-[350px] flex items-center justify-center bg-gray-50 overflow-hidden">
-
-              {device.image ? (
-                <img
-                  src={device.image}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="text-center text-gray-400">
-
-                  <div className="text-6xl mb-3">
-                    🖼️
-                  </div>
-
-                  <p>Chưa có hình ảnh</p>
-
+                <div
+                    className="
+                        aspect-square
+                        rounded-3xl
+                        overflow-hidden
+                        bg-slate-100
+                        border
+                        shadow
+                    "
+                >
+            
+                    {device.image ? (
+            
+                        <img
+            
+                            src={device.image}
+            
+                            className="
+                                w-full
+                                h-full
+                                object-cover
+                            "
+            
+                        />
+            
+                    ) : (
+            
+                        <div
+                            className="
+                                w-full
+                                h-full
+                                flex
+                                items-center
+                                justify-center
+                                text-gray-400
+                                text-7xl
+                            "
+                        >
+            
+                            🖼️
+            
+                        </div>
+            
+                    )}
+            
                 </div>
-              )}
-
+            
             </div>
 
             {edit && (
@@ -295,6 +359,76 @@ export default function DeviceDetail() {
           {/* INFO */}
           <div className="lg:col-span-3">
 
+            <div className="mb-8">
+
+                <h2 className="text-4xl font-bold">
+            
+                    {device.name}
+            
+                </h2>
+            
+                <p className="text-gray-500 mt-2">
+            
+                    ID: {device.deviceId}
+            
+                </p>
+            
+                <div className="mt-4">
+            
+                    <DeviceStatus
+                        status={device.status}
+                    />
+            
+                </div>
+            
+            </div>
+
+            {/* SUMMARY CARD */}
+            <div
+                className="
+                    grid
+                    grid-cols-2
+                    md:grid-cols-4
+                    gap-4
+                    mt-8
+                    mb-10
+                "
+            >
+            
+                <SummaryCard
+            
+                    title="Tuổi thọ"
+            
+                    value={`${device.lifespan || "-"} năm`}
+            
+                />
+            
+                <SummaryCard
+            
+                    title="Đã dùng"
+            
+                    value={`${usedYear} năm`}
+            
+                />
+            
+                <SummaryCard
+            
+                    title="Còn lại"
+            
+                    value={`${remainYear} năm`}
+            
+                />
+            
+                <SummaryCard
+            
+                    title="Tuyến"
+            
+                    value={device.line || "-"}
+            
+                />
+            
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
               <Field
@@ -527,4 +661,54 @@ function Field({
 
     </div>
   );
+}
+
+function SummaryCard({
+
+    title,
+
+    value
+
+}){
+
+    return(
+
+        <div
+            className="
+                bg-slate-50
+                border
+                rounded-2xl
+                p-5
+                text-center
+            "
+        >
+
+            <p
+                className="
+                    text-gray-500
+                    text-sm
+                "
+            >
+
+                {title}
+
+            </p>
+
+            <h3
+                className="
+                    text-2xl
+                    font-bold
+                    mt-2
+                    text-blue-600
+                "
+            >
+
+                {value}
+
+            </h3>
+
+        </div>
+
+    );
+
 }
