@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../config";
+import { ArrowLeft, Pencil, Save, X} from "lucide-react";
 
 export default function DeviceDetail() {
 
@@ -120,50 +121,132 @@ export default function DeviceDetail() {
 
     <div className="p-8 bg-gray-100 min-h-screen w-full">
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
+      {/* ================= HEADER ================= */}
 
-        <div>
-
-          <h1 className="text-3xl font-bold text-gray-800">
-            🔧 Hồ sơ thiết bị
-          </h1>
-
-          <p className="text-gray-500 mt-1">
-            Quản lý thông tin chi tiết thiết bị
-          </p>
-
-        </div>
-
-        {role === "admin" && (
-
-            !edit ? (
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+      
+          <div>
+      
               <button
-                onClick={() => setEdit(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl shadow"
+                  onClick={() => window.history.back()}
+                  className="
+                      flex
+                      items-center
+                      gap-2
+                      text-blue-600
+                      hover:text-blue-700
+                      font-medium
+                      mb-3
+                  "
               >
-                ✏️ Chỉnh sửa
+      
+                  <ArrowLeft size={18}/>
+      
+                  Quay lại
+      
               </button>
-            ) : (
-              <div className="flex gap-2">
-    
-                <button
-                  onClick={() => setEdit(false)}
-                  className="bg-gray-300 hover:bg-gray-400 px-5 py-2 rounded-xl"
-                >
-                  Hủy
-                </button>
-    
-                <button
-                  onClick={handleSave}
-                  className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-xl shadow"
-                >
-                  💾 Lưu
-                </button>
-    
-              </div>
-            )
-        )}
+      
+              <h1 className="text-3xl font-bold">
+      
+                  Chi tiết thiết bị
+      
+              </h1>
+      
+              <p className="text-gray-500 mt-2">
+      
+                  Hồ sơ quản lý thiết bị
+      
+              </p>
+      
+          </div>
+      
+          {role==="admin" && (
+      
+              !edit ? (
+      
+                  <button
+      
+                      onClick={()=>setEdit(true)}
+      
+                      className="
+                          flex
+                          items-center
+                          gap-2
+                          bg-blue-600
+                          hover:bg-blue-700
+                          text-white
+                          px-5
+                          py-3
+                          rounded-xl
+                          shadow
+                      "
+      
+                  >
+      
+                      <Pencil size={18}/>
+      
+                      Chỉnh sửa
+      
+                  </button>
+      
+              ) : (
+      
+                  <div className="flex gap-3">
+      
+                      <button
+      
+                          onClick={()=>setEdit(false)}
+      
+                          className="
+                              flex
+                              items-center
+                              gap-2
+                              bg-gray-300
+                              hover:bg-gray-400
+                              px-5
+                              py-3
+                              rounded-xl
+                          "
+      
+                      >
+      
+                          <X size={18}/>
+      
+                          Hủy
+      
+                      </button>
+      
+                      <button
+      
+                          onClick={handleSave}
+      
+                          className="
+                              flex
+                              items-center
+                              gap-2
+                              bg-green-600
+                              hover:bg-green-700
+                              text-white
+                              px-5
+                              py-3
+                              rounded-xl
+                              shadow
+                          "
+      
+                      >
+      
+                          <Save size={18}/>
+      
+                          Lưu
+      
+                      </button>
+      
+                  </div>
+      
+              )
+      
+          )}
+      
       </div>
 
       {/* MAIN CARD */}
