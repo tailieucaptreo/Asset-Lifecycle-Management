@@ -1,104 +1,204 @@
-import DeviceStatus from "./DeviceStatus";
-
 import {
-    Eye,
-    Pencil,
-    Trash2,
-    MapPin,
-    Hash
+  Eye,
+  Pencil,
+  Trash2,
+  MapPin,
+  Cpu
 } from "lucide-react";
+
+import DeviceStatus from "./DeviceStatus";
 
 export default function DeviceCard({
 
-    device,
+  device,
 
-    onView,
+  role,
 
-    onEdit,
+  onView,
 
-    onDelete
+  onEdit,
+
+  onDelete
 
 }) {
 
-    return (
+  return (
 
-        <div
-            className="
-                bg-white
-                rounded-2xl
-                shadow
-                p-4
-                border
-                border-slate-200
-            "
-        >
+    <div
+      className="
+        bg-white
+        rounded-2xl
+        shadow
+        border
+        border-slate-200
+        p-4
+        hover:shadow-lg
+        transition
+      "
+    >
 
-            <h2
-                className="
-                    font-bold
-                    text-lg
-                    mb-3
-                "
-            >
-                {device.name}
-            </h2>
+      {/* HEADER */}
 
-            <div className="space-y-2 text-sm">
+      <div className="flex justify-between items-start">
 
-                <div className="flex items-center gap-2">
+        <div>
 
-                    <Hash size={16} />
+          <h2 className="font-bold text-lg">
 
-                    {device.deviceId}
+            {device.name}
 
-                </div>
+          </h2>
 
-                <div className="flex items-center gap-2">
+          <p className="text-sm text-gray-500">
 
-                    🚡 Tuyến
+            {device.deviceId}
 
-                    {device.line}
-
-                </div>
-
-                <div className="flex items-center gap-2">
-
-                    <MapPin size={16} />
-
-                    {device.station}
-
-                </div>
-
-                <DeviceStatus
-                    status={device.status}
-                />
-
-            </div>
-
-            <div
-                className="
-                    mt-4
-                    flex
-                    justify-between
-                "
-            >
-
-                <button onClick={() => onView(device)}>
-                    <Eye size={18} />
-                </button>
-
-                <button onClick={() => onEdit(device)}>
-                    <Pencil size={18} />
-                </button>
-
-                <button onClick={() => onDelete(device)}>
-                    <Trash2 size={18} />
-                </button>
-
-            </div>
+          </p>
 
         </div>
 
-    );
+        <DeviceStatus
+          status={device.status}
+        />
+
+      </div>
+
+      {/* BODY */}
+
+      <div className="mt-4 space-y-2 text-sm">
+
+        <div className="flex items-center gap-2">
+
+          <Cpu size={16} />
+
+          <span>
+
+            {device.category || "Chưa phân loại"}
+
+          </span>
+
+        </div>
+
+        <div className="flex items-center gap-2">
+
+          <MapPin size={16} />
+
+          <span>
+
+            Tuyến {device.line}
+
+            {" - "}
+
+            {device.station}
+
+          </span>
+
+        </div>
+
+        <div>
+
+          <span className="font-medium">
+
+            Mã:
+
+          </span>
+
+          {" "}
+
+          {device.code || "-"}
+
+        </div>
+
+        <div>
+
+          <span className="font-medium">
+
+            Khu vực:
+
+          </span>
+
+          {" "}
+
+          {device.area || "-"}
+
+        </div>
+
+      </div>
+
+      {/* FOOTER */}
+
+      <div
+        className="
+          mt-5
+          flex
+          justify-end
+          gap-2
+        "
+      >
+
+        <button
+
+          onClick={() => onView(device)}
+
+          className="
+            p-2
+            rounded-lg
+            bg-blue-100
+            hover:bg-blue-200
+          "
+
+        >
+
+          <Eye size={18} />
+
+        </button>
+
+        {role === "admin" && (
+
+          <>
+
+            <button
+
+              onClick={() => onEdit(device)}
+
+              className="
+                p-2
+                rounded-lg
+                bg-yellow-100
+                hover:bg-yellow-200
+              "
+
+            >
+
+              <Pencil size={18} />
+
+            </button>
+
+            <button
+
+              onClick={() => onDelete(device.id)}
+
+              className="
+                p-2
+                rounded-lg
+                bg-red-100
+                hover:bg-red-200
+              "
+
+            >
+
+              <Trash2 size={18} />
+
+            </button>
+
+          </>
+
+        )}
+
+      </div>
+
+    </div>
+
+  );
 
 }
