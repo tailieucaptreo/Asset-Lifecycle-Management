@@ -239,7 +239,12 @@ export default function DeviceTable({ data = [], setData }) {
       </div>
   
       {/* ================= DESKTOP ================= */}
-  
+      <DeviceFilter
+          filters={filters}
+          setFilters={setFilters}
+          data={data}
+       />
+      
       <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
   
         <div className="w-full overflow-auto">
@@ -247,12 +252,6 @@ export default function DeviceTable({ data = [], setData }) {
           <table className="w-full table-auto text-sm border border-gray-200">
   
             <thead className="sticky top-0 z-20">
-  
-              <DeviceFilter
-                filters={filters}
-                setFilters={setFilters}
-                data={data}
-              />
   
               <DeviceHeader />
   
