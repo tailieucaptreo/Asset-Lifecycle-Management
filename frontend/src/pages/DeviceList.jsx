@@ -3,6 +3,7 @@ import axios from "axios";
 import API from "../config";
 import { useLocation } from "react-router-dom";
 import DeviceTable from "../components/Device/DeviceTable";
+import DeviceToolbar from "../components/Device/DeviceToolbar";
 
 export default function DeviceList() {
 
@@ -99,29 +100,19 @@ export default function DeviceList() {
 
     <div className="p-3 md:p-6 w-full">
 
-      {/* TITLE */}
-      <div className="flex justify-between items-center mb-5">
+      <DeviceToolbar
 
-        <h1 className="text-lg md:text-2xl font-bold">
-
-          📋 Danh sách thiết bị
-
-          {status && (
-            <span className="ml-2 text-blue-600">
-              - {status}
-            </span>
-          )}
-
-        </h1>
-
-        <button
-          onClick={fetchDevices}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-sm md:px-4 rounded-lg shadow"
-        >
-          🔄 Reload
-        </button>
-
-      </div>
+          title="📋 Danh sách thiết bị"
+      
+          role={localStorage.getItem("role")}
+      
+          onReload={fetchDevices}
+      
+          onExport={handleExport}
+      
+          onAdd={() => navigate("/add")}
+      
+      />
 
       {/* LOADING */}
       {loading ? (
