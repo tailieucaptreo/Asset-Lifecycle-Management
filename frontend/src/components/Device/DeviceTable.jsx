@@ -5,6 +5,7 @@ import EditDeviceModal from "./EditDeviceModal";
 import DeviceRow from "./DeviceRow";
 import DeviceFilter from "./DeviceFilter";
 import DeviceHeader from "./DeviceHeader";
+import DeviceCard from "./DeviceCard";
 
 export default function DeviceTable({ data = [], setData }) {
 
@@ -210,69 +211,85 @@ export default function DeviceTable({ data = [], setData }) {
 
   return (
 
-    <div className="bg-white rounded-xl shadow w-full overflow-hidden">
-
-      {/* TABLE */}
-      <div className="w-full overflow-auto">
-
-        <table className="w-full table-auto text-sm border border-gray-200">
-
-          {/* FILTER */}
-          <thead className="sticky top-0 z-20">
-
-              <DeviceFilter
-          
-                  filters={filters}
-          
-                  setFilters={setFilters}
-
-                  data={data}
-          
-              />
-          
-              <DeviceHeader />
-          
-          </thead>
-
-          {/* BODY */}
-          <tbody className="divide-y">
-          
-            {filteredData.map((device) => (
-          
-              <DeviceRow
-          
-                key={device.id}
-          
-                device={device}
-          
-                role={role}
-          
-                onEdit={openEdit}
-          
-                onDelete={handleDelete}
-          
-              />
-          
-            ))}
-          
-          </tbody>
-
-        </table>
-
-      </div>
-      <EditDeviceModal
-
-          editing={editing}
-        
-          form={form}
-        
-          onChange={handleChange}
-        
-          onClose={() => setEditing(null)}
-        
-          onSave={handleUpdate}
-        
+    <>
+  
+      {/* ================= MOBILE ================= */}
+  
+      <div className="lg:hidden space-y-4">
+  
+        <DeviceFilter
+          filters={filters}
+          setFilters={setFilters}
+          data={data}
         />
-    </div>
+  
+        {filteredData.map((device) => (
+  
+          <DeviceCard
+            key={device.id}
+            device={device}
+            role={role}
+            onView={(d) => nav(`/devices/${d.id}`)}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+          />
+  
+        ))}
+  
+      </div>
+  
+      {/* ================= DESKTOP ================= */}
+  
+      <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
+  
+        <div className="w-full overflow-auto">
+  
+          <table className="w-full table-auto text-sm border border-gray-200">
+  
+            <thead className="sticky top-0 z-20">
+  
+              <DeviceFilter
+                filters={filters}
+                setFilters={setFilters}
+                data={data}
+              />
+  
+              <DeviceHeader />
+  
+            </thead>
+  
+            <tbody className="divide-y">
+  
+              {filteredData.map((device) => (
+  
+                <DeviceRow
+                  key={device.id}
+                  device={device}
+                  role={role}
+                  onView={() => nav(`/devices/${device.id}`)}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                />
+  
+              ))}
+  
+            </tbody>
+  
+          </table>
+  
+        </div>
+  
+      </div>
+  
+      <EditDeviceModal
+        editing={editing}
+        form={form}
+        onChange={handleChange}
+        onClose={() => setEditing(null)}
+        onSave={handleUpdate}
+      />
+  
+    </>
+  
   );
 }
