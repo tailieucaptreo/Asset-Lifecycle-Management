@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../config";
 import { ArrowLeft, Pencil, Save, X} from "lucide-react";
+import DeviceStatus from "../components/Device/DeviceStatus";
 
 export default function DeviceDetail() {
 
@@ -289,100 +290,99 @@ export default function DeviceDetail() {
       {/* MAIN CARD */}
       <div className="bg-white rounded-3xl shadow-xl p-8">
 
-        <div className="flex flex-col lg:flex-row gap-10">
-
-          {/* IMAGE */}
-          <div className="w-full lg:w-80">
-
-                <div
-                    className="
-                        aspect-square
-                        rounded-3xl
-                        overflow-hidden
-                        bg-slate-100
-                        border
-                        shadow
-                    "
-                >
-            
-                    {device.image ? (
-            
-                        <img
-            
-                            src={device.image}
-            
-                            className="
-                                w-full
-                                h-full
-                                object-cover
-                            "
-            
-                        />
-            
-                    ) : (
-            
-                        <div
-                            className="
-                                w-full
-                                h-full
-                                flex
-                                items-center
-                                justify-center
-                                text-gray-400
-                                text-7xl
-                            "
-                        >
-            
-                            🖼️
-            
-                        </div>
-            
-                    )}
-            
-                </div>
-            
-            </div>
-
-            {edit && (
-              <input
-                type="text"
-                name="image"
-                value={device.image || ""}
-                onChange={handleChange}
-                placeholder="Link hình ảnh"
-                className="mt-4 w-full border p-3 rounded-xl"
-              />
-            )}
-
-          </div>
-
-          {/* INFO */}
-          <div className="lg:col-span-3">
-
-            <div className="mb-8">
-
-                <h2 className="text-4xl font-bold">
-            
-                    {device.name}
-            
-                </h2>
-            
-                <p className="text-gray-500 mt-2">
-            
-                    ID: {device.deviceId}
-            
-                </p>
-            
-                <div className="mt-4">
-            
-                    <DeviceStatus
-                        status={device.status}
-                    />
-            
-                </div>
-            
-            </div>
-
+          <div className="flex flex-col lg:flex-row gap-10">
+  
+            {/* IMAGE */}
+            <div className="w-full lg:w-80">
+  
+                  <div
+                      className="
+                          aspect-square
+                          rounded-3xl
+                          overflow-hidden
+                          bg-slate-100
+                          border
+                          shadow
+                      "
+                  >
+              
+                      {device.image ? (
+              
+                          <img
+              
+                              src={device.image}
+              
+                              className="
+                                  w-full
+                                  h-full
+                                  object-cover
+                              "
+              
+                          />
+              
+                      ) : (
+              
+                          <div
+                              className="
+                                  w-full
+                                  h-full
+                                  flex
+                                  items-center
+                                  justify-center
+                                  text-gray-400
+                                  text-7xl
+                              "
+                          >
+              
+                              🖼️
+              
+                          </div>
+              
+                      )}
+              
+                  </div>
+              
+              </div>
+  
+              {edit && (
+                <input
+                  type="text"
+                  name="image"
+                  value={device.image || ""}
+                  onChange={handleChange}
+                  placeholder="Link hình ảnh"
+                  className="mt-4 w-full border p-3 rounded-xl"
+                />
+              )}
+  
+            {/* INFO */}
+            <div className="lg:col-span-3">
+  
+              <div className="mb-8">
+  
+                  <h2 className="text-4xl font-bold">
+              
+                      {device.name}
+              
+                  </h2>
+              
+                  <p className="text-gray-500 mt-2">
+              
+                      ID: {device.deviceId}
+              
+                  </p>
+              
+                  <div className="mt-4">
+              
+                      <DeviceStatus
+                          status={device.status}
+                      />
+              
+                  </div>
+              
+              </div>
+              
+        </div>
             {/* SUMMARY CARD */}
             <div
                 className="
