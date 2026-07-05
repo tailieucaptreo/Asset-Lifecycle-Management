@@ -1,34 +1,118 @@
+import {
+  CheckCircle,
+  Wrench,
+  AlertTriangle,
+  XCircle,
+  Clock
+} from "lucide-react";
+
 export default function DeviceStatus({ status }) {
 
-    let color = "bg-gray-500";
+  const config = {
 
-    if (status === "Active")
-        color = "bg-green-500";
+    Active: {
 
-    if (status === "Maintenance")
-        color = "bg-yellow-500";
+      text: "Đang hoạt động",
 
-    if (status === "Expired")
-        color = "bg-red-500";
+      color:
+        "bg-green-100 text-green-700 border-green-300 animate-pulse",
 
-    return (
+      icon:
+        <CheckCircle size={16} />
 
-        <span
-            className={`
-                inline-flex
-                items-center
-                px-3
-                py-1
-                rounded-full
-                text-xs
-                font-semibold
-                text-white
-                ${color}
-            `}
-        >
-            {status}
-        </span>
+    },
 
-    );
+    Maintenance: {
+
+      text: "Bảo trì",
+
+      color:
+        "bg-yellow-100 text-yellow-700 border-yellow-300",
+
+      icon:
+        <Wrench size={16} />
+
+    },
+
+    Expired: {
+
+      text: "Quá tuổi thọ",
+
+      color:
+        "bg-red-100 text-red-700 border-red-300",
+
+      icon:
+        <AlertTriangle size={16} />
+
+    },
+
+    Inactive: {
+
+      text: "Ngừng sử dụng",
+
+      color:
+        "bg-gray-100 text-gray-700 border-gray-300",
+
+      icon:
+        <XCircle size={16} />
+
+    },
+
+    Repair: {
+
+      text: "Đang sửa chữa",
+
+      color:
+        "bg-orange-100 text-orange-700 border-orange-300",
+
+      icon:
+        <Clock size={16} />
+
+    }
+
+  };
+
+  const item =
+    config[status] ||
+
+    {
+
+      text: status || "Không rõ",
+
+      color:
+        "bg-slate-100 text-slate-700 border-slate-300",
+
+      icon:
+        <Clock size={16} />
+
+    };
+
+  return (
+
+    <span
+
+      className={`
+        inline-flex
+        items-center
+        gap-2
+        px-3
+        py-1
+        rounded-full
+        border
+        text-xs
+        font-semibold
+        whitespace-nowrap
+        ${item.color}
+      `}
+
+    >
+
+      {item.icon}
+
+      {item.text}
+
+    </span>
+
+  );
 
 }
