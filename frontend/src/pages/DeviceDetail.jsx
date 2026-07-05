@@ -356,7 +356,7 @@ export default function DeviceDetail() {
               )}
   
             {/* INFO */}
-            <div className="lg:col-span-3">
+            <div className="flex-1">
   
               <div className="mb-8">
   
@@ -382,7 +382,6 @@ export default function DeviceDetail() {
               
               </div>
               
-        </div>
             {/* SUMMARY CARD */}
             <div
                 className="
