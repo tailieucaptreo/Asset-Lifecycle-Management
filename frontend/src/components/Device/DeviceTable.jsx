@@ -10,7 +10,11 @@ export default function DeviceTable({ data = [], setData }) {
 
   const nav = useNavigate();
 
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({
+    name:"",
+    station:"",
+    status:""
+  });
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const role =
@@ -221,6 +225,8 @@ export default function DeviceTable({ data = [], setData }) {
                   filters={filters}
           
                   setFilters={setFilters}
+
+                  data={data}
           
               />
           
