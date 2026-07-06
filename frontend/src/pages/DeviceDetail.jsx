@@ -427,44 +427,6 @@ export default function DeviceDetail() {
                 />
             
             </div>
-
-            function Section({ title, children }) {
-
-                return (
-            
-                    <div
-                        className="
-                            bg-white
-                            border
-                            rounded-2xl
-                            shadow-sm
-                            p-6
-                            mt-8
-                        "
-                    >
-            
-                        <h2
-                            className="
-                                text-xl
-                                font-bold
-                                mb-6
-                                text-slate-700
-                                border-b
-                                pb-3
-                            "
-                        >
-            
-                            {title}
-            
-                        </h2>
-            
-                        {children}
-            
-                    </div>
-            
-                );
-            
-            }
             
             <Section title="📋 Thông tin chung">
 
@@ -528,25 +490,96 @@ export default function DeviceDetail() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             
-                    <Field
-                        label="Ngày lắp"
-                        ...
-                    />
-            
-                    <Field
-                        label="Tuổi thọ"
-                        ...
-                    />
-            
-                    <Field
-                        label="Ngày bảo trì"
-                        ...
-                    />
-            
-                    <Field
-                        label="Ngày thay thế"
-                        ...
-                    />
+                   <Field
+                    label="Tên thiết bị"
+                    name="name"
+                    value={device.name}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Ký hiệu"
+                    name="code"
+                    value={device.code}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Mã ID"
+                    name="deviceId"
+                    value={device.deviceId}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Mã vật tư"
+                    name="materialCode"
+                    value={device.materialCode}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Tuyến"
+                    name="line"
+                    value={device.line}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Nhà ga"
+                    name="station"
+                    value={device.station}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Khu vực"
+                    name="area"
+                    value={device.area}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Tuổi thọ"
+                    name="lifespan"
+                    value={device.lifespan}
+                    edit={edit}
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Ngày lắp đặt"
+                    name="installDate"
+                    value={device.installDate?.slice(0, 10)}
+                    edit={edit}
+                    type="date"
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Ngày bảo trì"
+                    name="lastMaintenance"
+                    value={device.lastMaintenance?.slice(0, 10)}
+                    edit={edit}
+                    type="date"
+                    onChange={handleChange}
+                  />
+    
+                  <Field
+                    label="Ngày thay thế"
+                    name="replacementDate"
+                    value={device.replacementDate}
+                    edit={edit}
+                    type="date"
+                    onChange={handleChange}
+                  />
             
                 </div>
             
@@ -601,7 +634,7 @@ export default function DeviceDetail() {
             
                         name="note"
             
-                        value={form.note || ""}
+                        value={device.note || ""}
             
                         onChange={handleChange}
             
@@ -725,6 +758,44 @@ function SummaryCard({
                 {value}
 
             </h3>
+
+        </div>
+
+    );
+
+}
+
+function Section({ title, children }) {
+
+    return (
+
+        <div
+            className="
+                bg-white
+                border
+                rounded-2xl
+                shadow-sm
+                p-6
+                mt-8
+            "
+        >
+
+            <h2
+                className="
+                    text-xl
+                    font-bold
+                    mb-6
+                    text-slate-700
+                    border-b
+                    pb-3
+                "
+            >
+
+                {title}
+
+            </h2>
+
+            {children}
 
         </div>
 
