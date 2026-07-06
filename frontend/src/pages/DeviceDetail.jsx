@@ -427,190 +427,210 @@ export default function DeviceDetail() {
                 />
             
             </div>
+
+            function Section({ title, children }) {
+
+                return (
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div
+                        className="
+                            bg-white
+                            border
+                            rounded-2xl
+                            shadow-sm
+                            p-6
+                            mt-8
+                        "
+                    >
+            
+                        <h2
+                            className="
+                                text-xl
+                                font-bold
+                                mb-6
+                                text-slate-700
+                                border-b
+                                pb-3
+                            "
+                        >
+            
+                            {title}
+            
+                        </h2>
+            
+                        {children}
+            
+                    </div>
+            
+                );
+            
+            }
+            
+            <Section title="📋 Thông tin chung">
 
-              <Field
-                label="Tên thiết bị"
-                name="name"
-                value={device.name}
-                edit={edit}
-                onChange={handleChange}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+                    <Field
+                        label="Tên thiết bị"
+                        ...
+                    />
+            
+                    <Field
+                        label="Ký hiệu"
+                        ...
+                    />
+            
+                    <Field
+                        label="Mã ID"
+                        ...
+                    />
+            
+                    <Field
+                        label="Mã vật tư"
+                        ...
+                    />
+            
+                    <Field
+                        label="Tuyến"
+                        ...
+                    />
+            
+                    <Field
+                        label="Nhà ga"
+                        ...
+                    />
+            
+                    <Field
+                        label="Khu vực"
+                        ...
+                    />
+            
+                    <Field
+                        label="Phân loại"
+                        ...
+                    />
+            
+                    <Field
+                        label="Model"
+                        ...
+                    />
+            
+                    <Field
+                        label="Hãng"
+                        ...
+                    />
+            
+                </div>
+            
+            </Section>
 
-              <Field
-                label="Ký hiệu"
-                name="code"
-                value={device.code}
-                edit={edit}
-                onChange={handleChange}
-              />
+            <Section title="📅 Thông tin lắp đặt">
 
-              <Field
-                label="Mã ID"
-                name="deviceId"
-                value={device.deviceId}
-                edit={edit}
-                onChange={handleChange}
-              />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
+                    <Field
+                        label="Ngày lắp"
+                        ...
+                    />
+            
+                    <Field
+                        label="Tuổi thọ"
+                        ...
+                    />
+            
+                    <Field
+                        label="Ngày bảo trì"
+                        ...
+                    />
+            
+                    <Field
+                        label="Ngày thay thế"
+                        ...
+                    />
+            
+                </div>
+            
+            </Section>
 
-              <Field
-                label="Mã vật tư"
-                name="materialCode"
-                value={device.materialCode}
-                edit={edit}
-                onChange={handleChange}
-              />
+            <Section title="📄 Tài liệu thiết bị">
 
-              <Field
-                label="Tuyến"
-                name="line"
-                value={device.line}
-                edit={edit}
-                onChange={handleChange}
-              />
+                <div className="space-y-3">
+            
+                    {device.datasheet ? (
+            
+                        <a
+            
+                            href={device.datasheet}
+            
+                            target="_blank"
+            
+                            rel="noreferrer"
+            
+                            className="
+                                text-blue-600
+                                underline
+                            "
+            
+                        >
+            
+                            Xem Datasheet
+            
+                        </a>
+            
+                    ) : (
+            
+                        <p className="text-gray-400">
+            
+                            Chưa có Datasheet
+            
+                        </p>
+            
+                    )}
+            
+                </div>
+            
+            </Section>
 
-              <Field
-                label="Nhà ga"
-                name="station"
-                value={device.station}
-                edit={edit}
-                onChange={handleChange}
-              />
-
-              <Field
-                label="Khu vực"
-                name="area"
-                value={device.area}
-                edit={edit}
-                onChange={handleChange}
-              />
-
-              <Field
-                label="Tuổi thọ"
-                name="lifespan"
-                value={device.lifespan}
-                edit={edit}
-                onChange={handleChange}
-              />
-
-              <Field
-                label="Ngày lắp đặt"
-                name="installDate"
-                value={device.installDate?.slice(0, 10)}
-                edit={edit}
-                type="date"
-                onChange={handleChange}
-              />
-
-              <Field
-                label="Ngày bảo trì"
-                name="lastMaintenance"
-                value={device.lastMaintenance?.slice(0, 10)}
-                edit={edit}
-                type="date"
-                onChange={handleChange}
-              />
-
-              <Field
-                label="Ngày thay thế"
-                name="replacementDate"
-                value={device.replacementDate}
-                edit={edit}
-                type="date"
-                onChange={handleChange}
-              />
-
-              {/* STATUS */}
-              <div>
-
-                <label className="text-sm text-gray-500">
-                  Trạng thái
-                </label>
+            <Section title="📝 Ghi chú">
 
                 {edit ? (
-
-                  <select
-                    name="status"
-                    value={device.status || ""}
-                    onChange={handleChange}
-                    className="mt-1 w-full border p-3 rounded-xl"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-
+            
+                    <textarea
+            
+                        rows={5}
+            
+                        name="note"
+            
+                        value={form.note || ""}
+            
+                        onChange={handleChange}
+            
+                        className="
+                            w-full
+                            border
+                            rounded-xl
+                            p-3
+                        "
+            
+                    />
+            
                 ) : (
-
-                  <div
-                    className={`mt-1 px-4 py-3 rounded-xl font-semibold
-
-                    ${
-                      device.status === "Active"
-                        ? "bg-green-100 text-green-700"
-
-                        : device.status === "Maintenance"
-                        ? "bg-yellow-100 text-yellow-700"
-
-                        : "bg-gray-200 text-gray-600"
-                    }
-                    `}
-                  >
-                    {device.status}
-                  </div>
-
-                )}
-
-              </div>
-
-            </div>
-
-            {/* DATASHEET */}
-            <div className="mt-8">
-
-              <label className="text-sm text-gray-500">
-                Datasheet
-              </label>
-
-              {edit ? (
-
-                <input
-                  type="text"
-                  name="datasheet"
-                  value={device.datasheet || ""}
-                  onChange={handleChange}
-                  placeholder="Link datasheet PDF"
-                  className="mt-1 w-full border p-3 rounded-xl"
-                />
-
-              ) : (
-
-                <div className="mt-2">
-
-                  {device.datasheet ? (
-
-                    <a
-                      href={device.datasheet}
-                      target="_blank"
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl inline-block"
+            
+                    <div
+                        className="
+                            min-h-[120px]
+                            whitespace-pre-wrap
+                            text-gray-700
+                        "
                     >
-                      📄 Xem Datasheet
-                    </a>
-
-                  ) : (
-
-                    <div className="bg-gray-100 text-gray-400 px-4 py-3 rounded-xl">
-                      Chưa có datasheet
+            
+                        {device.note || "Không có ghi chú"}
+            
                     </div>
-
-                  )}
-
-                </div>
-
-              )}
-
-            </div>
+            
+                )}
+            
+            </Section>
 
           </div>
 
