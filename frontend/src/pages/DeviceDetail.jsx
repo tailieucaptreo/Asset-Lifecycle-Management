@@ -290,14 +290,14 @@ export default function DeviceDetail() {
       {/* MAIN CARD */}
       <div className="bg-white rounded-3xl shadow-xl p-8">
 
-          <div className="flex flex-col lg:flex-row gap-10">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
   
             {/* IMAGE */}
-            <div className="w-full lg:w-80">
+            <div className="w-full lg:w-56 xl:w-64">
   
                   <div
                       className="
-                          aspect-square
+                          h-64
                           rounded-3xl
                           overflow-hidden
                           bg-slate-100
@@ -356,7 +356,7 @@ export default function DeviceDetail() {
               )}
   
             {/* INFO */}
-            <div className="flex-1">
+            <div className="lg:col-span-3">
   
               <div className="mb-8">
   
