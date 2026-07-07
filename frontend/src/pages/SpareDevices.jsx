@@ -4,6 +4,7 @@ import API from "../config";
 
 import { Plus, Search, Download, Upload, Trash2, Pencil, Package } from "lucide-react";
 import SpareRow from "../components/Spare/SpareRow";
+import SpareTable from "../components/Spare/SpareTable";
 
 export default function SpareDevices() {
 
@@ -659,145 +660,17 @@ export default function SpareDevices() {
 
       {/* TABLE */}
       <div
-        className="
-          bg-white
-          rounded-3xl
-          shadow-lg
-          overflow-hidden
-          border
-          border-gray-200
-        "
-      >
-
-        <div className="overflow-x-auto max-h-[75vh]">
-
-          <table className="w-full text-sm table-auto">
-
-            <thead className="bg-gray-50 border-b sticky top-0 z-10">
-
-              <tr className="text-gray-800 text-sm">
-
-                <th className="px-3 py-3 text-left">
-                  Hình ảnh
-                </th>
-
-                <th className="px-3 py-3 text-left">
-                  Tên thiết bị
-                </th>
-
-                <th className="px-3 py-3 text-left">
-                  Mã ID
-                </th>
-
-                <th className="px-3 py-3 text-center">
-                  Tình trạng
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Kho
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Tủ
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Kệ
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Khay
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Ban đầu
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Nhập
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Xuất
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  Tồn kho
-                </th>
-
-                <th className="px-2 py-3 text-center">
-                  ĐVT
-                </th>
-
-                <th className="px-3 py-3 text-center">
-                  Action
-                </th>
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {filtered.length > 0 ? (
-
-                filtered.map((d) => (
-
-                  <SpareRow
-
-                      key={d.id}
-              
-                      item={d}
-              
-                      role={role}
-              
-                      onEdit={handleEdit}
-              
-                      onDelete={handleDelete}
-              
-                  />
-                ))
-
-              ) : (
-
-                <tr>
-
-                  <td
-                    colSpan={14}
-                    className="
-                      text-center
-                      py-16
-                      text-gray-400
-                    "
-                  >
-
-                    <div className="
-                      flex
-                      flex-col
-                      items-center
-                      gap-3
-                    ">
-
-                      <Package size={48} />
-
-                      <p className="text-lg">
-                        Chưa có thiết bị dự phòng
-                      </p>
-
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              )}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+        <SpareTable
+        
+            data={filtered}
+        
+            role={role}
+        
+            onEdit={handleEdit}
+        
+            onDelete={handleDelete}
+        
+        />
       </div>
 
       {/* ================= PREVIEW IMPORT ================= */}
