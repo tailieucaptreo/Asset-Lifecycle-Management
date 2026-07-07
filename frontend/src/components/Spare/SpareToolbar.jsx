@@ -1,133 +1,225 @@
-import { Search } from "lucide-react";
+import {
+
+    Search,
+
+    Download,
+
+    Upload,
+
+    Plus
+
+} from "lucide-react";
+
+import SpareFilter from "./SpareFilter";
 
 export default function SpareToolbar({
 
-    keyword,
+    role,
 
-    setKeyword,
+    search,
 
-    onReload,
+    setSearch,
 
-    onImport,
+    filter,
+
+    setFilter,
 
     onExport,
 
-    role
+    onImport,
 
-}) {
+    onCreate,
 
-    return (
+    onHistory
+
+}){
+
+    return(
 
         <div
             className="
-                bg-white
-                rounded-2xl
-                shadow
-                p-4
-                mb-6
+                flex
+                flex-col
+                md:flex-row
+                gap-3
             "
         >
 
-            <div
-                className="
-                    flex
-                    flex-col
-                    lg:flex-row
-                    gap-4
-                "
-            >
+            <div className="relative">
 
-                <div className="relative flex-1">
+                <Search
 
-                    <Search
-                        size={18}
-                        className="
-                            absolute
-                            left-4
-                            top-3.5
-                            text-gray-400
-                        "
-                    />
+                    size={18}
+
+                    className="
+                        absolute
+                        left-3
+                        top-3
+                        text-gray-400
+                    "
+
+                />
+
+                <input
+
+                    value={search}
+
+                    onChange={(e)=>
+
+                        setSearch(
+
+                            e.target.value
+
+                        )
+
+                    }
+
+                    placeholder="Tìm thiết bị..."
+
+                    className="
+                        pl-10
+                        pr-4
+                        py-3
+                        rounded-xl
+                        border
+                        w-[250px]
+                        bg-white
+                    "
+
+                />
+
+            </div>
+
+            <SpareFilter
+
+                filter={filter}
+
+                setFilter={setFilter}
+
+            />
+
+            {
+
+                role==="admin"
+
+                &&
+
+                <label
+                    className="
+                        bg-purple-500
+                        hover:bg-purple-600
+                        text-white
+                        px-5
+                        py-3
+                        rounded-xl
+                        flex
+                        items-center
+                        gap-2
+                        cursor-pointer
+                    "
+                >
+
+                    <Upload size={18}/>
+
+                    Import
 
                     <input
 
-                        value={keyword}
+                        hidden
 
-                        onChange={(e)=>setKeyword(e.target.value)}
+                        type="file"
 
-                        placeholder="Tìm thiết bị dự phòng..."
+                        accept=".xlsx,.xls"
 
-                        className="
-                            w-full
-                            pl-11
-                            pr-4
-                            py-3
-                            border
-                            rounded-xl
-                        "
+                        onChange={(e)=>{
+
+                            const file=
+
+                                e.target.files[0];
+
+                            if(file){
+
+                                onImport(file);
+
+                            }
+
+                        }}
 
                     />
 
-                </div>
+                </label>
 
-                <button
+            }
 
-                    onClick={onReload}
+            {
 
-                    className="
-                        px-5
-                        rounded-xl
-                        bg-slate-200
-                        hover:bg-slate-300
-                    "
+                role==="admin"
 
-                >
-
-                    🔄 Reload
-
-                </button>
+                &&
 
                 <button
 
                     onClick={onExport}
 
                     className="
-                        px-5
-                        rounded-xl
-                        bg-green-600
-                        hover:bg-green-700
+                        bg-green-500
                         text-white
+                        px-5
+                        py-3
+                        rounded-xl
                     "
 
                 >
 
-                    Export
+                    <Download size={18}/>
 
                 </button>
 
-                {role === "admin" && (
+            }
 
-                    <button
+            {
 
-                        onClick={onImport}
+                role==="admin"
 
-                        className="
-                            px-5
-                            rounded-xl
-                            bg-blue-600
-                            hover:bg-blue-700
-                            text-white
-                        "
+                &&
 
-                    >
+                <button
 
-                        Import
+                    onClick={onCreate}
 
-                    </button>
+                    className="
+                        bg-blue-500
+                        text-white
+                        px-5
+                        py-3
+                        rounded-xl
+                    "
 
-                )}
+                >
 
-            </div>
+                    <Plus size={18}/>
+
+                </button>
+
+            }
+
+            <button
+
+                onClick={onHistory}
+
+                className="
+                    bg-gray-800
+                    text-white
+                    px-5
+                    py-3
+                    rounded-xl
+                "
+
+            >
+
+                🕘 Lịch sử
+
+            </button>
 
         </div>
 
