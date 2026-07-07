@@ -1,246 +1,62 @@
 export default function SpareFilter({
 
-    filters,
+    filter,
 
-    setFilters,
+    setFilter
 
-    data = []
+}){
 
-}) {
+    return(
 
-    const warehouses = [
-        ...new Set(
-            data
-                .map(d => d.warehouse)
-                .filter(Boolean)
-        )
-    ];
+        <select
 
-    const cabinets = [
-        ...new Set(
-            data
-                .map(d => d.cabinet)
-                .filter(Boolean)
-        )
-    ];
+            value={filter}
 
-    const shelves = [
-        ...new Set(
-            data
-                .map(d => d.shelf)
-                .filter(Boolean)
-        )
-    ];
+            onChange={(e)=>
 
-    const conditions = [
-        ...new Set(
-            data
-                .map(d => d.condition)
-                .filter(Boolean)
-        )
-    ];
+                setFilter(
 
-    return (
+                    e.target.value
 
-        <div
+                )
+
+            }
+
             className="
+                px-4
+                py-3
+                rounded-xl
+                border
                 bg-white
-                rounded-2xl
-                shadow
-                p-4
-                mb-6
             "
+
         >
 
-            <div
-                className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    xl:grid-cols-4
-                    gap-4
-                "
-            >
+            <option value="All">
 
-                {/* Kho */}
+                Tất cả
 
-                <select
+            </option>
 
-                    value={filters.warehouse}
+            <option value="New">
 
-                    onChange={(e)=>
+                Thiết bị mới
 
-                        setFilters({
+            </option>
 
-                            ...filters,
+            <option value="Used">
 
-                            warehouse:e.target.value
+                Đã sử dụng
 
-                        })
+            </option>
 
-                    }
+            <option value="Broken">
 
-                    className="
-                        border
-                        rounded-xl
-                        px-4
-                        py-3
-                    "
+                Hỏng
 
-                >
+            </option>
 
-                    <option value="">
-                        Tất cả kho
-                    </option>
-
-                    {warehouses.map(item=>(
-
-                        <option
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </option>
-
-                    ))}
-
-                </select>
-
-                {/* Tủ */}
-
-                <select
-
-                    value={filters.cabinet}
-
-                    onChange={(e)=>
-
-                        setFilters({
-
-                            ...filters,
-
-                            cabinet:e.target.value
-
-                        })
-
-                    }
-
-                    className="
-                        border
-                        rounded-xl
-                        px-4
-                        py-3
-                    "
-
-                >
-
-                    <option value="">
-                        Tất cả tủ
-                    </option>
-
-                    {cabinets.map(item=>(
-
-                        <option
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </option>
-
-                    ))}
-
-                </select>
-
-                {/* Kệ */}
-
-                <select
-
-                    value={filters.shelf}
-
-                    onChange={(e)=>
-
-                        setFilters({
-
-                            ...filters,
-
-                            shelf:e.target.value
-
-                        })
-
-                    }
-
-                    className="
-                        border
-                        rounded-xl
-                        px-4
-                        py-3
-                    "
-
-                >
-
-                    <option value="">
-                        Tất cả kệ
-                    </option>
-
-                    {shelves.map(item=>(
-
-                        <option
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </option>
-
-                    ))}
-
-                </select>
-
-                {/* Tình trạng */}
-
-                <select
-
-                    value={filters.condition}
-
-                    onChange={(e)=>
-
-                        setFilters({
-
-                            ...filters,
-
-                            condition:e.target.value
-
-                        })
-
-                    }
-
-                    className="
-                        border
-                        rounded-xl
-                        px-4
-                        py-3
-                    "
-
-                >
-
-                    <option value="">
-                        Tất cả tình trạng
-                    </option>
-
-                    {conditions.map(item=>(
-
-                        <option
-                            key={item}
-                            value={item}
-                        >
-                            {item}
-                        </option>
-
-                    ))}
-
-                </select>
-
-            </div>
-
-        </div>
+        </select>
 
     );
 
