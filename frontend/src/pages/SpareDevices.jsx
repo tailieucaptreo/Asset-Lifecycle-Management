@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import { Plus, Search, Download, Upload, Trash2, Pencil, Package } from "lucide-react";
+import { Plus, Search, Download, Upload } from "lucide-react";
 import SpareRow from "../components/Spare/SpareRow";
 import SpareTable from "../components/Spare/SpareTable";
 import EditSpareModal from "../components/Spare/EditSpareModal";
@@ -678,10 +678,10 @@ export default function SpareDevices() {
 
       {/* ================= PREVIEW IMPORT ================= */}
       <ImportPreviewModal
-
+      
           show={showPreview}
       
-          previewData={previewData}
+          previewData={previewRows}
       
           onClose={() => setShowPreview(false)}
       
@@ -691,10 +691,10 @@ export default function SpareDevices() {
 
       {/* ================= HISTORY ================= */}
       <HistoryModal
-
+      
           show={showHistory}
       
-          history={history}
+          history={historyData}
       
           onClose={() => setShowHistory(false)}
       
