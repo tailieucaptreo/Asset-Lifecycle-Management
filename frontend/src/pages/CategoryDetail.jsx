@@ -3,6 +3,11 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import API from "../config";
 
+import CategoryDetailHeader from "../components/category/CategoryDetailHeader";
+import CategoryDetailToolbar from "../components/category/CategoryDetailToolbar";
+import CategoryDeviceTable from "../components/category/CategoryDeviceTable";
+import CategoryDeviceCard from "../components/category/CategoryDeviceCard";
+
 export default function CategoryDetail() {
 
   const { id } = useParams();
@@ -15,6 +20,8 @@ export default function CategoryDetail() {
     loadData();
 
   }, [id]);
+
+  const [keyword, setKeyword] = useState("");
 
   const loadData = async () => {
 
@@ -49,83 +56,97 @@ export default function CategoryDetail() {
 
   };
 
+  const filteredDevices = useMemo(() => {
+
+      return devices.filter(device =>
+  
+          device.name
+              ?.toLowerCase()
+              .includes(keyword.toLowerCase())
+  
+      );
+  
+  }, [devices, keyword]);
+
   return (
 
-    <div className="p-6">
-
-      <h1 className="text-3xl font-bold mb-6">
-
-        Nhóm thiết bị:
-        {" "}
-        {decodeURIComponent(id)}
-
-      </h1>
-
-      <div className="bg-white rounded-xl shadow overflow-hidden">
-
-        <table className="w-full">
-
-          <thead className="bg-gray-100">
-
-            <tr>
-
-              <th className="p-3 text-left">
-                Tên thiết bị
-              </th>
-
-              <th className="p-3 text-left">
-                Tuyến
-              </th>
-
-              <th className="p-3 text-left">
-                Nhà ga
-              </th>
-
-              <th className="p-3 text-left">
-                Trạng thái
-              </th>
-
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {devices.map(device => (
-
-              <tr
-                key={device.id}
-                className="border-t"
+      <div className="p-4 md:p-6">
+  
+          <CategoryDetailHeader
+  
+              category={decodeURIComponent(id)}
+  
+              total={filteredDevices.length}
+  
+          />
+  
+          <CategoryDetailToolbar
+  
+              keyword={keyword}
+  
+              setKeyword={setKeyword}
+  
+          />
+  
+          {/* Desktop */}
+  
+          <div className="hidden lg:block">
+  
+              <CategoryDeviceTable
+  
+                  data={filteredDevices}
+  
+              />
+  
+          </div>
+  
+          {/* Mobile */}
+  
+          <div
+              className="
+                  grid
+                  grid-cols-1
+                  gap-4
+                  lg:hidden
+              "
+          >
+  
+              {filteredDevices.map(device => (
+  
+                  <CategoryDeviceCard
+  
+                      key={device.id}
+  
+                      device={device}
+  
+                  />
+  
+              ))}
+  
+          </div>
+  
+          {filteredDevices.length === 0 && (
+  
+              <div
+                  className="
+                      bg-white
+                      rounded-2xl
+                      shadow
+                      p-10
+                      text-center
+                      text-gray-400
+                      mt-6
+                  "
               >
-
-                <td className="p-3">
-                  {device.name}
-                </td>
-
-                <td className="p-3">
-                  {device.line}
-                </td>
-
-                <td className="p-3">
-                  {device.station}
-                </td>
-
-                <td className="p-3">
-                  {device.status}
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
+  
+                  Không có thiết bị
+  
+              </div>
+  
+          )}
+  
       </div>
-
-    </div>
-
+  
   );
 
 }
