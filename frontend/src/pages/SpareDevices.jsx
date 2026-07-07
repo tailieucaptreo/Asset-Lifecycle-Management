@@ -2,15 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import {
-  Plus,
-  Search,
-  Download,
-  Upload,
-  Trash2,
-  Pencil,
-  Package
-} from "lucide-react";
+import { Plus, Search, Download, Upload, Trash2, Pencil, Package } from "lucide-react";
+import SpareRow from "../components/Spare/SpareRow";
 
 export default function SpareDevices() {
 
@@ -750,203 +743,19 @@ export default function SpareDevices() {
 
                 filtered.map((d) => (
 
-                  <tr
-                    key={d.id}
-                    className="
-                      border-b
-                      hover:bg-gray-50
-                      transition
-                    "
-                  >
+                  <SpareRow
 
-                    {/* IMAGE */}
-                    <td className="px-2 py-3">
-
-                      {d.image ? (
-
-                        <img
-                          src={d.image}
-                          alt=""
-                          className="
-                            w-10
-                            h-10
-                            rounded-2xl
-                            object-cover
-                            border
-                          "
-                        />
-
-                      ) : (
-
-                        <div
-                          className="
-                            w-10
-                            h-10
-                            rounded-2xl
-                            bg-gray-100
-                            flex
-                            items-center
-                            justify-center
-                          "
-                        >
-                          <Package size={24} />
-                        </div>
-
-                      )}
-
-                    </td>
-
-                    <td className="px-3 py-3 font-semibold min-w-[250px]">
-                      {d.name || "-"}
-                    </td>
-
-                    <td className="px-3 py-3">
-                      {d.deviceId || "-"}
-                    </td>
-
-                    <td className="px-3 py-3 text-center">
-
-                      <span className={`
-                        px-4
-                        py-2
-                        rounded-xl
-                        text-sm
-                        font-semibold
-
-                        ${d.condition === "New"
-                          ? "bg-green-100 text-green-700"
-                          : ""}
-
-                        ${d.condition === "Used"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : ""}
-
-                        ${d.condition === "Broken"
-                          ? "bg-red-100 text-red-700"
-                          : ""}
-                      `}>
-
-                        {d.condition === "New" &&
-                          "Mới"}
-
-                        {d.condition === "Used" &&
-                          "Đã sử dụng"}
-
-                        {d.condition === "Broken" &&
-                          "Hỏng"}
-
-                      </span>
-
-                    </td>
-
-                    <td className="px-2 py-3 text-center">
-                      {d.warehouse || "-"}
-                    </td>
-
-                    <td className="px-2 py-3 text-center">
-                      {d.cabinet || "-"}
-                    </td>
-
-                    <td className="px-2 py-3 text-center">
-                      {d.shelf || "-"}
-                    </td>
-
-                    <td className="px-2 py-3 text-center">
-                      {d.slot || "-"}
-                    </td>
-
-                    <td className="
-                      px-2
-                      py-3
-                      text-center
-                      font-bold
-                    ">
-                      {d.initialQuantity || 0}
-                    </td>
-
-                    <td className="
-                      px-2
-                      py-3
-                      text-center
-                      font-bold
-                      text-blue-600
-                    ">
-                      {d.importQty || 0}
-                    </td>
-
-                    <td className="
-                      px-2
-                      py-3
-                      text-center
-                      font-bold
-                      text-red-500
-                    ">
-                      {d.exportQty || 0}
-                    </td>
-
-                    <td className="
-                      px-2
-                      py-3
-                      text-center
-                      font-bold
-                      text-green-700
-                    ">
-                      {d.quantity || 0}
-                    </td>
-
-                    <td className="px-2 py-3 text-center">
-                      {d.unit || "Cái"}
-                    </td>
-
-                    <td className="px-3 py-3">
-
-                      <div className="
-                        flex
-                        items-center
-                        justify-center
-                        gap-4
-                      ">
-
-                        <button
-                          onClick={() => handleEdit(d)}
-                          className="
-                            w-9
-                            h-9
-                            rounded-xl
-                            bg-blue-50
-                            text-blue-500
-                            hover:bg-blue-100
-                          "
-                        >
-                          <Pencil size={18} />
-                        </button>
-
-                        {role === "admin" && (
-
-                          <button
-                            onClick={() =>
-                              handleDelete(d.id)
-                            }
-                            className="
-                              w-9
-                              h-9
-                              rounded-xl
-                              bg-red-50
-                              text-red-500
-                              hover:bg-red-100
-                            "
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        
-                        )}
-
-                      </div>
-
-                    </td>
-
-                  </tr>
-
+                      key={d.id}
+              
+                      item={d}
+              
+                      role={role}
+              
+                      onEdit={handleEdit}
+              
+                      onDelete={handleDelete}
+              
+                  />
                 ))
 
               ) : (
