@@ -7,6 +7,7 @@ import SpareRow from "../components/Spare/SpareRow";
 import SpareTable from "../components/Spare/SpareTable";
 import EditSpareModal from "../components/Spare/EditSpareModal";
 import HistoryModal from "../components/Spare/HistoryModal";
+import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
 
 export default function SpareDevices() {
 
@@ -676,165 +677,17 @@ export default function SpareDevices() {
       </div>
 
       {/* ================= PREVIEW IMPORT ================= */}
-      {showPreview && (
+      <ImportPreviewModal
 
-        <div
-          className="
-            fixed
-            inset-0
-            bg-black/40
-            flex
-            items-center
-            justify-center
-            z-50
-            p-6
-          "
-        >
-
-          <div
-            className="
-              bg-white
-              rounded-3xl
-              w-full
-              max-w-4xl
-              p-6
-              shadow-2xl
-            "
-          >
-
-            <h2
-              className="
-                text-3xl
-                font-bold
-                mb-6
-              "
-            >
-              📄 Xem trước dữ liệu import
-            </h2>
-
-            <div
-              className="
-                overflow-auto
-                border
-                rounded-2xl
-                max-h-[60vh]
-              "
-            >
-
-              <table className="w-full text-sm table-auto">
-
-                <thead className="bg-gray-100">
-
-                  <tr>
-
-                    <th className="p-3 text-left">
-                      Tên thiết bị
-                    </th>
-
-                    <th className="p-3 text-left">
-                      Mã ID
-                    </th>
-
-                    <th className="p-3 text-center">
-                      Số lượng
-                    </th>
-
-                    <th className="p-3 text-center">
-                      Đơn vị
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {previewRows.map((r, index) => (
-
-                    <tr
-                      key={index}
-                      className="border-t"
-                    >
-
-                      <td className="p-3">
-                        {r.name}
-                      </td>
-
-                      <td className="p-3">
-                        {r.deviceId}
-                      </td>
-
-                      <td
-                        className="
-                          p-3
-                          text-center
-                          font-bold
-                          text-blue-600
-                        "
-                      >
-                        {r.initialQuantity}
-                      </td>
-
-                      <td className="p-3 text-center">
-                        {r.unit}
-                      </td>
-
-                    </tr>
-
-                  ))}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-            <div
-              className="
-                flex
-                justify-end
-                gap-4
-                mt-6
-              "
-            >
-
-              <button
-                onClick={() => {
-
-                  setShowPreview(false);
-
-                  setPreviewRows([]);
-                }}
-                className="
-                  px-6
-                  py-3
-                  rounded-xl
-                  bg-gray-200
-                "
-              >
-                Hủy
-              </button>
-
-              <button
-                onClick={handleConfirmImport}
-                className="
-                  px-6
-                  py-3
-                  rounded-xl
-                  bg-blue-500
-                  hover:bg-blue-600
-                  text-white
-                "
-              >
-                Xác nhận Import
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
-      )}
+          show={showPreview}
+      
+          previewData={previewData}
+      
+          onClose={() => setShowPreview(false)}
+      
+          onImport={handleConfirmImport}
+      
+      />
 
       {/* ================= HISTORY ================= */}
       <HistoryModal
