@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import API from "../config";
@@ -12,16 +12,12 @@ export default function CategoryDetail() {
 
   const { id } = useParams();
 
-  const [devices, setDevices] =
-    useState([]);
-
-  useEffect(() => {
-
-    loadData();
-
-  }, [id]);
-
+  const [devices, setDevices] = useState([]);
   const [keyword, setKeyword] = useState("");
+
+    useEffect(() => {
+        loadData();
+    }, [id]);
 
   const loadData = async () => {
 
