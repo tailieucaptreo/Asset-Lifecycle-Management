@@ -10,7 +10,6 @@ import HistoryModal from "../components/Spare/HistoryModal";
 import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
 import SpareHeader from "../components/Spare/SpareHeader";
 import SpareToolbar from "../components/Spare/SpareToolbar";
-import SpareToolbar from "../components/Spare/SpareFilter";
 
 export default function SpareDevices() {
 
