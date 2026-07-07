@@ -1,40 +1,78 @@
 export default function SpareHeader({
 
-    total
+    role
 
 }) {
 
     return (
 
-        <div className="mb-6">
+        <div>
 
-            <h1 className="text-3xl font-bold">
+            <h1
+                className="
+                    text-4xl
+                    font-bold
+                    flex
+                    items-center
+                    gap-3
+                "
+            >
 
                 🔋 Thiết bị dự phòng
 
             </h1>
 
-            <p className="text-gray-500 mt-2">
+            <div
+                className="
+                    mt-2
+                    flex
+                    items-center
+                    gap-2
+                "
+            >
 
-                Quản lý kho thiết bị dự phòng
+                <span className="text-gray-500">
 
-            </p>
+                    Quyền hiện tại:
 
-            <div className="mt-3">
+                </span>
 
                 <span
-                    className="
-                        bg-blue-100
-                        text-blue-700
+                    className={`
                         px-3
                         py-1
                         rounded-full
                         text-sm
-                        font-semibold
-                    "
+                        font-bold
+
+                        ${
+                            role==="admin"
+
+                            ?
+
+                            "bg-green-100 text-green-700"
+
+                            :
+
+                            "bg-blue-100 text-blue-700"
+
+                        }
+                    `}
                 >
 
-                    Tổng: {total} thiết bị
+                    {
+
+                        role==="admin"
+
+                        ?
+
+                        "ADMIN"
+
+                        :
+
+                        "USER"
+
+                    }
 
                 </span>
 
