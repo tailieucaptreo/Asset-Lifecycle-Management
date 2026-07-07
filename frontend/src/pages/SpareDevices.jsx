@@ -426,187 +426,28 @@ export default function SpareDevices() {
       
       />
 
-        {/* TOOLBAR */}
-        <div className="
-          flex
-          flex-col
-          md:flex-row
-          gap-3
-        ">
+      {/* TOOLBAR */}
+       <SpareToolbar
 
-          {/* SEARCH */}
-          <div className="relative">
-
-            <Search
-              className="
-                absolute
-                left-3
-                top-3
-                text-gray-400
-              "
-              size={18}
-            />
-
-            <input
-              type="text"
-              placeholder="Tìm thiết bị..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              className="
-                pl-10
-                pr-4
-                py-3
-                rounded-xl
-                border
-                w-[250px]
-                bg-white
-              "
-            />
-
-          </div>
-
-          {/* FILTER */}
-          <select
-            value={filter}
-            onChange={(e) =>
-              setFilter(e.target.value)
-            }
-            className="
-              px-4
-              py-3
-              rounded-xl
-              border
-              bg-white
-            "
-          >
-
-            <option value="All">
-              Tất cả
-            </option>
-
-            <option value="New">
-              Thiết bị mới
-            </option>
-
-            <option value="Used">
-              Đã sử dụng
-            </option>
-
-            <option value="Broken">
-              Hỏng
-            </option>
-
-          </select>
-
-          {/* IMPORT */}
-          {role === "admin" && (
-
-            <label
-              className="
-                bg-purple-500
-                hover:bg-purple-600
-                text-white
-                px-5
-                py-3
-                rounded-xl
-                flex
-                items-center
-                gap-2
-                shadow
-                cursor-pointer
-              "
-            >
-          
-              <Upload size={18} />
-          
-              Import
-          
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                hidden
-                onChange={(e) => {
-          
-                  const file = e.target.files[0];
-          
-                  if (!file) return;
-          
-                  handleImportExcel(file);
-                }}
-              />
-          
-            </label>
-          
-          )}
-
-          {/* EXPORT */}
-          {role === "admin" && (
-            <button
-              onClick={handleExport}
-              className="
-                bg-green-500
-                hover:bg-green-600
-                text-white
-                px-5
-                py-3
-                rounded-xl
-                flex
-                items-center
-                gap-2
-                shadow
-              "
-            >
-              <Download size={18} />
-              Export
-            </button>
-          )}
-      
-          {/* CREATE */}
-          {role === "admin" && (
-
-            <button
-              onClick={openCreate}
-              className="
-                bg-blue-500
-                hover:bg-blue-600
-                text-white
-                px-5
-                py-3
-                rounded-xl
-                flex
-                items-center
-                gap-2
-                shadow
-              "
-            >
-              <Plus size={18} />
-              Thêm mới
-            </button>
-          
-          )}
-
-          {/* HISTORY */}
-          <button
-            onClick={loadHistory}
-            className="
-              bg-gray-800
-              hover:bg-black
-              text-white
-              px-5
-              py-3
-              rounded-xl
-              flex
-              items-center
-              gap-2
-              shadow
-            "
-          >
-            🕘 Lịch sử
-          </button>
-
-        </div>
+            role={role}
+        
+            search={search}
+        
+            setSearch={setSearch}
+        
+            filter={filter}
+        
+            setFilter={setFilter}
+        
+            onExport={handleExport}
+        
+            onImport={handleImportExcel}
+        
+            onCreate={openCreate}
+        
+            onHistory={loadHistory}
+        
+        /> 
 
       </div>
 
