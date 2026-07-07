@@ -3,10 +3,10 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import API from "../config";
 
-import CategoryDetailHeader from "../components/category/CategoryDetailHeader";
-import CategoryDetailToolbar from "../components/category/CategoryDetailToolbar";
-import CategoryDeviceTable from "../components/category/CategoryDeviceTable";
-import CategoryDeviceCard from "../components/category/CategoryDeviceCard";
+import CategoryDetailHeader from "../components/Category/CategoryDetailHeader";
+import CategoryDetailToolbar from "../components/Category/CategoryDetailToolbar";
+import CategoryDeviceTable from "../components/Category/CategoryDeviceTable";
+import CategoryDeviceCard from "../components/Category/CategoryDeviceCard";
 
 export default function CategoryDetail() {
 
