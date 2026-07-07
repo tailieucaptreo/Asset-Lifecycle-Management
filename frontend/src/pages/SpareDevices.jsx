@@ -8,6 +8,7 @@ import SpareTable from "../components/Spare/SpareTable";
 import EditSpareModal from "../components/Spare/EditSpareModal";
 import HistoryModal from "../components/Spare/HistoryModal";
 import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
+import SpareHeader from "../components/Spare/SpareHeader";
 
 export default function SpareDevices() {
 
@@ -419,63 +420,11 @@ export default function SpareDevices() {
     <div className="p-6 bg-gray-100 min-h-screen">
 
       {/* HEADER */}
-      <div className="
-        flex
-        flex-col
-        lg:flex-row
-        lg:items-center
-        lg:justify-between
-        gap-4
-        mb-6
-      ">
+      <SpareHeader
 
-        <div>
-
-          <h1 className="
-            text-4xl
-            font-bold
-            flex
-            items-center
-            gap-3
-          ">
-            🔋 Thiết bị dự phòng
-          </h1>
-          
-          <div
-            className="
-              mt-2
-              flex
-              items-center
-              gap-2
-            "
-          >
-          
-            <span className="text-gray-500">
-              Quyền hiện tại:
-            </span>
-          
-            <span
-              className={`
-                px-3
-                py-1
-                rounded-full
-                text-sm
-                font-bold
-          
-                ${role === "admin"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"}
-              `}
-            >
-          
-              {role === "admin"
-                ? "ADMIN"
-                : "USER"}
-          
-            </span>
-          
-          </div>
-        </div>
+          role={role}
+      
+      />
 
         {/* TOOLBAR */}
         <div className="
