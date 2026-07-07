@@ -659,7 +659,7 @@ export default function SpareDevices() {
       </div>
 
       {/* TABLE */}
-      <div
+      <div>
         <SpareTable
         
             data={filtered}
