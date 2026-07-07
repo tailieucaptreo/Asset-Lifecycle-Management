@@ -197,94 +197,7 @@ export default function DeviceDetail() {
               </p>
       
           </div>
-      
-          {role==="admin" && (
-      
-              !edit ? (
-      
-                  <button
-      
-                      onClick={()=>setEdit(true)}
-      
-                      className="
-                          flex
-                          items-center
-                          gap-2
-                          bg-blue-600
-                          hover:bg-blue-700
-                          text-white
-                          px-5
-                          py-3
-                          rounded-xl
-                          shadow
-                      "
-      
-                  >
-      
-                      <Pencil size={18}/>
-      
-                      Chỉnh sửa
-      
-                  </button>
-      
-              ) : (
-      
-                  <div className="flex gap-3">
-      
-                      <button
-      
-                          onClick={()=>setEdit(false)}
-      
-                          className="
-                              flex
-                              items-center
-                              gap-2
-                              bg-gray-300
-                              hover:bg-gray-400
-                              px-5
-                              py-3
-                              rounded-xl
-                          "
-      
-                      >
-      
-                          <X size={18}/>
-      
-                          Hủy
-      
-                      </button>
-      
-                      <button
-      
-                          onClick={handleSave}
-      
-                          className="
-                              flex
-                              items-center
-                              gap-2
-                              bg-green-600
-                              hover:bg-green-700
-                              text-white
-                              px-5
-                              py-3
-                              rounded-xl
-                              shadow
-                          "
-      
-                      >
-      
-                          <Save size={18}/>
-      
-                          Lưu
-      
-                      </button>
-      
-                  </div>
-      
-              )
-      
-          )}
-      
+        
       </div>
 
       {/* MAIN CARD */}
@@ -619,6 +532,85 @@ export default function DeviceDetail() {
 
         </div>
 
+      </div>
+
+      {/* ACTION */}
+
+      <div className="border-t mt-10 pt-8">
+      
+          <div className="flex flex-wrap justify-end gap-3">
+      
+              <button
+                  onClick={() => window.history.back()}
+                  className="
+                      px-5
+                      py-3
+                      rounded-xl
+                      border
+                      bg-white
+                      hover:bg-gray-100
+                      transition
+                  "
+              >
+                  ← Quay lại
+              </button>
+      
+              {role === "admin" && !edit && (
+      
+                  <button
+                      onClick={() => setEdit(true)}
+                      className="
+                          px-5
+                          py-3
+                          rounded-xl
+                          bg-blue-600
+                          hover:bg-blue-700
+                          text-white
+                          transition
+                      "
+                  >
+                      ✏ Chỉnh sửa
+                  </button>
+      
+              )}
+      
+              {role === "admin" && edit && (
+      
+                  <>
+                      <button
+                          onClick={() => setEdit(false)}
+                          className="
+                              px-5
+                              py-3
+                              rounded-xl
+                              bg-gray-300
+                              hover:bg-gray-400
+                              transition
+                          "
+                      >
+                          Hủy
+                      </button>
+      
+                      <button
+                          onClick={handleSave}
+                          className="
+                              px-5
+                              py-3
+                              rounded-xl
+                              bg-green-600
+                              hover:bg-green-700
+                              text-white
+                              transition
+                          "
+                      >
+                          💾 Lưu
+                      </button>
+                  </>
+      
+              )}
+      
+          </div>
+      
       </div>
 
     </div>
