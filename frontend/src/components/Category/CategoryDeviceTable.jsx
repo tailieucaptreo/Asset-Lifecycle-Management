@@ -13,21 +13,31 @@ export default function CategoryDeviceTable({
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">
 
-            <table className="w-full">
+            <table className="w-full table-fixed">
 
                 <thead className="bg-slate-100">
 
                     <tr>
 
-                        <th className="p-3 text-left">ID</th>
-
-                        <th className="p-3 text-left">Tên</th>
-
-                        <th className="p-3">Tuyến</th>
-
-                        <th className="p-3">Ga</th>
-
-                        <th className="p-3">Trạng thái</th>
+                         <th className="p-3 text-left w-40">
+                            ID
+                         </th>
+                    
+                         <th className="p-3 text-left">
+                            Tên
+                         </th>
+                    
+                         <th className="p-3 text-center w-28">
+                            Tuyến
+                         </th>
+                    
+                         <th className="p-3 text-center w-36">
+                            Ga
+                         </th>
+                    
+                         <th className="p-3 text-center w-52">
+                            Trạng thái
+                         </th>
 
                     </tr>
 
@@ -51,36 +61,24 @@ export default function CategoryDeviceTable({
 
                         >
 
-                            <td className="p-3">
-
+                            <td className="p-3 text-left">
                                 {device.deviceId}
-
                             </td>
-
-                            <td className="p-3">
-
+                            
+                            <td className="p-3 text-left">
                                 {device.name}
-
                             </td>
-
-                            <td className="p-3">
-
+                            
+                            <td className="p-3 text-center">
                                 {device.line}
-
                             </td>
-
-                            <td className="p-3">
-
+                            
+                            <td className="p-3 text-center">
                                 {device.station}
-
                             </td>
-
-                            <td className="p-3">
-
-                                <DeviceStatus
-                                    status={device.status}
-                                />
-
+                            
+                            <td className="p-3 text-center">
+                                <DeviceStatus status={device.status}/>
                             </td>
 
                         </tr>
