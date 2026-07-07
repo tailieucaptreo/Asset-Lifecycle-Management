@@ -6,6 +6,7 @@ import { Plus, Search, Download, Upload, Trash2, Pencil, Package } from "lucide-
 import SpareRow from "../components/Spare/SpareRow";
 import SpareTable from "../components/Spare/SpareTable";
 import EditSpareModal from "../components/Spare/EditSpareModal";
+import HistoryModal from "../components/Spare/HistoryModal";
 
 export default function SpareDevices() {
 
@@ -836,164 +837,17 @@ export default function SpareDevices() {
       )}
 
       {/* ================= HISTORY ================= */}
-      {showHistory && (
+      <HistoryModal
 
-        <div
-          className="
-            fixed
-            inset-0
-            bg-black/40
-            flex
-            items-center
-            justify-center
-            z-50
-            p-6
-          "
-        >
-
-          <div
-            className="
-              bg-white
-              rounded-3xl
-              w-full
-              max-w-5xl
-              p-6
-              shadow-2xl
-            "
-          >
-
-            <div className="
-              flex
-              items-center
-              justify-between
-              mb-6
-            ">
-
-              <h2 className="
-                text-3xl
-                font-bold
-              ">
-                🕘 Lịch sử thay đổi
-              </h2>
-
-              <button
-                onClick={() =>
-                  setShowHistory(false)
-                }
-                className="
-                  px-4
-                  py-2
-                  rounded-xl
-                  bg-gray-200
-                "
-              >
-                Đóng
-              </button>
-
-            </div>
-
-            <div className="
-              overflow-auto
-              max-h-[70vh]
-              border
-              rounded-2xl
-            ">
-
-              <table className="w-full text-sm">
-
-                <thead className="
-                  bg-gray-100
-                  sticky
-                  top-0
-                ">
-
-                  <tr>
-
-                    <th className="px-3 py-3 text-left">
-                      Thời gian
-                    </th>
-
-                    <th className="px-3 py-3 text-left">
-                      Hành động
-                    </th>
-
-                    <th className="px-3 py-3 text-left">
-                      Thiết bị
-                    </th>
-
-                    <th className="px-3 py-3 text-center">
-                      Người chỉnh sửa
-                    </th>
-
-                    <th className="px-3 py-3 text-center">
-                      Số lượng
-                    </th>
-
-                    <th className="px-3 py-3 text-left">
-                      Ghi chú
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {historyData.map((h) => (
-
-                    <tr
-                      key={h.id}
-                      className="border-t"
-                    >
-
-                      <td className="px-3 py-3">
-                        {
-                          new Date(
-                            h.createdAt
-                          ).toLocaleString("vi-VN")
-                        }
-                      </td>
-
-                      <td className="px-3 py-3">
-                        {h.action}
-                      </td>
-
-                      <td className="px-3 py-3">
-                        {h.deviceName}
-                      </td>
-
-                      <td className="px-3 py-3 text-center">
-                        {h.editedBy || "-"}
-                      </td>
-
-                      <td className="
-                        px-3
-                        py-3
-                        text-center
-                        font-bold
-                      ">
-                        {h.quantity}
-                      </td>
-
-                      <td className="px-3 py-3">
-                        {h.note || "-"}
-                      </td>
-
-                    </tr>
-
-                  ))}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
+          show={showHistory}
+      
+          history={history}
+      
+          onClose={() => setShowHistory(false)}
+      
+      />
+      
+      {/* ================= MODAL ================= */}
       <EditSpareModal
 
           show={showModal}
