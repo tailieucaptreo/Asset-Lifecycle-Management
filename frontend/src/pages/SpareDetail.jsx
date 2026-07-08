@@ -72,7 +72,10 @@ export default function SpareDetail() {
 
     return (
 
-        <div className="p-6 bg-gray-100 min-h-screen">
+        <div className="bg-gray-100 min-h-screen py-8">
+            
+            <div className="max-w-7xl mx-auto px-4">
+            <div className="bg-white rounded-3xl shadow-xl p-8">
 
             <button
 
@@ -98,7 +101,8 @@ export default function SpareDetail() {
                         className="
                             border
                             rounded-3xl
-                            h-80
+                            aspect-square
+                            max-h-[420px]
                             flex
                             items-center
                             justify-center
