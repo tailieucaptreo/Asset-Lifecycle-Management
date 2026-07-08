@@ -25,6 +25,7 @@ import VaconList from "./pages/VaconList";
 import Category from "./pages/Category";
 import CategoryDetail from "./pages/CategoryDetail";
 import SpareDetail from "./pages/SpareDetail";
+import Drive from "./pages/Drive";
 
 function Layout() {
 
@@ -245,6 +246,11 @@ function Layout() {
           <Route
               path="/spare-devices/:id"
               element={<SpareDetail />}
+          />
+
+          <Route
+              path="/drives"
+              element={<Drive />}
           />
 
         </Routes>
