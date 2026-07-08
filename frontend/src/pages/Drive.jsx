@@ -199,8 +199,6 @@ export default function Drive() {
 
                 drives={filtered}
 
-                loading={loading}
-
             />
 
             <DriveTable
