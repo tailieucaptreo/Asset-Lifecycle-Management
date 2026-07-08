@@ -460,6 +460,7 @@ export default function SpareDevices() {
           <SpareTable
               data={filtered}
               role={role}
+              onView={(item) => navigate(`/spare-devices/${item.id}`)}
               onEdit={handleEdit}
               onDelete={handleDelete}
           />
@@ -482,7 +483,7 @@ export default function SpareDevices() {
                   key={item.id}
                   item={item}
                   role={role}
-                  onView={() => navigate(`/spare-devices/${item.id}`)}
+                  onView={(item) => navigate(`/spare-devices/${item.id}`)}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
               />
