@@ -206,10 +206,5 @@ model DriveFault {
 
   createdAt     DateTime @default(now())
 
-  drive Drive @relation(
-      fields:[driveId],
-      references:[id],
-      onDelete:Cascade
-  )
-
+  drive Drive @relation(fields: [driveId], references: [id], onDelete: Cascade)
 }
