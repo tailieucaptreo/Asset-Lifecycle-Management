@@ -204,13 +204,13 @@ export default function Drive() {
             />
 
             <DriveTable
-
+                role={role}
                 drives={filtered}
-
                 loading={loading}
-
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
             />
-
         </div>
 
     );
