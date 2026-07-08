@@ -7,6 +7,8 @@ export default function SpareTable({
 
     role,
 
+    onView,
+
     onEdit,
 
     onDelete
