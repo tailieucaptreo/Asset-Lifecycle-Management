@@ -454,21 +454,6 @@ export default function SpareDevices() {
         
       /> 
 
-      {/* TABLE */}
-      <div>
-        <SpareTable
-        
-            data={filtered}
-        
-            role={role}
-        
-            onEdit={handleEdit}
-        
-            onDelete={handleDelete}
-        
-        />
-      </div>
-
       {/* Desktop */}
       <div className="hidden lg:block">
       
@@ -499,7 +484,7 @@ export default function SpareDevices() {
                   role={role}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onView={(item) => navigate(`/spare-devices/${item.id}`)}
+                  onView={() => navigate(`/spare-devices/${item.id}`)}
               />
       
           ))}
