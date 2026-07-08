@@ -13,8 +13,6 @@ export default function DriveHeader({
 
     vacon = 0,
 
-    fault = 0
-
 }) {
 
     return (
@@ -93,20 +91,6 @@ export default function DriveHeader({
                     color="bg-purple-500"
 
                     icon={<Wrench size={22} />}
-
-                />
-
-                {/* Fault */}
-
-                <Card
-
-                    title="Đang lỗi"
-
-                    value={fault}
-
-                    color="bg-red-500"
-
-                    icon={<AlertTriangle size={22} />}
 
                 />
 
