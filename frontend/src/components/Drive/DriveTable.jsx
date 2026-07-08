@@ -82,7 +82,7 @@ export default function DriveTable({
             "
         >
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
 
                 <table className="min-w-full text-sm">
 
