@@ -124,6 +124,13 @@ export default function Sidebar({
             </div>
 
             <div
+              className={`p-2 rounded cursor-pointer ${active("/drives")}`}
+              onClick={() => go("/drives")}
+            >
+             ⚡ Quản lý biến tần
+            </div>
+
+            <div
               className={`p-2 rounded cursor-pointer ${active("/vacon")}`}
               onClick={() => go("/vacon")}
             >
