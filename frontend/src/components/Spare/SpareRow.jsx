@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Package } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import SpareStatus from "./SpareStatus";
 
 export default function SpareRow({
@@ -6,6 +6,8 @@ export default function SpareRow({
     item,
 
     role,
+
+    onView,
 
     onEdit,
 
@@ -152,6 +154,30 @@ export default function SpareRow({
                     "
                 >
 
+                    <button
+
+                        onClick={() => onView(item)}
+                    
+                        className="
+                            w-9
+                            h-9
+                            rounded-lg
+                            bg-gray-100
+                            hover:bg-gray-200
+                            flex
+                            items-center
+                            justify-center
+                        "
+                    
+                    >
+                    
+                        <Eye
+                            size={18}
+                            className="text-gray-600"
+                        />
+                    
+                    </button>
+                    
                     <button
 
                         onClick={() => onEdit(item)}
