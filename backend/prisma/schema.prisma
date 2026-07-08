@@ -151,13 +151,17 @@ model Drive {
 
   name          String
 
-  brand         String        // ABB | Vacon
+  deviceId      String   @unique
+
+  brand         String
 
   model         String
 
-  serial        String?
+  serialNumber  String?
 
   firmware      String?
+
+  ipAddress     String?
 
   power         String?
 
@@ -171,7 +175,7 @@ model Drive {
 
   location      String?
 
-  status        String @default("Running")
+  status        String   @default("Running")
 
   image         String?
 
