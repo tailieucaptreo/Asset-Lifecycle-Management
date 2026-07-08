@@ -312,3 +312,72 @@ exports.getStatistics = async (req, res) => {
 
 };
 
+// ================= IMAGE =================
+
+exports.uploadImage = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai upload ảnh"
+    });
+
+};
+
+// ================= IMPORT =================
+
+exports.previewImport = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai preview import"
+    });
+
+};
+
+exports.confirmImport = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai confirm import"
+    });
+
+};
+
+// ================= EXPORT =================
+
+exports.exportExcel = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai export"
+    });
+
+};
+
+// ================= FAULT =================
+
+exports.getFaults = async (req, res) => {
+
+    res.json([]);
+
+};
+
+exports.addFault = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai thêm lỗi"
+    });
+
+};
+
+exports.updateFault = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai cập nhật lỗi"
+    });
+
+};
+
+exports.deleteFault = async (req, res) => {
+
+    res.json({
+        message: "Chưa triển khai xóa lỗi"
+    });
+
+};
