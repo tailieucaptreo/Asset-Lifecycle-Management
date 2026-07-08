@@ -312,18 +312,3 @@ exports.getStatistics = async (req, res) => {
 
 };
 
-exports.uploadImage = async (req, res) => {};
-
-exports.previewImport = async (req, res) => {};
-
-exports.confirmImport = async (req, res) => {};
-
-exports.exportExcel = async (req, res) => {};
-
-exports.getFaults = async (req, res) => {};
-
-exports.addFault = async (req, res) => {};
-
-exports.updateFault = async (req, res) => {};
-
-exports.deleteFault = async (req, res) => {};
