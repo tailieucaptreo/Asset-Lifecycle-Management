@@ -75,22 +75,22 @@ export default function SpareDetail() {
         <div className="bg-gray-100 min-h-screen py-8">
             
             <div className="max-w-7xl mx-auto px-4">
-            <div className="bg-white rounded-3xl shadow-xl p-8">
+                <div className="bg-white rounded-3xl shadow-xl p-8">
 
-            <button
-
-                onClick={() => navigate(-1)}
-
-                className="flex items-center gap-2 mb-6"
-
-            >
-
-                <ArrowLeft size={18}/>
-
-                Quay lại
-
-            </button>
-
+                    <button
+        
+                        onClick={() => navigate(-1)}
+        
+                        className="flex items-center gap-2 mb-6"
+        
+                    >
+        
+                        <ArrowLeft size={18}/>
+        
+                        Quay lại
+        
+                    </button>
+            </div>
             <div className="bg-white rounded-3xl shadow p-6">
 
                 <div className="grid lg:grid-cols-3 gap-8">
