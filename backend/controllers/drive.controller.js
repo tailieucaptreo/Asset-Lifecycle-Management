@@ -438,6 +438,64 @@ exports.exportExcel = async (req, res) => {
 
 };
 
+exports.getFilters = async (req, res) => {
+
+    try {
+
+        const drives = await prisma.drive.findMany();
+
+        res.json({
+
+            brands: [
+                ...new Set(
+                    drives
+                        .map(d => d.brand)
+                        .filter(Boolean)
+                )
+            ],
+
+            models: [
+                ...new Set(
+                    drives
+                        .map(d => d.model)
+                        .filter(Boolean)
+                )
+            ],
+
+            lines: [
+                ...new Set(
+                    drives
+                        .map(d => d.line)
+                        .filter(Boolean)
+                )
+            ],
+
+            stations: [
+                ...new Set(
+                    drives
+                        .map(d => d.station)
+                        .filter(Boolean)
+                )
+            ]
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+        res.status(500).json({
+
+            message: "Lỗi lấy bộ lọc"
+
+        });
+
+    }
+
+};
+
 // ================= FAULT =================
 
 exports.getFaults = async (req, res) => {
