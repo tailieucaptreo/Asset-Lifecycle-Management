@@ -36,6 +36,14 @@ export default function Drive() {
     
     const [selectedDrive, setSelectedDrive] = useState(null);
 
+    const [openImport, setOpenImport] = useState(false);
+
+    const [preview, setPreview] = useState([]);
+    
+    const [importFile, setImportFile] = useState(null);
+    
+    const [importLoading, setImportLoading] = useState(false);
+
     const [filters, setFilters] = useState({
 
         brands: [],
@@ -322,6 +330,15 @@ export default function Drive() {
             
                 onSave={handleSave}
             
+            />
+
+            <DriveImportModal
+                open={openImport}
+                preview={preview}
+                loading={importLoading}
+                onClose={() => setOpenImport(false)}
+                onUpload={handlePreview}
+                onConfirm={handleImport}
             />
             
         </div>
