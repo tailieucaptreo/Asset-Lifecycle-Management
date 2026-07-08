@@ -35,24 +35,7 @@ export default function DriveCard({
             d => d.status === "Offline"
         ).length;
 
-    const abb =
-        drives.filter(
-            d => d.brand === "ABB"
-        ).length;
-
-    const vacon =
-        drives.filter(
-            d => d.brand === "VACON"
-        ).length;
-
     const cards = [
-
-        {
-            title: "Tổng biến tần",
-            value: total,
-            color: "bg-blue-500",
-            icon: Cpu
-        },
 
         {
             title: "Đang chạy",
@@ -81,13 +64,6 @@ export default function DriveCard({
             color: "bg-gray-500",
             icon: Power
         },
-
-        {
-            title: "ABB / VACON",
-            value: `${abb} / ${vacon}`,
-            color: "bg-indigo-500",
-            icon: Building2
-        }
 
     ];
 
