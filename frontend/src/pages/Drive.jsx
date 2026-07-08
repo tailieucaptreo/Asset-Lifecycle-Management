@@ -257,6 +257,54 @@ export default function Drive() {
     
     };
 
+    const handleExport = async () => {
+
+        try {
+    
+            const response = await axios.get(
+    
+                `${API}/api/drives/export`,
+    
+                {
+    
+                    responseType: "blob"
+    
+                }
+    
+            );
+    
+            const blob = new Blob([response.data], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            });
+    
+            const url = window.URL.createObjectURL(blob);
+    
+            const link = document.createElement("a");
+    
+            link.href = url;
+    
+            link.download = `Drive_${new Date().toISOString().slice(0,10)}.xlsx`;
+    
+            document.body.appendChild(link);
+    
+            link.click();
+    
+            link.remove();
+    
+            window.URL.revokeObjectURL(url);
+    
+        }
+    
+        catch (error) {
+    
+            console.error(error);
+    
+            alert("Xuất Excel thất bại.");
+    
+        }
+    
+    };
+
     return (
 
         <div className="space-y-6">
@@ -275,7 +323,7 @@ export default function Drive() {
 
                 onImport={() => {}}
 
-                onExport={() => {}}
+                onExport={handleExport}
 
                 onHistory={() => {}}
 
