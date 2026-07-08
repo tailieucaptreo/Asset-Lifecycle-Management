@@ -2,6 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+const ExcelJS = require("exceljs");
+
 // ======================================================
 // GET ALL
 // ======================================================
@@ -342,11 +344,95 @@ exports.confirmImport = async (req, res) => {
 
 // ================= EXPORT =================
 
-exports.exportExcel = async (req, res) => {
+exports.exportDrives = async (req, res) => {
 
-    res.json({
-        message: "Chưa triển khai export"
+    const drives = await prisma.drive.findMany({
+
+        orderBy: {
+
+            name: "asc"
+
+        }
+
     });
+
+    const workbook = new ExcelJS.Workbook();
+
+    const sheet = workbook.addWorksheet("Drives");
+
+    sheet.columns = [
+
+        { header: "Tên biến tần", key: "name", width: 30 },
+
+        { header: "Mã thiết bị", key: "deviceId", width: 20 },
+
+        { header: "Serial Number", key: "serialNumber", width: 25 },
+
+        { header: "Hãng", key: "brand", width: 15 },
+
+        { header: "Model", key: "model", width: 20 },
+
+        { header: "Tuyến", key: "line", width: 15 },
+
+        { header: "Nhà ga", key: "station", width: 20 },
+
+        { header: "Vị trí", key: "location", width: 20 },
+
+        { header: "IP Address", key: "ipAddress", width: 18 },
+
+        { header: "Firmware", key: "firmware", width: 18 },
+
+        { header: "Công suất", key: "power", width: 15 },
+
+        { header: "Điện áp", key: "voltage", width: 15 },
+
+        { header: "Trạng thái", key: "status", width: 15 },
+
+        { header: "Ngày lắp đặt", key: "installDate", width: 18 },
+
+        { header: "Ghi chú", key: "note", width: 40 }
+
+    ];
+
+    drives.forEach(drive => {
+
+        sheet.addRow({
+
+            ...drive,
+
+            installDate: drive.installDate
+                ? new Date(drive.installDate).toLocaleDateString("vi-VN")
+                : ""
+
+        });
+
+    });
+
+    sheet.getRow(1).font = {
+
+        bold: true
+
+    };
+
+    res.setHeader(
+
+        "Content-Type",
+
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    );
+
+    res.setHeader(
+
+        "Content-Disposition",
+
+        'attachment; filename="Drive.xlsx"'
+
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
 
 };
 
