@@ -75,6 +75,7 @@ export default function SpareDetail() {
         <div className="bg-gray-100 min-h-screen py-8">
             
             <div className="max-w-7xl mx-auto px-4">
+                
                 <div className="bg-white rounded-3xl shadow-xl p-8">
 
                     <button
@@ -295,6 +296,8 @@ export default function SpareDetail() {
                                 </button>
     
                             </div>
+                            
+                        </div>     
     
                     </div>
     
