@@ -3,13 +3,13 @@ import axios from "axios";
 
 import API from "../config";
 
-import DriveHeader from "../components/drive/DriveHeader";
-import DriveToolbar from "../components/drive/DriveToolbar";
-import DriveFilter from "../components/drive/DriveFilter";
-import DriveCard from "../components/drive/DriveCard";
-import DriveTable from "../components/drive/DriveTable";
-import DriveModal from "../components/drive/DriveModal";
-import DriveImportModal from "../components/drive/DriveImportModal";
+import DriveHeader from "../components/Drive/DriveHeader";
+import DriveToolbar from "../components/Drive/DriveToolbar";
+import DriveFilter from "../components/Drive/DriveFilter";
+import DriveCard from "../components/Drive/DriveCard";
+import DriveTable from "../components/Drive/DriveTable";
+import DriveModal from "../components/Drive/DriveModal";
+import DriveImportModal from "../components/Drive/DriveImportModal";
 
 export default function Drive() {
 
