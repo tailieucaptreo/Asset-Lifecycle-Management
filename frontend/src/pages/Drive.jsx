@@ -9,6 +9,7 @@ import DriveFilter from "../components/drive/DriveFilter";
 import DriveCard from "../components/drive/DriveCard";
 import DriveTable from "../components/drive/DriveTable";
 import DriveModal from "../components/drive/DriveModal";
+import DriveImportModal from "../components/drive/DriveImportModal";
 
 export default function Drive() {
 
