@@ -25,6 +25,9 @@ const app =
 const vaconRoutes =
   require("./routes/vacon.routes");
 
+const driveRoutes =
+    require("./routes/drive.routes");
+
 // ===== CORS =====
 
 app.use(
@@ -78,6 +81,11 @@ app.use(
 app.use(
   "/api/vacon",
   vaconRoutes
+);
+
+app.use(
+    "/api/drives",
+    driveRoutes
 );
 
 // ===== TEST =====
