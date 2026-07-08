@@ -33,6 +33,13 @@ router.post(
     controller.uploadImage
 );
 
+// ================= FILTER =================
+
+router.get(
+    "/filters",
+    controller.getFilters
+);
+
 // ================= EXPORT =================
 
 router.get(
