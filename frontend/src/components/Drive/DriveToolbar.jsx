@@ -13,15 +13,6 @@ export default function DriveToolbar({
     search,
     setSearch,
 
-    brand,
-    setBrand,
-
-    status,
-    setStatus,
-
-    line,
-    setLine,
-
     onCreate,
     onImport,
     onExport,
@@ -104,100 +95,8 @@ export default function DriveToolbar({
                         />
             
                     </div>
-            
-                    <select
-            
-                        value={brand}
-            
-                        onChange={(e) =>
-                            setBrand(e.target.value)
-                        }
-            
-                        className="
-                            w-44
-                            border
-                            rounded-xl
-                            px-3
-                            py-2.5
-                        "
-            
-                    >
-            
-                        <option value="All">
-                            Tất cả hãng
-                        </option>
-            
-                        <option value="ABB">
-                            ABB
-                        </option>
-            
-                        <option value="VACON">
-                            VACON
-                        </option>
-            
-                    </select>
-            
-                    <select
-            
-                        value={status}
-            
-                        onChange={(e) =>
-                            setStatus(e.target.value)
-                        }
-            
-                        className="
-                            w-52
-                            border
-                            rounded-xl
-                            px-3
-                            py-2.5
-                        "
-            
-                    >
-            
-                        <option value="All">
-                            Tất cả trạng thái
-                        </option>
-            
-                        <option value="Running">
-                            Running
-                        </option>
-            
-                        <option value="Maintenance">
-                            Maintenance
-                        </option>
-            
-                        <option value="Fault">
-                            Fault
-                        </option>
-            
-                        <option value="Offline">
-                            Offline
-                        </option>
-            
-                    </select>
-            
-                    <input
-            
-                        value={line}
-            
-                        onChange={(e) =>
-                            setLine(e.target.value)
-                        }
-            
-                        placeholder="Tuyến"
-            
-                        className="
-                            w-44
-                            border
-                            rounded-xl
-                            px-3
-                            py-2.5
-                        "
-            
-                    />
-            
-                </div>
+
+                </div>    
             
                 {/* Right */}
             
