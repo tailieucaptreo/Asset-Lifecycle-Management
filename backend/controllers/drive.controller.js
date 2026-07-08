@@ -104,7 +104,9 @@ exports.create = async (req, res) => {
 
                 model: req.body.model,
 
-                serial: req.body.serial,
+                serialnumber: req.body.serial,
+
+                ipAddress:req.body.ipAddress,
 
                 firmware: req.body.firmware,
 
