@@ -195,6 +195,18 @@ export default function Drive() {
     
     };
 
+    const handleDelete = (drive) => {
+
+        if (!confirm("Xóa biến tần này?")) {
+    
+            return;
+    
+        }
+    
+        console.log(drive);
+    
+    };
+
     const handleSave = async (form) => {
 
         try {
@@ -295,6 +307,23 @@ export default function Drive() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
             />
+
+            <DriveModal
+
+                open={open}
+            
+                mode={mode}
+            
+                drive={selectedDrive}
+            
+                filters={filters}
+            
+                onClose={handleClose}
+            
+                onSave={handleSave}
+            
+            />
+            
         </div>
 
     );
