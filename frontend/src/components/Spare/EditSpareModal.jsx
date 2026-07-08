@@ -19,6 +19,8 @@ export default function EditSpareModal({
 }) {
 
     if (!show) return null;
+    const isUser = role === "user";
+    const isAdmin = role === "admin";
 
     return (
 
@@ -81,7 +83,7 @@ export default function EditSpareModal({
 
                         value={form.name}
 
-                        disabled={role==="user"}
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -105,7 +107,7 @@ export default function EditSpareModal({
 
                         value={form.deviceId}
 
-                        disabled={role==="user"}
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -129,7 +131,7 @@ export default function EditSpareModal({
 
                         value={form.symbol}
 
-                        disabled={role==="user"}
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -151,7 +153,7 @@ export default function EditSpareModal({
 
                         value={form.condition}
 
-                        disabled={role==="user"}
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -195,6 +197,8 @@ export default function EditSpareModal({
 
                         value={form.warehouse}
 
+                        disabled={isUser}
+
                         onChange={(e)=>
 
                             setForm({
@@ -216,6 +220,8 @@ export default function EditSpareModal({
                         placeholder="Tủ"
 
                         value={form.cabinet}
+
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -239,6 +245,8 @@ export default function EditSpareModal({
 
                         value={form.shelf}
 
+                        disabled={isUser}
+
                         onChange={(e)=>
 
                             setForm({
@@ -260,6 +268,8 @@ export default function EditSpareModal({
                         placeholder="Khay"
 
                         value={form.slot}
+
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -285,7 +295,7 @@ export default function EditSpareModal({
 
                         value={form.initialQuantity}
 
-                        disabled={editing}
+                        disabled={editing || isUser}
 
                         onChange={(e)=>
 
@@ -310,6 +320,8 @@ export default function EditSpareModal({
                         placeholder="Nhập"
 
                         value={form.importQty}
+
+                        disabled={isUser}
 
                         onChange={(e)=>
 
@@ -358,6 +370,8 @@ export default function EditSpareModal({
                         placeholder="Đơn vị"
 
                         value={form.unit}
+
+                        disabled={isUser}
 
                         onChange={(e)=>
 
