@@ -1,4 +1,11 @@
-import { Eye, Pencil, Trash2, Package } from "lucide-react";
+import {
+    Package,
+    Pencil,
+    Trash2,
+    Eye,
+    Warehouse
+} from "lucide-react";
+
 import SpareStatus from "./SpareStatus";
 
 export default function SpareCard({
@@ -7,11 +14,11 @@ export default function SpareCard({
 
     role,
 
-    onView,
-
     onEdit,
 
-    onDelete
+    onDelete,
+
+    onView
 
 }) {
 
@@ -22,90 +29,93 @@ export default function SpareCard({
                 bg-white
                 rounded-2xl
                 shadow
-                p-5
                 border
-                border-slate-200
+                border-gray-200
+                p-4
             "
         >
 
             {/* Header */}
 
-            <div className="flex justify-between items-start">
+            <div className="flex gap-3">
 
-                <div className="flex items-center gap-3">
+                <div
+                    className="
+                        w-16
+                        h-16
+                        rounded-xl
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                    "
+                >
 
-                    <div
-                        className="
-                            w-14
-                            h-14
-                            rounded-xl
-                            bg-blue-100
-                            flex
-                            items-center
-                            justify-center
-                        "
-                    >
+                    {
+
+                        item.image
+
+                        ?
+
+                        <img
+
+                            src={item.image}
+
+                            alt=""
+
+                            className="w-full h-full object-cover rounded-xl"
+
+                        />
+
+                        :
 
                         <Package
                             size={28}
-                            className="text-blue-600"
+                            className="text-gray-400"
+                        />
+
+                    }
+
+                </div>
+
+                <div className="flex-1">
+
+                    <h3 className="font-bold text-base">
+
+                        {item.name}
+
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+
+                        ID: {item.deviceId}
+
+                    </p>
+
+                    <div className="mt-2">
+
+                        <SpareStatus
+                            status={item.condition}
                         />
 
                     </div>
 
-                    <div>
-
-                        <h2 className="font-bold text-lg">
-
-                            {item.name}
-
-                        </h2>
-
-                        <p className="text-gray-500 text-sm">
-
-                            {item.deviceId}
-
-                        </p>
-
-                    </div>
-
                 </div>
-
-                <SpareStatus
-                    status={item.condition}
-                />
 
             </div>
 
-            {/* Body */}
+            {/* Kho */}
 
             <div
                 className="
-                    mt-5
-                    grid
-                    grid-cols-2
-                    gap-y-3
-                    text-sm
+                    mt-4
+                    rounded-xl
+                    bg-slate-50
+                    p-3
                 "
             >
 
-                <div>
-
-                    <span className="text-gray-500">
-
-                        Số lượng
-
-                    </span>
-
-                    <p className="font-semibold">
-
-                        {item.quantity}
-
-                    </p>
-
-                </div>
-
-                <div>
+                <div className="flex justify-between">
 
                     <span className="text-gray-500">
 
@@ -113,15 +123,15 @@ export default function SpareCard({
 
                     </span>
 
-                    <p className="font-semibold">
+                    <span className="font-semibold">
 
                         {item.warehouse || "-"}
 
-                    </p>
+                    </span>
 
                 </div>
 
-                <div>
+                <div className="flex justify-between mt-2">
 
                     <span className="text-gray-500">
 
@@ -129,15 +139,15 @@ export default function SpareCard({
 
                     </span>
 
-                    <p className="font-semibold">
+                    <span>
 
                         {item.cabinet || "-"}
 
-                    </p>
+                    </span>
 
                 </div>
 
-                <div>
+                <div className="flex justify-between mt-2">
 
                     <span className="text-gray-500">
 
@@ -145,9 +155,102 @@ export default function SpareCard({
 
                     </span>
 
-                    <p className="font-semibold">
+                    <span>
 
                         {item.shelf || "-"}
+
+                    </span>
+
+                </div>
+
+                <div className="flex justify-between mt-2">
+
+                    <span className="text-gray-500">
+
+                        Khay
+
+                    </span>
+
+                    <span>
+
+                        {item.slot || "-"}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            {/* Inventory */}
+
+            <div
+                className="
+                    grid
+                    grid-cols-4
+                    gap-2
+                    mt-4
+                "
+            >
+
+                <div className="text-center">
+
+                    <p className="text-gray-400 text-xs">
+
+                        Ban đầu
+
+                    </p>
+
+                    <p className="font-bold">
+
+                        {item.initialQuantity}
+
+                    </p>
+
+                </div>
+
+                <div className="text-center">
+
+                    <p className="text-gray-400 text-xs">
+
+                        Nhập
+
+                    </p>
+
+                    <p className="font-bold text-blue-600">
+
+                        {item.importQty}
+
+                    </p>
+
+                </div>
+
+                <div className="text-center">
+
+                    <p className="text-gray-400 text-xs">
+
+                        Xuất
+
+                    </p>
+
+                    <p className="font-bold text-red-600">
+
+                        {item.exportQty}
+
+                    </p>
+
+                </div>
+
+                <div className="text-center">
+
+                    <p className="text-gray-400 text-xs">
+
+                        Tồn
+
+                    </p>
+
+                    <p className="font-bold text-green-600">
+
+                        {item.quantity}
 
                     </p>
 
@@ -159,62 +262,76 @@ export default function SpareCard({
 
             <div
                 className="
-                    mt-6
                     flex
                     justify-end
                     gap-2
+                    mt-5
+                    pt-4
+                    border-t
                 "
             >
 
                 <button
+
                     onClick={() => onView(item)}
+
                     className="
                         p-2
                         rounded-lg
-                        bg-blue-100
-                        hover:bg-blue-200
+                        bg-slate-100
                     "
+
                 >
 
-                    <Eye size={18} />
+                    <Eye size={18}/>
 
                 </button>
 
-                {role === "admin" && (
+                {
+
+                    role==="admin"
+
+                    &&
 
                     <>
 
                         <button
+
                             onClick={() => onEdit(item)}
+
                             className="
                                 p-2
                                 rounded-lg
-                                bg-yellow-100
-                                hover:bg-yellow-200
+                                bg-blue-100
+                                text-blue-600
                             "
+
                         >
 
-                            <Pencil size={18} />
+                            <Pencil size={18}/>
 
                         </button>
 
                         <button
-                            onClick={() => onDelete(item)}
+
+                            onClick={() => onDelete(item.id)}
+
                             className="
                                 p-2
                                 rounded-lg
                                 bg-red-100
-                                hover:bg-red-200
+                                text-red-600
                             "
+
                         >
 
-                            <Trash2 size={18} />
+                            <Trash2 size={18}/>
 
                         </button>
 
                     </>
 
-                )}
+                }
 
             </div>
 
