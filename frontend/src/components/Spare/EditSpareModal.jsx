@@ -21,6 +21,11 @@ export default function EditSpareModal({
     if (!show) return null;
     const isUser = role === "user";
     const isAdmin = role === "admin";
+    const inputClass = "border rounded-xl p-3 w-full";
+
+    const readOnlyClass = "bg-gray-100 text-gray-500 cursor-not-allowed";
+    
+    const editableClass = "bg-amber-50 border-amber-400 ring-1 ring-amber-300 focus:ring-2 focus:ring-amber-500";
 
     return (
 
@@ -97,7 +102,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -121,7 +126,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -145,7 +150,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -167,7 +172,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     >
 
@@ -211,7 +216,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -235,7 +240,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -259,7 +264,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -283,7 +288,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -309,7 +314,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -335,7 +340,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -361,7 +366,10 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`
+                            ${inputClass}
+                            ${isUser ? editableClass : ""}
+                        `}
 
                     />
 
@@ -385,7 +393,7 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
 
                     />
 
@@ -407,7 +415,10 @@ export default function EditSpareModal({
 
                         }
 
-                        className="border rounded-xl p-3"
+                        className={`
+                            ${inputClass}
+                            ${isUser ? editableClass : ""}
+                        `}
 
                     />
 
@@ -431,12 +442,13 @@ export default function EditSpareModal({
 
                         }
 
-                        className="
+                        className={`
                             border
                             rounded-xl
                             p-3
                             md:col-span-2
-                        "
+                            ${isUser ? editableClass : ""}
+                        `}
 
                     />
 
