@@ -145,4 +145,71 @@ model VaconRecord {
   createdAt         DateTime @default(now())
 }
 
+model Drive {
 
+  id            Int      @id @default(autoincrement())
+
+  name          String
+
+  brand         String        // ABB | Vacon
+
+  model         String
+
+  serial        String?
+
+  firmware      String?
+
+  power         String?
+
+  voltage       String?
+
+  current       String?
+
+  line          String?
+
+  station       String?
+
+  location      String?
+
+  status        String @default("Running")
+
+  image         String?
+
+  note          String?
+
+  installDate   DateTime?
+
+  createdAt     DateTime @default(now())
+
+  updatedAt     DateTime @updatedAt
+
+  faults        DriveFault[]
+}
+
+model DriveFault {
+
+  id            Int @id @default(autoincrement())
+
+  driveId       Int
+
+  code          String
+
+  title         String
+
+  description   String?
+
+  solution      String?
+
+  repairedBy    String?
+
+  note          String?
+
+  createdAt     DateTime @default(now())
+
+  drive Drive @relation(
+      fields:[driveId],
+      references:[id],
+      onDelete:Cascade
+  )
+
+}
