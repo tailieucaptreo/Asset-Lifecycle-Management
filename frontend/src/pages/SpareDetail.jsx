@@ -296,9 +296,9 @@ export default function SpareDetail() {
     
                             </div>
     
-                        </div>
-    
                     </div>
+    
+                </div>
 
             </div>
 
