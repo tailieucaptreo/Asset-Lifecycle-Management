@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Package, Eye, Pencil, Trash2 } from "lucide-react";
 import SpareStatus from "./SpareStatus";
 
 export default function SpareRow({
