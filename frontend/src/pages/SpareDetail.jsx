@@ -90,7 +90,7 @@ export default function SpareDetail() {
                         Quay lại
         
                     </button>
-                </div>
+    
             <div className="bg-white rounded-3xl shadow p-6">
 
                 <div className="grid lg:grid-cols-3 gap-8">
