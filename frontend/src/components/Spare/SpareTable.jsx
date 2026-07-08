@@ -95,6 +95,8 @@ export default function SpareTable({
 
                                 role={role}
 
+                                onView={onView}
+
                                 onEdit={onEdit}
 
                                 onDelete={onDelete}
