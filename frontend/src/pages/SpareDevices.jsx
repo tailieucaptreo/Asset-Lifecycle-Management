@@ -10,6 +10,8 @@ import HistoryModal from "../components/Spare/HistoryModal";
 import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
 import SpareHeader from "../components/Spare/SpareHeader";
 import SpareToolbar from "../components/Spare/SpareToolbar";
+import SpareToolbar from "../components/Spare/SpareCard";
+import { useNavigate } from "react-router-dom";
 
 export default function SpareDevices() {
 
@@ -35,6 +37,8 @@ export default function SpareDevices() {
   const [previewRows, setPreviewRows] = useState([]);
 
   const [showPreview, setShowPreview] = useState(false);
+
+  const navigate = useNavigate();
 
   const defaultForm = {
 
@@ -463,6 +467,43 @@ export default function SpareDevices() {
             onDelete={handleDelete}
         
         />
+      </div>
+
+      {/* Desktop */}
+      <div className="hidden lg:block">
+      
+          <SpareTable
+              data={filtered}
+              role={role}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+          />
+      
+      </div>
+      
+      {/* Mobile */}
+      <div
+          className="
+              grid
+              grid-cols-1
+              gap-4
+              lg:hidden
+          "
+      >
+      
+          {filtered.map(item => (
+      
+              <SpareCard
+                  key={item.id}
+                  item={item}
+                  role={role}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onView={(item) => navigate(`/spare-devices/${item.id}`)}
+              />
+      
+          ))}
+      
       </div>
 
       {/* ================= PREVIEW IMPORT ================= */}
