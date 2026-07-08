@@ -344,7 +344,7 @@ exports.confirmImport = async (req, res) => {
 
 // ================= EXPORT =================
 
-exports.exportDrives = async (req, res) => {
+exports.exportExcel = async (req, res) => {
 
     const drives = await prisma.drive.findMany({
 
