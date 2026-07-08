@@ -24,7 +24,7 @@ import Login from "./pages/Login";
 import VaconList from "./pages/VaconList";
 import Category from "./pages/Category";
 import CategoryDetail from "./pages/CategoryDetail";
-import SpareDetail from "../components/Spare/SpareDetail";
+import SpareDetail from "./pages/SpareDetail";
 
 function Layout() {
 
