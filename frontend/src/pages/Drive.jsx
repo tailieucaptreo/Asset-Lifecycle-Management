@@ -305,6 +305,20 @@ export default function Drive() {
     
     };
 
+    const handlePreview = async (file) => {
+
+        setImportFile(file);
+    
+        console.log(file);
+    
+    };
+    
+    const handleImport = async () => {
+    
+        console.log("Import");
+    
+    };
+
     return (
 
         <div className="space-y-6">
