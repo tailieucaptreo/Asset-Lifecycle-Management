@@ -74,7 +74,7 @@ export default function DriveCard({
                 grid
                 grid-cols-1
                 sm:grid-cols-2
-                xl:grid-cols-6
+                xl:grid-cols-4
                 gap-4
                 mb-6
             "
