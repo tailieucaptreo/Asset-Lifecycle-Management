@@ -482,9 +482,9 @@ export default function SpareDevices() {
                   key={item.id}
                   item={item}
                   role={role}
+                  onView={() => navigate(`/spare-devices/${item.id}`)}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
-                  onView={() => navigate(`/spare-devices/${item.id}`)}
               />
       
           ))}
