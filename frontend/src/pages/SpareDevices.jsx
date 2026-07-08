@@ -12,6 +12,7 @@ import SpareHeader from "../components/Spare/SpareHeader";
 import SpareToolbar from "../components/Spare/SpareToolbar";
 import SpareCard from "../components/Spare/SpareCard";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function SpareDevices() {
 
@@ -418,6 +419,17 @@ export default function SpareDevices() {
 
     setShowModal(true);
   };
+
+  // =================EDIT MODAL SPARE ==========
+  const location = useLocation();
+
+  useEffect(() => {
+      if (location.state?.edit) {
+          setEditing(location.state.edit);
+          setForm(location.state.edit);
+          setShowModal(true);
+      }
+  }, [location.state]);
 
   // ================= RENDER =================
   return (
