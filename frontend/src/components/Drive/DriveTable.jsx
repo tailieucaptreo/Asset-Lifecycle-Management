@@ -88,6 +88,9 @@ export default function DriveTable({
 
                     <thead
                         className="
+                            sticky
+                            top-0
+                            z-10
                             bg-slate-100
                             text-slate-700
                         "
