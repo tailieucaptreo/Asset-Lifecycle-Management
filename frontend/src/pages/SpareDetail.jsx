@@ -136,7 +136,7 @@ export default function SpareDetail() {
     
                         <div className="lg:col-span-2">
     
-                            <h1 className="text-4xl font-bold">
+                            <h1 className="text-3xl lg:text-4xl font-bold leading-tight">
     
                                 {item.name}
     
@@ -272,7 +272,7 @@ export default function SpareDetail() {
     
                             {/* Footer */}
     
-                            <div className="flex gap-3 mt-8">
+                            <div className="flex flex-wrap gap-3 mt-8">
     
                                 <button
                                     className="bg-blue-600 text-white px-5 py-3 rounded-xl flex items-center gap-2"
