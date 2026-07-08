@@ -5,7 +5,7 @@ import API from "../config";
 
 import {
     ArrowLeft,
-    Package,
+    Eye,
     Pencil,
     Trash2
 } from "lucide-react";
