@@ -70,6 +70,30 @@ export default function SpareDetail() {
 
     }
 
+    const handleDelete = async () => {
+
+        if(!window.confirm("Xóa thiết bị?"))
+            return;
+    
+        const token =
+            localStorage.getItem("token");
+    
+        await axios.delete(
+    
+            `${API}/api/spare-devices/${item.id}`,
+    
+            {
+                headers:{
+                    Authorization:`Bearer ${token}`
+                }
+            }
+    
+        );
+    
+        navigate("/spare-devices");
+    
+    }
+
     return (
 
         <div className="bg-gray-100 min-h-screen py-8">
@@ -275,6 +299,13 @@ export default function SpareDetail() {
                             <div className="flex flex-wrap gap-3 mt-8">
     
                                 <button
+                                    onClick={() =>
+                                        navigate("/spare-devices",{
+                                            state:{
+                                                edit:item
+                                            }
+                                        })
+                                    }
                                     className="bg-blue-600 text-white px-5 py-3 rounded-xl flex items-center gap-2"
                                 >
                                     <Pencil size={18}/>
@@ -282,6 +313,7 @@ export default function SpareDetail() {
                                 </button>
     
                                 <button
+                                    onClick={handleDelete}
                                     className="bg-red-600 text-white px-5 py-3 rounded-xl flex items-center gap-2"
                                 >
                                     <Trash2 size={18}/>
