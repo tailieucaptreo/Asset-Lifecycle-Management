@@ -8,6 +8,7 @@ import DriveToolbar from "../components/drive/DriveToolbar";
 import DriveFilter from "../components/drive/DriveFilter";
 import DriveCard from "../components/drive/DriveCard";
 import DriveTable from "../components/drive/DriveTable";
+import DriveModal from "../components/drive/DriveModal";
 
 export default function Drive() {
 
@@ -28,6 +29,12 @@ export default function Drive() {
     const [status, setStatus] = useState("All");
 
     const [model, setModel] = useState("All");
+
+    const [open, setOpen] = useState(false);
+
+    const [mode, setMode] = useState("view");
+    
+    const [selectedDrive, setSelectedDrive] = useState(null);
 
     const [filters, setFilters] = useState({
 
@@ -150,6 +157,85 @@ export default function Drive() {
 
     ]);
 
+    const handleCreate = () => {
+
+        setSelectedDrive(null);
+    
+        setMode("create");
+    
+        setOpen(true);
+    
+    };
+
+    const handleView = (drive) => {
+
+        setSelectedDrive(drive);
+    
+        setMode("view");
+    
+        setOpen(true);
+    
+    };
+
+    const handleEdit = (drive) => {
+
+        setSelectedDrive(drive);
+    
+        setMode("edit");
+    
+        setOpen(true);
+    
+    };
+
+    const handleClose = () => {
+
+        setOpen(false);
+    
+        setSelectedDrive(null);
+    
+    };
+
+    const handleSave = async (form) => {
+
+        try {
+    
+            if (mode === "create") {
+    
+                await axios.post(
+                    `${API}/api/drives`,
+                    form
+                );
+    
+            }
+    
+            else {
+    
+                await axios.put(
+    
+                    `${API}/api/drives/${selectedDrive.id}`,
+    
+                    form
+    
+                );
+    
+            }
+    
+            await loadDrives();
+    
+            handleClose();
+    
+        }
+    
+        catch (err) {
+    
+            console.error(err);
+    
+            alert("Không thể lưu dữ liệu.");
+    
+        }
+    
+    };
+
     return (
 
         <div className="space-y-6">
@@ -164,7 +250,7 @@ export default function Drive() {
 
                 setSearch={setSearch}
 
-                onCreate={() => {}}
+                onCreate={handleCreate}
 
                 onImport={() => {}}
 
