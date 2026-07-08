@@ -13,7 +13,9 @@ export default function DriveFilter({
     setStatus,
 
     model,
-    setModel
+    setModel,
+
+    filters
 
 }) {
 
@@ -59,28 +61,25 @@ export default function DriveFilter({
                 >
 
                     <option value="All">
-
                         Tất cả hãng
-
                     </option>
 
-                    <option value="ABB">
+                    {filters.brands.map((item) => (
 
-                        ABB
+                        <option
+                            key={item}
+                            value={item}
+                        >
+                            {item}
+                        </option>
 
-                    </option>
-
-                    <option value="VACON">
-
-                        VACON
-
-                    </option>
+                    ))}
 
                 </select>
 
                 {/* Line */}
 
-                <input
+                <select
 
                     value={line}
 
@@ -88,8 +87,6 @@ export default function DriveFilter({
                         setLine(e.target.value)
                     }
 
-                    placeholder="Tuyến"
-
                     className="
                         border
                         rounded-xl
@@ -97,11 +94,28 @@ export default function DriveFilter({
                         py-2.5
                     "
 
-                />
+                >
+
+                    <option value="All">
+                        Tất cả tuyến
+                    </option>
+
+                    {filters.lines.map((item) => (
+
+                        <option
+                            key={item}
+                            value={item}
+                        >
+                            {item}
+                        </option>
+
+                    ))}
+
+                </select>
 
                 {/* Station */}
 
-                <input
+                <select
 
                     value={station}
 
@@ -109,8 +123,6 @@ export default function DriveFilter({
                         setStation(e.target.value)
                     }
 
-                    placeholder="Nhà ga"
-
                     className="
                         border
                         rounded-xl
@@ -118,7 +130,24 @@ export default function DriveFilter({
                         py-2.5
                     "
 
-                />
+                >
+
+                    <option value="All">
+                        Tất cả nhà ga
+                    </option>
+
+                    {filters.stations.map((item) => (
+
+                        <option
+                            key={item}
+                            value={item}
+                        >
+                            {item}
+                        </option>
+
+                    ))}
+
+                </select>
 
                 {/* Status */}
 
@@ -140,48 +169,36 @@ export default function DriveFilter({
                 >
 
                     <option value="All">
-
                         Tất cả trạng thái
-
                     </option>
 
                     <option value="Running">
-
                         Running
-
                     </option>
 
                     <option value="Maintenance">
-
                         Maintenance
-
                     </option>
 
                     <option value="Fault">
-
                         Fault
-
                     </option>
 
                     <option value="Offline">
-
                         Offline
-
                     </option>
 
                 </select>
 
                 {/* Model */}
 
-                <input
+                <select
 
                     value={model}
 
                     onChange={(e) =>
                         setModel(e.target.value)
                     }
-
-                    placeholder="Model"
 
                     className="
                         border
@@ -190,7 +207,24 @@ export default function DriveFilter({
                         py-2.5
                     "
 
-                />
+                >
+
+                    <option value="All">
+                        Tất cả model
+                    </option>
+
+                    {filters.models.map((item) => (
+
+                        <option
+                            key={item}
+                            value={item}
+                        >
+                            {item}
+                        </option>
+
+                    ))}
+
+                </select>
 
             </div>
 
