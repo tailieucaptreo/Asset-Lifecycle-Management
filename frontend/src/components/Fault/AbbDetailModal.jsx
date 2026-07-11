@@ -34,6 +34,14 @@ export default function AbbDetailModal({
 
     );
 
+    const formatDate = (value) => {
+
+        if (!value) return "-";
+    
+        return new Date(value).toLocaleDateString("vi-VN");
+    
+    };
+
     return (
 
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
@@ -103,27 +111,27 @@ export default function AbbDetailModal({
 
                         <Item
                             label="Tình trạng"
-                            value={data.status}
+                            value={data.currentStatus}
                         />
 
                         <Item
                             label="Lý do thay thế"
-                            value={data.reason}
+                            value={data.replaceReason}
                         />
 
                         <Item
                             label="Giờ hoạt động"
-                            value={data.runningHours}
+                            value={data.operationHours}
                         />
 
                         <Item
                             label="Ngày thay thế"
-                            value={data.replaceDate}
+                            value={data.lastReplaceDate}
                         />
 
                         <Item
                             label="On-time"
-                            value={data.onTime}
+                            value={data.onTimeDay}
                         />
 
                         <Item
@@ -133,7 +141,7 @@ export default function AbbDetailModal({
 
                         <Item
                             label="Ngày bảo dưỡng"
-                            value={data.maintenanceDate}
+                            value={data.lastMaintenance}
                         />
 
                     </div>
