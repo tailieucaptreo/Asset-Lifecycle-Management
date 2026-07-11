@@ -307,16 +307,79 @@ export default function Drive() {
 
     const handlePreview = async (file) => {
 
-        setImportFile(file);
+        try {
     
-        setPreview([]);
-
-        setOpenImport(true);
+            setImportLoading(true);
+    
+            const formData = new FormData();
+    
+            formData.append("file", file);
+    
+            const res = await axios.post(
+    
+                `${API}/api/drives/preview-import`,
+    
+                formData,
+    
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                }
+    
+            );
+    
+            setPreview(res.data.rows);
+    
+            setOpenImport(true);
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Không đọc được file Excel.");
+    
+        }
+    
+        finally {
+    
+            setImportLoading(false);
+    
+        }
+    
     };
     
     const handleImport = async () => {
+
+        try {
     
-        console.log("Import");
+            await axios.post(
+    
+                `${API}/api/drives/confirm-import`,
+    
+                {
+                    rows: preview
+                }
+    
+            );
+    
+            alert("Import thành công");
+    
+            setOpenImport(false);
+    
+            loadDrives();
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Import thất bại");
+    
+        }
     
     };
 
