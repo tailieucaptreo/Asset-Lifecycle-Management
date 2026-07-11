@@ -212,3 +212,41 @@ model DriveFault {
 
   drive Drive @relation(fields: [driveId], references: [id], onDelete: Cascade)
 }
+
+model AbbFaultRecord {
+
+  id            Int      @id @default(autoincrement())
+
+  recordDate    DateTime?
+
+  line          String?
+
+  station       String?
+
+  deviceName    String?
+
+  deviceId      String?
+
+  serialNumber  String?
+
+  model         String?
+
+  ipAddress     String?
+
+  faultCode     String?
+
+  faultName     String?
+
+  description   String?   @db.Text
+
+  cause         String?   @db.Text
+
+  solution      String?   @db.Text
+
+  repairedBy    String?
+
+  note          String?   @db.Text
+
+  createdAt     DateTime  @default(now())
+
+}
