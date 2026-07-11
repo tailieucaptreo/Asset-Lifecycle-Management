@@ -230,7 +230,7 @@ export default function DriveImportModal({
                                 overflow-auto
                                 border
                                 rounded-xl
-                                max-h-64
+                                max-h-[360px]
                             "
                         >
 
