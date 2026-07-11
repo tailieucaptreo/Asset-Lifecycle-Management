@@ -55,8 +55,9 @@ export default function DriveImportModal({
                     shadow-xl
                     w-full
                     max-w-6xl
-                    max-h-[90vh]
-                    overflow-hidden
+                    h-[90vh]
+                    flex
+                    flex-col
                 "
             >
 
@@ -94,7 +95,7 @@ export default function DriveImportModal({
 
                 {/* Upload */}
 
-                <div className="p-6">
+                <div className="flex-1 overflow-y-auto p-6">
 
                     <label
                         className="
@@ -188,8 +189,7 @@ export default function DriveImportModal({
 
                     <div
                         className="
-                            px-6
-                            pb-6
+                            mt-6
                         "
                     >
 
@@ -348,11 +348,13 @@ export default function DriveImportModal({
                 <div
                     className="
                         border-t
+                        bg-white
                         px-6
                         py-4
                         flex
                         justify-end
                         gap-3
+                        shrink-0
                     "
                 >
 
