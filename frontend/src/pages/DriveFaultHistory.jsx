@@ -434,11 +434,7 @@ export default function DriveFaultHistory() {
                     {
 
                         role === "admin" &&
-
-                        <button
-
-                            onClick={handleImport}
-
+             
                             <label
                                 className="
                                     flex
@@ -483,8 +479,6 @@ export default function DriveFaultHistory() {
                                 />
                             
                             </label>
-                            
-                        </button>
 
                     }
 
@@ -560,23 +554,16 @@ export default function DriveFaultHistory() {
 
             }
 
-        </div>
-        
-        <DriveImportModal
+            <DriveImportModal
+                open={openImport}
+                preview={preview}
+                loading={importLoading}
+                onClose={() => setOpenImport(false)}
+                onUpload={handlePreview}
+                onConfirm={handleImport}
+            />
 
-            open={openImport}
-        
-            preview={preview}
-        
-            loading={importLoading}
-        
-            onClose={() => setOpenImport(false)}
-        
-            onUpload={handlePreview}
-        
-            onConfirm={handleImport}
-        
-        />
+        </div>
 
     );
 
