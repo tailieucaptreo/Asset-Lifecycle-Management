@@ -24,15 +24,11 @@ export default function DriveImportModal({
     const chooseFile = (e) => {
 
         if (!e.target.files?.length) return;
-
-        const f = e.target.files[0];
-
-        setFile(f);
-
-        onUpload(f);
-
+    
+        onUpload(e.target.files[0]);
+    
     };
-
+    
     return (
 
         <div
