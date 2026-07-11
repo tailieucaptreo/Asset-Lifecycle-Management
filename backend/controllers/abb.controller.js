@@ -4,6 +4,85 @@ const XLSX = require("xlsx");
 
 const prisma = new PrismaClient();
 
+function parseNumber(value) {
+
+    if (value === "" || value === null || value === undefined) {
+
+        return null;
+
+    }
+
+    const n = Number(String(value).replace(",", "."));
+
+    return isNaN(n) ? null : n;
+
+}
+
+function parseDate(value) {
+
+    if (!value) return null;
+
+    if (value instanceof Date) return value;
+
+    const text = String(value).trim();
+
+    // dd/MM/yyyy
+
+    if (text.includes("/")) {
+
+        const arr = text.split("/");
+
+        if (arr.length === 3) {
+
+            let d, m, y;
+
+            if (arr[0].length === 4) {
+
+                // yyyy/MM/dd
+
+                y = Number(arr[0]);
+
+                m = Number(arr[1]);
+
+                d = Number(arr[2]);
+
+            }
+
+            else if (Number(arr[0]) > 12) {
+
+                // dd/MM/yyyy
+
+                d = Number(arr[0]);
+
+                m = Number(arr[1]);
+
+                y = Number(arr[2]);
+
+            }
+
+            else {
+
+                // MM/dd/yyyy
+
+                m = Number(arr[0]);
+
+                d = Number(arr[1]);
+
+                y = Number(arr[2]);
+
+            }
+
+            return new Date(y, m - 1, d);
+
+        }
+
+    }
+
+    const date = new Date(text);
+
+    return isNaN(date.getTime()) ? null : date;
+
+}
 
 // ======================================================
 // GET ALL
@@ -213,98 +292,165 @@ exports.previewImport = async (req, res) => {
         if (!req.file) {
 
             return res.status(400).json({
+
                 message: "Chưa chọn file"
+
             });
 
         }
 
-        const workbook = XLSX.read(req.file.buffer, {
-            type: "buffer"
-        });
+        const workbook = XLSX.read(
+
+            req.file.buffer,
+
+            {
+
+                type: "buffer"
+
+            }
+
+        );
 
         const sheet = workbook.Sheets[
+
             workbook.SheetNames[0]
+
         ];
 
-        const rows = XLSX.utils.sheet_to_json(sheet, {
+        const rows = XLSX.utils.sheet_to_json(
 
-            defval: ""
+            sheet,
 
-        });
+            {
 
-        const preview = rows.map((r) => ({
-        
-            typeCode: r["Type code"] || "",
-        
-            serialNumber: r["Serial number"] || "",
-        
-            line: String(r["Tuyến cáp"] || ""),
-        
-            station: String(r["Đặt tại Ga"] || ""),
-        
+                defval: ""
+
+            }
+
+        );
+
+        const preview = rows.map(row => ({
+
+            typeCode:
+
+                row["Type code"]
+
+                    ? String(row["Type code"]).trim()
+
+                    : "",
+
+            serialNumber:
+
+                row["Serial number"]
+
+                    ? String(row["Serial number"]).trim()
+
+                    : "",
+
+            line:
+
+                row["Tuyến cáp"]
+
+                    ? String(row["Tuyến cáp"]).trim()
+
+                    : "",
+
+            station:
+
+                row["Đặt tại Ga"]
+
+                    ? String(row["Đặt tại Ga"]).trim()
+
+                    : "",
+
             application:
-                r["Ký hiệu /Ứng dụng"] ||
-            
-                r["Ký hiệu / Ứng dụng"] ||
-            
-                "",
-        
-            firmware: r["Firmware"] || "",
-        
-            currentStatus: r["Tình trạng hiện tại"] || "",
-        
-            replaceReason: r["Lý do thay thế"] || "",
-        
-            operationHours: parseFloat(
-        
-                String(
-        
-                    r["Giờ hoạt động của tuyến cáp"] || ""
-        
-                ).replace(",", ".")
-        
-            ) || null,
-        
+
+                row["Ký hiệu / Ứng dụng"]
+
+                    ? String(row["Ký hiệu / Ứng dụng"]).trim()
+
+                    : "",
+
+            firmware:
+
+                row["Firmware"]
+
+                    ? String(row["Firmware"]).trim()
+
+                    : "",
+
+            currentStatus:
+
+                row["Tình trạng hiện tại"]
+
+                    ? String(row["Tình trạng hiện tại"]).trim()
+
+                    : "",
+
+            replaceReason:
+
+                row["Lý do thay thế"]
+
+                    ? String(row["Lý do thay thế"]).trim()
+
+                    : "",
+
+            operationHours:
+
+                parseNumber(
+
+                    row["Giờ hoạt động của tuyến cáp"]
+
+                ),
+
             lastReplaceDate:
-        
-                r["Ngày thay thế gần nhất (mm/dd/yyyy)"]
-        
-                    ? new Date(r["Ngày thay thế gần nhất (mm/dd/yyyy)"])
-        
-                    : null,
-        
+
+                parseDate(
+
+                    row["Ngày thay thế gần nhất (mm/dd/yyyy)"]
+
+                ),
+
             onTimeDay:
-        
-                parseInt(
-        
-                    r["On-time (Thời gian biến tần được cấp điện) (day)"]
-        
-                ) || null,
-        
+
+                parseNumber(
+
+                    row["On-time (Thời gian biến tần được cấp điện) (day)"]
+
+                ),
+
             runningDay:
-        
-                parseInt(
-        
-                    r["Thời gian hoạt động của biến tần (day)"]
-        
-                ) || null,
-        
+
+                parseNumber(
+
+                    row["Thời gian hoạt động của biến tần (day)"]
+
+                ),
+
             lastMaintenance:
-        
-                r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"]
-        
-                    ? new Date(r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"])
-        
-                    : null,
-        
+
+                parseDate(
+
+                    row["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"]
+
+                ),
+
             maintenanceWork:
-        
-                r["Nội dung công việc bảo dưỡng"] || "",
-        
+
+                row["Nội dung công việc bảo dưỡng"]
+
+                    ? String(row["Nội dung công việc bảo dưỡng"])
+
+                    : "",
+
             note:
-        
-                r["Ghi chú"] || ""
-        
+
+                row["Ghi chú"]
+
+                    ? String(row["Ghi chú"])
+
+                    : ""
+
         }));
 
         res.json({
@@ -321,7 +467,7 @@ exports.previewImport = async (req, res) => {
 
         res.status(500).json({
 
-            message: "Đọc Excel thất bại"
+            message: err.message
 
         });
 
@@ -337,17 +483,105 @@ exports.confirmImport = async (req, res) => {
 
     try {
 
-        const rows = req.body.rows;
+        const rows = req.body.rows || [];
+
+        const data = rows.map(r => ({
+
+            typeCode:
+
+                r.typeCode || null,
+
+            serialNumber:
+
+                r.serialNumber || null,
+
+            line:
+
+                r.line || null,
+
+            station:
+
+                r.station || null,
+
+            application:
+
+                r.application || null,
+
+            firmware:
+
+                r.firmware || null,
+
+            currentStatus:
+
+                r.currentStatus || null,
+
+            replaceReason:
+
+                r.replaceReason || null,
+
+            operationHours:
+
+                parseNumber(
+
+                    r.operationHours
+
+                ),
+
+            lastReplaceDate:
+
+                parseDate(
+
+                    r.lastReplaceDate
+
+                ),
+
+            onTimeDay:
+
+                parseNumber(
+
+                    r.onTimeDay
+
+                ),
+
+            runningDay:
+
+                parseNumber(
+
+                    r.runningDay
+
+                ),
+
+            lastMaintenance:
+
+                parseDate(
+
+                    r.lastMaintenance
+
+                ),
+
+            maintenanceWork:
+
+                r.maintenanceWork || null,
+
+            note:
+
+                r.note || null
+
+        }));
 
         await prisma.abbFaultRecord.createMany({
 
-            data: rows,
+            data,
+
+            skipDuplicates: true
 
         });
 
         res.json({
 
-            success: true
+            success: true,
+
+            count: data.length
 
         });
 
@@ -359,7 +593,7 @@ exports.confirmImport = async (req, res) => {
 
         res.status(500).json({
 
-            message: "Import thất bại"
+            message: err.message
 
         });
 
