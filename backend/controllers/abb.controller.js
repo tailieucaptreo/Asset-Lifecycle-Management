@@ -24,9 +24,18 @@ function parseDate(value) {
 
     if (value instanceof Date) return value;
 
-    const text = String(value).trim();
+    // Excel Serial Date
+    if (typeof value === "number") {
 
-    // dd/MM/yyyy
+        const utcDays = Math.floor(value - 25569);
+
+        const utcValue = utcDays * 86400;
+
+        return new Date(utcValue * 1000);
+
+    }
+
+    const text = String(value).trim();
 
     if (text.includes("/")) {
 
@@ -36,21 +45,7 @@ function parseDate(value) {
 
             let d, m, y;
 
-            if (arr[0].length === 4) {
-
-                // yyyy/MM/dd
-
-                y = Number(arr[0]);
-
-                m = Number(arr[1]);
-
-                d = Number(arr[2]);
-
-            }
-
-            else if (Number(arr[0]) > 12) {
-
-                // dd/MM/yyyy
+            if (Number(arr[0]) > 12) {
 
                 d = Number(arr[0]);
 
@@ -61,8 +56,6 @@ function parseDate(value) {
             }
 
             else {
-
-                // MM/dd/yyyy
 
                 m = Number(arr[0]);
 
@@ -80,7 +73,11 @@ function parseDate(value) {
 
     const date = new Date(text);
 
-    return isNaN(date.getTime()) ? null : date;
+    return isNaN(date.getTime())
+
+        ? null
+
+        : date;
 
 }
 
