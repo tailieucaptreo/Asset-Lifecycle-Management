@@ -165,6 +165,16 @@ export default function DriveFaultHistory() {
     
             setImportLoading(true);
     
+            const token = localStorage.getItem("token");
+    
+            if (!token) {
+    
+                alert("Bạn chưa đăng nhập.");
+    
+                return;
+    
+            }
+    
             const url =
     
                 tab === "VACON"
@@ -178,9 +188,13 @@ export default function DriveFaultHistory() {
                 url,
     
                 {
-    
                     rows: preview
+                },
     
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 }
     
             );
@@ -197,9 +211,25 @@ export default function DriveFaultHistory() {
     
         catch (err) {
     
-            console.log(err);
+            console.error(err);
     
-            alert("Import thất bại.");
+            if (err.response) {
+    
+                alert(
+    
+                    err.response.data.message ||
+    
+                    `Import thất bại (${err.response.status})`
+    
+                );
+    
+            }
+    
+            else {
+    
+                alert("Không thể kết nối tới server.");
+    
+            }
     
         }
     
@@ -210,7 +240,7 @@ export default function DriveFaultHistory() {
         }
     
     };
-
+    
     const handlePreview = async (file) => {
 
         try {
