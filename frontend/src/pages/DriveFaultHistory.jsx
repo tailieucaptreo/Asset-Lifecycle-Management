@@ -5,6 +5,7 @@ import API from "../config";
 
 import VaconHistory from "../components/Fault/VaconHistory";
 import AbbTable from "../components/Fault/AbbTable";
+import DriveImportModal from "../components/Drive/DriveImportModal";
 
 import {
     Upload,
@@ -34,6 +35,12 @@ export default function DriveFaultHistory() {
         loadData();
 
     }, [tab]);
+
+    const [openImport, setOpenImport] = useState(false);
+
+    const [preview, setPreview] = useState([]);
+    
+    const [importLoading, setImportLoading] = useState(false);
 
     async function loadData() {
 
@@ -80,28 +87,184 @@ export default function DriveFaultHistory() {
 
         });
 
-    const handleExport = () => {
+    const handleExport = async () => {
 
-        window.open(
-
-            tab === "VACON"
-
-                ? `${API}/api/vacon-records/export`
-
-                : `${API}/api/abb-faults/export`
-
-        );
-
+        try {
+    
+            const url =
+    
+                tab === "VACON"
+    
+                    ? `${API}/api/vacon-records/export`
+    
+                    : `${API}/api/abb-faults/export`;
+    
+            const response = await axios.get(
+    
+                url,
+    
+                {
+    
+                    responseType: "blob"
+    
+                }
+    
+            );
+    
+            const blob = new Blob(
+    
+                [response.data],
+    
+                {
+    
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    
+                }
+    
+            );
+    
+            const downloadUrl = window.URL.createObjectURL(blob);
+    
+            const link = document.createElement("a");
+    
+            link.href = downloadUrl;
+    
+            link.download =
+    
+                tab === "VACON"
+    
+                    ? "Vacon_History.xlsx"
+    
+                    : "ABB_History.xlsx";
+    
+            document.body.appendChild(link);
+    
+            link.click();
+    
+            link.remove();
+    
+            window.URL.revokeObjectURL(downloadUrl);
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Xuất Excel thất bại.");
+    
+        }
+    
     };
 
-    const handleImport = () => {
+    const handleImport = async () => {
 
-        alert(
+        try {
+    
+            setImportLoading(true);
+    
+            const url =
+    
+                tab === "VACON"
+    
+                    ? `${API}/api/vacon-records/confirm-import`
+    
+                    : `${API}/api/abb-faults/confirm-import`;
+    
+            await axios.post(
+    
+                url,
+    
+                {
+    
+                    rows: preview
+    
+                }
+    
+            );
+    
+            alert("Import thành công.");
+    
+            setOpenImport(false);
+    
+            setPreview([]);
+    
+            loadData();
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Import thất bại.");
+    
+        }
+    
+        finally {
+    
+            setImportLoading(false);
+    
+        }
+    
+    };
 
-            `Import ${tab} sẽ làm ở bước tiếp theo.`
+    const handlePreview = async (file) => {
 
-        );
-
+        try {
+    
+            setImportLoading(true);
+    
+            const formData = new FormData();
+    
+            formData.append("file", file);
+    
+            const url =
+    
+                tab === "VACON"
+    
+                    ? `${API}/api/vacon-records/preview-import`
+    
+                    : `${API}/api/abb-faults/preview-import`;
+    
+            const res = await axios.post(
+    
+                url,
+    
+                formData,
+    
+                {
+    
+                    headers: {
+    
+                        "Content-Type": "multipart/form-data"
+    
+                    }
+    
+                }
+    
+            );
+    
+            setPreview(res.data.rows);
+    
+            setOpenImport(true);
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Không đọc được file Excel.");
+    
+        }
+    
+        finally {
+    
+            setImportLoading(false);
+    
+        }
+    
     };
 
     return (
@@ -276,24 +439,51 @@ export default function DriveFaultHistory() {
 
                             onClick={handleImport}
 
-                            className="
-                                flex
-                                items-center
-                                gap-2
-                                bg-amber-500
-                                text-white
-                                px-4
-                                py-2.5
-                                rounded-xl
-                                hover:bg-amber-600
-                            "
-
-                        >
-
-                            <Upload size={18}/>
-
-                            Import
-
+                            <label
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                    bg-amber-500
+                                    text-white
+                                    px-4
+                                    py-2.5
+                                    rounded-xl
+                                    hover:bg-amber-600
+                                    cursor-pointer
+                                "
+                            >
+                            
+                                <Upload size={18} />
+                            
+                                Import
+                            
+                                <input
+                            
+                                    type="file"
+                            
+                                    accept=".xlsx,.xls"
+                            
+                                    hidden
+                            
+                                    onChange={(e) => {
+                            
+                                        if (e.target.files?.length) {
+                            
+                                            handlePreview(
+                            
+                                                e.target.files[0]
+                            
+                                            );
+                            
+                                        }
+                            
+                                    }}
+                            
+                                />
+                            
+                            </label>
+                            
                         </button>
 
                     }
@@ -371,6 +561,22 @@ export default function DriveFaultHistory() {
             }
 
         </div>
+        
+        <DriveImportModal
+
+            open={openImport}
+        
+            preview={preview}
+        
+            loading={importLoading}
+        
+            onClose={() => setOpenImport(false)}
+        
+            onUpload={handlePreview}
+        
+            onConfirm={handleImport}
+        
+        />
 
     );
 
