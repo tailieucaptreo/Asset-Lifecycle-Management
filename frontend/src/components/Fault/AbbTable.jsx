@@ -95,10 +95,6 @@ export default function AbbTable({
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Serial Number
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
                                 Tình trạng
                             </th>
 
