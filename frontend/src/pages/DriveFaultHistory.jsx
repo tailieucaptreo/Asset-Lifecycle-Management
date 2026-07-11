@@ -3,7 +3,7 @@ import axios from "axios";
 
 import API from "../config";
 
-import VaconTable from "../components/Fault/VaconTable";
+import VaconHistory from "../components/Fault/VaconHistory";
 import AbbTable from "../components/Fault/AbbTable";
 
 import {
