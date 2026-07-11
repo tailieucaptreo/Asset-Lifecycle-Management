@@ -286,9 +286,9 @@ exports.getStatistics = async (req, res) => {
 
             total: drives.length,
 
-            abb: drives.filter(d => d.brand === "ABB").length,
+            abb: drives.filter(d => d.brand?.toLowerCase() === "abb").length,
 
-            vacon: drives.filter(d => d.brand === "VACON").length,
+            vacon: drives.filter(d => d.brand?.toLowerCase() === "vacon").length,
 
             running: drives.filter(d => d.status === "Running").length,
 
