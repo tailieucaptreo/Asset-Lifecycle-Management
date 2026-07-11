@@ -334,7 +334,7 @@ export default function DriveFaultHistory() {
 
                     ?
 
-                    <VaconTable
+                    <VaconHistory
 
                         role={role}
 
