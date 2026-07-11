@@ -215,38 +215,38 @@ model DriveFault {
 
 model AbbFaultRecord {
 
-  id            Int      @id @default(autoincrement())
+  id               Int      @id @default(autoincrement())
 
-  recordDate    DateTime?
+  typeCode         String?
 
-  line          String?
+  serialNumber     String?
 
-  station       String?
+  line             String?
 
-  deviceName    String?
+  station          String?
 
-  deviceId      String?
+  application      String?
 
-  serialNumber  String?
+  firmware         String?
 
-  model         String?
+  currentStatus    String?
 
-  ipAddress     String?
+  replaceReason    String?
 
-  faultCode     String?
+  operationHours   Float?
 
-  faultName     String?
+  lastReplaceDate  DateTime?
 
-  description   String?   @db.Text
+  onTimeDay        Int?
 
-  cause         String?   @db.Text
+  runningDay       Int?
 
-  solution      String?   @db.Text
+  lastMaintenance  DateTime?
 
-  repairedBy    String?
+  maintenanceWork  String?   @db.Text
 
-  note          String?   @db.Text
+  note             String?   @db.Text
 
-  createdAt     DateTime  @default(now())
+  createdAt        DateTime @default(now())
 
 }
