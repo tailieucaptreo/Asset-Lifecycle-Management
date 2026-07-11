@@ -57,7 +57,6 @@ export default function AbbTable({
                 <table
                     className="
                         w-full
-                        min-w-[1700px]
                         text-sm
                     "
                 >
@@ -94,48 +93,12 @@ export default function AbbTable({
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Ứng dụng
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Firmware
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
                                 Tình trạng
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Lý do thay thế
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Giờ hoạt động
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Ngày thay
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                On-time
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Running Day
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
                                 Ngày bảo dưỡng
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Công việc bảo dưỡng
-                            </th>
-
-                            <th className="px-3 py-3 text-left">
-                                Ghi chú
-                            </th>
+                            </th>                   
 
                             <th className="px-3 py-3 text-center">
                                 Thao tác
@@ -206,73 +169,23 @@ export default function AbbTable({
 
                                         {item.station}
 
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.application}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.firmware}
-
-                                    </td>
+                                    </td>                                                               
 
                                     <td className="px-3 py-3">
 
                                         {item.currentStatus}
 
                                     </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.replaceReason}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.operationHours}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.lastReplaceDate}
-
-                                    </td>
-
+                                   
                                     <td className="px-3 py-3 max-w-[220px]">
 
-                                        {item.onTimeDay}
+                                        {
+                                            item.lastMaintenance
+                                            ? new Date(item.lastMaintenance).toLocaleDateString("vi-VN")
+                                            : "-"
+                                        }
 
-                                    </td>
-
-                                    <td className="px-3 py-3 max-w-[220px]">
-
-                                        {item.runningDay}
-
-                                    </td>
-
-                                    <td className="px-3 py-3 max-w-[220px]">
-
-                                        {item.lastMaintenance}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.maintenanceWork}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.note}
-
-                                    </td>
+                                    </td>                                 
 
                                     <td className="px-3 py-3">
 
