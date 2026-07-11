@@ -9,6 +9,8 @@ export default function DriveImportModal({
 
     loading,
 
+    importFile,
+
     onClose,
 
     onUpload,
@@ -16,8 +18,6 @@ export default function DriveImportModal({
     onConfirm
 
 }) {
-
-    const [file, setFile] = useState(null);
 
     if (!open) return null;
 
@@ -151,7 +151,7 @@ export default function DriveImportModal({
 
                     {
 
-                        file &&
+                        importFile &&
 
                         <div
                             className="
@@ -171,7 +171,7 @@ export default function DriveImportModal({
 
                             <span>
 
-                                {file.name}
+                                {importFile.name}
 
                             </span>
 
@@ -230,7 +230,7 @@ export default function DriveImportModal({
                                 overflow-auto
                                 border
                                 rounded-xl
-                                max-h-80
+                                max-h-64
                             "
                         >
 
@@ -378,7 +378,7 @@ export default function DriveImportModal({
                     <button
 
                         disabled={
-                            !file ||
+                            !importFile ||
                             loading
                         }
 
