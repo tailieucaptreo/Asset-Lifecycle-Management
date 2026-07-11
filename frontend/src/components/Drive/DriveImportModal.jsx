@@ -259,9 +259,11 @@ export default function DriveImportModal({
                                                     key={key}
 
                                                     className="
-                                                        px-3
-                                                        py-2
+                                                        px-4
+                                                        py-3
                                                         text-left
+                                                        whitespace-nowrap
+                                                        font-semibold
                                                     "
 
                                                 >
@@ -306,8 +308,9 @@ export default function DriveImportModal({
                                                                     key={i}
 
                                                                     className="
-                                                                        px-3
-                                                                        py-2
+                                                                        px-4
+                                                                        py-3
+                                                                        whitespace-nowrap
                                                                     "
 
                                                                 >
