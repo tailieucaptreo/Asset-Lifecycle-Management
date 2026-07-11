@@ -310,6 +310,8 @@ export default function Drive() {
         try {
     
             setImportLoading(true);
+
+            setImportFile(file);
     
             const formData = new FormData();
     
