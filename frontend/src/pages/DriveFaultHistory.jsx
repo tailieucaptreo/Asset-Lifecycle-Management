@@ -42,6 +42,8 @@ export default function DriveFaultHistory() {
     
     const [importLoading, setImportLoading] = useState(false);
 
+    const [importFile, setImportFile] = useState(null);
+
     async function loadData() {
 
         try {
