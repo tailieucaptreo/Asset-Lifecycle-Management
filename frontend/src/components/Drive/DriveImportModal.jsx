@@ -226,13 +226,14 @@ export default function DriveImportModal({
                                 overflow-auto
                                 border
                                 rounded-xl
-                                max-h-[360px]
+                                max-h-[420px]
                             "
                         >
 
                             <table
                                 className="
                                     min-w-full
+                                    table-auto
                                     text-sm
                                 "
                             >
