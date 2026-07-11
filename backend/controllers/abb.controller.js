@@ -230,53 +230,79 @@ exports.previewImport = async (req, res) => {
 
         });
 
-        const preview = rows.map(r => ({
-
-            typeCode:
-                r["Type code"],
-
-            serialNumber:
-                r["Serial number"],
-
-            line:
-                r["Tuyến cáp"],
-
-            station:
-                r["Đặt tại Ga"],
-
+        const preview = rows.map((r) => ({
+        
+            typeCode: r["Type code"] || "",
+        
+            serialNumber: r["Serial number"] || "",
+        
+            line: String(r["Tuyến cáp"] || ""),
+        
+            station: String(r["Đặt tại Ga"] || ""),
+        
             application:
-                r["Ký hiệu / Ứng dụng"],
-
-            firmware:
-                r["Firmware"],
-
-            currentStatus:
-                r["Tình trạng hiện tại"],
-
-            replaceReason:
-                r["Lý do thay thế"],
-
-            operationHours:
-                r["Giờ hoạt động của tuyến cáp"],
-
+                r["Ký hiệu /Ứng dụng"] ||
+            
+                r["Ký hiệu / Ứng dụng"] ||
+            
+                "",
+        
+            firmware: r["Firmware"] || "",
+        
+            currentStatus: r["Tình trạng hiện tại"] || "",
+        
+            replaceReason: r["Lý do thay thế"] || "",
+        
+            operationHours: parseFloat(
+        
+                String(
+        
+                    r["Giờ hoạt động của tuyến cáp"] || ""
+        
+                ).replace(",", ".")
+        
+            ) || null,
+        
             lastReplaceDate:
-                r["Ngày thay thế gần nhất (mm/dd/yyyy)"],
-
+        
+                r["Ngày thay thế gần nhất (mm/dd/yyyy)"]
+        
+                    ? new Date(r["Ngày thay thế gần nhất (mm/dd/yyyy)"])
+        
+                    : null,
+        
             onTimeDay:
-                r["On-time (Thời gian biến tần được cấp điện) (day)"],
-
+        
+                parseInt(
+        
+                    r["On-time (Thời gian biến tần được cấp điện) (day)"]
+        
+                ) || null,
+        
             runningDay:
-                r["Thời gian hoạt động của biến tần (day)"],
-
+        
+                parseInt(
+        
+                    r["Thời gian hoạt động của biến tần (day)"]
+        
+                ) || null,
+        
             lastMaintenance:
-                r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"],
-
+        
+                r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"]
+        
+                    ? new Date(r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"])
+        
+                    : null,
+        
             maintenanceWork:
-                r["Nội dung công việc bảo dưỡng"],
-
+        
+                r["Nội dung công việc bảo dưỡng"] || "",
+        
             note:
-                r["Ghi chú"]
-
+        
+                r["Ghi chú"] || ""
+        
         }));
 
         res.json({
@@ -314,8 +340,6 @@ exports.confirmImport = async (req, res) => {
         await prisma.abbFaultRecord.createMany({
 
             data: rows,
-
-            skipDuplicates: true
 
         });
 
@@ -395,10 +419,30 @@ exports.exportExcel = async (req, res) => {
 
     ];
 
-    records.forEach(r=>{
+    records.forEach(r => {
 
-        sheet.addRow(r);
-
+        sheet.addRow({
+    
+            ...r,
+    
+            lastReplaceDate:
+    
+                r.lastReplaceDate
+    
+                    ? new Date(r.lastReplaceDate).toLocaleDateString("vi-VN")
+    
+                    : "",
+    
+            lastMaintenance:
+    
+                r.lastMaintenance
+    
+                    ? new Date(r.lastMaintenance).toLocaleDateString("vi-VN")
+    
+                    : ""
+    
+        });
+    
     });
 
     sheet.getRow(1).font={
