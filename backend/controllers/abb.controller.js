@@ -213,32 +213,75 @@ exports.previewImport = async (req, res) => {
         if (!req.file) {
 
             return res.status(400).json({
-
-                message: "Không có file"
-
+                message: "Chưa chọn file"
             });
 
         }
 
-        const workbook = XLSX.read(
+        const workbook = XLSX.readFile(req.file.path);
 
-            req.file.buffer,
+        const sheet = workbook.Sheets[
+            workbook.SheetNames[0]
+        ];
 
-            {
+        const rows = XLSX.utils.sheet_to_json(sheet, {
 
-                type: "buffer"
+            defval: ""
 
-            }
+        });
 
-        );
+        const preview = rows.map(r => ({
 
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            typeCode:
+                r["Type code"],
 
-        const rows = XLSX.utils.sheet_to_json(sheet);
+            serialNumber:
+                r["Serial number"],
+
+            line:
+                r["Tuyến cáp"],
+
+            station:
+                r["Đặt tại Ga"],
+
+            application:
+                r["Ký hiệu / Ứng dụng"],
+
+            firmware:
+                r["Firmware"],
+
+            currentStatus:
+                r["Tình trạng hiện tại"],
+
+            replaceReason:
+                r["Lý do thay thế"],
+
+            operationHours:
+                r["Giờ hoạt động của tuyến cáp"],
+
+            lastReplaceDate:
+                r["Ngày thay thế gần nhất (mm/dd/yyyy)"],
+
+            onTimeDay:
+                r["On-time (Thời gian biến tần được cấp điện) (day)"],
+
+            runningDay:
+                r["Thời gian hoạt động của biến tần (day)"],
+
+            lastMaintenance:
+                r["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"],
+
+            maintenanceWork:
+                r["Nội dung công việc bảo dưỡng"],
+
+            note:
+                r["Ghi chú"]
+
+        }));
 
         res.json({
 
-            rows
+            rows: preview
 
         });
 
@@ -258,7 +301,6 @@ exports.previewImport = async (req, res) => {
 
 };
 
-
 // ======================================================
 // CONFIRM IMPORT
 // ======================================================
@@ -267,23 +309,19 @@ exports.confirmImport = async (req, res) => {
 
     try {
 
-        const rows = req.body.rows || [];
+        const rows = req.body.rows;
 
-        for (const row of rows) {
+        await prisma.abbFaultRecord.createMany({
 
-            await prisma.abbFaultRecord.create({
+            data: rows,
 
-                data: row
+            skipDuplicates: true
 
-            });
-
-        }
+        });
 
         res.json({
 
-            success: true,
-
-            total: rows.length
+            success: true
 
         });
 
@@ -303,18 +341,17 @@ exports.confirmImport = async (req, res) => {
 
 };
 
-
 // ======================================================
 // EXPORT EXCEL
 // ======================================================
 
 exports.exportExcel = async (req, res) => {
 
-    const data = await prisma.abbFaultRecord.findMany({
+    const records = await prisma.abbFaultRecord.findMany({
 
         orderBy: {
 
-            recordDate: "desc"
+            id: "asc"
 
         }
 
@@ -322,57 +359,51 @@ exports.exportExcel = async (req, res) => {
 
     const workbook = new ExcelJS.Workbook();
 
-    const sheet = workbook.addWorksheet("ABB Fault");
+    const sheet = workbook.addWorksheet("ABB");
 
     sheet.columns = [
 
-        { header: "Ngày", key: "recordDate", width: 18 },
+        { header:"Type Code", key:"typeCode", width:25 },
 
-        { header: "Tuyến", key: "line", width: 15 },
+        { header:"Serial Number", key:"serialNumber", width:22 },
 
-        { header: "Nhà ga", key: "station", width: 18 },
+        { header:"Tuyến", key:"line", width:15 },
 
-        { header: "Thiết bị", key: "deviceName", width: 30 },
+        { header:"Nhà ga", key:"station", width:15 },
 
-        { header: "Serial", key: "serialNumber", width: 25 },
+        { header:"Ứng dụng", key:"application", width:25 },
 
-        { header: "Model", key: "model", width: 20 },
+        { header:"Firmware", key:"firmware", width:18 },
 
-        { header: "Fault Code", key: "faultCode", width: 18 },
+        { header:"Tình trạng", key:"currentStatus", width:20 },
 
-        { header: "Fault Name", key: "faultName", width: 30 },
+        { header:"Lý do thay", key:"replaceReason", width:25 },
 
-        { header: "Description", key: "description", width: 45 },
+        { header:"Giờ hoạt động", key:"operationHours", width:20 },
 
-        { header: "Cause", key: "cause", width: 45 },
+        { header:"Ngày thay", key:"lastReplaceDate", width:18 },
 
-        { header: "Solution", key: "solution", width: 45 },
+        { header:"On-time", key:"onTimeDay", width:15 },
 
-        { header: "Repair By", key: "repairedBy", width: 20 },
+        { header:"Running Day", key:"runningDay", width:15 },
 
-        { header: "Note", key: "note", width: 30 }
+        { header:"Ngày bảo dưỡng", key:"lastMaintenance", width:18 },
+
+        { header:"Công việc bảo dưỡng", key:"maintenanceWork", width:40 },
+
+        { header:"Ghi chú", key:"note", width:30 }
 
     ];
 
-    data.forEach(item => {
+    records.forEach(r=>{
 
-        sheet.addRow({
-
-            ...item,
-
-            recordDate: item.recordDate
-
-                ? new Date(item.recordDate).toLocaleDateString("vi-VN")
-
-                : ""
-
-        });
+        sheet.addRow(r);
 
     });
 
-    sheet.getRow(1).font = {
+    sheet.getRow(1).font={
 
-        bold: true
+        bold:true
 
     };
 
@@ -388,7 +419,7 @@ exports.exportExcel = async (req, res) => {
 
         "Content-Disposition",
 
-        'attachment; filename="ABB_Fault_History.xlsx"'
+        'attachment; filename="ABB_Fault.xlsx"'
 
     );
 
