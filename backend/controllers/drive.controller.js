@@ -4,8 +4,6 @@ const prisma = new PrismaClient();
 
 const ExcelJS = require("exceljs");
 
-const XLSX = require("xlsx");
-
 // ======================================================
 // GET ALL
 // ======================================================
