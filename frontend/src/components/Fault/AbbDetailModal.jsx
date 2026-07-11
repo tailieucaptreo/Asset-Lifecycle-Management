@@ -126,7 +126,7 @@ export default function AbbDetailModal({
 
                         <Item
                             label="Ngày thay thế"
-                            value={data.lastReplaceDate}
+                            value={formatDate(data.lastReplaceDate)}
                         />
 
                         <Item
@@ -141,7 +141,7 @@ export default function AbbDetailModal({
 
                         <Item
                             label="Ngày bảo dưỡng"
-                            value={data.lastMaintenance}
+                            value={formatDate(data.lastMaintenance)}
                         />
 
                     </div>
