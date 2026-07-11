@@ -17,7 +17,7 @@ exports.getAll = async (req, res) => {
 
             orderBy: {
 
-                recordDate: "desc"
+                createdAt: "desc"
 
             }
 
