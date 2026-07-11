@@ -252,30 +252,33 @@ export default function Drive() {
 
         try {
     
+            const token = localStorage.getItem("token");
+    
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            };
+    
             if (mode === "create") {
     
                 await axios.post(
                     `${API}/api/drives`,
-                    form
+                    form,
+                    config
                 );
     
-            }
-    
-            else {
+            } else {
     
                 await axios.put(
                     `${API}/api/drives/${selectedDrive.id}`,
                     form,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`
-                        }
-                    }
+                    config
                 );
+    
             }
     
             await loadDrives();
-
             await loadStatistics();
     
             handleClose();
@@ -284,7 +287,7 @@ export default function Drive() {
     
         catch (err) {
     
-            console.error(err);
+            console.log(err);
     
             alert("Không thể lưu dữ liệu.");
     
@@ -406,7 +409,9 @@ export default function Drive() {
     
             setOpenImport(false);
     
-            loadDrives();
+            await loadDrives();
+            await loadFilters();
+            await loadStatistics();
     
         }
     
