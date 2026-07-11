@@ -52,7 +52,7 @@ export default function DriveFaultHistory() {
 
             const url =
                 tab === "VACON"
-                    ? `${API}/api/vacon-records`
+                    ? `${API}/api/vacon`
                     : `${API}/api/abb-faults`;
 
             const res =
@@ -97,7 +97,7 @@ export default function DriveFaultHistory() {
     
                 tab === "VACON"
     
-                    ? `${API}/api/vacon-records/export`
+                    ? `${API}/api/vacon/export`
     
                     : `${API}/api/abb-faults/export`;
     
@@ -169,7 +169,7 @@ export default function DriveFaultHistory() {
     
                 tab === "VACON"
     
-                    ? `${API}/api/vacon-records/confirm-import`
+                    ? `${API}/api/vacon/confirm-import`
     
                     : `${API}/api/abb-faults/confirm-import`;
     
@@ -226,7 +226,7 @@ export default function DriveFaultHistory() {
     
                 tab === "VACON"
     
-                    ? `${API}/api/vacon-records/preview-import`
+                    ? `${API}/api/vacon/preview-import`
     
                     : `${API}/api/abb-faults/preview-import`;
     
