@@ -45,6 +45,16 @@ export default function Drive() {
     
     const [importLoading, setImportLoading] = useState(false);
 
+    const [statistics, setStatistics] = useState({
+
+        total: 0,
+    
+        abb: 0,
+    
+        vacon: 0
+    
+    });
+
     const [filters, setFilters] = useState({
 
         brands: [],
@@ -62,6 +72,8 @@ export default function Drive() {
         loadDrives();
 
         loadFilters();
+
+        loadStatistics();
 
     }, []);
 
@@ -166,6 +178,26 @@ export default function Drive() {
 
     ]);
 
+    async function loadStatistics() {
+
+        try {
+    
+            const res = await axios.get(
+                `${API}/api/drives/statistics`
+            );
+    
+            setStatistics(res.data);
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+        }
+    
+    }
+
     const handleCreate = () => {
 
         setSelectedDrive(null);
@@ -242,6 +274,8 @@ export default function Drive() {
             }
     
             await loadDrives();
+
+            await loadStatistics();
     
             handleClose();
     
@@ -389,7 +423,15 @@ export default function Drive() {
 
         <div className="max-w-[1600px] mx-auto px-8 py-6 space-y-6">
 
-            <DriveHeader/>
+            <DriveHeader
+
+                  total={statistics.total}
+
+                abb={statistics.abb}
+            
+                vacon={statistics.vacon}
+                
+            />
 
             <DriveToolbar
 
