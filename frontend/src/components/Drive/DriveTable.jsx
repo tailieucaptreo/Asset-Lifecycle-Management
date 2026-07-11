@@ -98,47 +98,47 @@ export default function DriveTable({
 
                         <tr>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 STT
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Thiết bị
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Mã TB
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Hãng
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Model
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Công suất
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Tuyến
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 Nhà ga
                             </th>
 
-                            <th className="px-4 py-3 text-left">
+                            <th className="px-4 py-4 text-left">
                                 IP
                             </th>
 
-                            <th className="px-4 py-3 text-center">
+                            <th className="px-4 py-4 text-center">
                                 Trạng thái
                             </th>
 
-                            <th className="px-4 py-3 text-center">
+                            <th className="px-4 py-4 text-center">
                                 Thao tác
                             </th>
 

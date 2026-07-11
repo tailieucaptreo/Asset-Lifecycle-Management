@@ -96,7 +96,7 @@ export default function DriveCard({
                                 bg-white
                                 rounded-2xl
                                 shadow
-                                p-5
+                                p-6
                                 flex
                                 items-center
                                 justify-between
@@ -110,7 +110,7 @@ export default function DriveCard({
 
                                 <p
                                     className="
-                                        text-sm
+                                        text-base
                                         text-gray-500
                                     "
                                 >
@@ -121,7 +121,7 @@ export default function DriveCard({
 
                                 <h2
                                     className="
-                                        text-3xl
+                                        text-2xl
                                         font-bold
                                         mt-2
                                     "
@@ -137,8 +137,8 @@ export default function DriveCard({
 
                                 className={`
                                     ${card.color}
-                                    w-14
-                                    h-14
+                                    w-12
+                                    h-12
                                     rounded-2xl
                                     flex
                                     items-center

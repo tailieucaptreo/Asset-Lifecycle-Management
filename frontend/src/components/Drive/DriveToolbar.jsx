@@ -57,7 +57,7 @@ export default function DriveToolbar({
             
                     {/* Search */}
             
-                    <div className="relative flex-1 min-w-[260px]">
+                    <div className="relative flex-1 max-w-[820px]">
             
                         <Search
                             size={18}
