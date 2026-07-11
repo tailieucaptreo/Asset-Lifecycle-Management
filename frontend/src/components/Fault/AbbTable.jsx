@@ -4,8 +4,9 @@ import {
     Trash2
 } from "lucide-react";
 
+import { useState } from "react";
+
 import AbbDetailModal from "./AbbDetailModal";
-import { Eye } from "lucide-react";
 
 export default function AbbTable({
 
@@ -344,6 +345,12 @@ export default function AbbTable({
                 </table>
 
             </div>
+            
+            <AbbDetailModal
+                open={open}
+                data={selected}
+                onClose={() => setOpen(false)}
+            />
 
         </div>
 
