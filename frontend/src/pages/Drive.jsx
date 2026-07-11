@@ -465,6 +465,7 @@ export default function Drive() {
                 open={openImport}
                 preview={preview}
                 loading={importLoading}
+                importFile={importFile}
                 onClose={() => setOpenImport(false)}
                 onUpload={handlePreview}
                 onConfirm={handleImport}
