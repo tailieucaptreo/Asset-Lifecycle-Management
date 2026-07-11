@@ -38,7 +38,11 @@ export default function AbbDetailModal({
 
         if (!value) return "-";
     
-        return new Date(value).toLocaleDateString("vi-VN");
+        const d = new Date(value);
+    
+        if (isNaN(d)) return value;
+    
+        return d.toLocaleDateString("vi-VN");
     
     };
 
