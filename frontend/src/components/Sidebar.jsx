@@ -131,10 +131,10 @@ export default function Sidebar({
             </div>
 
             <div
-              className={`p-2 rounded cursor-pointer ${active("/vacon")}`}
-              onClick={() => go("/vacon")}
+              className={`p-2 rounded cursor-pointer ${active("/drive-faults")}`}
+              onClick={() => go("/drive-faults")}
             >
-              ⚡ Lịch sử lỗi biến tần Vacon
+              ⚠️ Lịch sử lỗi biến tần
             </div>
             
             <div
