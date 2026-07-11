@@ -131,22 +131,6 @@ export default function AbbTable({
 
                                     </td>
 
-                                    <td className="px-3 py-3 whitespace-nowrap">
-
-                                        {
-
-                                            item.recordDate
-
-                                                ? new Date(item.recordDate)
-
-                                                    .toLocaleDateString("vi-VN")
-
-                                                : ""
-
-                                        }
-
-                                    </td>
-
                                     <td className="px-3 py-3">
 
                                         {item.typeCode}
