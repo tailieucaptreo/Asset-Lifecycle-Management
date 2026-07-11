@@ -309,8 +309,9 @@ export default function Drive() {
 
         setImportFile(file);
     
-        console.log(file);
-    
+        setPreview([]);
+
+        setOpenImport(true);
     };
     
     const handleImport = async () => {
@@ -335,7 +336,7 @@ export default function Drive() {
 
                 onCreate={handleCreate}
 
-                onImport={() => {}}
+                onImport={handlePreview}
 
                 onExport={handleExport}
 
