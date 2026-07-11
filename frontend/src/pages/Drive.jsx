@@ -264,13 +264,14 @@ export default function Drive() {
             else {
     
                 await axios.put(
-    
                     `${API}/api/drives/${selectedDrive.id}`,
-    
-                    form
-    
+                    form,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("token")}`
+                        }
+                    }
                 );
-    
             }
     
             await loadDrives();
