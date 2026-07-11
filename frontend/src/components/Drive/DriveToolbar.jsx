@@ -155,48 +155,53 @@ export default function DriveToolbar({
                         Export
             
                     </button>
-            
-                    <label
-                        className="
-                            h-11
-                            flex
-                            items-center
-                            gap-2
-                            px-4
-                            rounded-xl
-                            bg-amber-500
-                            text-white
-                            hover:bg-amber-600
-                            cursor-pointer
-                        "
-                    >
-            
-                        <Upload size={18} />
-            
-                        Import
-            
-                        <input
-            
-                            type="file"
-            
-                            hidden
-            
-                            accept=".xlsx,.xls"
-            
-                            onChange={(e) => {
-            
-                                if (e.target.files?.length) {
-            
-                                    onImport(e.target.files[0]);
-            
-                                }
-            
-                            }}
-            
-                        />
-            
-                    </label>
-            
+
+                    {
+                        role === "admin" && (
+                            
+                            <label
+                                className="
+                                    h-11
+                                    flex
+                                    items-center
+                                    gap-2
+                                    px-4
+                                    rounded-xl
+                                    bg-amber-500
+                                    text-white
+                                    hover:bg-amber-600
+                                    cursor-pointer
+                                "
+                            >
+                    
+                                <Upload size={18} />
+                    
+                                Import
+                    
+                                <input
+                    
+                                    type="file"
+                    
+                                    hidden
+                    
+                                    accept=".xlsx,.xls"
+                    
+                                    onChange={(e) => {
+                    
+                                        if (e.target.files?.length) {
+                    
+                                            onImport(e.target.files[0]);
+                    
+                                        }
+                    
+                                    }}
+                    
+                                />
+                    
+                            </label>
+                        )
+                    }        
+                    
                     {
             
                         role === "admin" && (
