@@ -4,6 +4,9 @@ import {
     Trash2
 } from "lucide-react";
 
+import AbbDetailModal from "./AbbDetailModal";
+import { Eye } from "lucide-react";
+
 export default function AbbTable({
 
     role,
@@ -19,6 +22,9 @@ export default function AbbTable({
     onDelete
 
 }) {
+
+    const [open, setOpen] = useState(false);
+    const [selected, setSelected] = useState(null);
 
     if (loading) {
 
@@ -278,11 +284,11 @@ export default function AbbTable({
                                         >
 
                                             <button
-
-                                                onClick={() => onView(item)}
-
-                                                className="text-blue-600"
-
+                                                onClick={() => {
+                                                    setSelected(item);
+                                                    setOpen(true);
+                                                }}
+                                                className="text-blue-600 hover:text-blue-800"
                                             >
 
                                                 <Eye size={18} />
