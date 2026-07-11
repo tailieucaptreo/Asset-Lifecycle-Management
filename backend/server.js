@@ -28,6 +28,9 @@ const vaconRoutes =
 const driveRoutes =
     require("./routes/drive.routes");
 
+const abbRoutes =
+    require("./routes/abb.routes");
+
 // ===== CORS =====
 
 app.use(
@@ -86,6 +89,11 @@ app.use(
 app.use(
     "/api/drives",
     driveRoutes
+);
+
+app.use(
+    "/api/abb-faults",
+    abbRoutes
 );
 
 // ===== TEST =====
