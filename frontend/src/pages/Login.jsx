@@ -11,7 +11,9 @@ export default function Login() {
     const [password, setPassword] =
         useState("");
 
-    const handleLogin = async () => {
+    const handleLogin = async (e) => {
+
+        if (e) e.preventDefault();
 
         try {
 
@@ -36,26 +38,21 @@ export default function Login() {
                 "user",
                 JSON.stringify(
                     res.data.user
-                ));
+                )
+            );
 
             localStorage.setItem(
                 "role",
                 res.data.user.role
             );
 
-            if (
-                res.data.user.role
-                ===
-                "admin"
-            ) {
+            if (res.data.user.role === "admin") {
 
-                window.location.href =
-                    "/dashboard";
+                window.location.href = "/dashboard";
 
             } else {
 
-                window.location.href =
-                    "/spare-devices";
+                window.location.href = "/spare-devices";
 
             }
 
@@ -63,31 +60,29 @@ export default function Login() {
 
         catch (err) {
 
-          console.log(err);
-        
-          if (err.response?.status === 401) {
-        
+            console.log(err);
+
+            if (err.response?.status === 401) {
+
+                alert("Sai tên đăng nhập hoặc mật khẩu");
+
+                return;
+
+            }
+
+            if (err.response?.status === 500) {
+
+                alert("Lỗi máy chủ, vui lòng thử lại");
+
+                return;
+
+            }
+
             alert(
-              "Sai tên đăng nhập hoặc mật khẩu"
+                err.response?.data?.message ||
+                "Đăng nhập thất bại"
             );
-        
-            return;
-          }
-        
-          if (err.response?.status === 500) {
-        
-            alert(
-              "Lỗi máy chủ, vui lòng thử lại"
-            );
-        
-            return;
-          }
-        
-          alert(
-            err.response?.data?.message ||
-            "Đăng nhập thất bại"
-          );
-        
+
         }
 
     };
@@ -155,108 +150,104 @@ export default function Login() {
                 p-10
                 "
             >
+                <form onSubmit={handleLogin}>
+                    <div className="text-center">
 
-                <div className="text-center">
+                        <div className="text-6xl mb-4">
+                            🔐
+                        </div>
 
-                    <div className="text-6xl mb-4">
-                        🔐
+                        <h1
+                            className="
+                            text-white
+                            font-black
+                            text-4xl
+                            mb-2
+                            "
+                        >
+                            Đăng nhập
+                        </h1>
+
+                        <p
+                            className="
+                            text-white/70
+                            mb-8
+                            "
+                        >
+                            Hệ Thống Quản Lý Thiết Bị
+                        </p>
+
                     </div>
 
-                    <h1
+
+                    <input
+                        type="text"
+                        placeholder="Tài khoản"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="
+                        w-full
+                        mb-5
+                        p-5
+                        rounded-2xl
+                        bg-white/15
+                        border
+                        border-white/20
                         text-white
-                        font-black
-                        text-4xl
-                        mb-2
+                        placeholder-white/50
+                        outline-none
+                        focus:ring-2
+                        focus:ring-cyan-300
                         "
-                    >
-                        Đăng nhập
-                    </h1>
+                    />
 
-                    <p
+
+                    <input
+                        type="password"
+                        placeholder="Mật khẩu"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         className="
-                        text-white/70
-                        mb-8
+                        w-full
+                        mb-6
+                        p-5
+                        rounded-2xl
+                        bg-white/15
+                        border
+                        border-white/20
+                        text-white
+                        placeholder-white/50
+                        outline-none
+                        focus:ring-2
+                        focus:ring-cyan-300
+                        "
+                    />
+
+
+                    <button
+                        type="submit"
+                        className="
+                        w-full
+                        p-5
+                        rounded-2xl
+                        font-bold
+                        text-lg
+                        text-white
+                        bg-gradient-to-r
+                        from-cyan-400
+                        to-blue-600
+                        hover:scale-[1.02]
+                        transition
+                        duration-300
+                        shadow-lg
                         "
                     >
-                        Hệ Thống Quản Lý Thiết Bị
-                    </p>
 
-                </div>
+                        Đăng nhập
 
+                    </button>
 
-                <input
-                    type="text"
-                    placeholder="Tài khoản"
-                    value={username}
-                    onChange={(e) =>
-                        setUsername(
-                            e.target.value
-                        )}
-                    className="
-                    w-full
-                    mb-5
-                    p-5
-                    rounded-2xl
-                    bg-white/15
-                    border
-                    border-white/20
-                    text-white
-                    placeholder-white/50
-                    outline-none
-                    focus:ring-2
-                    focus:ring-cyan-300
-                    "
-                />
-
-
-                <input
-                    type="password"
-                    placeholder="Mật khẩu"
-                    value={password}
-                    onChange={(e) =>
-                        setPassword(
-                            e.target.value
-                        )}
-                    className="
-                    w-full
-                    mb-6
-                    p-5
-                    rounded-2xl
-                    bg-white/15
-                    border
-                    border-white/20
-                    text-white
-                    placeholder-white/50
-                    outline-none
-                    focus:ring-2
-                    focus:ring-cyan-300
-                    "
-                />
-
-
-                <button
-                    onClick={handleLogin}
-                    className="
-                    w-full
-                    p-5
-                    rounded-2xl
-                    font-bold
-                    text-lg
-                    text-white
-                    bg-gradient-to-r
-                    from-cyan-400
-                    to-blue-600
-                    hover:scale-[1.02]
-                    transition
-                    duration-300
-                    shadow-lg
-                    "
-                >
-
-                    Đăng nhập
-
-                </button>
+                </form>
 
             </div>
 
