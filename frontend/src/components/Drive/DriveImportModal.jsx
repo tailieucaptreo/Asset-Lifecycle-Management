@@ -21,6 +21,24 @@ export default function DriveImportModal({
 
     if (!open) return null;
 
+    const columns = [
+        { key: "typeCode", label: "Type code" },
+        { key: "serialNumber", label: "Serial number" },
+        { key: "line", label: "Tuyến cáp" },
+        { key: "station", label: "Đặt tại Ga" },
+        { key: "application", label: "Ký hiệu / Ứng dụng" },
+        { key: "firmware", label: "Firmware" },
+        { key: "currentStatus", label: "Tình trạng hiện tại" },
+        { key: "replaceReason", label: "Lý do thay thế" },
+        { key: "operationHours", label: "Giờ hoạt động" },
+        { key: "lastReplaceDate", label: "Ngày thay" },
+        { key: "onTimeDay", label: "On-time" },
+        { key: "runningDay", label: "Running Day" },
+        { key: "lastMaintenance", label: "Ngày bảo dưỡng" },
+        { key: "maintenanceWork", label: "Nội dung bảo dưỡng" },
+        { key: "note", label: "Ghi chú" }
+    ];
+
     const chooseFile = (e) => {
 
         if (!e.target.files?.length) return;
@@ -232,7 +250,7 @@ export default function DriveImportModal({
 
                             <table
                                 className="
-                                    min-w-full
+                                    min-w-[2200px]
                                     table-auto
                                     text-sm
                                 "
@@ -250,28 +268,15 @@ export default function DriveImportModal({
 
                                         {
 
-                                            Object.keys(
-                                                preview[0]
-                                            ).map(key => (
-
+                                           columns.map(col => (
+                                            
                                                 <th
-
-                                                    key={key}
-
-                                                    className="
-                                                        px-4
-                                                        py-3
-                                                        text-left
-                                                        whitespace-nowrap
-                                                        font-semibold
-                                                    "
-
+                                                    key={col.key}
+                                                    className="px-4 py-3 whitespace-nowrap text-left"
                                                 >
-
-                                                    {key}
-
+                                                    {col.label}
                                                 </th>
-
+                                            
                                             ))
 
                                         }
@@ -297,31 +302,16 @@ export default function DriveImportModal({
 
                                                     {
 
-                                                        Object.values(
-                                                            row
-                                                        ).map(
+                                                       columns.map(col => (
 
-                                                            (value, i) => (
-
-                                                                <td
-
-                                                                    key={i}
-
-                                                                    className="
-                                                                        px-4
-                                                                        py-3
-                                                                        whitespace-nowrap
-                                                                    "
-
-                                                                >
-
-                                                                    {String(value)}
-
-                                                                </td>
-
-                                                            )
-
-                                                        )
+                                                            <td
+                                                                key={col.key}
+                                                                className="px-4 py-3 whitespace-nowrap"
+                                                            >
+                                                                {row[col.key] ?? ""}
+                                                            </td>
+                                                        
+                                                        ))
 
                                                     }
 
