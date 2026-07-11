@@ -82,8 +82,8 @@ app.use(
 );
 
 app.use(
-  "/api/vacon",
-  vaconRoutes
+    "/api/vacon-records",
+    vaconRoutes
 );
 
 app.use(
