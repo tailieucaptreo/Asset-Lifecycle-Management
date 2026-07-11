@@ -214,6 +214,7 @@ export default function DriveFaultHistory() {
         try {
     
             setImportLoading(true);
+            setImportFile(file);
     
             const formData = new FormData();
     
@@ -558,6 +559,7 @@ export default function DriveFaultHistory() {
                 open={openImport}
                 preview={preview}
                 loading={importLoading}
+                importFile={importFile}
                 onClose={() => setOpenImport(false)}
                 onUpload={handlePreview}
                 onConfirm={handleImport}
