@@ -4,6 +4,8 @@ const prisma = new PrismaClient();
 
 const ExcelJS = require("exceljs");
 
+const XLSX = require("xlsx");
+
 // ======================================================
 // GET ALL
 // ======================================================
@@ -328,19 +330,146 @@ exports.uploadImage = async (req, res) => {
 
 // ================= IMPORT =================
 
-exports.previewImport = async (req, res) => {
+const XLSX = require("xlsx");
 
-    res.json({
-        message: "Chưa triển khai preview import"
-    });
+exports.previewImport = async (req,res)=>{
+
+    try{
+
+        if(!req.file){
+
+            return res.status(400).json({
+                error:"Không có file"
+            });
+
+        }
+
+        const workbook = XLSX.read(
+            req.file.buffer,
+            { type:"buffer" }
+        );
+
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
+
+        const raw =
+            XLSX.utils.sheet_to_json(sheet);
+
+        const rows = raw.map(r=>({
+
+            name:
+                r["Thiết bị"] || "",
+
+            deviceId:
+                String(r["Mã TB"] || ""),
+
+            brand:
+                r["Hãng"] || "",
+
+            model:
+                r["Model"] || "",
+
+            power:
+                r["Công suất"] || "",
+
+            line:
+                r["Tuyến"] || "",
+
+            station:
+                r["Nhà ga"] || "",
+
+            ipAddress:
+                r["IP"] || "",
+
+            status:
+                r["Trạng thái"] || "Running"
+
+        }));
+
+        res.json({
+
+            ok:true,
+
+            rows
+
+        });
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+        res.status(500).json({
+
+            error:err.message
+
+        });
+
+    }
 
 };
 
-exports.confirmImport = async (req, res) => {
+exports.confirmImport = async (req,res)=>{
 
-    res.json({
-        message: "Chưa triển khai confirm import"
-    });
+    try{
+
+        const rows =
+            req.body.rows || [];
+
+        for(const row of rows){
+
+            await prisma.drive.create({
+
+                data:{
+
+                    name: row.name,
+
+                    deviceId: row.deviceId,
+
+                    brand: row.brand,
+
+                    model: row.model,
+
+                    power: row.power,
+
+                    line: row.line,
+
+                    station: row.station,
+
+                    ipAddress: row.ipAddress,
+
+                    status: row.status
+
+                }
+
+            });
+
+        }
+
+        res.json({
+
+            ok:true,
+
+            total:rows.length
+
+        });
+
+    }
+
+    catch(err){
+
+        console.log(err);
+
+        res.status(500).json({
+
+            error:err.message
+
+        });
+
+    }
 
 };
 
