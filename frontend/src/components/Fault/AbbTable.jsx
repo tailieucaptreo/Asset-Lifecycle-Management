@@ -71,7 +71,11 @@ export default function AbbTable({
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Ngày
+                                Type Code
+                            </th>
+
+                            <th className="px-3 py-3 text-left">
+                                Serial Number
                             </th>
 
                             <th className="px-3 py-3 text-left">
@@ -83,11 +87,11 @@ export default function AbbTable({
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Thiết bị
+                                Ứng dụng
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Mã thiết bị
+                                Firmware
                             </th>
 
                             <th className="px-3 py-3 text-left">
@@ -95,35 +99,35 @@ export default function AbbTable({
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Model
+                                Tình trạng
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                IP Address
+                                Lý do thay thế
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Fault Code
+                                Giờ hoạt động
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Fault Name
+                                Ngày thay
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Description
+                                On-time
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Cause
+                                Running Day
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Solution
+                                Ngày bảo dưỡng
                             </th>
 
                             <th className="px-3 py-3 text-left">
-                                Repair By
+                                Công việc bảo dưỡng
                             </th>
 
                             <th className="px-3 py-3 text-left">
@@ -179,6 +183,18 @@ export default function AbbTable({
 
                                     <td className="px-3 py-3">
 
+                                        {item.typeCode}
+
+                                    </td>
+
+                                    <td className="px-3 py-3">
+
+                                        {item.serialNumber}
+
+                                    </td>
+
+                                    <td className="px-3 py-3">
+
                                         {item.line}
 
                                     </td>
@@ -191,67 +207,61 @@ export default function AbbTable({
 
                                     <td className="px-3 py-3">
 
-                                        {item.deviceName}
+                                        {item.application}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.deviceId}
+                                        {item.firmware}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.serialNumber}
+                                        {item.currentStatus}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.model}
+                                        {item.replaceReason}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.ipAddress}
+                                        {item.operationHours}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.faultCode}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.faultName}
+                                        {item.lastReplaceDate}
 
                                     </td>
 
                                     <td className="px-3 py-3 max-w-[220px]">
 
-                                        {item.description}
+                                        {item.onTimeDay}
 
                                     </td>
 
                                     <td className="px-3 py-3 max-w-[220px]">
 
-                                        {item.cause}
+                                        {item.runningDay}
 
                                     </td>
 
                                     <td className="px-3 py-3 max-w-[220px]">
 
-                                        {item.solution}
+                                        {item.lastMaintenance}
 
                                     </td>
 
                                     <td className="px-3 py-3">
 
-                                        {item.repairedBy}
+                                        {item.maintenanceWork}
 
                                     </td>
 
