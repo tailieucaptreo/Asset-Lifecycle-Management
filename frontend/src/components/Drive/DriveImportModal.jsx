@@ -39,6 +39,33 @@ export default function DriveImportModal({
         { key: "note", label: "Ghi chú" }
     ];
 
+    const formatValue = (key, value) => {
+
+        if (value === null || value === undefined || value === "") {
+    
+            return "";
+    
+        }
+    
+        if (
+            key === "lastReplaceDate" ||
+            key === "lastMaintenance"
+        ) {
+    
+            const d = new Date(value);
+    
+            if (!isNaN(d.getTime())) {
+    
+                return d.toLocaleDateString("vi-VN");
+    
+            }
+    
+        }
+    
+        return value;
+    
+    };
+
     const chooseFile = (e) => {
 
         if (!e.target.files?.length) return;
@@ -308,7 +335,7 @@ export default function DriveImportModal({
                                                                 key={col.key}
                                                                 className="px-4 py-3 whitespace-nowrap"
                                                             >
-                                                                {row[col.key] ?? ""}
+                                                                {formatValue(col.key, row[col.key])}
                                                             </td>
                                                         
                                                         ))
