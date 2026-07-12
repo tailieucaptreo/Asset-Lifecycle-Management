@@ -225,11 +225,11 @@ export default function VaconHistory({
 
                                             <button
 
-                                                onClick={() => 
+                                                onClick={() =>{ 
 
                                                     onView?.(item);
 
-                                                }
+                                                }}
 
                                                 className="
                                                     text-blue-600
