@@ -1,14 +1,8 @@
-import { useState } from "react";
-
 import {
-
     Eye,
     Pencil,
     Trash2
-
 } from "lucide-react";
-
-import VaconDetailModal from "./VaconDetailModal";
 
 export default function VaconHistory({
 
@@ -30,15 +24,7 @@ export default function VaconHistory({
 
         return (
 
-            <div
-                className="
-                    bg-white
-                    rounded-2xl
-                    shadow
-                    p-8
-                    text-center
-                "
-            >
+            <div className="bg-white rounded-2xl shadow p-8 text-center">
 
                 Đang tải dữ liệu...
 
@@ -50,86 +36,96 @@ export default function VaconHistory({
 
     return (
 
-        <>
+        <div
+            className="
+                bg-white
+                rounded-2xl
+                shadow
+                overflow-hidden
+            "
+        >
 
-            <div
-                className="
-                    bg-white
-                    rounded-2xl
-                    shadow
-                    overflow-hidden
-                "
-            >
+            <div className="overflow-auto max-h-[70vh]">
 
-                <div
+                <table
                     className="
-                        overflow-x-auto
-                        overflow-y-auto
-                        max-h-[70vh]
+                        w-full
+                        text-sm
                     "
                 >
 
-                    <table
+                    <thead
                         className="
-                            w-full
-                            text-sm
-                            border-collapse
+                            sticky
+                            top-0
+                            bg-yellow-300
+                            z-10
                         "
                     >
 
-                        <thead
-                            className="
-                                sticky
-                                top-0
-                                bg-yellow-300
-                                z-10
-                            "
-                        >
+                        <tr>
 
-                            <tr>
+                            <th className="px-3 py-3 text-center">
 
-                                <th className="px-3 py-3 text-center">
-                                    STT
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Record Date
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Station
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Tandem
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Device Name
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Serial Number
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Operation Hours
-                                </th>
-                            
-                                <th className="px-3 py-3 text-left truncate">
-                                    Note
-                                </th>
-                            
-                                <th className="px-3 py-3 text-center">
-                                    Thao tác
-                                </th>
+                                STT
 
-                            </tr>
+                            </th>
 
-                        </thead>
+                            <th className="px-3 py-3 text-center">
 
-                        <tbody>
-                          {
+                                Record Date
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Station
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Tandem
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Device Name
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Serial Number
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Operation Hours
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Note
+
+                            </th>
+
+                            <th className="px-3 py-3 text-center">
+
+                                Thao tác
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {
 
                             records.map((item, index) => (
 
@@ -150,7 +146,7 @@ export default function VaconHistory({
 
                                     </td>
 
-                                    <td className="px-3 py-3 whitespace-nowrap">
+                                    <td className="px-3 py-3 text-center whitespace-nowrap">
 
                                         {
 
@@ -168,45 +164,44 @@ export default function VaconHistory({
 
                                     </td>
 
-                                    <td className="px-3 py-3">
+                                    <td className="px-3 py-3 text-center">
 
                                         {item.station || "-"}
 
                                     </td>
 
-                                    <td className="px-3 py-3">
+                                    <td className="px-3 py-3 text-center">
 
                                         {item.tandem || "-"}
 
                                     </td>
 
-                                    <td className="px-3 py-3">
+                                    <td className="px-3 py-3 text-center">
 
                                         {item.deviceName || "-"}
 
                                     </td>
 
-                                    <td className="px-3 py-3">
+                                    <td className="px-3 py-3 text-center">
 
                                         {item.serialNumber || "-"}
 
                                     </td>
 
-                                    <td className="px-3 py-3">
+                                    <td className="px-3 py-3 text-center">
 
                                         {item.operationHours || "-"}
 
                                     </td>
 
                                     <td
-
                                         className="
                                             px-3
                                             py-3
-                                            max-w-[220px]
+                                            text-center
                                             truncate
+                                            max-w-[250px]
                                         "
-
                                     >
 
                                         {item.note || "-"}
@@ -216,27 +211,22 @@ export default function VaconHistory({
                                     <td className="px-3 py-3">
 
                                         <div
-
                                             className="
                                                 flex
                                                 justify-center
                                                 gap-2
                                             "
-
                                         >
+                                                                                        <button
 
-                                            <button
-
-                                                onClick={() =>{ 
-
-                                                    onView?.(item);
-
-                                                }}
+                                                onClick={() => onView?.(item)}
 
                                                 className="
                                                     text-blue-600
                                                     hover:text-blue-800
                                                 "
+
+                                                title="Xem chi tiết"
 
                                             >
 
@@ -252,16 +242,14 @@ export default function VaconHistory({
 
                                                     <button
 
-                                                        onClick={() =>{
-
-                                                            onEdit(item)
-
-                                                        }}
+                                                        onClick={() => onEdit?.(item)}
 
                                                         className="
                                                             text-amber-600
                                                             hover:text-amber-800
                                                         "
+
+                                                        title="Chỉnh sửa"
 
                                                     >
 
@@ -271,16 +259,14 @@ export default function VaconHistory({
 
                                                     <button
 
-                                                        onClick={() =>
-
-                                                            onDelete(item)
-
-                                                        }
+                                                        onClick={() => onDelete?.(item)}
 
                                                         className="
                                                             text-red-600
                                                             hover:text-red-800
                                                         "
+
+                                                        title="Xóa"
 
                                                     >
 
@@ -335,8 +321,6 @@ export default function VaconHistory({
             </div>
 
         </div>
-
-        </>
 
     );
 
