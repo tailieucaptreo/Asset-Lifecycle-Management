@@ -7,6 +7,7 @@ import VaconHistory from "../components/Fault/VaconHistory";
 import AbbTable from "../components/Fault/AbbTable";
 import DriveImportModal from "../components/Drive/DriveImportModal";
 import AbbEditModal from "../components/Fault/AbbEditModal";
+import VaconEditModal from "../components/Fault/VaconEditModal";
 
 import {
     Upload,
@@ -48,6 +49,10 @@ export default function DriveFaultHistory() {
     const [openEdit, setOpenEdit] = useState(false);
 
     const [editing, setEditing] = useState(null);
+
+    const [openVaconEdit, setOpenVaconEdit] = useState(false);
+
+    const [editingVacon, setEditingVacon] = useState(null);
 
     async function loadData() {
 
@@ -95,6 +100,14 @@ export default function DriveFaultHistory() {
         }
 
     }
+
+    const handleVaconEdit = (item) => {
+
+        setEditingVacon(item);
+    
+        setOpenVaconEdit(true);
+    
+    };
 
     const filtered =
         records.filter(item => {
@@ -370,6 +383,48 @@ export default function DriveFaultHistory() {
     
     };
 
+    const handleSaveVacon = async (form) => {
+
+        try {
+    
+            await axios.put(
+    
+                `${API}/api/vacon/${form.id}`,
+    
+                form,
+    
+                {
+    
+                    headers: {
+    
+                        Authorization:
+    
+                            `Bearer ${localStorage.getItem("token")}`
+    
+                    }
+    
+                }
+    
+            );
+    
+            alert("Đã cập nhật.");
+    
+            setOpenVaconEdit(false);
+    
+            loadData();
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Không thể cập nhật.");
+    
+        }
+    
+    };
+
     return (
 
         <div className="max-w-[1700px] mx-auto px-8 py-6 space-y-6">
@@ -626,13 +681,13 @@ export default function DriveFaultHistory() {
                         role={role}
 
                         records={filtered}
-
+                    
                         loading={loading}
-
+                    
                         onView={() => {}}
-
-                        onEdit={() => {}}
-
+                    
+                        onEdit={handleVaconEdit}
+                    
                         onDelete={() => {}}
 
                     />
@@ -676,6 +731,18 @@ export default function DriveFaultHistory() {
                 onClose={() => setOpenEdit(false)}
             
                 onSave={handleSave}
+            
+            />
+
+            <VaconEditModal
+
+                open={openVaconEdit}
+            
+                data={editingVacon}
+            
+                onClose={() => setOpenVaconEdit(false)}
+            
+                onSave={handleSaveVacon}
             
             />
 
