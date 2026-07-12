@@ -26,12 +26,6 @@ export default function VaconHistory({
 
 }) {
 
-    const [openDetail, setOpenDetail] =
-        useState(false);
-
-    const [selected, setSelected] =
-        useState(null);
-
     if (loading) {
 
         return (
@@ -231,15 +225,11 @@ export default function VaconHistory({
 
                                             <button
 
-                                                onClick={() => {
-
-                                                    setSelected(item);
-
-                                                    setOpenDetail(true);
+                                                onClick={() => 
 
                                                     onView?.(item);
 
-                                                }}
+                                                }
 
                                                 className="
                                                     text-blue-600
@@ -343,22 +333,6 @@ export default function VaconHistory({
             </div>
 
         </div>
-
-        <VaconDetailModal
-
-            open={openDetail}
-
-            data={selected}
-
-            onClose={() => {
-
-                setOpenDetail(false);
-
-                setSelected(null);
-
-            }}
-
-        />
 
         </>
 
