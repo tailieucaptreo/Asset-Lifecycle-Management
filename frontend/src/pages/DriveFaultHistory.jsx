@@ -60,8 +60,23 @@ export default function DriveFaultHistory() {
                     ? `${API}/api/vacon`
                     : `${API}/api/abb-faults`;
 
-            const res =
-                await axios.get(url);
+            const res = await axios.get(
+
+                url,
+            
+                {
+            
+                    headers: {
+            
+                        Authorization:
+            
+                            `Bearer ${localStorage.getItem("token")}`
+            
+                    }
+            
+                }
+            
+            );
 
             setRecords(res.data);
 
