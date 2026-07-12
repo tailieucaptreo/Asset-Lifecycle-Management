@@ -314,140 +314,60 @@ exports.previewImport = async (req, res) => {
 
         ];
 
-        const rows = XLSX.utils.sheet_to_json(
-
-            sheet,
-
-            {
-
-                defval: ""
-
-            }
-
-        );
-
-        const preview = rows.map(row => ({
-
-            typeCode:
-
-                row["Type code"]
-
-                    ? String(row["Type code"]).trim()
-
-                    : "",
-
-            serialNumber:
-
-                row["Serial number"]
-
-                    ? String(row["Serial number"]).trim()
-
-                    : "",
-
-            line:
-
-                row["Tuyến cáp"]
-
-                    ? String(row["Tuyến cáp"]).trim()
-
-                    : "",
-
-            station:
-
-                row["Đặt tại Ga"]
-
-                    ? String(row["Đặt tại Ga"]).trim()
-
-                    : "",
-
-            application:
-
-                row["Ký hiệu / Ứng dụng"]
-
-                    ? String(row["Ký hiệu / Ứng dụng"]).trim()
-
-                    : "",
-
-            firmware:
-
-                row["Firmware"]
-
-                    ? String(row["Firmware"]).trim()
-
-                    : "",
-
-            currentStatus:
-
-                row["Tình trạng hiện tại"]
-
-                    ? String(row["Tình trạng hiện tại"]).trim()
-
-                    : "",
-
-            replaceReason:
-
-                row["Lý do thay thế"]
-
-                    ? String(row["Lý do thay thế"]).trim()
-
-                    : "",
-
-            operationHours:
-
-                parseNumber(
-
-                    row["Giờ hoạt động của tuyến cáp"]
-
-                ),
-
-            lastReplaceDate:
-
-                parseDate(
-
-                    row["Ngày thay thế gần nhất (mm/dd/yyyy)"]
-
-                ),
-
-            onTimeDay:
-
-                parseNumber(
-
-                    row["On-time (Thời gian biến tần được cấp điện) (day)"]
-
-                ),
-
-            runningDay:
-
-                parseNumber(
-
-                    row["Thời gian hoạt động của biến tần (day)"]
-
-                ),
-
-            lastMaintenance:
-
-                parseDate(
-
-                    row["Ngày bảo dưỡng gần nhất (mm/dd/yyyy)"]
-
-                ),
-
-            maintenanceWork:
-
-                row["Nội dung công việc bảo dưỡng"]
-
-                    ? String(row["Nội dung công việc bảo dưỡng"])
-
-                    : "",
-
-            note:
-
-                row["Ghi chú"]
-
-                    ? String(row["Ghi chú"])
-
-                    : ""
-
+        const rows = XLSX.utils.sheet_to_json(sheet, {
+
+            header: 1,
+        
+            defval: ""
+        
+        });
+
+        // tìm dòng chứa "Type code"
+
+    const headerIndex = rows.findIndex(r =>
+        r.some(c =>
+            String(c).toLowerCase().includes("type code")
+        )
+    );
+    
+    const dataRows = rows.slice(headerIndex + 1);
+    
+    const preview = dataRows
+    
+        .filter(r => r.some(v => String(v).trim() !== ""))
+    
+        .map(r => ({
+    
+            typeCode: String(r[0] || "").trim(),
+    
+            serialNumber: String(r[1] || "").trim(),
+    
+            line: String(r[2] || "").trim(),
+    
+            station: String(r[3] || "").trim(),
+    
+            application: String(r[4] || "").trim(),
+    
+            firmware: String(r[5] || "").trim(),
+    
+            currentStatus: String(r[6] || "").trim(),
+    
+            replaceReason: String(r[7] || "").trim(),
+    
+            operationHours: parseNumber(r[8]),
+    
+            lastReplaceDate: parseDate(r[9]),
+    
+            onTimeDay: parseNumber(r[10]),
+    
+            runningDay: parseNumber(r[11]),
+    
+            lastMaintenance: parseDate(r[12]),
+    
+            maintenanceWork: String(r[13] || "").trim(),
+    
+            note: String(r[14] || "").trim()
+    
         }));
 
         res.json({
