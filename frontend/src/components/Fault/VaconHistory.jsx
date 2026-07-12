@@ -71,8 +71,8 @@ export default function VaconHistory({
 
                     <table
                         className="
+                            min-w-[1200px]
                             w-full
-                            table-fixed
                             text-sm
                         "
                     >
