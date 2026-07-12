@@ -634,7 +634,7 @@ export default function DriveFaultHistory() {
 
                         onView={() => {}}
 
-                        onEdit={() => {}}
+                        onEdit={handleEdit}
 
                         onDelete={() => {}}
 
