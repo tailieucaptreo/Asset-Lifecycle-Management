@@ -250,11 +250,11 @@ export default function VaconHistory({
 
                                                     <button
 
-                                                        onClick={() =>
+                                                        onClick={() =>{
 
                                                             onEdit(item)
 
-                                                        }
+                                                        }}
 
                                                         className="
                                                             text-amber-600
