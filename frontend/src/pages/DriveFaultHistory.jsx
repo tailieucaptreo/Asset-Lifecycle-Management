@@ -8,6 +8,7 @@ import AbbTable from "../components/Fault/AbbTable";
 import DriveImportModal from "../components/Drive/DriveImportModal";
 import AbbEditModal from "../components/Fault/AbbEditModal";
 import VaconEditModal from "../components/Fault/VaconEditModal";
+import VaconDetailModal from "../components/Fault/VaconDetailModal";
 
 import {
     Upload,
@@ -53,6 +54,10 @@ export default function DriveFaultHistory() {
     const [openVaconEdit, setOpenVaconEdit] = useState(false);
 
     const [editingVacon, setEditingVacon] = useState(null);
+
+    const [openVaconDetail, setOpenVaconDetail] = useState(false);
+
+    const [selectedVacon, setSelectedVacon] = useState(null);
 
     async function loadData() {
 
@@ -106,6 +111,14 @@ export default function DriveFaultHistory() {
         setEditingVacon(item);
     
         setOpenVaconEdit(true);
+    
+    };
+
+    const handleVaconView = (item) => {
+
+        setSelectedVacon(item);
+    
+        setOpenVaconDetail(true);
     
     };
 
@@ -425,6 +438,54 @@ export default function DriveFaultHistory() {
     
     };
 
+    const handleVaconDelete = async (item) => {
+
+        if (
+    
+            !window.confirm(
+    
+                "Bạn có chắc muốn xóa bản ghi này?"
+    
+            )
+    
+        ) return;
+    
+        try {
+    
+            await axios.delete(
+    
+                `${API}/api/vacon/${item.id}`,
+    
+                {
+    
+                    headers: {
+    
+                        Authorization:
+    
+                            `Bearer ${localStorage.getItem("token")}`
+    
+                    }
+    
+                }
+    
+            );
+    
+            alert("Đã xóa.");
+    
+            loadData();
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Không thể xóa.");
+    
+        }
+    
+    };
+
     return (
 
         <div className="max-w-[1700px] mx-auto px-8 py-6 space-y-6">
@@ -678,17 +739,19 @@ export default function DriveFaultHistory() {
 
                     <VaconHistory
 
-                        role={role}
+                        <VaconHistory
 
+                        role={role}
+                    
                         records={filtered}
                     
                         loading={loading}
                     
-                        onView={() => {}}
+                        onView={handleVaconView}
                     
                         onEdit={handleVaconEdit}
                     
-                        onDelete={() => {}}
+                        onDelete={handleVaconDelete}
 
                     />
 
@@ -743,6 +806,22 @@ export default function DriveFaultHistory() {
                 onClose={() => setOpenVaconEdit(false)}
             
                 onSave={handleSaveVacon}
+            
+            />
+
+            <VaconDetailModal
+
+                open={openVaconDetail}
+            
+                data={selectedVacon}
+            
+                onClose={() => {
+            
+                    setOpenVaconDetail(false);
+            
+                    setSelectedVacon(null);
+            
+                }}
             
             />
 
