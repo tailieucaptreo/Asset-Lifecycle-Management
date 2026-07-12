@@ -92,7 +92,7 @@ export default function VaconHistory({
                                     STT
                                 </th>
                             
-                                <th className="w-32 px-3 py-3 text-left">
+                                <th className="w-32 px-3 py-3 text-center">
                                     Record Date
                                 </th>
                             
@@ -104,11 +104,11 @@ export default function VaconHistory({
                                     Tandem
                                 </th>
                             
-                                <th className="w-40 px-3 py-3 text-left">
+                                <th className="w-40 px-3 py-3 text-center">
                                     Device Name
                                 </th>
                             
-                                <th className="w-44 px-3 py-3 text-left">
+                                <th className="w-44 px-3 py-3 text-center">
                                     Serial Number
                                 </th>
                             
@@ -116,7 +116,7 @@ export default function VaconHistory({
                                     Operation Hours
                                 </th>
                             
-                                <th className="w-48 px-3 py-3 text-left">
+                                <th className="w-48 px-3 py-3 text-left truncate">
                                     Note
                                 </th>
                             
