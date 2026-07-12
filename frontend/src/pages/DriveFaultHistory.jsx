@@ -44,6 +44,10 @@ export default function DriveFaultHistory() {
 
     const [importFile, setImportFile] = useState(null);
 
+    const [openEdit, setOpenEdit] = useState(false);
+
+    const [editing, setEditing] = useState(null);
+
     async function loadData() {
 
         try {
@@ -87,7 +91,15 @@ export default function DriveFaultHistory() {
                 .toLowerCase()
                 .includes(keyword);
 
-        });
+    });
+
+    const handleEdit = (item) => {
+
+        setEditing(item);
+    
+        setOpenEdit(true);
+    
+    };
 
     const handleExport = async () => {
 
@@ -295,6 +307,48 @@ export default function DriveFaultHistory() {
         finally {
     
             setImportLoading(false);
+    
+        }
+    
+    };
+
+    const handleSave = async (data) => {
+
+        try {
+    
+            await axios.put(
+    
+                `${API}/api/abb-faults/${data.id}`,
+    
+                data,
+    
+                {
+    
+                    headers: {
+    
+                        Authorization:
+    
+                            `Bearer ${localStorage.getItem("token")}`
+    
+                    }
+    
+                }
+    
+            );
+    
+            alert("Đã cập nhật.");
+    
+            setOpenEdit(false);
+    
+            loadData();
+    
+        }
+    
+        catch (err) {
+    
+            console.log(err);
+    
+            alert("Không thể cập nhật.");
     
         }
     
@@ -595,6 +649,18 @@ export default function DriveFaultHistory() {
                 onClose={() => setOpenImport(false)}
                 onUpload={handlePreview}
                 onConfirm={handleImport}
+            />
+
+            <AbbEditModal
+
+                open={openEdit}
+            
+                data={editing}
+            
+                onClose={() => setOpenEdit(false)}
+            
+                onSave={handleSave}
+            
             />
 
         </div>
