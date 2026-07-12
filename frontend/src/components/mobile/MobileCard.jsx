@@ -80,28 +80,12 @@ export default function MobileCard({
 
                 </div>
 
-                {
-
-                    status &&
-
-                    <span
-                        className={`
-                            px-3
-                            py-1
-                            rounded-full
-                            text-xs
-                            font-semibold
-                            whitespace-nowrap
-                            ${statusColor}
-                        `}
-                    >
-
+                {status && (
+                    <div>
                         {status}
-
-                    </span>
-
-                }
-
+                    </div>
+                )}
+                
             </div>
 
             {/* Body */}
