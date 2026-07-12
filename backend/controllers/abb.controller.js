@@ -206,6 +206,37 @@ exports.update = async (req, res) => {
 
     try {
 
+        const body = {
+
+            ...req.body,
+
+            operationHours:
+                req.body.operationHours
+                    ? Number(String(req.body.operationHours).replace(",", "."))
+                    : null,
+
+            onTimeDay:
+                req.body.onTimeDay
+                    ? Number(req.body.onTimeDay)
+                    : null,
+
+            runningDay:
+                req.body.runningDay
+                    ? Number(req.body.runningDay)
+                    : null,
+
+            lastReplaceDate:
+                req.body.lastReplaceDate
+                    ? new Date(req.body.lastReplaceDate)
+                    : null,
+
+            lastMaintenance:
+                req.body.lastMaintenance
+                    ? new Date(req.body.lastMaintenance)
+                    : null
+
+        };
+
         const item = await prisma.abbFaultRecord.update({
 
             where: {
@@ -214,7 +245,7 @@ exports.update = async (req, res) => {
 
             },
 
-            data: req.body
+            data: body
 
         });
 
@@ -235,7 +266,6 @@ exports.update = async (req, res) => {
     }
 
 };
-
 
 // ======================================================
 // DELETE
