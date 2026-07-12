@@ -21,17 +21,27 @@ export default function AbbDetailModal({
     const Item = ({ label, value }) => (
 
         <div className="border rounded-xl p-3 bg-gray-50">
-
+    
             <p className="text-xs text-gray-500 mb-1">
                 {label}
             </p>
-
+    
             <p className="font-medium text-gray-800 whitespace-pre-wrap">
-                {value || "-"}
+    
+                {
+                    value === null ||
+                    value === undefined ||
+                    value === ""
+    
+                        ? "-"
+    
+                        : value
+                }
+    
             </p>
-
+    
         </div>
-
+    
     );
 
     const formatDate = (value) => {
