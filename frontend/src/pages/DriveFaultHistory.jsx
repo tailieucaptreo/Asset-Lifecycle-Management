@@ -739,8 +739,6 @@ export default function DriveFaultHistory() {
 
                     <VaconHistory
 
-                        <VaconHistory
-
                         role={role}
                     
                         records={filtered}
