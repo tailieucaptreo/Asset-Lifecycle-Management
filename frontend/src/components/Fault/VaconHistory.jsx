@@ -63,7 +63,8 @@ export default function VaconHistory({
 
                 <div
                     className="
-                        overflow-auto
+                        overflow-x-auto
+                        overflow-y-auto
                         max-h-[70vh]
                     "
                 >
