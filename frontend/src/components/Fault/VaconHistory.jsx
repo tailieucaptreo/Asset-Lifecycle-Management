@@ -88,39 +88,39 @@ export default function VaconHistory({
 
                             <tr>
 
-                                <th className="px-3 py-3">
+                                <th className="w-16 px-3 py-3 text-center">
                                     STT
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-32 px-3 py-3 text-left">
                                     Record Date
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-24 px-3 py-3 text-center">
                                     Station
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-32 px-3 py-3 text-center">
                                     Tandem
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-40 px-3 py-3 text-left">
                                     Device Name
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-44 px-3 py-3 text-left">
                                     Serial Number
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-36 px-3 py-3 text-center">
                                     Operation Hours
                                 </th>
-
-                                <th className="px-3 py-3">
+                            
+                                <th className="w-48 px-3 py-3 text-left">
                                     Note
                                 </th>
-
-                                <th className="px-3 py-3 text-center">
+                            
+                                <th className="w-28 px-3 py-3 text-center">
                                     Thao tác
                                 </th>
 
