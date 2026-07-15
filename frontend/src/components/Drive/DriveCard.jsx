@@ -32,7 +32,7 @@ export default function DriveCard({
 
     const offline =
         drives.filter(
-            d => d.status === "Offline"
+            d => d.status === "Offline" || d.status === "Standby"
         ).length;
 
     const cards = [
@@ -59,9 +59,9 @@ export default function DriveCard({
         },
 
         {
-            title: "Offline",
-            value: offline,
-            color: "bg-gray-500",
+            title: "Dự phòng",
+            value: standby,
+            color: "bg-blue-500",
             icon: Power
         },
 

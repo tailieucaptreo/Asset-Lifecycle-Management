@@ -40,7 +40,9 @@ export default function DriveTable({
 
             case "Offline":
 
-                return "bg-gray-200 text-gray-700";
+            case "Standby":
+
+                return "bg-blue-100 text-blue-700";
 
             default:
 
@@ -269,7 +271,15 @@ export default function DriveTable({
 
                                                 >
 
-                                                    {drive.status}
+                                                    {drive.status === "Offline"
+                                                        ? "Dự phòng"
+                                                        : drive.status === "Running"
+                                                            ? "Đang chạy"
+                                                            : drive.status === "Maintenance"
+                                                                ? "Bảo trì"
+                                                                : drive.status === "Fault"
+                                                                    ? "Lỗi"
+                                                                    : drive.status}
 
                                                 </span>
 
