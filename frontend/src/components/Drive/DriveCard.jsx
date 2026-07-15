@@ -30,7 +30,7 @@ export default function DriveCard({
             d => d.status === "Fault"
         ).length;
 
-    const offline =
+    const standby =
         drives.filter(
             d => d.status === "Offline" || d.status === "Standby"
         ).length;
