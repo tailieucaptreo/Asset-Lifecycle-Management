@@ -249,74 +249,81 @@ export default function AbbTable({
 
                 </div>
 
-                {/* Mobile */}
+            </div>
 
-                <div
-                    className="
-                        md:hidden
-                        space-y-4
-                    "
-                >
+            {/* Mobile */}
 
-                    {
+            <div
+                className="
+                md:hidden
+                space-y-4
+            "
+            >
 
-                        records.length === 0 ?
+                {
 
-                            (
+                    records.length === 0 ?
 
-                                <div
-                                    className="
-                                        bg-white
-                                        rounded-xl
-                                        shadow
-                                        p-8
-                                        text-center
-                                        text-gray-400
-                                    "
-                                >
+                        (
 
-                                    Không có dữ liệu
+                            <div
+                                className="
+                                bg-white
+                                rounded-xl
+                                shadow
+                                p-8
+                                text-center
+                                text-gray-400
+                            "
+                            >
 
-                                </div>
+                                Không có dữ liệu
 
-                            )
+                            </div>
 
-                            :
+                        )
 
-                            records.map((item) => (
+                        :
 
-                                <AbbCard
+                        records.map((item) => (
 
-                                    key={item.id}
+                            <AbbCard
 
-                                    item={item}
+                                key={item.id}
 
-                                    role={role}
+                                item={item}
 
-                                    onView={() => {
-                                        setSelected(item);
-                                        setOpen(true);
-                                    }}
+                                role={role}
 
-                                    onEdit={onEdit}
+                                onView={() => {
 
-                                    onDelete={onDelete}
+                                    setSelected(item);
 
-                                />
+                                    setOpen(true);
 
-                            ))
+                                }}
 
-                    }
+                                onEdit={onEdit}
 
-                </div>
+                                onDelete={onDelete}
 
-                <AbbDetailModal
-                    open={open}
-                    data={selected}
-                    onClose={() => setOpen(false)}
-                />
+                            />
+
+                        ))
+
+                }
 
             </div>
+
+            <AbbDetailModal
+
+                open={open}
+
+                data={selected}
+
+                onClose={() => setOpen(false)}
+
+            />
 
         </>
 
