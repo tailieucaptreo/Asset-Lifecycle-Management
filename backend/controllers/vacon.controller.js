@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const XLSX = require("xlsx");
+const ExcelJS = require("exceljs");
 
 // ============================
 // GET ALL
@@ -24,6 +25,95 @@ exports.getAll = async (req, res) => {
 
     res.status(500).json({
       message: err.message
+    });
+
+  }
+
+};
+
+// ============================
+// EXPORT EXCEL
+// ============================
+exports.exportExcel = async (req, res) => {
+
+  try {
+
+    const rows = await prisma.vaconRecord.findMany({
+
+      orderBy: {
+
+        recordDate: "desc"
+
+      }
+
+    });
+
+    const workbook = new ExcelJS.Workbook();
+
+    const sheet = workbook.addWorksheet("VACON History");
+
+    sheet.columns = [
+
+      { header: "Record Date", key: "recordDate", width: 15 },
+      { header: "Station", key: "station", width: 12 },
+      { header: "Tandem", key: "tandem", width: 15 },
+      { header: "Device Name", key: "deviceName", width: 18 },
+      { header: "Serial Number", key: "serialNumber", width: 22 },
+      { header: "Application", key: "application", width: 18 },
+      { header: "Power Unit Date", key: "powerUnitDate", width: 18 },
+      { header: "Operation Hours", key: "operationHours", width: 18 },
+      { header: "Fault History", key: "faultHistory", width: 40 },
+      { header: "Description", key: "description", width: 40 },
+      { header: "Possible Cause", key: "possibleCause", width: 40 },
+      { header: "Corrective Actions", key: "correctiveActions", width: 40 },
+      { header: "Note", key: "note", width: 30 }
+
+    ];
+
+    rows.forEach(item => {
+
+      sheet.addRow({
+
+        ...item,
+
+        recordDate: item.recordDate
+          ? new Date(item.recordDate).toLocaleDateString("vi-VN")
+          : ""
+
+      });
+
+    });
+
+    res.setHeader(
+
+      "Content-Type",
+
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+    );
+
+    res.setHeader(
+
+      "Content-Disposition",
+
+      'attachment; filename="Vacon_History.xlsx"'
+
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
+
+  }
+
+  catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+
+      message: err.message
+
     });
 
   }

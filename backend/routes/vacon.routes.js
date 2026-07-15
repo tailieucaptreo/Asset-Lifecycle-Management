@@ -45,6 +45,12 @@ router.put(
   vaconController.update
 );
 
+router.get(
+    "/export",
+    auth,
+    vaconController.exportExcel
+);
+
 // Xóa
 router.delete(
   "/:id",
