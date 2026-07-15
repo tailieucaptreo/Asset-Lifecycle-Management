@@ -43,14 +43,25 @@ export default function AbbCard({
 
                     item={item}
 
-                    onView={onView}
+                    onView={() => {
 
-                    onEdit={onEdit}
+                        onView(item);
 
-                    onDelete={onDelete}
+                    }}
+
+                    onEdit={() => {
+
+                        onEdit(item);
+
+                    }}
+
+                    onDelete={() => {
+
+                        onDelete(item);
+
+                    }}
 
                 />
-
             }
 
         >
@@ -118,7 +129,7 @@ export default function AbbCard({
                 value={
                     item.lastReplaceDate
                         ? new Date(item.lastReplaceDate)
-                              .toLocaleDateString("vi-VN")
+                            .toLocaleDateString("vi-VN")
                         : "-"
                 }
 
@@ -131,7 +142,7 @@ export default function AbbCard({
                 value={
                     item.lastMaintenance
                         ? new Date(item.lastMaintenance)
-                              .toLocaleDateString("vi-VN")
+                            .toLocaleDateString("vi-VN")
                         : "-"
                 }
 

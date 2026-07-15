@@ -4,6 +4,8 @@ import {
     Trash2
 } from "lucide-react";
 
+import DriveCard from "../mobile/DriveCard";
+
 export default function DriveTable({
 
     role,
@@ -73,296 +75,363 @@ export default function DriveTable({
 
     return (
 
-        <div
-            className="
-                bg-white
-                rounded-2xl
-                shadow
-                overflow-hidden
-            "
-        >
+        <>
 
-            <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+            {/* Desktop */}
 
-                <table className="min-w-full text-sm">
+            <div
+                className="
+                    hidden
+                    md:block
+                    bg-white
+                    rounded-2xl
+                    shadow
+                    overflow-hidden
+                "
+            >
 
-                    <thead
-                        className="
-                            sticky
-                            top-0
-                            z-10
-                            bg-slate-100
-                            text-slate-700
-                        "
-                    >
+                <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
 
-                        <tr>
+                    <table className="min-w-full text-sm">
 
-                            <th className="px-4 py-4 text-left">
-                                STT
-                            </th>
+                        <thead
+                            className="
+                                sticky
+                                top-0
+                                z-10
+                                bg-slate-100
+                                text-slate-700
+                            "
+                        >
 
-                            <th className="px-4 py-4 text-left">
-                                Thiết bị
-                            </th>
+                            <tr>
 
-                            <th className="px-4 py-4 text-left">
-                                Mã TB
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    STT
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                Hãng
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Thiết bị
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                Model
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Mã TB
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                Công suất
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Hãng
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                Tuyến
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Model
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                Nhà ga
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Công suất
+                                </th>
 
-                            <th className="px-4 py-4 text-left">
-                                IP
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Tuyến
+                                </th>
 
-                            <th className="px-4 py-4 text-center">
-                                Trạng thái
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    Nhà ga
+                                </th>
 
-                            <th className="px-4 py-4 text-center">
-                                Thao tác
-                            </th>
+                                <th className="px-4 py-4 text-left">
+                                    IP
+                                </th>
 
-                        </tr>
+                                <th className="px-4 py-4 text-center">
+                                    Trạng thái
+                                </th>
 
-                    </thead>
+                                <th className="px-4 py-4 text-center">
+                                    Thao tác
+                                </th>
 
-                    <tbody>
+                            </tr>
 
-                        {
+                        </thead>
 
-                            drives.length === 0 ?
+                        <tbody>
 
-                                (
+                            {
 
-                                    <tr>
+                                drives.length === 0 ?
 
-                                        <td
+                                    (
 
-                                            colSpan={11}
+                                        <tr>
+
+                                            <td
+
+                                                colSpan={11}
+
+                                                className="
+                                                    py-10
+                                                    text-center
+                                                    text-gray-400
+                                                "
+
+                                            >
+
+                                                Không có dữ liệu
+
+                                            </td>
+
+                                        </tr>
+
+                                    )
+
+                                    :
+
+                                    drives.map((drive, index) => (
+
+                                        <tr
+
+                                            key={drive.id}
 
                                             className="
-                                                py-10
-                                                text-center
-                                                text-gray-400
+                                                border-t
+                                                hover:bg-slate-50
                                             "
 
                                         >
 
-                                            Không có dữ liệu
+                                            <td className="px-4 py-3">
 
-                                        </td>
+                                                {index + 1}
 
-                                    </tr>
+                                            </td>
 
-                                )
+                                            <td className="px-4 py-3 font-medium">
 
-                                :
+                                                {drive.name}
 
-                                drives.map((drive, index) => (
+                                            </td>
 
-                                    <tr
+                                            <td className="px-4 py-3">
 
-                                        key={drive.id}
+                                                {drive.deviceId}
 
-                                        className="
-                                            border-t
-                                            hover:bg-slate-50
-                                        "
+                                            </td>
 
-                                    >
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3">
+                                                {drive.brand}
 
-                                            {index + 1}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3 font-medium">
+                                                {drive.model}
 
-                                            {drive.name}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3">
+                                                {drive.power || "-"}
 
-                                            {drive.deviceId}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3">
+                                                {drive.line}
 
-                                            {drive.brand}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3">
+                                                {drive.station}
 
-                                            {drive.model}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3">
 
-                                        <td className="px-4 py-3">
+                                                {drive.ipAddress || "-"}
 
-                                            {drive.power || "-"}
+                                            </td>
 
-                                        </td>
+                                            <td className="px-4 py-3 text-center">
 
-                                        <td className="px-4 py-3">
+                                                <span
 
-                                            {drive.line}
-
-                                        </td>
-
-                                        <td className="px-4 py-3">
-
-                                            {drive.station}
-
-                                        </td>
-
-                                        <td className="px-4 py-3">
-
-                                            {drive.ipAddress || "-"}
-
-                                        </td>
-
-                                        <td className="px-4 py-3 text-center">
-
-                                            <span
-
-                                                className={`
-                                                    inline-flex
-                                                    px-3
-                                                    py-1
-                                                    rounded-full
-                                                    text-xs
-                                                    font-medium
-                                                    ${statusColor(drive.status)}
-                                                `}
-
-                                            >
-
-                                                {drive.status}
-
-                                            </span>
-
-                                        </td>
-
-                                        <td className="px-4 py-3">
-
-                                            <div
-                                                className="
-                                                    flex
-                                                    justify-center
-                                                    gap-2
-                                                "
-                                            >
-
-                                                <button
-
-                                                    onClick={() =>
-                                                        onView(drive)
-                                                    }
-
-                                                    className="
-                                                        p-2
-                                                        rounded-lg
-                                                        hover:bg-blue-100
-                                                        text-blue-600
-                                                    "
+                                                    className={`
+                                                        inline-flex
+                                                        px-3
+                                                        py-1
+                                                        rounded-full
+                                                        text-xs
+                                                        font-medium
+                                                        ${statusColor(drive.status)}
+                                                    `}
 
                                                 >
 
-                                                    <Eye size={18} />
+                                                    {drive.status}
 
-                                                </button>
+                                                </span>
 
-                                                {
+                                            </td>
 
-                                                    role === "admin"
+                                            <td className="px-4 py-3">
 
-                                                    &&
+                                                <div
+                                                    className="
+                                                        flex
+                                                        justify-center
+                                                        gap-2
+                                                    "
+                                                >
 
-                                                    <>
+                                                    <button
 
-                                                        <button
+                                                        onClick={() =>
+                                                            onView(drive)
+                                                        }
 
-                                                            onClick={() =>
-                                                                onEdit(drive)
-                                                            }
+                                                        className="
+                                                            p-2
+                                                            rounded-lg
+                                                            hover:bg-blue-100
+                                                            text-blue-600
+                                                        "
 
-                                                            className="
-                                                                p-2
-                                                                rounded-lg
-                                                                hover:bg-amber-100
-                                                                text-amber-600
-                                                            "
+                                                    >
 
-                                                        >
+                                                        <Eye size={18} />
 
-                                                            <Pencil size={18} />
+                                                    </button>
 
-                                                        </button>
+                                                    {
 
-                                                        <button
+                                                        role === "admin"
 
-                                                            onClick={() =>
-                                                                onDelete(drive)
-                                                            }
+                                                        &&
 
-                                                            className="
-                                                                p-2
-                                                                rounded-lg
-                                                                hover:bg-red-100
-                                                                text-red-600
-                                                            "
+                                                        <>
 
-                                                        >
+                                                            <button
 
-                                                            <Trash2 size={18} />
+                                                                onClick={() =>
+                                                                    onEdit(drive)
+                                                                }
 
-                                                        </button>
+                                                                className="
+                                                                    p-2
+                                                                    rounded-lg
+                                                                    hover:bg-amber-100
+                                                                    text-amber-600
+                                                                "
 
-                                                    </>
+                                                            >
 
-                                                }
+                                                                <Pencil size={18} />
 
-                                            </div>
+                                                            </button>
 
-                                        </td>
+                                                            <button
 
-                                    </tr>
+                                                                onClick={() =>
+                                                                    onDelete(drive)
+                                                                }
 
-                                ))
+                                                                className="
+                                                                    p-2
+                                                                    rounded-lg
+                                                                    hover:bg-red-100
+                                                                    text-red-600
+                                                                "
 
-                        }
+                                                            >
 
-                    </tbody>
+                                                                <Trash2 size={18} />
 
-                </table>
+                                                            </button>
+
+                                                        </>
+
+                                                    }
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+
+                                    ))
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
 
-        </div>
+            {/* Mobile */}
+
+            <div
+                className="
+                md:hidden
+                space-y-4
+            "
+            >
+
+                {
+
+                    drives.length === 0 ?
+
+                        (
+
+                            <div
+                                className="
+                                bg-white
+                                rounded-xl
+                                shadow
+                                p-8
+                                text-center
+                                text-gray-400
+                            "
+                            >
+
+                                Không có dữ liệu
+
+                            </div>
+
+                        )
+
+                        :
+
+                        drives.map((drive) => (
+
+                            <DriveCard
+
+                                key={drive.id}
+
+                                item={drive}
+
+                                role={role}
+
+                                onView={onView}
+
+                                onEdit={onEdit}
+
+                                onDelete={onDelete}
+
+                            />
+
+                        ))
+
+                }
+
+            </div>
+
+        </>
+
 
     );
 
