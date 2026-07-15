@@ -1,6 +1,5 @@
 import MobileCard from "./MobileCard";
 import MobileInfo from "./MobileInfo";
-import MobileStatus from "./MobileStatus";
 import MobileActions from "./MobileActions";
 
 export default function VaconCard({
@@ -17,23 +16,25 @@ export default function VaconCard({
 
 }) {
 
+    const shortText = (text, max = 80) => {
+
+        if (!text) return "-";
+
+        return text.length > max
+
+            ? text.substring(0, max) + "..."
+
+            : text;
+
+    };
+
     return (
 
         <MobileCard
 
             title={item.deviceName || "VACON"}
 
-            subtitle={item.serialNumber}
-
-            status={
-
-                <MobileStatus
-
-                    status={item.status || "Running"}
-
-                />
-
-            }
+            subtitle={item.serialNumber || "-"}
 
             actions={
 
@@ -72,7 +73,7 @@ export default function VaconCard({
 
                 label="Station"
 
-                value={item.station}
+                value={item.station || "-"}
 
             />
 
@@ -80,7 +81,7 @@ export default function VaconCard({
 
                 label="Tandem"
 
-                value={item.tandem}
+                value={item.tandem || "-"}
 
             />
 
@@ -88,7 +89,7 @@ export default function VaconCard({
 
                 label="Application"
 
-                value={item.application}
+                value={shortText(item.application)}
 
             />
 
@@ -96,7 +97,7 @@ export default function VaconCard({
 
                 label="Operation Hours"
 
-                value={item.operationHours}
+                value={item.operationHours || "-"}
 
             />
 
@@ -104,7 +105,7 @@ export default function VaconCard({
 
                 label="Power Unit Date"
 
-                value={item.powerUnitDate}
+                value={item.powerUnitDate || "-"}
 
             />
 
@@ -116,7 +117,7 @@ export default function VaconCard({
 
                     label="Fault History"
 
-                    value={item.faultHistory}
+                    value={shortText(item.faultHistory)}
 
                 />
 
@@ -130,7 +131,7 @@ export default function VaconCard({
 
                     label="Description"
 
-                    value={item.description}
+                    value={shortText(item.description)}
 
                 />
 
@@ -144,7 +145,7 @@ export default function VaconCard({
 
                     label="Possible Cause"
 
-                    value={item.possibleCause}
+                    value={shortText(item.possibleCause)}
 
                 />
 
@@ -158,7 +159,7 @@ export default function VaconCard({
 
                     label="Corrective Actions"
 
-                    value={item.correctiveActions}
+                    value={shortText(item.correctiveActions)}
 
                 />
 
@@ -172,7 +173,7 @@ export default function VaconCard({
 
                     label="Note"
 
-                    value={item.note}
+                    value={shortText(item.note)}
 
                 />
 
