@@ -42,7 +42,7 @@ export default function DriveFaultHistory() {
     const [openImport, setOpenImport] = useState(false);
 
     const [preview, setPreview] = useState([]);
-    
+
     const [importLoading, setImportLoading] = useState(false);
 
     const [importFile, setImportFile] = useState(null);
@@ -73,19 +73,19 @@ export default function DriveFaultHistory() {
             const res = await axios.get(
 
                 url,
-            
+
                 {
-            
+
                     headers: {
-            
+
                         Authorization:
-            
+
                             `Bearer ${localStorage.getItem("token")}`
-            
+
                     }
-            
+
                 }
-            
+
             );
 
             setRecords(res.data);
@@ -109,17 +109,17 @@ export default function DriveFaultHistory() {
     const handleVaconEdit = (item) => {
 
         setEditingVacon(item);
-    
+
         setOpenVaconEdit(true);
-    
+
     };
 
     const handleVaconView = (item) => {
 
         setSelectedVacon(item);
-    
+
         setOpenVaconDetail(true);
-    
+
     };
 
     const filtered =
@@ -133,357 +133,379 @@ export default function DriveFaultHistory() {
                 .toLowerCase()
                 .includes(keyword);
 
-    });
+        });
 
     const handleEdit = (item) => {
 
         setEditing(item);
-    
+
         setOpenEdit(true);
-    
+
     };
 
     const handleExport = async () => {
 
         try {
-    
-            const url =
-    
-                tab === "VACON"
-    
-                    ? `${API}/api/vacon/export`
-    
-                    : `${API}/api/abb-faults/export`;
-    
-            const response = await axios.get(
-    
-                url,
-    
-                {
-    
-                    responseType: "blob"
-    
-                }
-    
-            );
-    
-            const blob = new Blob(
-    
-                [response.data],
-    
-                {
-    
-                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    
-                }
-    
-            );
-    
-            const downloadUrl = window.URL.createObjectURL(blob);
-    
-            const link = document.createElement("a");
-    
-            link.href = downloadUrl;
-    
-            link.download =
-    
-                tab === "VACON"
-    
-                    ? "Vacon_History.xlsx"
-    
-                    : "ABB_History.xlsx";
-    
-            document.body.appendChild(link);
-    
-            link.click();
-    
-            link.remove();
-    
-            window.URL.revokeObjectURL(downloadUrl);
-    
-        }
-    
-        catch (err) {
-    
-            console.log(err);
-    
-            alert("Xuất Excel thất bại.");
-    
-        }
-    
-    };
 
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+
+                alert("Bạn chưa đăng nhập.");
+
+                return;
+
+            }
+
+            const url =
+
+                tab === "VACON"
+
+                    ? `${API}/api/vacon/export`
+
+                    : `${API}/api/abb-faults/export`;
+
+            const response = await axios.get(
+
+                url,
+
+                {
+
+                    responseType: "blob",
+
+                    headers: {
+
+                        Authorization: `Bearer ${token}`
+
+                    }
+
+                }
+
+            );
+
+            const blob = new Blob(
+
+                [response.data],
+
+                {
+
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+                }
+
+            );
+
+            const downloadUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+
+            link.href = downloadUrl;
+
+            link.download =
+
+                tab === "VACON"
+
+                    ? "Vacon_History.xlsx"
+
+                    : "ABB_History.xlsx";
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(downloadUrl);
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            alert(
+
+                err.response?.data?.message ||
+
+                `Xuất Excel thất bại (${err.response?.status || ""})`
+
+            );
+
+        }
+
+    };
+    
     const handleImport = async () => {
 
         try {
-    
+
             setImportLoading(true);
-    
+
             const token = localStorage.getItem("token");
-    
+
             if (!token) {
-    
+
                 alert("Bạn chưa đăng nhập.");
-    
+
                 return;
-    
+
             }
-    
+
             const url =
-    
+
                 tab === "VACON"
-    
+
                     ? `${API}/api/vacon/confirm-import`
-    
+
                     : `${API}/api/abb-faults/confirm-import`;
-    
+
             await axios.post(
-    
+
                 url,
-    
+
                 {
                     rows: preview
                 },
-    
+
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 }
-    
+
             );
-    
+
             alert("Import thành công.");
-    
+
             setOpenImport(false);
-    
+
             setPreview([]);
-    
+
             loadData();
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.error(err);
-    
+
             if (err.response) {
-    
+
                 alert(
-    
+
                     err.response.data.message ||
-    
+
                     `Import thất bại (${err.response.status})`
-    
+
                 );
-    
+
             }
-    
+
             else {
-    
+
                 alert("Không thể kết nối tới server.");
-    
+
             }
-    
+
         }
-    
+
         finally {
-    
+
             setImportLoading(false);
-    
+
         }
-    
+
     };
-    
+
     const handlePreview = async (file) => {
 
         try {
-    
+
             setImportLoading(true);
             setImportFile(file);
-    
+
             const formData = new FormData();
-    
+
             formData.append("file", file);
-    
+
             const url =
-    
+
                 tab === "VACON"
-    
+
                     ? `${API}/api/vacon/preview-import`
-    
+
                     : `${API}/api/abb-faults/preview-import`;
-    
+
             const res = await axios.post(
-    
+
                 url,
-    
+
                 formData,
-    
+
                 {
-    
+
                     headers: {
-    
+
                         "Content-Type": "multipart/form-data"
-    
+
                     }
-    
+
                 }
-    
+
             );
-    
+
             setPreview(res.data.rows);
-    
+
             setOpenImport(true);
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
             alert("Không đọc được file Excel.");
-    
+
         }
-    
+
         finally {
-    
+
             setImportLoading(false);
-    
+
         }
-    
+
     };
 
     const handleSave = async (data) => {
 
         try {
-    
+
             await axios.put(
-    
+
                 `${API}/api/abb-faults/${data.id}`,
-    
+
                 data,
-    
+
                 {
-    
+
                     headers: {
-    
+
                         Authorization:
-    
+
                             `Bearer ${localStorage.getItem("token")}`
-    
+
                     }
-    
+
                 }
-    
+
             );
-    
+
             alert("Đã cập nhật.");
-    
+
             setOpenEdit(false);
-    
+
             loadData();
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
             alert("Không thể cập nhật.");
-    
+
         }
-    
+
     };
 
     const handleSaveVacon = async (form) => {
 
         try {
-    
+
             await axios.put(
-    
+
                 `${API}/api/vacon/${form.id}`,
-    
+
                 form,
-    
+
                 {
-    
+
                     headers: {
-    
+
                         Authorization:
-    
+
                             `Bearer ${localStorage.getItem("token")}`
-    
+
                     }
-    
+
                 }
-    
+
             );
-    
+
             alert("Đã cập nhật.");
-    
+
             setOpenVaconEdit(false);
-    
+
             loadData();
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
             alert("Không thể cập nhật.");
-    
+
         }
-    
+
     };
 
     const handleVaconDelete = async (item) => {
 
         if (
-    
+
             !window.confirm(
-    
+
                 "Bạn có chắc muốn xóa bản ghi này?"
-    
+
             )
-    
+
         ) return;
-    
+
         try {
-    
+
             await axios.delete(
-    
+
                 `${API}/api/vacon/${item.id}`,
-    
+
                 {
-    
+
                     headers: {
-    
+
                         Authorization:
-    
+
                             `Bearer ${localStorage.getItem("token")}`
-    
+
                     }
-    
+
                 }
-    
+
             );
-    
+
             alert("Đã xóa.");
-    
+
             loadData();
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
             alert("Không thể xóa.");
-    
+
         }
-    
+
     };
 
     return (
@@ -541,12 +563,11 @@ export default function DriveFaultHistory() {
                         font-semibold
                         transition
 
-                        ${
-                            tab === "VACON"
+                        ${tab === "VACON"
 
-                                ? "bg-blue-600 text-white"
+                            ? "bg-blue-600 text-white"
 
-                                : "hover:bg-slate-100"
+                            : "hover:bg-slate-100"
 
                         }
 
@@ -570,12 +591,11 @@ export default function DriveFaultHistory() {
                         font-semibold
                         transition
 
-                        ${
-                            tab === "ABB"
+                        ${tab === "ABB"
 
-                                ? "bg-green-600 text-white"
+                            ? "bg-green-600 text-white"
 
-                                : "hover:bg-slate-100"
+                            : "hover:bg-slate-100"
 
                         }
 
@@ -653,9 +673,9 @@ export default function DriveFaultHistory() {
                     {
 
                         role === "admin" &&
-             
-                            <label
-                                className="
+
+                        <label
+                            className="
                                     flex
                                     items-center
                                     gap-2
@@ -667,37 +687,37 @@ export default function DriveFaultHistory() {
                                     hover:bg-amber-600
                                     cursor-pointer
                                 "
-                            >
-                            
-                                <Upload size={18} />
-                            
-                                Import
-                            
-                                <input
-                            
-                                    type="file"
-                            
-                                    accept=".xlsx,.xls"
-                            
-                                    hidden
-                            
-                                    onChange={(e) => {
-                            
-                                        if (e.target.files?.length) {
-                            
-                                            handlePreview(
-                            
-                                                e.target.files[0]
-                            
-                                            );
-                            
-                                        }
-                            
-                                    }}
-                            
-                                />
-                            
-                            </label>
+                        >
+
+                            <Upload size={18} />
+
+                            Import
+
+                            <input
+
+                                type="file"
+
+                                accept=".xlsx,.xls"
+
+                                hidden
+
+                                onChange={(e) => {
+
+                                    if (e.target.files?.length) {
+
+                                        handlePreview(
+
+                                            e.target.files[0]
+
+                                        );
+
+                                    }
+
+                                }}
+
+                            />
+
+                        </label>
 
                     }
 
@@ -719,7 +739,7 @@ export default function DriveFaultHistory() {
 
                     >
 
-                        <Download size={18}/>
+                        <Download size={18} />
 
                         Export
 
@@ -740,15 +760,15 @@ export default function DriveFaultHistory() {
                     <VaconHistory
 
                         role={role}
-                    
+
                         records={filtered}
-                    
+
                         loading={loading}
-                    
+
                         onView={handleVaconView}
-                    
+
                         onEdit={handleVaconEdit}
-                    
+
                         onDelete={handleVaconDelete}
 
                     />
@@ -763,11 +783,11 @@ export default function DriveFaultHistory() {
 
                         loading={loading}
 
-                        onView={() => {}}
+                        onView={() => { }}
 
                         onEdit={handleEdit}
 
-                        onDelete={() => {}}
+                        onDelete={() => { }}
 
                     />
 
@@ -786,41 +806,41 @@ export default function DriveFaultHistory() {
             <AbbEditModal
 
                 open={openEdit}
-            
+
                 data={editing}
-            
+
                 onClose={() => setOpenEdit(false)}
-            
+
                 onSave={handleSave}
-            
+
             />
 
             <VaconEditModal
 
                 open={openVaconEdit}
-            
+
                 data={editingVacon}
-            
+
                 onClose={() => setOpenVaconEdit(false)}
-            
+
                 onSave={handleSaveVacon}
-            
+
             />
 
             <VaconDetailModal
 
                 open={openVaconDetail}
-            
+
                 data={selectedVacon}
-            
+
                 onClose={() => {
-            
+
                     setOpenVaconDetail(false);
-            
+
                     setSelectedVacon(null);
-            
+
                 }}
-            
+
             />
 
         </div>
