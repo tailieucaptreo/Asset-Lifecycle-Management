@@ -185,7 +185,7 @@ export default function DriveFilter({
                     </option>
 
                     <option value="Offline">
-                        Offline
+                        Dự phòng
                     </option>
 
                 </select>
