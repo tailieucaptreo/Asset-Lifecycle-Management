@@ -165,7 +165,7 @@ export default function SpareTable({
 
                 {
 
-                    devices.length === 0 ?
+                    data.length === 0 ?
 
                         (
 
@@ -188,7 +188,7 @@ export default function SpareTable({
 
                         :
 
-                        devices.map((item) => (
+                        data.map((item) => (
 
                             <SpareCard
 
