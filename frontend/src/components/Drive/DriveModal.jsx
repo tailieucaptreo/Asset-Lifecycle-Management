@@ -244,7 +244,7 @@ export default function DriveModal({
                                     "Running",
                                     "Maintenance",
                                     "Fault",
-                                    "Spare"
+                                    "Dự phòng"
                                 ]}
 
                                 onChange={v =>
