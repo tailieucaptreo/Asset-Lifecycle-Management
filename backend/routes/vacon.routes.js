@@ -23,6 +23,12 @@ router.get(
   vaconController.getAll
 );
 
+router.get(
+    "/export",
+    auth,
+    vaconController.exportExcel
+);
+
 // Chi tiết
 router.get(
   "/:id",
@@ -43,12 +49,6 @@ router.put(
   auth,
   adminOnly,
   vaconController.update
-);
-
-router.get(
-    "/export",
-    auth,
-    vaconController.exportExcel
 );
 
 // Xóa
