@@ -4,27 +4,93 @@ const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 
 // ============================
-// GET ALL
+// GET ALL DEVICES
 // ============================
 exports.getAll = async (req, res) => {
 
   try {
 
-    const data =
-      await prisma.vaconRecord.findMany({
+    const devices =
+      await prisma.vaconDevice.findMany({
+
+        include: {
+
+          histories: {
+
+            orderBy: {
+
+              recordDate: "desc"
+
+            },
+
+            take: 1
+
+          }
+
+        },
+
         orderBy: {
-          recordDate: "desc"
+
+          deviceName: "asc"
+
         }
+
       });
 
-    res.json(data);
+    const result =
+      devices.map(device => {
 
-  } catch (err) {
+        const history =
+          device.histories[0] || {};
 
-    console.log(err);
+        return {
+
+          id: device.id,
+
+          deviceName: device.deviceName,
+
+          serialNumber: device.serialNumber,
+
+          station: device.station,
+
+          tandem: device.tandem,
+
+          application: device.application,
+
+          recordDate: history.recordDate || null,
+
+          operationHours: history.operationHours || null,
+
+          powerUnitDate: history.powerUnitDate || null,
+
+          faultHistory: history.faultHistory || null,
+
+          description: history.description || null,
+
+          possibleCause: history.possibleCause || null,
+
+          correctiveActions: history.correctiveActions || null,
+
+          note: history.note || null,
+
+          createdAt: device.createdAt
+
+        };
+
+      });
+
+    res.json(result);
+
+  }
+
+  catch (err) {
+
+    console.error(err);
 
     res.status(500).json({
+
       message: err.message
+
     });
 
   }
