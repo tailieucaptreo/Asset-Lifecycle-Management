@@ -259,209 +259,371 @@ exports.remove = async (req, res) => {
 // ============================
 // IMPORT EXCEL
 // ============================
-let currentRecordDate = null;
-let imported = 0;
+exports.importExcel = async (req, res) => {
 
-await prisma.$transaction(async (tx) => {
+  try {
 
-    for (const row of rows) {
+    if (!req.file) {
+
+      return res.status(400).json({
+        message: "Chưa chọn file"
+      });
+
+    }
+
+    const workbook = XLSX.read(
+      req.file.buffer,
+      {
+        type: "buffer"
+      }
+    );
+
+    const sheet =
+      workbook.Sheets[
+        workbook.SheetNames[0]
+      ];
+
+    const rows =
+      XLSX.utils.sheet_to_json(
+        sheet,
+        {
+          defval: ""
+        }
+      );
+
+    // ------------------------
+    // Chuyển ngày Excel
+    // ------------------------
+
+    function excelDateToJS(value) {
+
+      if (!value) return null;
+
+      if (typeof value === "number") {
+
+        const excelEpoch =
+          new Date(Date.UTC(1899, 11, 30));
+
+        return new Date(
+          excelEpoch.getTime()
+          +
+          value * 86400000
+        );
+
+      }
+
+      if (
+        typeof value === "string" &&
+        value.includes("/")
+      ) {
+
+        const p = value.split("/");
+
+        if (p.length === 3) {
+
+          return new Date(
+
+            Number(p[2]),
+
+            Number(p[1]) - 1,
+
+            Number(p[0])
+
+          );
+
+        }
+
+      }
+
+      const d = new Date(value);
+
+      return isNaN(d)
+        ? null
+        : d;
+
+    }
+
+    // ------------------------
+    // Chuyển giờ Excel
+    // ------------------------
+
+    function excelTimeToString(value) {
+
+      if (!value) return "";
+
+      if (typeof value === "number") {
+
+        const total =
+          Math.round(
+            value * 24 * 60 * 60
+          );
+
+        const h =
+          String(
+            Math.floor(total / 3600)
+          ).padStart(2, "0");
+
+        const m =
+          String(
+            Math.floor(
+              (total % 3600) / 60
+            )
+          ).padStart(2, "0");
+
+        const s =
+          String(
+            total % 60
+          ).padStart(2, "0");
+
+        return `${h}:${m}:${s}`;
+
+      }
+
+      return String(value);
+
+    }
+
+    let currentRecordDate = null;
+
+    let imported = 0;
+
+    await prisma.$transaction(async (tx) => {
+
+      for (const row of rows) {
+
+        // ------------------------
+        // Record Date
+        // ------------------------
 
         if (
-            row["Record Date"] &&
-            String(row["Record Date"]).trim() !== ""
+          row["Record Date"] &&
+          String(row["Record Date"]).trim() !== ""
         ) {
 
-            currentRecordDate = excelDateToJS(
-                row["Record Date"]
+          currentRecordDate =
+            excelDateToJS(
+              row["Record Date"]
             );
 
         }
 
         const deviceName =
-            row["The Device Name"]
-                ? String(row["The Device Name"]).trim()
-                : null;
+          row["The Device Name"]
+            ? String(row["The Device Name"]).trim()
+            : null;
 
-        if (!deviceName) continue;
+        if (!deviceName) {
 
-        const serialNumber =
-            row["Serial number"]
-                ? String(row["Serial number"]).trim()
-                : null;
-
-        const station =
-            row["Station"]
-                ? String(row["Station"]).trim()
-                : null;
-
-        const tandem =
-            row["Tandem"]
-                ? String(row["Tandem"]).trim()
-                : null;
-
-        const application =
-            row["Application"]
-                ? String(row["Application"]).trim()
-                : null;
-
-        // ==========================
-        // Tìm thiết bị
-        // ==========================
-
-        let device =
-            serialNumber
-                ? await tx.vaconDevice.findUnique({
-
-                    where: {
-
-                        serialNumber
-
-                    }
-
-                })
-                : null;
-
-        // Nếu chưa có thì tạo
-
-        if (!device) {
-
-            device =
-                await tx.vaconDevice.create({
-
-                    data: {
-
-                        deviceName,
-
-                        serialNumber,
-
-                        station,
-
-                        tandem,
-
-                        application
-
-                    }
-
-                });
+          continue;
 
         }
 
-        // Nếu đã có thì cập nhật thông tin
+        const serialNumber =
+          row["Serial number"]
+            ? String(row["Serial number"]).trim()
+            : null;
 
-        else {
+        const station =
+          row["Station"]
+            ? String(row["Station"]).trim()
+            : null;
 
-            await tx.vaconDevice.update({
+        const tandem =
+          row["Tandem"]
+            ? String(row["Tandem"]).trim()
+            : null;
 
-                where: {
+        const application =
+          row["Application"]
+            ? String(row["Application"]).trim()
+            : null;
 
-                    id: device.id
+        // ------------------------
+        // Tìm hoặc tạo thiết bị
+        // ------------------------
 
-                },
+        let device = null;
 
-                data: {
+        if (serialNumber) {
 
-                    deviceName,
+          device =
+            await tx.vaconDevice.findUnique({
 
-                    station,
+              where: {
 
-                    tandem,
+                serialNumber
 
-                    application
-
-                }
+              }
 
             });
+
+        }
+
+        if (!device) {
+
+          device =
+            await tx.vaconDevice.create({
+
+              data: {
+
+                deviceName,
+
+                serialNumber,
+
+                station,
+
+                tandem,
+
+                application
+
+              }
+
+            });
+
+        } else {
+
+          await tx.vaconDevice.update({
+
+            where: {
+
+              id: device.id
+
+            },
+
+            data: {
+
+              deviceName,
+
+              station,
+
+              tandem,
+
+              application
+
+            }
+
+          });
 
         }
 
         const operationHours =
-            excelTimeToString(
-                row["Operation Hours"]
-            );
+          excelTimeToString(
+            row["Operation Hours"]
+          );
 
-        // ==========================
-        // Kiểm tra trùng lịch sử
-        // ==========================
+        // ------------------------
+        // Kiểm tra trùng
+        // ------------------------
 
         const existed =
-            await tx.vaconHistory.findFirst({
+          await tx.vaconHistory.findFirst({
 
-                where: {
+            where: {
 
-                    deviceId: device.id,
+              deviceId: device.id,
 
-                    recordDate: currentRecordDate,
+              recordDate: currentRecordDate,
 
-                    operationHours
+              operationHours
 
-                }
+            }
 
-            });
+          });
 
         if (existed) {
 
-            continue;
+          continue;
 
         }
 
-        // ==========================
-        // Thêm lịch sử
-        // ==========================
+        // ------------------------
+        // Lưu lịch sử
+        // ------------------------
 
         await tx.vaconHistory.create({
 
-            data: {
+          data: {
 
-                deviceId: device.id,
+            deviceId: device.id,
 
-                recordDate: currentRecordDate,
+            recordDate: currentRecordDate,
 
-                operationHours,
+            operationHours,
 
-                powerUnitDate:
+            powerUnitDate:
+              row["Power Unit Date"]
+                ? String(
                     row["Power Unit Date"]
-                        ? String(row["Power Unit Date"])
-                        : null,
+                  )
+                : null,
 
-                faultHistory:
+            faultHistory:
+              row["Fault history"]
+                ? String(
                     row["Fault history"]
-                        ? String(row["Fault history"])
-                        : null,
+                  )
+                : null,
 
-                description:
+            description:
+              row["Description"]
+                ? String(
                     row["Description"]
-                        ? String(row["Description"])
-                        : null,
+                  )
+                : null,
 
-                possibleCause:
+            possibleCause:
+              row["Possible Cause"]
+                ? String(
                     row["Possible Cause"]
-                        ? String(row["Possible Cause"])
-                        : null,
+                  )
+                : null,
 
-                correctiveActions:
+            correctiveActions:
+              row["Corrective actions"]
+                ? String(
                     row["Corrective actions"]
-                        ? String(row["Corrective actions"])
-                        : null,
+                  )
+                : null,
 
-                note:
+            note:
+              row["note"]
+                ? String(
                     row["note"]
-                        ? String(row["note"])
-                        : null
+                  )
+                : null
 
-            }
+          }
 
         });
 
         imported++;
 
-    }
+      }
 
-});
+    });
 
-res.json({
+    res.json({
 
-    success: true,
+      success: true,
 
-    imported
+      imported
 
-});
+    });
+
+  }
+
+  catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+
+      success: false,
+
+      message: err.message
+
+    });
+
+  }
+
+};
