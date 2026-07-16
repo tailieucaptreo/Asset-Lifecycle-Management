@@ -259,225 +259,209 @@ exports.remove = async (req, res) => {
 // ============================
 // IMPORT EXCEL
 // ============================
-exports.importExcel = async (req, res) => {
+let currentRecordDate = null;
+let imported = 0;
 
-  try {
+await prisma.$transaction(async (tx) => {
 
-    if (!req.file) {
+    for (const row of rows) {
 
-      return res.status(400).json({
-        message: "Chưa chọn file"
-      });
+        if (
+            row["Record Date"] &&
+            String(row["Record Date"]).trim() !== ""
+        ) {
 
-    }
+            currentRecordDate = excelDateToJS(
+                row["Record Date"]
+            );
 
-    const workbook = XLSX.read(
-      req.file.buffer,
-      { type: "buffer" }
-    );
-
-    const sheet =
-      workbook.Sheets[
-      workbook.SheetNames[0]
-      ];
-
-    const rows =
-      XLSX.utils.sheet_to_json(sheet, {
-        defval: ""
-      });
-
-    function excelDateToJS(value) {
-
-      if (!value) return null;
-    
-      if (typeof value === "number") {
-    
-        const excelEpoch =
-          new Date(
-            Date.UTC(
-              1899,
-              11,
-              30
-            )
-          );
-    
-        return new Date(
-          excelEpoch.getTime()
-          +
-          value * 86400000
-        );
-    
-      }
-    
-      if (
-        typeof value === "string" &&
-        value.includes("/")
-      ) {
-    
-        const parts =
-          value.split("/");
-    
-        if (parts.length === 3) {
-    
-          return new Date(
-            Number(parts[2]),
-            Number(parts[1]) - 1,
-            Number(parts[0])
-          );
-    
         }
-    
-      }
-    
-      const d =
-        new Date(value);
-    
-      return isNaN(d)
-        ? null
-        : d;
-    
+
+        const deviceName =
+            row["The Device Name"]
+                ? String(row["The Device Name"]).trim()
+                : null;
+
+        if (!deviceName) continue;
+
+        const serialNumber =
+            row["Serial number"]
+                ? String(row["Serial number"]).trim()
+                : null;
+
+        const station =
+            row["Station"]
+                ? String(row["Station"]).trim()
+                : null;
+
+        const tandem =
+            row["Tandem"]
+                ? String(row["Tandem"]).trim()
+                : null;
+
+        const application =
+            row["Application"]
+                ? String(row["Application"]).trim()
+                : null;
+
+        // ==========================
+        // Tìm thiết bị
+        // ==========================
+
+        let device =
+            serialNumber
+                ? await tx.vaconDevice.findUnique({
+
+                    where: {
+
+                        serialNumber
+
+                    }
+
+                })
+                : null;
+
+        // Nếu chưa có thì tạo
+
+        if (!device) {
+
+            device =
+                await tx.vaconDevice.create({
+
+                    data: {
+
+                        deviceName,
+
+                        serialNumber,
+
+                        station,
+
+                        tandem,
+
+                        application
+
+                    }
+
+                });
+
+        }
+
+        // Nếu đã có thì cập nhật thông tin
+
+        else {
+
+            await tx.vaconDevice.update({
+
+                where: {
+
+                    id: device.id
+
+                },
+
+                data: {
+
+                    deviceName,
+
+                    station,
+
+                    tandem,
+
+                    application
+
+                }
+
+            });
+
+        }
+
+        const operationHours =
+            excelTimeToString(
+                row["Operation Hours"]
+            );
+
+        // ==========================
+        // Kiểm tra trùng lịch sử
+        // ==========================
+
+        const existed =
+            await tx.vaconHistory.findFirst({
+
+                where: {
+
+                    deviceId: device.id,
+
+                    recordDate: currentRecordDate,
+
+                    operationHours
+
+                }
+
+            });
+
+        if (existed) {
+
+            continue;
+
+        }
+
+        // ==========================
+        // Thêm lịch sử
+        // ==========================
+
+        await tx.vaconHistory.create({
+
+            data: {
+
+                deviceId: device.id,
+
+                recordDate: currentRecordDate,
+
+                operationHours,
+
+                powerUnitDate:
+                    row["Power Unit Date"]
+                        ? String(row["Power Unit Date"])
+                        : null,
+
+                faultHistory:
+                    row["Fault history"]
+                        ? String(row["Fault history"])
+                        : null,
+
+                description:
+                    row["Description"]
+                        ? String(row["Description"])
+                        : null,
+
+                possibleCause:
+                    row["Possible Cause"]
+                        ? String(row["Possible Cause"])
+                        : null,
+
+                correctiveActions:
+                    row["Corrective actions"]
+                        ? String(row["Corrective actions"])
+                        : null,
+
+                note:
+                    row["note"]
+                        ? String(row["note"])
+                        : null
+
+            }
+
+        });
+
+        imported++;
+
     }
-        
-    function excelTimeToString(value) {
-    
-      if (!value) return "";
-    
-      // Excel time
-      if (typeof value === "number") {
-    
-        const totalSeconds =
-          Math.round(
-            value * 24 * 60 * 60
-          );
-    
-        const hours =
-          String(
-            Math.floor(
-              totalSeconds / 3600
-            )
-          ).padStart(2, "0");
-    
-        const minutes =
-          String(
-            Math.floor(
-              (totalSeconds % 3600) / 60
-            )
-          ).padStart(2, "0");
-    
-        const seconds =
-          String(
-            totalSeconds % 60
-          ).padStart(2, "0");
-    
-        return `${hours}:${minutes}:${seconds}`;
-    
-      }
-    
-      return String(value);
-    
-    }
-    let currentRecordDate = null;
-    const data = rows.map((row) => {
 
-      if (
-        row["Record Date"] &&
-        String(row["Record Date"]).trim() !== ""
-      ) {
-    
-        currentRecordDate =
-          excelDateToJS(
-            row["Record Date"]
-          );
-    
-      }
-    
-      return {
-    
-        recordDate:
-          currentRecordDate,
-    
-        station:
-          row["Station"]
-            ? String(row["Station"])
-            : null,
-    
-        tandem:
-          row["Tandem"]
-            ? String(row["Tandem"])
-            : null,
-    
-        deviceName:
-          row["The Device Name"]
-            ? String(row["The Device Name"])
-            : null,
-    
-        serialNumber:
-          row["Serial number"]
-            ? String(row["Serial number"])
-            : null,
-    
-        application:
-          row["Application"]
-            ? String(row["Application"])
-            : null,
-    
-        powerUnitDate:
-          row["Power Unit Date"]
-            ? String(row["Power Unit Date"])
-            : null,
-    
-        faultHistory:
-          row["Fault history"]
-            ? String(row["Fault history"])
-            : null,
-    
-        operationHours:
-          excelTimeToString(
-            row["Operation Hours"]
-          ),
-    
-        description:
-          row["Description"]
-            ? String(row["Description"])
-            : null,
-    
-        possibleCause:
-          row["Possible Cause"]
-            ? String(row["Possible Cause"])
-            : null,
-    
-        correctiveActions:
-          row["Corrective actions"]
-            ? String(row["Corrective actions"])
-            : null,
-    
-        note:
-          row["note"]
-            ? String(row["note"])
-            : null
-    
-      };
-    
-    });
+});
 
-    await prisma.vaconRecord.createMany({
-      data
-    });
+res.json({
 
-    res.json({
-      success: true,
-      imported: data.length
-    });
+    success: true,
 
-  } catch (err) {
+    imported
 
-    console.log(err);
-
-    res.status(500).json({
-      success: false,
-      message: err.message
-    });
-
-  }
-
-};
+});

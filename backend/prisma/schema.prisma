@@ -250,3 +250,53 @@ model AbbFaultRecord {
   createdAt        DateTime @default(now())
 
 }
+
+model VaconDevice {
+
+  id            Int      @id @default(autoincrement())
+
+  deviceName    String
+
+  serialNumber  String   @unique
+
+  station       String?
+
+  tandem        String?
+
+  application   String?
+
+  createdAt     DateTime @default(now())
+
+  histories     VaconHistory[]
+}
+
+model VaconHistory {
+
+  id                  Int      @id @default(autoincrement())
+
+  deviceId            Int
+
+  device              VaconDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  recordDate          DateTime?
+
+  operationHours      String?
+
+  powerUnitDate       String?
+
+  faultHistory        String?
+
+  description         String?
+
+  possibleCause       String?
+
+  correctiveActions   String?
+
+  note                String?
+
+  createdAt           DateTime @default(now())
+
+  @@index([deviceId])
+
+  @@index([recordDate])
+}
