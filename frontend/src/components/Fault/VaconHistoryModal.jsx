@@ -27,7 +27,8 @@ export default function VaconHistoryModal({
                 flex
                 items-center
                 justify-center
-                p-4
+                p-2
+                md:p-4
             "
         >
 
@@ -38,7 +39,9 @@ export default function VaconHistoryModal({
                     shadow-xl
                     w-full
                     max-w-6xl
-                    max-h-[90vh]
+                    max-h-[95vh]
+                    flex
+                    flex-col
                     overflow-hidden
                 "
             >
@@ -49,16 +52,23 @@ export default function VaconHistoryModal({
                     className="
                         flex
                         justify-between
-                        items-center
+                        items-start
                         border-b
-                        px-6
+                        px-4
+                        md:px-6
                         py-4
                     "
                 >
 
                     <div>
 
-                        <h2 className="text-2xl font-bold">
+                        <h2
+                            className="
+                                text-xl
+                                md:text-2xl
+                                font-bold
+                            "
+                        >
 
                             Lịch sử lỗi VACON
 
@@ -68,7 +78,15 @@ export default function VaconHistoryModal({
 
                             device &&
 
-                            <div className="mt-2 text-sm text-gray-500">
+                            <div
+                                className="
+                                    mt-2
+                                    text-xs
+                                    md:text-sm
+                                    text-gray-500
+                                    space-y-1
+                                "
+                            >
 
                                 <div>
 
@@ -112,8 +130,8 @@ export default function VaconHistoryModal({
 
                 <div
                     className="
+                        flex-1
                         overflow-auto
-                        max-h-[75vh]
                     "
                 >
 
@@ -147,100 +165,179 @@ export default function VaconHistoryModal({
 
                                 :
 
-                                (
+                                <>
 
-                                    <table className="w-full text-sm">
+                                    {/* ================= Desktop ================= */}
 
-                                        <thead
-                                            className="
-                                                sticky
-                                                top-0
-                                                bg-yellow-300
-                                                z-10
-                                            "
-                                        >
+                                    <div className="hidden md:block">
 
-                                            <tr>
+                                        <table className="w-full text-sm">
 
-                                                <th className="px-3 py-3">
+                                            <thead
+                                                className="
+                                                    sticky
+                                                    top-0
+                                                    bg-yellow-300
+                                                    z-10
+                                                "
+                                            >
 
-                                                    STT
+                                                <tr>
 
-                                                </th>
+                                                    <th className="px-3 py-3">STT</th>
 
-                                                <th className="px-3 py-3">
+                                                    <th className="px-3 py-3">Ngày</th>
 
-                                                    Ngày
+                                                    <th className="px-3 py-3">Operation Hours</th>
 
-                                                </th>
+                                                    <th className="px-3 py-3">Power Unit</th>
 
-                                                <th className="px-3 py-3">
+                                                    <th className="px-3 py-3">Fault</th>
 
-                                                    Operation Hours
+                                                    <th className="px-3 py-3">Description</th>
 
-                                                </th>
+                                                    <th className="px-3 py-3">Cause</th>
 
-                                                <th className="px-3 py-3">
+                                                    <th className="px-3 py-3">Corrective</th>
 
-                                                    Power Unit
+                                                    <th className="px-3 py-3">Note</th>
 
-                                                </th>
+                                                </tr>
 
-                                                <th className="px-3 py-3">
+                                            </thead>
 
-                                                    Fault
+                                            <tbody>
 
-                                                </th>
+                                                {
 
-                                                <th className="px-3 py-3">
+                                                    histories.map((h, index) => (
 
-                                                    Description
+                                                        <tr
+                                                            key={h.id}
+                                                            className="border-t align-top"
+                                                        >
 
-                                                </th>
+                                                            <td className="px-3 py-3 text-center">
 
-                                                <th className="px-3 py-3">
+                                                                {index + 1}
 
-                                                    Cause
+                                                            </td>
 
-                                                </th>
+                                                            <td className="px-3 py-3">
 
-                                                <th className="px-3 py-3">
+                                                                {
 
-                                                    Corrective
+                                                                    h.recordDate
 
-                                                </th>
+                                                                        ?
 
-                                                <th className="px-3 py-3">
+                                                                        new Date(
+                                                                            h.recordDate
+                                                                        ).toLocaleDateString("vi-VN")
 
-                                                    Note
+                                                                        :
 
-                                                </th>
+                                                                        "-"
 
-                                            </tr>
+                                                                }
 
-                                        </thead>
+                                                            </td>
 
-                                        <tbody>
+                                                            <td className="px-3 py-3">
 
-                                            {
+                                                                {h.operationHours || "-"}
 
-                                                histories.map((h, index) => (
+                                                            </td>
 
-                                                    <tr
+                                                            <td className="px-3 py-3">
 
-                                                        key={h.id}
+                                                                {h.powerUnitDate || "-"}
 
-                                                        className="border-t"
+                                                            </td>
 
+                                                            <td className="px-3 py-3 whitespace-pre-wrap">
+
+                                                                {h.faultHistory || "-"}
+
+                                                            </td>
+
+                                                            <td className="px-3 py-3 whitespace-pre-wrap">
+
+                                                                {h.description || "-"}
+
+                                                            </td>
+
+                                                            <td className="px-3 py-3 whitespace-pre-wrap">
+
+                                                                {h.possibleCause || "-"}
+
+                                                            </td>
+
+                                                            <td className="px-3 py-3 whitespace-pre-wrap">
+
+                                                                {h.correctiveActions || "-"}
+
+                                                            </td>
+
+                                                            <td className="px-3 py-3 whitespace-pre-wrap">
+
+                                                                {h.note || "-"}
+
+                                                            </td>
+
+                                                        </tr>
+
+                                                    ))
+
+                                                }
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                    {/* ================= Mobile ================= */}
+
+                                    <div
+                                        className="
+                                            md:hidden
+                                            p-3
+                                            space-y-4
+                                        "
+                                    >
+
+                                        {
+
+                                            histories.map((h, index) => (
+
+                                                <div
+                                                    key={h.id}
+                                                    className="
+                                                        rounded-xl
+                                                        border
+                                                        shadow-sm
+                                                        p-4
+                                                        bg-white
+                                                    "
+                                                >
+
+                                                    <div
+                                                        className="
+                                                            flex
+                                                            justify-between
+                                                            items-center
+                                                            mb-3
+                                                        "
                                                     >
 
-                                                        <td className="px-3 py-3 text-center">
+                                                        <div className="font-bold">
 
-                                                            {index + 1}
+                                                            Lần #{index + 1}
 
-                                                        </td>
+                                                        </div>
 
-                                                        <td className="px-3 py-3">
+                                                        <div className="text-xs text-gray-500">
 
                                                             {
 
@@ -249,9 +346,7 @@ export default function VaconHistoryModal({
                                                                     ?
 
                                                                     new Date(
-
                                                                         h.recordDate
-
                                                                     ).toLocaleDateString("vi-VN")
 
                                                                     :
@@ -260,61 +355,105 @@ export default function VaconHistoryModal({
 
                                                             }
 
-                                                        </td>
+                                                        </div>
 
-                                                        <td className="px-3 py-3">
+                                                    </div>
 
-                                                            {h.operationHours || "-"}
+                                                    <div className="space-y-3 text-sm">
 
-                                                        </td>
+                                                        <div>
 
-                                                        <td className="px-3 py-3">
+                                                            <b>Operation Hours</b>
 
-                                                            {h.powerUnitDate || "-"}
+                                                            <div>{h.operationHours || "-"}</div>
 
-                                                        </td>
+                                                        </div>
 
-                                                        <td className="px-3 py-3 whitespace-pre-wrap">
+                                                        <div>
 
-                                                            {h.faultHistory || "-"}
+                                                            <b>Power Unit</b>
 
-                                                        </td>
+                                                            <div>{h.powerUnitDate || "-"}</div>
 
-                                                        <td className="px-3 py-3 whitespace-pre-wrap">
+                                                        </div>
 
-                                                            {h.description || "-"}
+                                                        <div>
 
-                                                        </td>
+                                                            <b>Fault</b>
 
-                                                        <td className="px-3 py-3 whitespace-pre-wrap">
+                                                            <div className="whitespace-pre-wrap">
 
-                                                            {h.possibleCause || "-"}
+                                                                {h.faultHistory || "-"}
 
-                                                        </td>
+                                                            </div>
 
-                                                        <td className="px-3 py-3 whitespace-pre-wrap">
+                                                        </div>
 
-                                                            {h.correctiveActions || "-"}
+                                                        <div>
 
-                                                        </td>
+                                                            <b>Description</b>
 
-                                                        <td className="px-3 py-3 whitespace-pre-wrap">
+                                                            <div className="whitespace-pre-wrap">
 
-                                                            {h.note || "-"}
+                                                                {h.description || "-"}
 
-                                                        </td>
+                                                            </div>
 
-                                                    </tr>
+                                                        </div>
 
-                                                ))
+                                                        <div>
 
-                                            }
+                                                            <b>Possible Cause</b>
 
-                                        </tbody>
+                                                            <div className="whitespace-pre-wrap">
 
-                                    </table>
+                                                                {h.possibleCause || "-"}
 
-                                )
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div>
+
+                                                            <b>Corrective Action</b>
+
+                                                            <div className="whitespace-pre-wrap">
+
+                                                                {h.correctiveActions || "-"}
+
+                                                            </div>
+
+                                                        </div>
+
+                                                        {
+
+                                                            h.note &&
+
+                                                            <div>
+
+                                                                <b>Note</b>
+
+                                                                <div className="whitespace-pre-wrap">
+
+                                                                    {h.note}
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        }
+
+                                                    </div>
+
+                                                </div>
+
+                                            ))
+
+                                        }
+
+                                    </div>
+
+                                </>
 
                     }
 
