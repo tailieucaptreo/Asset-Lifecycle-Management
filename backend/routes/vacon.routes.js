@@ -23,7 +23,7 @@ router.get(
   vaconController.getAll
 );
 
-router.post(
+router.get(
   "/migrate",
   vaconController.migrateData
 );
