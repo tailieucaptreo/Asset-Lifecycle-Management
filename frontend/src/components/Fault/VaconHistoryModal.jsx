@@ -333,7 +333,7 @@ export default function VaconHistoryModal({
 
                                                         <div className="font-bold">
 
-                                                            Lần #{index + 1}
+                                                            Lỗi #{index + 1}
 
                                                         </div>
 
