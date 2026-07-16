@@ -25,8 +25,6 @@ router.get(
 
 router.post(
   "/migrate",
-  auth,
-  adminOnly,
   vaconController.migrateData
 );
 
