@@ -4,6 +4,8 @@ import {
     Trash2
 } from "lucide-react";
 
+import VaconCard from "./VaconCard";
+
 export default function VaconDeviceTable({
 
     role,
@@ -44,277 +46,280 @@ export default function VaconDeviceTable({
 
     return (
 
-        <div
-            className="
-                bg-white
-                rounded-2xl
-                shadow
-                overflow-hidden
-            "
-        >
+        <>
+
+            {/* ================= Desktop ================= */}
 
             <div
                 className="
-                    overflow-auto
-                    max-h-[70vh]
+                    hidden
+                    md:block
+                    bg-white
+                    rounded-2xl
+                    shadow
+                    overflow-hidden
                 "
             >
 
-                <table
+                <div
                     className="
-                        w-full
-                        text-sm
+                        overflow-auto
+                        max-h-[70vh]
                     "
                 >
 
-                    <thead
+                    <table
                         className="
-                            sticky
-                            top-0
-                            bg-yellow-300
-                            z-10
+                            w-full
+                            text-sm
                         "
                     >
 
-                        <tr>
+                        <thead
+                            className="
+                                sticky
+                                top-0
+                                bg-yellow-300
+                                z-10
+                            "
+                        >
 
-                            <th className="px-3 py-3 text-center">
+                            <tr>
 
-                                STT
+                                <th className="px-3 py-3 text-center">
+                                    STT
+                                </th>
 
-                            </th>
+                                <th className="px-3 py-3 text-left">
+                                    Device Name
+                                </th>
 
-                            <th className="px-3 py-3 text-left">
+                                <th className="px-3 py-3 text-left">
+                                    Serial Number
+                                </th>
 
-                                Device Name
+                                <th className="px-3 py-3 text-center">
+                                    Station
+                                </th>
 
-                            </th>
+                                <th className="px-3 py-3 text-center">
+                                    Tandem
+                                </th>
 
-                            <th className="px-3 py-3 text-left">
+                                <th className="px-3 py-3 text-center">
+                                    Application
+                                </th>
 
-                                Serial Number
+                                <th className="px-3 py-3 text-center">
+                                    Lần kiểm tra gần nhất
+                                </th>
 
-                            </th>
+                                <th className="px-3 py-3 text-center">
+                                    Thao tác
+                                </th>
 
-                            <th className="px-3 py-3 text-center">
+                            </tr>
 
-                                Station
+                        </thead>
 
-                            </th>
+                        <tbody>
 
-                            <th className="px-3 py-3 text-center">
+                            {
 
-                                Tandem
+                                devices.map((item, index) => (
 
-                            </th>
+                                    <tr
 
-                            <th className="px-3 py-3 text-center">
+                                        key={item.id}
 
-                                Application
+                                        className="
+                                            border-t
+                                            hover:bg-slate-50
+                                        "
 
-                            </th>
+                                    >
 
-                            <th className="px-3 py-3 text-center">
+                                        <td className="px-3 py-3 text-center">
 
-                                Lần kiểm tra gần nhất
+                                            {index + 1}
 
-                            </th>
+                                        </td>
 
-                            <th className="px-3 py-3 text-center">
+                                        <td className="px-3 py-3 font-medium">
 
-                                Thao tác
+                                            {item.deviceName}
 
-                            </th>
+                                        </td>
 
-                        </tr>
+                                        <td className="px-3 py-3">
 
-                    </thead>
+                                            {item.serialNumber}
 
-                    <tbody>
+                                        </td>
 
-                        {
+                                        <td className="px-3 py-3 text-center">
 
-                            devices.map((item, index) => (
+                                            {item.station || "-"}
 
-                                <tr
+                                        </td>
 
-                                    key={item.id}
+                                        <td className="px-3 py-3 text-center">
 
-                                    className="
-                                        border-t
-                                        hover:bg-slate-50
-                                    "
+                                            {item.tandem || "-"}
 
-                                >
+                                        </td>
 
-                                    <td className="px-3 py-3 text-center">
+                                        <td className="px-3 py-3 text-center">
 
-                                        {index + 1}
+                                            {item.application || "-"}
 
-                                    </td>
+                                        </td>
 
-                                    <td className="px-3 py-3 font-medium">
-
-                                        {item.deviceName}
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        {item.serialNumber}
-
-                                    </td>
-
-                                    <td className="px-3 py-3 text-center">
-
-                                        {item.station || "-"}
-
-                                    </td>
-
-                                    <td className="px-3 py-3 text-center">
-
-                                        {item.tandem || "-"}
-
-                                    </td>
-
-                                    <td className="px-3 py-3 text-center">
-
-                                        {item.application || "-"}
-
-                                    </td>
-
-                                    <td className="px-3 py-3 text-center">
-
-                                        {
-
-                                            item.recordDate
-
-                                                ? new Date(
-                                                    item.recordDate
-                                                ).toLocaleDateString("vi-VN")
-
-                                                : "-"
-
-                                        }
-
-                                    </td>
-
-                                    <td className="px-3 py-3">
-
-                                        <div
-                                            className="
-                                                flex
-                                                justify-center
-                                                gap-2
-                                            "
-                                        >
-
-                                            <button
-
-                                                onClick={() =>
-                                                    onViewHistory(item)
-                                                }
-
-                                                className="
-                                                    text-blue-600
-                                                    hover:text-blue-800
-                                                "
-
-                                                title="Lịch sử"
-
-                                            >
-
-                                                <Eye size={18} />
-
-                                            </button>
+                                        <td className="px-3 py-3 text-center">
 
                                             {
-
-                                                role === "admin" &&
-
-                                                <>
-
-                                                    <button
-
-                                                        onClick={() =>
-                                                            onEdit(item)
-                                                        }
-
-                                                        className="
-                                                            text-amber-600
-                                                            hover:text-amber-800
-                                                        "
-
-                                                    >
-
-                                                        <Pencil size={18} />
-
-                                                    </button>
-
-                                                    <button
-
-                                                        onClick={() =>
-                                                            onDelete(item)
-                                                        }
-
-                                                        className="
-                                                            text-red-600
-                                                            hover:text-red-800
-                                                        "
-
-                                                    >
-
-                                                        <Trash2 size={18} />
-
-                                                    </button>
-
-                                                </>
-
+                                                item.recordDate
+                                                    ? new Date(item.recordDate).toLocaleDateString("vi-VN")
+                                                    : "-"
                                             }
 
-                                        </div>
+                                        </td>
+
+                                        <td className="px-3 py-3">
+
+                                            <div
+                                                className="
+                                                    flex
+                                                    justify-center
+                                                    gap-2
+                                                "
+                                            >
+
+                                                <button
+                                                    onClick={() => onViewHistory(item)}
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+
+                                                {
+
+                                                    role === "admin" &&
+
+                                                    <>
+
+                                                        <button
+                                                            onClick={() => onEdit(item)}
+                                                            className="text-amber-600 hover:text-amber-800"
+                                                        >
+                                                            <Pencil size={18} />
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => onDelete(item)}
+                                                            className="text-red-600 hover:text-red-800"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+
+                                                    </>
+
+                                                }
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))
+
+                            }
+
+                            {
+
+                                devices.length === 0 &&
+
+                                <tr>
+
+                                    <td
+                                        colSpan={8}
+                                        className="
+                                            py-10
+                                            text-center
+                                            text-gray-500
+                                        "
+                                    >
+
+                                        Không có dữ liệu.
 
                                     </td>
 
                                 </tr>
 
-                            ))
+                            }
 
-                        }
+                        </tbody>
 
-                        {
+                    </table>
 
-                            devices.length === 0 &&
-
-                            <tr>
-
-                                <td
-
-                                    colSpan={8}
-
-                                    className="
-                                        py-10
-                                        text-center
-                                        text-gray-500
-                                    "
-
-                                >
-
-                                    Không có dữ liệu.
-
-                                </td>
-
-                            </tr>
-
-                        }
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
 
-        </div>
+            {/* ================= Mobile ================= */}
+
+            <div
+                className="
+                    md:hidden
+                    space-y-4
+                "
+            >
+
+                {
+
+                    devices.length === 0 ?
+
+                        (
+
+                            <div
+                                className="
+                                    bg-white
+                                    rounded-2xl
+                                    shadow
+                                    p-8
+                                    text-center
+                                    text-gray-500
+                                "
+                            >
+
+                                Không có dữ liệu.
+
+                            </div>
+
+                        )
+
+                        :
+
+                        devices.map(item => (
+
+                            <VaconCard
+
+                                key={item.id}
+
+                                item={item}
+
+                                onView={onViewHistory}
+
+                            />
+
+                        ))
+
+                }
+
+            </div>
+
+        </>
 
     );
 

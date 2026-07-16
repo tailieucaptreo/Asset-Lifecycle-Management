@@ -16,18 +16,6 @@ export default function VaconCard({
 
 }) {
 
-    const shortText = (text, max = 80) => {
-
-        if (!text) return "-";
-
-        return text.length > max
-
-            ? text.substring(0, max) + "..."
-
-            : text;
-
-    };
-
     return (
 
         <MobileCard
@@ -58,19 +46,6 @@ export default function VaconCard({
 
             <MobileInfo
 
-                label="Record Date"
-
-                value={
-                    item.recordDate
-                        ? new Date(item.recordDate)
-                              .toLocaleDateString("vi-VN")
-                        : "-"
-                }
-
-            />
-
-            <MobileInfo
-
                 label="Station"
 
                 value={item.station || "-"}
@@ -89,95 +64,29 @@ export default function VaconCard({
 
                 label="Application"
 
-                value={shortText(item.application)}
+                value={item.application || "-"}
 
             />
 
             <MobileInfo
 
-                label="Operation Hours"
+                label="Lần kiểm tra gần nhất"
 
-                value={item.operationHours || "-"}
+                value={
+                    item.recordDate
+                        ? new Date(item.recordDate).toLocaleDateString("vi-VN")
+                        : "-"
+                }
 
             />
 
             <MobileInfo
 
-                label="Power Unit Date"
+                label="Số lần kiểm tra"
 
-                value={item.powerUnitDate || "-"}
+                value={item._count?.histories || 0}
 
             />
-
-            {
-
-                item.faultHistory &&
-
-                <MobileInfo
-
-                    label="Fault History"
-
-                    value={shortText(item.faultHistory)}
-
-                />
-
-            }
-
-            {
-
-                item.description &&
-
-                <MobileInfo
-
-                    label="Description"
-
-                    value={shortText(item.description)}
-
-                />
-
-            }
-
-            {
-
-                item.possibleCause &&
-
-                <MobileInfo
-
-                    label="Possible Cause"
-
-                    value={shortText(item.possibleCause)}
-
-                />
-
-            }
-
-            {
-
-                item.correctiveActions &&
-
-                <MobileInfo
-
-                    label="Corrective Actions"
-
-                    value={shortText(item.correctiveActions)}
-
-                />
-
-            }
-
-            {
-
-                item.note &&
-
-                <MobileInfo
-
-                    label="Note"
-
-                    value={shortText(item.note)}
-
-                />
-
-            }
 
         </MobileCard>
 
