@@ -3,28 +3,95 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 
+
 // ============================
-// GET ALL
+// GET ALL DEVICES
 // ============================
 exports.getAll = async (req, res) => {
 
   try {
 
-    const data =
-      await prisma.vaconRecord.findMany({
+    const devices =
+      await prisma.vaconDevice.findMany({
+
+        include: {
+
+          histories: {
+
+            orderBy: {
+
+              recordDate: "desc"
+
+            },
+
+            take: 1
+
+          }
+
+        },
+
         orderBy: {
-          recordDate: "desc"
+
+          deviceName: "asc"
+
         }
+
       });
 
-    res.json(data);
+    const result =
+      devices.map(device => {
 
-  } catch (err) {
+        const history =
+          device.histories[0] || {};
 
-    console.log(err);
+        return {
+
+          id: device.id,
+
+          deviceName: device.deviceName,
+
+          serialNumber: device.serialNumber,
+
+          station: device.station,
+
+          tandem: device.tandem,
+
+          application: device.application,
+
+          recordDate: history.recordDate || null,
+
+          operationHours: history.operationHours || null,
+
+          powerUnitDate: history.powerUnitDate || null,
+
+          faultHistory: history.faultHistory || null,
+
+          description: history.description || null,
+
+          possibleCause: history.possibleCause || null,
+
+          correctiveActions: history.correctiveActions || null,
+
+          note: history.note || null,
+
+          createdAt: device.createdAt
+
+        };
+
+      });
+
+    res.json(result);
+
+  }
+
+  catch (err) {
+
+    console.error(err);
 
     res.status(500).json({
+
       message: err.message
+
     });
 
   }
@@ -619,6 +686,98 @@ exports.importExcel = async (req, res) => {
     res.status(500).json({
 
       success: false,
+
+      message: err.message
+
+    });
+
+  }
+
+};
+
+// ============================
+// GET HISTORY BY DEVICE
+// ============================
+exports.getHistory = async (req, res) => {
+
+  try {
+
+    const deviceId = Number(req.params.deviceId);
+
+    if (isNaN(deviceId)) {
+
+      return res.status(400).json({
+
+        message: "deviceId không hợp lệ"
+
+      });
+
+    }
+
+    const device =
+      await prisma.vaconDevice.findUnique({
+
+        where: {
+
+          id: deviceId
+
+        },
+
+        include: {
+
+          histories: {
+
+            orderBy: {
+
+              recordDate: "desc"
+
+            }
+
+          }
+
+        }
+
+      });
+
+    if (!device) {
+
+      return res.status(404).json({
+
+        message: "Không tìm thấy thiết bị"
+
+      });
+
+    }
+
+    res.json({
+
+      device: {
+
+        id: device.id,
+
+        deviceName: device.deviceName,
+
+        serialNumber: device.serialNumber,
+
+        station: device.station,
+
+        tandem: device.tandem,
+
+        application: device.application
+
+      },
+
+      histories: device.histories
+
+    });
+
+  }
+
+  catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
 
       message: err.message
 

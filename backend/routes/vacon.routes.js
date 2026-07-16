@@ -29,6 +29,12 @@ router.get(
     vaconController.exportExcel
 );
 
+router.get(
+  "/history/:deviceId",
+  auth,
+  vaconController.getHistory
+);
+
 // Chi tiết
 router.get(
   "/:id",
