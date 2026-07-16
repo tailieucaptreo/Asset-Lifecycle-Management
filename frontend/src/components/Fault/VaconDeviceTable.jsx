@@ -4,7 +4,7 @@ import {
     Trash2
 } from "lucide-react";
 
-import VaconCard from "./VaconCard";
+import VaconCard from "../mobile/VaconCard";
 
 export default function VaconDeviceTable({
 
