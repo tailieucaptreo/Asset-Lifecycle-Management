@@ -37,7 +37,7 @@ export default function DriveFaultHistory() {
 
         loadData();
 
-    }, [tab]);
+    }, [tab, search]);
 
     const [histories, setHistories] = useState([]);
 
@@ -87,10 +87,15 @@ export default function DriveFaultHistory() {
 
                 {
 
+                    params: {
+
+                        search
+
+                    },
+
                     headers: {
 
                         Authorization:
-
                             `Bearer ${localStorage.getItem("token")}`
 
                     }
@@ -172,50 +177,6 @@ export default function DriveFaultHistory() {
         }
 
     };
-
-    const filtered =
-
-        tab === "VACON"
-
-            ?
-
-            records.filter(item => {
-
-                const keyword =
-                    search.toLowerCase();
-
-                return (
-
-                    item.deviceName?.toLowerCase().includes(keyword)
-
-                    ||
-
-                    item.serialNumber?.toLowerCase().includes(keyword)
-
-                    ||
-
-                    item.station?.toLowerCase().includes(keyword)
-
-                );
-
-            })
-
-            :
-
-            records.filter(item => {
-
-                const keyword =
-                    search.toLowerCase();
-
-                return Object.values(item)
-
-                    .join(" ")
-
-                    .toLowerCase()
-
-                    .includes(keyword);
-
-            });
 
     const handleEdit = (item) => {
 
@@ -843,7 +804,7 @@ export default function DriveFaultHistory() {
 
                         role={role}
 
-                        devices={filtered}
+                        devices={records}
 
                         loading={loading}
 
@@ -861,7 +822,7 @@ export default function DriveFaultHistory() {
 
                         role={role}
 
-                        records={filtered}
+                        records={records}
 
                         loading={loading}
 

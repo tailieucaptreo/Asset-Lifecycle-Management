@@ -5,96 +5,201 @@ const ExcelJS = require("exceljs");
 
 
 // ============================
-// GET ALL DEVICES
+// GET ALL VACON DEVICE
 // ============================
 exports.getAll = async (req, res) => {
 
-  try {
+    try {
 
-    const devices =
-      await prisma.vaconDevice.findMany({
+        const search = req.query.search?.trim() || "";
 
-        include: {
+        const devices = await prisma.vaconDevice.findMany({
 
-          histories: {
+            where: search
 
-            orderBy: {
+                ? {
 
-              recordDate: "desc"
+                    OR: [
+
+                        {
+                            deviceName: {
+                                contains: search,
+                                mode: "insensitive"
+                            }
+                        },
+
+                        {
+                            serialNumber: {
+                                contains: search,
+                                mode: "insensitive"
+                            }
+                        },
+
+                        {
+                            station: {
+                                contains: search,
+                                mode: "insensitive"
+                            }
+                        },
+
+                        {
+                            tandem: {
+                                contains: search,
+                                mode: "insensitive"
+                            }
+                        },
+
+                        {
+                            application: {
+                                contains: search,
+                                mode: "insensitive"
+                            }
+                        },
+
+                        {
+                            histories: {
+
+                                some: {
+
+                                    OR: [
+
+                                        {
+                                            faultHistory: {
+                                                contains: search,
+                                                mode: "insensitive"
+                                            }
+                                        },
+
+                                        {
+                                            description: {
+                                                contains: search,
+                                                mode: "insensitive"
+                                            }
+                                        },
+
+                                        {
+                                            possibleCause: {
+                                                contains: search,
+                                                mode: "insensitive"
+                                            }
+                                        },
+
+                                        {
+                                            correctiveActions: {
+                                                contains: search,
+                                                mode: "insensitive"
+                                            }
+                                        }
+
+                                    ]
+
+                                }
+
+                            }
+
+                        }
+
+                    ]
+
+                }
+
+                : {},
+
+            include: {
+
+                histories: {
+
+                    orderBy: {
+
+                        recordDate: "desc"
+
+                    },
+
+                    take: 1,
+
+                    select: {
+
+                        recordDate: true
+
+                    }
+
+                },
+
+                _count: {
+
+                    select: {
+
+                        histories: true
+
+                    }
+
+                }
 
             },
 
-            take: 1
+            orderBy: [
 
-          }
+                {
 
-        },
+                    deviceName: "asc"
 
-        orderBy: {
+                },
 
-          deviceName: "asc"
+                {
 
-        }
+                    serialNumber: "asc"
 
-      });
+                }
 
-    const result =
-      devices.map(device => {
+            ]
 
-        const history =
-          device.histories[0] || {};
+        });
 
-        return {
+        const result = devices.map(device => ({
 
-          id: device.id,
+            id: device.id,
 
-          deviceName: device.deviceName,
+            deviceName: device.deviceName,
 
-          serialNumber: device.serialNumber,
+            serialNumber: device.serialNumber,
 
-          station: device.station,
+            station: device.station,
 
-          tandem: device.tandem,
+            tandem: device.tandem,
 
-          application: device.application,
+            application: device.application,
 
-          recordDate: history.recordDate || null,
+            recordDate:
 
-          operationHours: history.operationHours || null,
+                device.histories.length
 
-          powerUnitDate: history.powerUnitDate || null,
+                    ? device.histories[0].recordDate
 
-          faultHistory: history.faultHistory || null,
+                    : null,
 
-          description: history.description || null,
+            historyCount:
 
-          possibleCause: history.possibleCause || null,
+                device._count.histories
 
-          correctiveActions: history.correctiveActions || null,
+        }));
 
-          note: history.note || null,
+        res.json(result);
 
-          createdAt: device.createdAt
+    }
 
-        };
+    catch (err) {
 
-      });
+        console.log(err);
 
-    res.json(result);
+        res.status(500).json({
 
-  }
+            success: false,
 
-  catch (err) {
+            message: err.message
 
-    console.error(err);
+        });
 
-    res.status(500).json({
-
-      message: err.message
-
-    });
-
-  }
+    }
 
 };
 
