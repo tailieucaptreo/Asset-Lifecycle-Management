@@ -3,12 +3,12 @@ import axios from "axios";
 
 import API from "../config";
 
-import VaconHistory from "../components/Fault/VaconHistory";
 import AbbTable from "../components/Fault/AbbTable";
 import DriveImportModal from "../components/Drive/DriveImportModal";
 import AbbEditModal from "../components/Fault/AbbEditModal";
 import VaconEditModal from "../components/Fault/VaconEditModal";
-import VaconDetailModal from "../components/Fault/VaconDetailModal";
+import VaconDeviceTable from "../components/Fault/VaconDeviceTable";
+import VaconHistoryModal from "../components/Fault/VaconHistoryModal";
 
 import {
     Upload,
@@ -38,6 +38,17 @@ export default function DriveFaultHistory() {
         loadData();
 
     }, [tab]);
+
+    const [histories, setHistories] = useState([]);
+
+    const [selectedDevice, setSelectedDevice] =
+        useState(null);
+
+    const [openHistory, setOpenHistory] =
+        useState(false);
+
+    const [historyLoading, setHistoryLoading] =
+        useState(false);
 
     const [openImport, setOpenImport] = useState(false);
 
@@ -114,26 +125,97 @@ export default function DriveFaultHistory() {
 
     };
 
-    const handleVaconView = (item) => {
+    const handleVaconView = async (device) => {
 
-        setSelectedVacon(item);
+        try {
 
-        setOpenVaconDetail(true);
+            setHistoryLoading(true);
+
+            const res = await axios.get(
+
+                `${API}/api/vacon/history/${device.id}`,
+
+                {
+
+                    headers: {
+
+                        Authorization:
+
+                            `Bearer ${localStorage.getItem("token")}`
+
+                    }
+
+                }
+
+            );
+
+            setSelectedDevice(res.data.device);
+
+            setHistories(res.data.histories);
+
+            setOpenHistory(true);
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            alert("Không tải được lịch sử.");
+
+        }
+
+        finally {
+
+            setHistoryLoading(false);
+
+        }
 
     };
 
     const filtered =
-        records.filter(item => {
 
-            const keyword =
-                search.toLowerCase();
+        tab === "VACON"
 
-            return Object.values(item)
-                .join(" ")
-                .toLowerCase()
-                .includes(keyword);
+            ?
 
-        });
+            records.filter(item => {
+
+                const keyword =
+                    search.toLowerCase();
+
+                return (
+
+                    item.deviceName?.toLowerCase().includes(keyword)
+
+                    ||
+
+                    item.serialNumber?.toLowerCase().includes(keyword)
+
+                    ||
+
+                    item.station?.toLowerCase().includes(keyword)
+
+                );
+
+            })
+
+            :
+
+            records.filter(item => {
+
+                const keyword =
+                    search.toLowerCase();
+
+                return Object.values(item)
+
+                    .join(" ")
+
+                    .toLowerCase()
+
+                    .includes(keyword);
+
+            });
 
     const handleEdit = (item) => {
 
@@ -234,7 +316,7 @@ export default function DriveFaultHistory() {
         }
 
     };
-    
+
     const handleImport = async () => {
 
         try {
@@ -757,15 +839,15 @@ export default function DriveFaultHistory() {
 
                     ?
 
-                    <VaconHistory
+                    <VaconDeviceTable
 
                         role={role}
 
-                        records={filtered}
+                        devices={filtered}
 
                         loading={loading}
 
-                        onView={handleVaconView}
+                        onViewHistory={handleVaconView}
 
                         onEdit={handleVaconEdit}
 
@@ -827,17 +909,23 @@ export default function DriveFaultHistory() {
 
             />
 
-            <VaconDetailModal
+            <VaconHistoryModal
 
-                open={openVaconDetail}
+                open={openHistory}
 
-                data={selectedVacon}
+                device={selectedDevice}
+
+                histories={histories}
+
+                loading={historyLoading}
 
                 onClose={() => {
 
-                    setOpenVaconDetail(false);
+                    setOpenHistory(false);
 
-                    setSelectedVacon(null);
+                    setSelectedDevice(null);
+
+                    setHistories([]);
 
                 }}
 
