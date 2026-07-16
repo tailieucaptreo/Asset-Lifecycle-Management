@@ -786,3 +786,92 @@ exports.getHistory = async (req, res) => {
   }
 
 };
+
+// ============================
+// MIGRATE VACON RECORD -> DEVICE + HISTORY
+// ============================
+exports.migrateData = async (req, res) => {
+  try {
+
+    const records = await prisma.vaconRecord.findMany({
+      orderBy: {
+        recordDate: "asc"
+      }
+    });
+
+    let deviceCount = 0;
+    let historyCount = 0;
+
+    await prisma.$transaction(async (tx) => {
+
+      for (const row of records) {
+
+        if (!row.serialNumber) continue;
+
+        let device = await tx.vaconDevice.findUnique({
+          where: {
+            serialNumber: row.serialNumber
+          }
+        });
+
+        if (!device) {
+
+          device = await tx.vaconDevice.create({
+            data: {
+              deviceName: row.deviceName || "",
+              serialNumber: row.serialNumber,
+              station: row.station,
+              tandem: row.tandem,
+              application: row.application
+            }
+          });
+
+          deviceCount++;
+        }
+
+        const existed = await tx.vaconHistory.findFirst({
+          where: {
+            deviceId: device.id,
+            recordDate: row.recordDate,
+            operationHours: row.operationHours
+          }
+        });
+
+        if (existed) continue;
+
+        await tx.vaconHistory.create({
+          data: {
+            deviceId: device.id,
+            recordDate: row.recordDate,
+            operationHours: row.operationHours,
+            powerUnitDate: row.powerUnitDate,
+            faultHistory: row.faultHistory,
+            description: row.description,
+            possibleCause: row.possibleCause,
+            correctiveActions: row.correctiveActions,
+            note: row.note
+          }
+        });
+
+        historyCount++;
+      }
+
+    });
+
+    res.json({
+      success: true,
+      devices: deviceCount,
+      histories: historyCount
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+
+  }
+};

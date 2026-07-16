@@ -23,6 +23,13 @@ router.get(
   vaconController.getAll
 );
 
+router.post(
+  "/migrate",
+  auth,
+  adminOnly,
+  vaconController.migrateData
+);
+
 router.get(
     "/export",
     auth,
