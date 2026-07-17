@@ -300,3 +300,31 @@ model VaconHistory {
 
   @@index([recordDate])
 }
+
+model ImportSession {
+
+  id String @id @default(cuid())
+
+  module String
+
+  filename String?
+
+  data Json
+
+  total Int
+
+  newCount Int
+
+  updateCount Int
+
+  skipCount Int
+
+  userId Int?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  expiredAt DateTime
+
+}
