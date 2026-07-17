@@ -15,6 +15,14 @@ export default function Drive() {
 
     const role = localStorage.getItem("role") || "user";
 
+    const token = localStorage.getItem("token");
+
+    const config = {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
+
     const [drives, setDrives] = useState([]);
 
     const [loading, setLoading] = useState(true);
@@ -34,25 +42,19 @@ export default function Drive() {
     const [open, setOpen] = useState(false);
 
     const [mode, setMode] = useState("view");
-    
+
     const [selectedDrive, setSelectedDrive] = useState(null);
 
     const [openImport, setOpenImport] = useState(false);
 
-    const [preview, setPreview] = useState([]);
-    
-    const [importFile, setImportFile] = useState(null);
-    
-    const [importLoading, setImportLoading] = useState(false);
-
     const [statistics, setStatistics] = useState({
 
         total: 0,
-    
+
         abb: 0,
-    
+
         vacon: 0
-    
+
     });
 
     const [filters, setFilters] = useState({
@@ -82,7 +84,8 @@ export default function Drive() {
         try {
 
             const res = await axios.get(
-                `${API}/api/drives`
+                `${API}/api/drives`,
+                config
             );
 
             setDrives(res.data);
@@ -100,7 +103,11 @@ export default function Drive() {
     async function loadFilters() {
 
         const res = await axios.get(
-            `${API}/api/drives/filters`
+
+            `${API}/api/drives/filters`,
+
+            config
+
         );
 
         setFilters(res.data);
@@ -181,249 +188,165 @@ export default function Drive() {
     async function loadStatistics() {
 
         try {
-    
+
             const res = await axios.get(
-                `${API}/api/drives/statistics`
+
+                `${API}/api/drives/statistics`,
+
+                config
+
             );
-    
+
             setStatistics(res.data);
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
         }
-    
+
     }
 
     const handleCreate = () => {
 
         setSelectedDrive(null);
-    
+
         setMode("create");
-    
+
         setOpen(true);
-    
+
     };
 
     const handleView = (drive) => {
 
         setSelectedDrive(drive);
-    
+
         setMode("view");
-    
+
         setOpen(true);
-    
+
     };
 
     const handleEdit = (drive) => {
 
         setSelectedDrive(drive);
-    
+
         setMode("edit");
-    
+
         setOpen(true);
-    
+
     };
 
     const handleClose = () => {
 
         setOpen(false);
-    
+
         setSelectedDrive(null);
-    
+
     };
 
     const handleDelete = (drive) => {
 
         if (!confirm("Xóa biến tần này?")) {
-    
+
             return;
-    
+
         }
-    
+
         console.log(drive);
-    
+
     };
 
     const handleSave = async (form) => {
 
         try {
-    
-            const token = localStorage.getItem("token");
-    
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            };
-    
+
             if (mode === "create") {
-    
+
                 await axios.post(
                     `${API}/api/drives`,
                     form,
                     config
                 );
-    
+
             } else {
-    
+
                 await axios.put(
                     `${API}/api/drives/${selectedDrive.id}`,
                     form,
                     config
                 );
-    
+
             }
-    
+
             await loadDrives();
             await loadStatistics();
-    
+
             handleClose();
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.log(err);
-    
+
             alert("Không thể lưu dữ liệu.");
-    
+
         }
-    
+
     };
 
     const handleExport = async () => {
 
         try {
-    
+
             const response = await axios.get(
-    
+
                 `${API}/api/drives/export`,
-    
+
                 {
-    
+                    ...config,
+
                     responseType: "blob"
-    
+
                 }
-    
+
             );
-    
+
             const blob = new Blob([response.data], {
                 type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             });
-    
+
             const url = window.URL.createObjectURL(blob);
-    
+
             const link = document.createElement("a");
-    
+
             link.href = url;
-    
-            link.download = `Drive_${new Date().toISOString().slice(0,10)}.xlsx`;
-    
+
+            link.download = `Drive_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
             document.body.appendChild(link);
-    
+
             link.click();
-    
+
             link.remove();
-    
+
             window.URL.revokeObjectURL(url);
-    
+
         }
-    
+
         catch (error) {
-    
+
             console.error(error);
-    
+
             alert("Xuất Excel thất bại.");
-    
+
         }
-    
+
     };
 
-    const handlePreview = async (file) => {
-
-        try {
-    
-            setImportLoading(true);
-
-            setImportFile(file);
-    
-            const formData = new FormData();
-    
-            formData.append("file", file);
-    
-            const res = await axios.post(
-    
-                `${API}/api/drives/preview-import`,
-    
-                formData,
-    
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data"
-                    }
-                }
-    
-            );
-    
-            setPreview(res.data.rows);
-    
-            setOpenImport(true);
-    
-        }
-    
-        catch (err) {
-    
-            console.log(err);
-    
-            alert("Không đọc được file Excel.");
-    
-        }
-    
-        finally {
-    
-            setImportLoading(false);
-    
-        }
-    
-    };
-    
-    const handleImport = async () => {
-
-        try {
-    
-            await axios.post(
-    
-                `${API}/api/drives/confirm-import`,
-    
-                {
-                    rows: preview
-                }
-    
-            );
-    
-            alert("Import thành công");
-    
-            setOpenImport(false);
-    
-            await loadDrives();
-            await loadFilters();
-            await loadStatistics();
-    
-        }
-    
-        catch (err) {
-    
-            console.log(err);
-    
-            alert("Import thất bại");
-    
-        }
-    
-    };
 
     return (
 
@@ -431,12 +354,12 @@ export default function Drive() {
 
             <DriveHeader
 
-                  total={statistics.total}
+                total={statistics.total}
 
                 abb={statistics.abb}
-            
+
                 vacon={statistics.vacon}
-                
+
             />
 
             <DriveToolbar
@@ -449,11 +372,11 @@ export default function Drive() {
 
                 onCreate={handleCreate}
 
-                onImport={handlePreview}
+                onImport={() => setOpenImport(true)}
 
                 onExport={handleExport}
 
-                onHistory={() => {}}
+                onHistory={() => { }}
 
             />
 
@@ -496,29 +419,33 @@ export default function Drive() {
             <DriveModal
 
                 open={open}
-            
+
                 mode={mode}
-            
+
                 drive={selectedDrive}
-            
+
                 filters={filters}
-            
+
                 onClose={handleClose}
-            
+
                 onSave={handleSave}
-            
+
             />
 
             <DriveImportModal
                 open={openImport}
-                preview={preview}
-                loading={importLoading}
-                importFile={importFile}
                 onClose={() => setOpenImport(false)}
-                onUpload={handlePreview}
-                onConfirm={handleImport}
+                onSuccess={async () => {
+
+                    await loadDrives();
+
+                    await loadFilters();
+
+                    await loadStatistics();
+
+                }}
             />
-            
+
         </div>
 
     );
