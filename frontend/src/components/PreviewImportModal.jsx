@@ -116,7 +116,7 @@ export default function PreviewImportModal({
 
                 <div className="flex-1 overflow-auto px-6">
 
-                    <table className="w-full text-sm">
+                    <table className="w-full table-fixed text-sm">
 
                         <thead className="sticky top-0 bg-slate-100">
 
