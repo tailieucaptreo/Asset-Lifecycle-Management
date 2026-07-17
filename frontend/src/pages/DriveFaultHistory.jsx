@@ -462,7 +462,6 @@ export default function DriveFaultHistory() {
 
     }
 
-
     const handleVaconDelete = async (item) => {
 
         if (
@@ -767,8 +766,6 @@ export default function DriveFaultHistory() {
                         loading={loading}
 
                         onViewHistory={handleVaconView}
-
-                        onEdit={handleVaconEdit}
 
                         onDelete={handleVaconDelete}
 
