@@ -1,41 +1,30 @@
 import { useState } from "react";
 import axios from "axios";
 
+import API from "../../config";
+
 import {
-
     X,
-
     Upload,
-
-    FileSpreadsheet,
-
-    Loader2
-
+    Loader2,
+    FileSpreadsheet
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL;
-
-/* =========================================================
+/* ======================================================
    Helper
-========================================================= */
+====================================================== */
 
-const getValue = (row = {}, ...keys) => {
+function getValue(row = {}, ...keys) {
 
     for (const key of keys) {
 
-        const value = row[key];
-
         if (
-
-            value !== undefined &&
-
-            value !== null &&
-
-            value !== ""
-
+            row[key] !== undefined &&
+            row[key] !== null &&
+            row[key] !== ""
         ) {
 
-            return value;
+            return row[key];
 
         }
 
@@ -43,11 +32,11 @@ const getValue = (row = {}, ...keys) => {
 
     return "";
 
-};
+}
 
-/* =========================================================
+/* ======================================================
    Summary Card
-========================================================= */
+====================================================== */
 
 function SummaryCard({
 
@@ -55,40 +44,27 @@ function SummaryCard({
 
     value,
 
-    color
+    color = "text-slate-900"
 
 }) {
 
     return (
 
         <div
-
             className="
-
                 border
-
-                rounded-xl
-
+                rounded-2xl
                 bg-white
-
                 p-5
-
                 shadow-sm
-
             "
-
         >
 
             <div
-
                 className="
-
+                    text-sm
                     text-slate-500
-
-                    text-base
-
                 "
-
             >
 
                 {title}
@@ -96,19 +72,12 @@ function SummaryCard({
             </div>
 
             <div
-
                 className={`
-
                     mt-3
-
-                    text-5xl
-
+                    text-4xl
                     font-bold
-
                     ${color}
-
                 `}
-
             >
 
                 {value ?? 0}
@@ -121,9 +90,9 @@ function SummaryCard({
 
 }
 
-/* =========================================================
+/* ======================================================
    Action Badge
-========================================================= */
+====================================================== */
 
 function ActionBadge({
 
@@ -131,18 +100,15 @@ function ActionBadge({
 
 }) {
 
-    const style = {
+    const styles = {
 
         NEW:
-
             "bg-green-100 text-green-700",
 
         UPDATE:
-
-            "bg-amber-100 text-amber-700",
+            "bg-yellow-100 text-yellow-700",
 
         SKIP:
-
             "bg-slate-100 text-slate-600"
 
     };
@@ -150,29 +116,17 @@ function ActionBadge({
     return (
 
         <span
-
             className={`
-
                 inline-flex
-
                 items-center
-
                 justify-center
-
-                rounded-full
-
-                px-4
-
+                px-3
                 py-1
-
+                rounded-full
                 text-xs
-
                 font-semibold
-
-                ${style[action]}
-
+                ${styles[action] || styles.SKIP}
             `}
-
         >
 
             {action}
@@ -183,9 +137,9 @@ function ActionBadge({
 
 }
 
-/* =========================================================
+/* ======================================================
    Main Component
-========================================================= */
+====================================================== */
 
 export default function DriveImportModal({
 
@@ -197,26 +151,32 @@ export default function DriveImportModal({
 
 }) {
 
-    const [file, setFile] = useState(null);
-
-    const [loading, setLoading] = useState(false);
-
-    const [importing, setImporting] = useState(false);
-
-    const [rows, setRows] = useState([]);
-
-    const [summary, setSummary] = useState(null);
-
-    const [sessionId, setSessionId] = useState(null);
-
     const token =
         localStorage.getItem("token");
 
+    const [file, setFile] =
+        useState(null);
+
+    const [loading, setLoading] =
+        useState(false);
+
+    const [importing, setImporting] =
+        useState(false);
+
+    const [rows, setRows] =
+        useState([]);
+
+    const [summary, setSummary] =
+        useState(null);
+
+    const [sessionId, setSessionId] =
+        useState("");
+
     if (!open) return null;
 
-    /* =====================================================
+    /* ==================================================
        Reset
-    ===================================================== */
+    ================================================== */
 
     function reset() {
 
@@ -226,7 +186,7 @@ export default function DriveImportModal({
 
         setSummary(null);
 
-        setSessionId(null);
+        setSessionId("");
 
         setLoading(false);
 
@@ -242,9 +202,9 @@ export default function DriveImportModal({
 
     }
 
-    /* =====================================================
+    /* ==================================================
        Preview Import
-    ===================================================== */
+    ================================================== */
 
     async function previewImport() {
 
@@ -260,31 +220,33 @@ export default function DriveImportModal({
 
             setLoading(true);
 
-            const formData = new FormData();
+            const formData =
+                new FormData();
 
             formData.append("file", file);
 
-            const res = await axios.post(
+            const res =
+                await axios.post(
 
-                `${API}/api/drives/preview-import`,
+                    `${API}/api/drives/preview-import`,
 
-                formData,
+                    formData,
 
-                {
+                    {
 
-                    headers: {
+                        headers: {
 
-                        Authorization:
-                            `Bearer ${token}`,
+                            Authorization:
+                                `Bearer ${token}`,
 
-                        "Content-Type":
-                            "multipart/form-data"
+                            "Content-Type":
+                                "multipart/form-data"
+
+                        }
 
                     }
 
-                }
-
-            );
+                );
 
             setRows(
 
@@ -298,13 +260,13 @@ export default function DriveImportModal({
 
             setSummary(
 
-                res.data.summary || null
+                res.data.summary || {}
 
             );
 
             setSessionId(
 
-                res.data.sessionId || null
+                res.data.sessionId || ""
 
             );
 
@@ -318,7 +280,7 @@ export default function DriveImportModal({
 
                 err.response?.data?.message ||
 
-                "Không đọc được file Excel."
+                "Không thể preview file."
 
             );
 
@@ -332,9 +294,9 @@ export default function DriveImportModal({
 
     }
 
-    /* =====================================================
+    /* ==================================================
        Confirm Import
-    ===================================================== */
+    ================================================== */
 
     async function confirmImport() {
 
@@ -401,28 +363,59 @@ export default function DriveImportModal({
 
     }
 
-    /* =====================================================
+    /* ==================================================
        JSX
-    ===================================================== */
+    ================================================== */
 
     return (
-                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
 
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-[92vh] overflow-hidden flex flex-col">
+            <div
+                className="
+                    bg-white
+                    rounded-2xl
+                    shadow-2xl
+                    w-full
+                    max-w-7xl
+                    max-h-[92vh]
+                    overflow-hidden
+                    flex
+                    flex-col
+                "
+            >
 
                 {/* ================= Header ================= */}
 
-                <div className="border-b px-8 py-6 flex items-center justify-between">
+                <div
+                    className="
+                        border-b
+                        px-6
+                        py-5
+                        flex
+                        items-center
+                        justify-between
+                    "
+                >
 
                     <div>
 
-                        <h2 className="text-4xl font-bold">
+                        <h2
+                            className="
+                                text-3xl
+                                font-bold
+                            "
+                        >
 
                             Preview Import Drive
 
                         </h2>
 
-                        <p className="text-slate-500 mt-2">
+                        <p
+                            className="
+                                text-slate-500
+                                mt-1
+                            "
+                        >
 
                             Kiểm tra dữ liệu trước khi import
 
@@ -431,14 +424,15 @@ export default function DriveImportModal({
                     </div>
 
                     <button
-
                         onClick={handleClose}
-
-                        className="p-2 rounded-lg hover:bg-slate-100"
-
+                        className="
+                            p-2
+                            rounded-lg
+                            hover:bg-slate-100
+                        "
                     >
 
-                        <X size={34} />
+                        <X size={24} />
 
                     </button>
 
@@ -446,14 +440,27 @@ export default function DriveImportModal({
 
                 {/* ================= Body ================= */}
 
-                <div className="flex-1 overflow-auto p-8 space-y-8">
+                <div
+                    className="
+                        flex-1
+                        overflow-auto
+                        p-6
+                        space-y-6
+                    "
+                >
 
                     {/* Upload */}
 
-                    <div className="flex items-center gap-4">
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-3
+                            flex-wrap
+                        "
+                    >
 
                         <label
-
                             className="
                                 inline-flex
                                 items-center
@@ -466,55 +473,42 @@ export default function DriveImportModal({
                                 rounded-xl
                                 cursor-pointer
                             "
-
                         >
 
-                            <Upload size={20} />
+                            <Upload size={18} />
 
                             Chọn file Excel
 
                             <input
-
                                 type="file"
-
                                 accept=".xlsx,.xls"
-
                                 hidden
-
-                                onChange={(e)=>
-
+                                onChange={(e) =>
                                     setFile(
-
                                         e.target.files?.[0] || null
-
                                     )
-
                                 }
-
                             />
 
                         </label>
 
-                        <div className="text-slate-600">
+                        <span
+                            className="
+                                text-slate-600
+                                truncate
+                                max-w-md
+                            "
+                        >
 
-                            {
+                            {file
+                                ? file.name
+                                : "Chưa chọn file"}
 
-                                file
-
-                                    ? file.name
-
-                                    : "Chưa chọn file"
-
-                            }
-
-                        </div>
+                        </span>
 
                         <button
-
                             onClick={previewImport}
-
                             disabled={loading}
-
                             className="
                                 ml-auto
                                 inline-flex
@@ -523,12 +517,11 @@ export default function DriveImportModal({
                                 bg-green-600
                                 hover:bg-green-700
                                 text-white
-                                px-6
+                                px-5
                                 py-3
                                 rounded-xl
                                 disabled:opacity-50
                             "
-
                         >
 
                             {
@@ -540,11 +533,8 @@ export default function DriveImportModal({
                                     <>
 
                                         <Loader2
-
                                             size={18}
-
                                             className="animate-spin"
-
                                         />
 
                                         Đang Preview...
@@ -571,53 +561,42 @@ export default function DriveImportModal({
 
                     {
 
-                        summary && (
+                        summary &&
 
-                            <div className="grid grid-cols-4 gap-6">
+                        <div
+                            className="
+                                grid
+                                grid-cols-1
+                                md:grid-cols-2
+                                xl:grid-cols-4
+                                gap-5
+                            "
+                        >
 
-                                <SummaryCard
+                            <SummaryCard
+                                title="Tổng"
+                                value={summary.total}
+                            />
 
-                                    title="Tổng"
+                            <SummaryCard
+                                title="Tạo mới"
+                                value={summary.newCount}
+                                color="text-green-600"
+                            />
 
-                                    value={summary.total}
+                            <SummaryCard
+                                title="Cập nhật"
+                                value={summary.updateCount}
+                                color="text-yellow-600"
+                            />
 
-                                    color="text-black"
+                            <SummaryCard
+                                title="Bỏ qua"
+                                value={summary.skipCount}
+                                color="text-slate-500"
+                            />
 
-                                />
-
-                                <SummaryCard
-
-                                    title="Tạo mới"
-
-                                    value={summary.newCount}
-
-                                    color="text-green-600"
-
-                                />
-
-                                <SummaryCard
-
-                                    title="Cập nhật"
-
-                                    value={summary.updateCount}
-
-                                    color="text-amber-600"
-
-                                />
-
-                                <SummaryCard
-
-                                    title="Bỏ qua"
-
-                                    value={summary.skipCount}
-
-                                    color="text-slate-500"
-
-                                />
-
-                            </div>
-
-                        )
+                        </div>
 
                     }
 
@@ -627,8 +606,19 @@ export default function DriveImportModal({
 
                         rows.length > 0 && (
 
-                            <div className="border rounded-2xl overflow-hidden">
-                                                                <div className="max-h-[460px] overflow-auto">
+                            <div
+                                className="
+                                    border
+                                    rounded-2xl
+                                    overflow-hidden
+                                "
+                            >
+                             <div
+                                    className="
+                                        max-h-[460px]
+                                        overflow-auto
+                                    "
+                                >
 
                                     <table className="min-w-full text-sm">
 
@@ -636,40 +626,40 @@ export default function DriveImportModal({
 
                                             <tr className="border-b">
 
-                                                <th className="px-4 py-3 text-left w-20">
+                                                <th className="px-4 py-3 text-center w-28">
                                                     Action
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
+                                                <th className="px-4 py-3 text-left min-w-[130px]">
                                                     Device ID
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Tên biến tần
+                                                <th className="px-4 py-3 text-left min-w-[220px]">
+                                                    Name
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Hãng
+                                                <th className="px-4 py-3 text-center min-w-[100px]">
+                                                    Brand
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
+                                                <th className="px-4 py-3 text-left min-w-[180px]">
                                                     Model
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Tuyến
+                                                <th className="px-4 py-3 text-center min-w-[120px]">
+                                                    Line
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Nhà ga
+                                                <th className="px-4 py-3 text-center min-w-[120px]">
+                                                    Station
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Trạng thái
+                                                <th className="px-4 py-3 text-center min-w-[120px]">
+                                                    Status
                                                 </th>
 
-                                                <th className="px-4 py-3 text-left">
-                                                    Thay đổi
+                                                <th className="px-4 py-3 text-left min-w-[220px]">
+                                                    Changed Fields
                                                 </th>
 
                                             </tr>
@@ -682,21 +672,23 @@ export default function DriveImportModal({
 
                                                 rows.map((item, index) => {
 
-                                                    const row = item.row || {};
+                                                    const row =
+                                                        item.row || {};
 
                                                     const changedFields =
-                                                        Array.isArray(item.changedFields)
-                                                            ? item.changedFields
-                                                            : [];
+                                                        item.changedFields || [];
 
                                                     return (
 
                                                         <tr
                                                             key={index}
-                                                            className="border-b hover:bg-slate-50"
+                                                            className="
+                                                                border-b
+                                                                hover:bg-slate-50
+                                                            "
                                                         >
 
-                                                            <td className="px-4 py-3">
+                                                            <td className="px-4 py-3 text-center">
 
                                                                 <ActionBadge
                                                                     action={item.action}
@@ -712,11 +704,11 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Mã thiết bị",
+                                                                        "deviceId",
 
                                                                         "Device ID",
 
-                                                                        "deviceId"
+                                                                        "Mã thiết bị"
 
                                                                     )
 
@@ -732,9 +724,31 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Tên biến tần",
+                                                                        "name",
 
-                                                                        "Name"
+                                                                        "Name",
+
+                                                                        "Tên biến tần"
+
+                                                                    )
+
+                                                                }
+
+                                                            </td>
+
+                                                            <td className="px-4 py-3 text-center">
+
+                                                                {
+
+                                                                    getValue(
+
+                                                                        row,
+
+                                                                        "brand",
+
+                                                                        "Brand",
+
+                                                                        "Hãng"
 
                                                                     )
 
@@ -750,23 +764,7 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Hãng",
-
-                                                                        "Brand"
-
-                                                                    )
-
-                                                                }
-
-                                                            </td>
-
-                                                            <td className="px-4 py-3">
-
-                                                                {
-
-                                                                    getValue(
-
-                                                                        row,
+                                                                        "model",
 
                                                                         "Model"
 
@@ -776,7 +774,7 @@ export default function DriveImportModal({
 
                                                             </td>
 
-                                                            <td className="px-4 py-3">
+                                                            <td className="px-4 py-3 text-center">
 
                                                                 {
 
@@ -784,9 +782,11 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Tuyến",
+                                                                        "line",
 
-                                                                        "Line"
+                                                                        "Line",
+
+                                                                        "Tuyến"
 
                                                                     )
 
@@ -794,7 +794,7 @@ export default function DriveImportModal({
 
                                                             </td>
 
-                                                            <td className="px-4 py-3">
+                                                            <td className="px-4 py-3 text-center">
 
                                                                 {
 
@@ -802,9 +802,11 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Nhà ga",
+                                                                        "station",
 
-                                                                        "Station"
+                                                                        "Station",
+
+                                                                        "Nhà ga"
 
                                                                     )
 
@@ -812,7 +814,7 @@ export default function DriveImportModal({
 
                                                             </td>
 
-                                                            <td className="px-4 py-3">
+                                                            <td className="px-4 py-3 text-center">
 
                                                                 {
 
@@ -820,9 +822,11 @@ export default function DriveImportModal({
 
                                                                         row,
 
-                                                                        "Trạng thái",
+                                                                        "status",
 
-                                                                        "Status"
+                                                                        "Status",
+
+                                                                        "Trạng thái"
 
                                                                     )
 
@@ -842,7 +846,7 @@ export default function DriveImportModal({
 
                                                                                 {
 
-                                                                                    changedFields.length > 0
+                                                                                    changedFields.length
 
                                                                                         ? changedFields.map(field => (
 
@@ -854,9 +858,9 @@ export default function DriveImportModal({
                                                                                                     px-2
                                                                                                     py-1
                                                                                                     rounded-full
+                                                                                                    bg-yellow-100
+                                                                                                    text-yellow-700
                                                                                                     text-xs
-                                                                                                    bg-amber-100
-                                                                                                    text-amber-700
                                                                                                 "
 
                                                                                             >
@@ -928,20 +932,19 @@ export default function DriveImportModal({
                         )
 
                     }
-                    {/* ================= Footer ================= */}
+                                        {/* ================= Footer ================= */}
 
                 </div>
 
                 <div
                     className="
                         border-t
-                        bg-white
-                        px-8
-                        py-5
+                        px-6
+                        py-4
                         flex
                         items-center
                         justify-between
-                        shrink-0
+                        bg-white
                     "
                 >
 
@@ -951,7 +954,7 @@ export default function DriveImportModal({
 
                             summary
 
-                                ? `Tổng ${summary.total} • Thêm mới ${summary.newCount} • Cập nhật ${summary.updateCount} • Bỏ qua ${summary.skipCount}`
+                                ? `Tổng: ${summary.total || 0} • Thêm mới: ${summary.newCount || 0} • Cập nhật: ${summary.updateCount || 0} • Bỏ qua: ${summary.skipCount || 0}`
 
                                 : "Chọn file Excel để bắt đầu."
 
@@ -970,11 +973,10 @@ export default function DriveImportModal({
                             disabled={importing}
 
                             className="
-                                px-6
-                                py-3
+                                px-5
+                                py-2.5
                                 rounded-xl
                                 border
-                                bg-white
                                 hover:bg-slate-100
                                 disabled:opacity-50
                             "
@@ -992,8 +994,8 @@ export default function DriveImportModal({
                             onClick={confirmImport}
 
                             disabled={
-                                !sessionId ||
                                 importing ||
+                                !sessionId ||
                                 rows.length === 0
                             }
 
@@ -1001,13 +1003,14 @@ export default function DriveImportModal({
                                 inline-flex
                                 items-center
                                 gap-2
-                                px-6
-                                py-3
+                                px-5
+                                py-2.5
                                 rounded-xl
-                                bg-green-600
-                                hover:bg-green-700
+                                bg-blue-600
+                                hover:bg-blue-700
                                 text-white
                                 disabled:opacity-50
+                                disabled:cursor-not-allowed
                             "
 
                         >
@@ -1021,11 +1024,8 @@ export default function DriveImportModal({
                                         <>
 
                                             <Loader2
-
                                                 size={18}
-
                                                 className="animate-spin"
-
                                             />
 
                                             Đang Import...
