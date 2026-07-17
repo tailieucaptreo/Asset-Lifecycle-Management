@@ -621,227 +621,494 @@ exports.getAll = async (req, res) => {
 };
 
 // ============================
-// EXPORT EXCEL
+// EXPORT VACON HISTORY
 // ============================
 exports.exportExcel = async (req, res) => {
 
-  try {
+    try {
 
-    const rows = await prisma.vaconRecord.findMany({
+        const devices =
+            await prisma.vaconDevice.findMany({
 
-      orderBy: {
+                include: {
 
-        recordDate: "desc"
+                    histories: {
 
-      }
+                        orderBy: {
 
-    });
+                            recordDate: "desc"
 
-    const workbook = new ExcelJS.Workbook();
+                        }
 
-    const sheet = workbook.addWorksheet("VACON History");
+                    }
 
-    sheet.columns = [
+                },
 
-      { header: "Record Date", key: "recordDate", width: 15 },
-      { header: "Station", key: "station", width: 12 },
-      { header: "Tandem", key: "tandem", width: 15 },
-      { header: "Device Name", key: "deviceName", width: 18 },
-      { header: "Serial Number", key: "serialNumber", width: 22 },
-      { header: "Application", key: "application", width: 18 },
-      { header: "Power Unit Date", key: "powerUnitDate", width: 18 },
-      { header: "Operation Hours", key: "operationHours", width: 18 },
-      { header: "Fault History", key: "faultHistory", width: 40 },
-      { header: "Description", key: "description", width: 40 },
-      { header: "Possible Cause", key: "possibleCause", width: 40 },
-      { header: "Corrective Actions", key: "correctiveActions", width: 40 },
-      { header: "Note", key: "note", width: 30 }
+                orderBy: [
 
-    ];
+                    {
 
-    rows.forEach(item => {
+                        deviceName: "asc"
 
-      sheet.addRow({
+                    },
 
-        ...item,
+                    {
 
-        recordDate: item.recordDate
-          ? new Date(item.recordDate).toLocaleDateString("vi-VN")
-          : ""
+                        serialNumber: "asc"
 
-      });
+                    }
 
-    });
+                ]
 
-    res.setHeader(
+            });
 
-      "Content-Type",
+        const workbook =
+            new ExcelJS.Workbook();
 
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        const sheet =
+            workbook.addWorksheet("VACON History");
 
-    );
+        sheet.columns = [
 
-    res.setHeader(
+            {
+                header: "Record Date",
+                key: "recordDate",
+                width: 15
+            },
 
-      "Content-Disposition",
+            {
+                header: "Station",
+                key: "station",
+                width: 12
+            },
 
-      'attachment; filename="Vacon_History.xlsx"'
+            {
+                header: "Tandem",
+                key: "tandem",
+                width: 15
+            },
 
-    );
+            {
+                header: "Device Name",
+                key: "deviceName",
+                width: 18
+            },
 
-    await workbook.xlsx.write(res);
+            {
+                header: "Serial Number",
+                key: "serialNumber",
+                width: 22
+            },
 
-    res.end();
+            {
+                header: "Application",
+                key: "application",
+                width: 35
+            },
 
-  }
+            {
+                header: "Power Unit Date",
+                key: "powerUnitDate",
+                width: 18
+            },
 
-  catch (err) {
+            {
+                header: "Operation Hours",
+                key: "operationHours",
+                width: 18
+            },
 
-    console.log(err);
+            {
+                header: "Fault History",
+                key: "faultHistory",
+                width: 40
+            },
 
-    res.status(500).json({
+            {
+                header: "Description",
+                key: "description",
+                width: 40
+            },
 
-      message: err.message
+            {
+                header: "Possible Cause",
+                key: "possibleCause",
+                width: 40
+            },
 
-    });
+            {
+                header: "Corrective Actions",
+                key: "correctiveActions",
+                width: 40
+            },
 
-  }
+            {
+                header: "Note",
+                key: "note",
+                width: 30
+            }
+
+        ];
+
+        for (const device of devices) {
+
+            if (!device.histories.length) {
+
+                sheet.addRow({
+
+                    recordDate: "",
+
+                    station: device.station,
+
+                    tandem: device.tandem,
+
+                    deviceName: device.deviceName,
+
+                    serialNumber: device.serialNumber,
+
+                    application: device.application,
+
+                    powerUnitDate: "",
+
+                    operationHours: "",
+
+                    faultHistory: "",
+
+                    description: "",
+
+                    possibleCause: "",
+
+                    correctiveActions: "",
+
+                    note: ""
+
+                });
+
+                continue;
+
+            }
+
+            for (const history of device.histories) {
+
+                sheet.addRow({
+
+                    recordDate:
+                        history.recordDate
+                            ? new Date(history.recordDate)
+                                .toLocaleDateString("vi-VN")
+                            : "",
+
+                    station: device.station,
+
+                    tandem: device.tandem,
+
+                    deviceName: device.deviceName,
+
+                    serialNumber: device.serialNumber,
+
+                    application: device.application,
+
+                    powerUnitDate:
+                        history.powerUnitDate,
+
+                    operationHours:
+                        history.operationHours,
+
+                    faultHistory:
+                        history.faultHistory,
+
+                    description:
+                        history.description,
+
+                    possibleCause:
+                        history.possibleCause,
+
+                    correctiveActions:
+                        history.correctiveActions,
+
+                    note:
+                        history.note
+
+                });
+
+            }
+
+        }
+
+        res.setHeader(
+
+            "Content-Type",
+
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+        );
+
+        res.setHeader(
+
+            "Content-Disposition",
+
+            'attachment; filename="Vacon_History.xlsx"'
+
+        );
+
+        await workbook.xlsx.write(res);
+
+        res.end();
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
 
 };
 
-
 // ============================
-// GET ONE
+// GET ONE DEVICE
 // ============================
 exports.getOne = async (req, res) => {
 
-  try {
+    try {
 
-    const id =
-      Number(req.params.id);
+        const id = Number(req.params.id);
 
-    const item =
-      await prisma.vaconRecord.findUnique({
-        where: {
-          id
+        const device = await prisma.vaconDevice.findUnique({
+
+            where: {
+
+                id
+
+            },
+
+            include: {
+
+                histories: {
+
+                    orderBy: {
+
+                        recordDate: "desc"
+
+                    }
+
+                }
+
+            }
+
+        });
+
+        if (!device) {
+
+            return res.status(404).json({
+
+                message: "Không tìm thấy thiết bị"
+
+            });
+
         }
-      });
 
-    if (!item) {
-
-      return res.status(404).json({
-        message: "Không tìm thấy"
-      });
+        res.json(device);
 
     }
 
-    res.json(item);
+    catch (err) {
 
-  } catch (err) {
+        console.error(err);
 
-    res.status(500).json({
-      message: err.message
-    });
+        res.status(500).json({
 
-  }
+            message: err.message
+
+        });
+
+    }
 
 };
 
-
 // ============================
-// CREATE
+// CREATE DEVICE
 // ============================
 exports.create = async (req, res) => {
 
-  try {
+    try {
 
-    const item =
-      await prisma.vaconRecord.create({
-        data: req.body
-      });
+        const {
 
-    res.json(item);
+            deviceName,
 
-  } catch (err) {
+            serialNumber,
 
-    console.log(err);
+            station,
 
-    res.status(500).json({
-      message: err.message
-    });
+            tandem,
 
-  }
+            application
+
+        } = req.body;
+
+        const device = await prisma.vaconDevice.create({
+
+            data: {
+
+                deviceName,
+
+                serialNumber,
+
+                station,
+
+                tandem,
+
+                application
+
+            }
+
+        });
+
+        res.json(device);
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            message: err.message
+
+        });
+
+    }
 
 };
 
 
 // ============================
-// UPDATE
+// UPDATE DEVICE
 // ============================
 exports.update = async (req, res) => {
 
-  try {
+    try {
 
-    const id = Number(req.params.id);
+        const id = Number(req.params.id);
 
-    const data = {
-      ...req.body
-    };
+        const {
 
-    if (data.recordDate) {
-      data.recordDate =
-        new Date(data.recordDate);
+            deviceName,
+
+            serialNumber,
+
+            station,
+
+            tandem,
+
+            application
+
+        } = req.body;
+
+        const device = await prisma.vaconDevice.update({
+
+            where: {
+
+                id
+
+            },
+
+            data: {
+
+                deviceName,
+
+                serialNumber,
+
+                station,
+
+                tandem,
+
+                application
+
+            }
+
+        });
+
+        res.json(device);
+
     }
 
-    const item =
-      await prisma.vaconRecord.update({
-        where: { id },
-        data
-      });
+    catch (err) {
 
-    res.json(item);
+        console.error(err);
 
-  } catch (err) {
+        res.status(500).json({
 
-    console.log(err);
+            message: err.message
 
-    res.status(500).json({
-      message: err.message
-    });
+        });
 
-  }
+    }
 
 };
 
 // ============================
-// DELETE
+// DELETE DEVICE
 // ============================
 exports.remove = async (req, res) => {
 
-  try {
+    try {
 
-    const id =
-      Number(req.params.id);
+        const id = Number(req.params.id);
 
-    await prisma.vaconRecord.delete({
-      where: {
-        id
-      }
-    });
+        await prisma.vaconHistory.deleteMany({
 
-    res.json({
-      message: "Đã xóa"
-    });
+            where: {
 
-  } catch (err) {
+                deviceId: id
 
-    console.log(err);
+            }
 
-    res.status(500).json({
-      message: err.message
-    });
+        });
 
-  }
+        await prisma.vaconDevice.delete({
+
+            where: {
+
+                id
+
+            }
+
+        });
+
+        res.json({
+
+            success: true,
+
+            message: "Đã xóa thiết bị"
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
 
 };
 
