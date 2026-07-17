@@ -128,7 +128,7 @@ export default function DriveFaultHistory() {
 
         setEditingVacon(item);
 
-        setOpenVaconEdit(true);
+        setOpenHistoryEdit(true);
 
     };
 
@@ -496,7 +496,7 @@ export default function DriveFaultHistory() {
 
             alert("Đã cập nhật.");
 
-            setOpenVaconEdit(false);
+            setOpenHistoryEdit(false);
 
             loadData();
 
@@ -876,11 +876,11 @@ export default function DriveFaultHistory() {
 
             <VaconEditModal
 
-                open={openVaconEdit}
+                open={openHistoryEdit}
 
                 data={editingVacon}
 
-                onClose={() => setOpenVaconEdit(false)}
+                onClose={() => setOpenHistoryEdit(false)}
 
                 onSave={handleSaveVacon}
 
