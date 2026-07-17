@@ -21,6 +21,8 @@ model User {
 
   role      String   @default("user")
 
+  importSessions ImportSession[]
+
   createdAt DateTime @default(now())
 }
 
