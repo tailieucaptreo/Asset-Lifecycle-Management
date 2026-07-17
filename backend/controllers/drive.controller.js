@@ -4,6 +4,237 @@ const prisma = new PrismaClient();
 
 const ExcelJS = require("exceljs");
 
+const xlsx = require("xlsx");
+
+const fs = require("fs");
+
+function get(row, ...keys) {
+    for (const key of keys) {
+        if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
+            return row[key];
+        }
+    }
+    return null;
+}
+
+function excelDate(value) {
+    if (!value) return null;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === "number") {
+        return new Date(Math.round((value - 25569) * 86400 * 1000));
+    }
+
+    const d = new Date(value);
+
+    return isNaN(d) ? null : d;
+}
+
+function normalize(value) {
+
+    if (value === null || value === undefined) return "";
+
+    return String(value).trim().toUpperCase();
+
+}
+
+function sameDate(dbDate, excelValue) {
+
+    const d1 = dbDate
+        ? new Date(dbDate).toISOString().slice(0, 10)
+        : "";
+
+    const d2 = excelValue
+        ? (excelDate(excelValue)?.toISOString().slice(0, 10) || "")
+        : "";
+
+    return d1 === d2;
+
+}
+
+async function compareRows(rows) {
+
+    const drives = await prisma.drive.findMany();
+
+    const driveMap = new Map();
+
+    drives.forEach(drive => {
+
+        if (drive.deviceId) {
+
+            driveMap.set(
+
+                normalize(drive.deviceId),
+
+                drive
+
+            );
+
+        }
+
+    });
+
+    const compareFields = [
+
+        ["name", "Tên biến tần"],
+
+        ["brand", "Hãng"],
+
+        ["model", "Model"],
+
+        ["serialNumber", "Serial Number"],
+
+        ["line", "Tuyến"],
+
+        ["station", "Nhà ga"],
+
+        ["location", "Vị trí"],
+
+        ["ipAddress", "IP Address"],
+
+        ["firmware", "Firmware"],
+
+        ["power", "Công suất"],
+
+        ["voltage", "Điện áp"],
+
+        ["status", "Trạng thái"],
+
+        ["note", "Ghi chú"]
+
+    ];
+
+    let newCount = 0;
+
+    let updateCount = 0;
+
+    let skipCount = 0;
+
+    const result = rows.map(row => {
+
+        const deviceId = get(
+
+            row,
+
+            "Mã thiết bị",
+
+            "Device ID",
+
+            "deviceId"
+
+        );
+
+        if (!deviceId) {
+
+            skipCount++;
+
+            return {
+
+                action: "SKIP",
+
+                reason: "Thiếu Device ID",
+
+                changedFields: [],
+
+                row
+
+            };
+
+        }
+
+        const key = normalize(deviceId);
+
+        const old = driveMap.get(key);
+
+        if (!old) {
+
+            newCount++;
+
+            return {
+
+                action: "NEW",
+
+                changedFields: [],
+
+                row
+
+            };
+
+        }
+
+        const changedFields = [];
+
+        for (const [dbField, excelField] of compareFields) {
+
+            const oldValue = normalize(old[dbField]);
+
+            const newValue = normalize(get(row, excelField));
+
+            if (oldValue !== newValue) {
+
+                changedFields.push(excelField);
+
+            }
+
+        }
+
+        if (!sameDate(old.installDate, get(row, "Ngày lắp đặt"))) {
+
+            changedFields.push("Ngày lắp đặt");
+
+        }
+
+        if (changedFields.length > 0) {
+
+            updateCount++;
+
+            return {
+
+                action: "UPDATE",
+
+                changedFields,
+
+                row
+
+            };
+
+        }
+
+        skipCount++;
+
+        return {
+
+            action: "SKIP",
+
+            changedFields: [],
+
+            row
+
+        };
+
+    });
+
+    return {
+
+        summary: {
+
+            total: rows.length,
+
+            newCount,
+
+            updateCount,
+
+            skipCount
+
+        },
+
+        rows: result
+
+    };
+
+}
+
 // ======================================================
 // GET ALL
 // ======================================================
@@ -89,7 +320,6 @@ exports.getOne = async (req, res) => {
 // ======================================================
 // CREATE
 // ======================================================
-
 exports.create = async (req, res) => {
 
     try {
@@ -100,15 +330,17 @@ exports.create = async (req, res) => {
 
                 name: req.body.name,
 
+                deviceId: req.body.deviceId,
+
                 brand: req.body.brand,
 
                 model: req.body.model,
 
-                serialnumber: req.body.serial,
-
-                ipAddress:req.body.ipAddress,
+                serialNumber: req.body.serialNumber,
 
                 firmware: req.body.firmware,
+
+                ipAddress: req.body.ipAddress,
 
                 power: req.body.power,
 
@@ -125,9 +357,7 @@ exports.create = async (req, res) => {
                 status: req.body.status || "Running",
 
                 installDate: req.body.installDate
-
                     ? new Date(req.body.installDate)
-
                     : null,
 
                 image: req.body.image,
@@ -144,11 +374,11 @@ exports.create = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
-            message: "Thêm biến tần thất bại"
+            message: err.message
 
         });
 
@@ -159,7 +389,6 @@ exports.create = async (req, res) => {
 // ======================================================
 // UPDATE
 // ======================================================
-
 exports.update = async (req, res) => {
 
     try {
@@ -176,13 +405,17 @@ exports.update = async (req, res) => {
 
                 name: req.body.name,
 
+                deviceId: req.body.deviceId,
+
                 brand: req.body.brand,
 
                 model: req.body.model,
 
-                serial: req.body.serial,
+                serialNumber: req.body.serialNumber,
 
                 firmware: req.body.firmware,
+
+                ipAddress: req.body.ipAddress,
 
                 power: req.body.power,
 
@@ -199,9 +432,7 @@ exports.update = async (req, res) => {
                 status: req.body.status,
 
                 installDate: req.body.installDate
-
                     ? new Date(req.body.installDate)
-
                     : null,
 
                 image: req.body.image,
@@ -218,11 +449,11 @@ exports.update = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
-            message: "Cập nhật biến tần thất bại"
+            message: err.message
 
         });
 
@@ -260,7 +491,7 @@ exports.remove = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
@@ -326,83 +557,98 @@ exports.uploadImage = async (req, res) => {
 
 };
 
-// ================= IMPORT =================
+exports.previewImport = async (req, res) => {
 
-const XLSX = require("xlsx");
+    try {
 
-exports.previewImport = async (req,res)=>{
-
-    try{
-
-        if(!req.file){
+        if (!req.file) {
 
             return res.status(400).json({
-                error:"Không có file"
+
+                message: "Chưa chọn file Excel."
+
             });
 
         }
 
-        const workbook = XLSX.read(
-            req.file.buffer,
-            { type:"buffer" }
-        );
+        const workbook = xlsx.readFile(req.file.path);
 
         const sheet =
-            workbook.Sheets[
-                workbook.SheetNames[0]
-            ];
+            workbook.Sheets[workbook.SheetNames[0]];
 
-        const raw =
-            XLSX.utils.sheet_to_json(sheet);
+        const rows =
+            xlsx.utils.sheet_to_json(sheet, {
 
-        const rows = raw.map(r=>({
+                defval: ""
 
-            name:
-                r["Thiết bị"] || "",
+            });
 
-            deviceId:
-                String(r["Mã TB"] || ""),
+        fs.unlinkSync(req.file.path);
 
-            brand:
-                r["Hãng"] || "",
+        console.log("Excel rows:", rows.length);
 
-            model:
-                r["Model"] || "",
+        const result =
+            await compareRows(rows);
 
-            power:
-                r["Công suất"] || "",
+        console.log("Compare rows:", result.summary);
 
-            line:
-                r["Tuyến"] || "",
+        const session =
+            await prisma.importSession.create({
 
-            station:
-                r["Nhà ga"] || "",
+                data: {
 
-            ipAddress:
-                r["IP"] || "",
+                    module: "drive",
 
-            status:
-                r["Trạng thái"] || "Running"
+                    filename:
+                        req.file.originalname,
 
-        }));
+                    data: result.rows,
+
+                    total:
+                        result.summary.total,
+
+                    newCount:
+                        result.summary.newCount,
+
+                    updateCount:
+                        result.summary.updateCount,
+
+                    skipCount:
+                        result.summary.skipCount,
+
+                    userId:
+                        req.user?.id || null,
+
+                    expiredAt:
+                        new Date(
+                            Date.now() + 30 * 60 * 1000
+                        )
+
+                }
+
+            });
 
         res.json({
 
-            ok:true,
+            success: true,
 
-            rows
+            sessionId: session.id,
+
+            summary: result.summary,
+
+            rows: result.rows
 
         });
 
     }
 
-    catch(err){
+    catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
-            error:err.message
+            message: err.message
 
         });
 
@@ -410,60 +656,257 @@ exports.previewImport = async (req,res)=>{
 
 };
 
-exports.confirmImport = async (req,res)=>{
+// ================= IMPORT =================
 
-    try{
+exports.importExcel = async (req, res) => {
 
-        const rows =
-            req.body.rows || [];
+    try {
 
-        for(const row of rows){
+        const { sessionId } = req.body;
 
-            await prisma.drive.create({
+        if (!sessionId) {
 
-                data:{
+            return res.status(400).json({
 
-                    name: row.name,
-
-                    deviceId: row.deviceId,
-
-                    brand: row.brand,
-
-                    model: row.model,
-
-                    power: row.power,
-
-                    line: row.line,
-
-                    station: row.station,
-
-                    ipAddress: row.ipAddress,
-
-                    status: row.status
-
-                }
+                message: "Thiếu sessionId."
 
             });
 
         }
 
+        const session = await prisma.importSession.findUnique({
+
+            where: {
+
+                id: sessionId
+
+            }
+
+        });
+
+        if (!session) {
+
+            return res.status(404).json({
+
+                message: "Không tìm thấy phiên import."
+
+            });
+
+        }
+
+        const rows = session.data || [];
+
+        // Load toàn bộ Drive chỉ 1 lần
+
+        const drives = await prisma.drive.findMany();
+
+        const driveMap = new Map();
+
+        drives.forEach(d => {
+
+            if (d.deviceId) {
+
+                driveMap.set(
+
+                    d.deviceId.trim().toUpperCase(),
+
+                    d
+
+                );
+
+            }
+
+        });
+
+        let created = 0;
+
+        let updated = 0;
+
+        for (const item of rows) {
+
+            if (item.action === "SKIP") continue;
+
+            const row = item.row;
+
+            const deviceId = get(
+
+                row,
+
+                "Mã thiết bị",
+
+                "Device ID",
+
+                "deviceId"
+
+            );
+
+            if (!deviceId) continue;
+
+            const key = deviceId.trim().toUpperCase();
+
+            const data = {
+
+                name: get(
+                    row,
+                    "Tên biến tần",
+                    "Device Name",
+                    "Name"
+                ),
+
+                deviceId,
+
+                brand: get(
+                    row,
+                    "Hãng",
+                    "Brand"
+                ),
+
+                model: get(
+                    row,
+                    "Model"
+                ),
+
+                serialNumber: get(
+                    row,
+                    "Serial Number",
+                    "Serial"
+                ),
+
+                firmware: get(
+                    row,
+                    "Firmware"
+                ),
+
+                ipAddress: get(
+                    row,
+                    "IP Address"
+                ),
+
+                power: get(
+                    row,
+                    "Công suất",
+                    "Power"
+                ),
+
+                voltage: get(
+                    row,
+                    "Điện áp",
+                    "Voltage"
+                ),
+
+                line: get(
+                    row,
+                    "Tuyến",
+                    "Line"
+                ),
+
+                station: get(
+                    row,
+                    "Nhà ga",
+                    "Station"
+                ),
+
+                location: get(
+                    row,
+                    "Vị trí",
+                    "Location"
+                ),
+
+                status: get(
+                    row,
+                    "Trạng thái",
+                    "Status"
+                ) || "Running",
+
+                installDate: excelDate(
+
+                    get(
+                        row,
+                        "Ngày lắp đặt",
+                        "Install Date"
+                    )
+
+                ),
+
+                note: get(
+                    row,
+                    "Ghi chú",
+                    "Note"
+                )
+
+            };
+
+            // CREATE
+
+            if (!driveMap.has(key)) {
+
+                const drive = await prisma.drive.create({
+
+                    data
+
+                });
+
+                driveMap.set(key, drive);
+
+                created++;
+
+            }
+
+            // UPDATE
+
+            else {
+
+                await prisma.drive.update({
+
+                    where: {
+
+                        id: driveMap.get(key).id
+
+                    },
+
+                    data
+
+                });
+
+                updated++;
+
+            }
+
+        }
+
+        await prisma.importSession.delete({
+
+            where: {
+
+                id: sessionId
+
+            }
+
+        });
+
         res.json({
 
-            ok:true,
+            success: true,
 
-            total:rows.length
+            created,
+
+            updated,
+
+            skipped: session.skipCount,
+
+            total: session.total
 
         });
 
     }
 
-    catch(err){
+    catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
-            error:err.message
+            message: err.message
 
         });
 

@@ -18,10 +18,13 @@ const initialForm = {
 
     power: "",
     voltage: "",
+    current: "",
 
     status: "Running",
 
     installDate: "",
+
+    image: "",
 
     note: ""
 };
@@ -55,8 +58,13 @@ export default function DriveModal({
                 ...drive,
 
                 installDate:
+
                     drive.installDate
-                        ? drive.installDate.substring(0, 10)
+
+                        ? new Date(drive.installDate)
+                            .toISOString()
+                            .slice(0, 10)
+
                         : ""
 
             });
@@ -69,7 +77,7 @@ export default function DriveModal({
 
         }
 
-    }, [drive]);
+    }, [drive, mode]);
 
     if (!open) return null;
 
@@ -88,7 +96,47 @@ export default function DriveModal({
 
     };
 
+    const validate = () => {
+
+        if (!form.name.trim()) {
+
+            alert("Chưa nhập tên biến tần");
+
+            return false;
+
+        }
+
+        if (!form.deviceId.trim()) {
+
+            alert("Chưa nhập mã thiết bị");
+
+            return false;
+
+        }
+
+        if (!form.brand.trim()) {
+
+            alert("Chưa chọn hãng");
+
+            return false;
+
+        }
+
+        if (!form.model.trim()) {
+
+            alert("Chưa nhập model");
+
+            return false;
+
+        }
+
+        return true;
+
+    };
+
     const submit = () => {
+
+        if (!validate()) return;
 
         onSave(form);
 
@@ -142,19 +190,35 @@ export default function DriveModal({
                     >
 
                         {
+
                             mode === "create"
+
                                 ? "Thêm biến tần"
+
                                 : mode === "edit"
+
                                     ? "Cập nhật biến tần"
+
                                     : "Thông tin biến tần"
+
                         }
 
                     </h2>
 
                     <button
+
                         onClick={onClose}
+
+                        className="
+                            p-2
+                            rounded-lg
+                            hover:bg-gray-100
+                        "
+
                     >
-                        <X />
+
+                        <X size={20} />
+
                     </button>
 
                 </div>
@@ -163,7 +227,9 @@ export default function DriveModal({
 
                 <div className="p-6 space-y-8">
 
-                    {/* Thông tin chung */}
+                    {/* =======================
+                        THÔNG TIN CHUNG
+                    ======================== */}
 
                     <div>
 
@@ -185,79 +251,62 @@ export default function DriveModal({
                             <Input
                                 label="Tên biến tần"
                                 value={form.name}
-                                onChange={v => change("name", v)}
                                 readOnly={readOnly}
+                                onChange={v => change("name", v)}
                             />
 
                             <Input
                                 label="Mã thiết bị"
                                 value={form.deviceId}
-                                onChange={v => change("deviceId", v)}
                                 readOnly={readOnly}
+                                onChange={v => change("deviceId", v)}
                             />
 
                             <Input
                                 label="Serial Number"
                                 value={form.serialNumber}
-                                onChange={v => change("serialNumber", v)}
                                 readOnly={readOnly}
+                                onChange={v => change("serialNumber", v)}
                             />
 
                             <Select
                                 label="Hãng"
-
                                 value={form.brand}
-
                                 readOnly={readOnly}
-
-                                options={filters?.brands || []}
-
-                                onChange={v =>
-                                    change("brand", v)
-                                }
-
+                                options={[
+                                    "ABB",
+                                    "VACON",
+                                    ...(filters?.brands || [])
+                                ]}
+                                onChange={v => change("brand", v)}
                             />
 
-                            <Select
+                            <Input
                                 label="Model"
-
                                 value={form.model}
-
                                 readOnly={readOnly}
-
-                                options={filters?.models || []}
-
-                                onChange={v =>
-                                    change("model", v)
-                                }
-
+                                onChange={v => change("model", v)}
                             />
 
                             <Select
                                 label="Trạng thái"
-
                                 value={form.status}
-
                                 readOnly={readOnly}
-
                                 options={[
                                     "Running",
                                     "Maintenance",
                                     "Fault",
-                                    "Dự phòng"
+                                    "Offline"
                                 ]}
-
-                                onChange={v =>
-                                    change("status", v)
-                                }
-
+                                onChange={v => change("status", v)}
                             />
 
                         </div>
 
                     </div>
-
-                    {/* Vị trí */}
+                    {/* =======================
+                        VỊ TRÍ LẮP ĐẶT
+                    ======================== */}
 
                     <div>
 
@@ -277,64 +326,41 @@ export default function DriveModal({
                         >
 
                             <Select
-
                                 label="Tuyến"
-
                                 value={form.line}
-
                                 readOnly={readOnly}
-
                                 options={filters?.lines || []}
-
-                                onChange={v =>
-                                    change("line", v)
-                                }
-
+                                onChange={v => change("line", v)}
                             />
 
                             <Select
-
                                 label="Nhà ga"
-
                                 value={form.station}
-
                                 readOnly={readOnly}
-
-                                options={
-                                    filters?.stations || []
-                                }
-
-                                onChange={v =>
-                                    change("station", v)
-                                }
-
+                                options={filters?.stations || []}
+                                onChange={v => change("station", v)}
                             />
 
                             <Input
-
                                 label="Vị trí"
-
                                 value={form.location}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("location", v)
-                                }
-
+                                onChange={v => change("location", v)}
                             />
 
                         </div>
 
                     </div>
 
-                    {/* Thông số */}
+                    {/* =======================
+                        THÔNG SỐ KỸ THUẬT
+                    ======================== */}
 
                     <div>
 
                         <h3 className="font-semibold mb-4">
 
-                            Thông số
+                            Thông số kỹ thuật
 
                         </h3>
 
@@ -348,119 +374,69 @@ export default function DriveModal({
                         >
 
                             <Input
-
                                 label="IP Address"
-
                                 value={form.ipAddress}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("ipAddress", v)
-                                }
-
+                                onChange={v => change("ipAddress", v)}
                             />
 
                             <Input
-
                                 label="Firmware"
-
                                 value={form.firmware}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("firmware", v)
-                                }
-
+                                onChange={v => change("firmware", v)}
                             />
 
                             <Input
-
                                 label="Công suất"
-
                                 value={form.power}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("power", v)
-                                }
-
+                                onChange={v => change("power", v)}
                             />
 
                             <Input
-
                                 label="Điện áp"
-
                                 value={form.voltage}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("voltage", v)
-                                }
-
+                                onChange={v => change("voltage", v)}
                             />
 
                             <Input
+                                label="Dòng điện"
+                                value={form.current}
+                                readOnly={readOnly}
+                                onChange={v => change("current", v)}
+                            />
 
+                            <Input
                                 type="date"
-
                                 label="Ngày lắp đặt"
-
                                 value={form.installDate}
-
                                 readOnly={readOnly}
-
-                                onChange={v =>
-                                    change("installDate", v)
-                                }
-
+                                onChange={v => change("installDate", v)}
                             />
 
                         </div>
 
-                        <div className="mt-4">
+                    </div>
 
-                            <label
-                                className="
-                                    block
-                                    text-sm
-                                    mb-2
-                                    font-medium
-                                "
-                            >
+                    {/* =======================
+                        GHI CHÚ
+                    ======================== */}
 
-                                Ghi chú
+                    <div>
 
-                            </label>
+                        <h3 className="font-semibold mb-4">
 
-                            <textarea
+                            Ghi chú
 
-                                rows={4}
+                        </h3>
 
-                                value={form.note}
-
-                                readOnly={readOnly}
-
-                                onChange={(e) =>
-                                    change(
-                                        "note",
-                                        e.target.value
-                                    )
-                                }
-
-                                className="
-                                    w-full
-                                    border
-                                    rounded-xl
-                                    p-3
-                                "
-
-                            />
-
-                        </div>
+                        <Textarea
+                            value={form.note}
+                            readOnly={readOnly}
+                            onChange={v => change("note", v)}
+                        />
 
                     </div>
 
@@ -479,20 +455,16 @@ export default function DriveModal({
                 >
 
                     <button
-
                         onClick={onClose}
-
                         className="
                             px-5
                             py-2
                             rounded-xl
                             border
+                            hover:bg-gray-100
                         "
-
                     >
-
                         Đóng
-
                     </button>
 
                     {
@@ -500,9 +472,7 @@ export default function DriveModal({
                         !readOnly &&
 
                         <button
-
                             onClick={submit}
-
                             className="
                                 px-5
                                 py-2
@@ -511,11 +481,8 @@ export default function DriveModal({
                                 text-white
                                 hover:bg-blue-700
                             "
-
                         >
-
                             Lưu
-
                         </button>
 
                     }
@@ -548,14 +515,7 @@ function Input({
 
         <div>
 
-            <label
-                className="
-                    block
-                    text-sm
-                    font-medium
-                    mb-2
-                "
-            >
+            <label className="block text-sm font-medium mb-2">
 
                 {label}
 
@@ -565,13 +525,11 @@ function Input({
 
                 type={type}
 
-                value={value}
+                value={value || ""}
 
                 readOnly={readOnly}
 
-                onChange={(e) =>
-                    onChange(e.target.value)
-                }
+                onChange={(e) => onChange(e.target.value)}
 
                 className="
                     w-full
@@ -579,6 +537,9 @@ function Input({
                     rounded-xl
                     px-3
                     py-2.5
+                    focus:ring-2
+                    focus:ring-blue-500
+                    outline-none
                 "
 
             />
@@ -595,7 +556,80 @@ function Select({
 
     value,
 
-    options,
+    options = [],
+
+    onChange,
+
+    readOnly
+
+}) {
+
+    const items = [...new Set(options.filter(Boolean))];
+
+    return (
+
+        <div>
+
+            <label className="block text-sm font-medium mb-2">
+
+                {label}
+
+            </label>
+
+            <select
+
+                value={value || ""}
+
+                disabled={readOnly}
+
+                onChange={(e) => onChange(e.target.value)}
+
+                className="
+                    w-full
+                    border
+                    rounded-xl
+                    px-3
+                    py-2.5
+                    focus:ring-2
+                    focus:ring-blue-500
+                    outline-none
+                "
+
+            >
+
+                <option value="">
+
+                    Chọn...
+
+                </option>
+
+                {items.map(item => (
+
+                    <option
+
+                        key={item}
+
+                        value={item}
+
+                    >
+
+                        {item}
+
+                    </option>
+
+                ))}
+
+            </select>
+
+        </div>
+
+    );
+
+}
+
+function Textarea({
+
+    value,
 
     onChange,
 
@@ -605,59 +639,28 @@ function Select({
 
     return (
 
-        <div>
+        <textarea
 
-            <label
-                className="
-                    block
-                    text-sm
-                    font-medium
-                    mb-2
-                "
-            >
+            rows={5}
 
-                {label}
+            value={value || ""}
 
-            </label>
+            readOnly={readOnly}
 
-            <select
+            onChange={(e) => onChange(e.target.value)}
 
-                value={value}
+            className="
+                w-full
+                border
+                rounded-xl
+                p-3
+                resize-none
+                focus:ring-2
+                focus:ring-blue-500
+                outline-none
+            "
 
-                disabled={readOnly}
-
-                onChange={(e) =>
-                    onChange(e.target.value)
-                }
-
-                className="
-                    w-full
-                    border
-                    rounded-xl
-                    px-3
-                    py-2.5
-                "
-
-            >
-
-                <option value="">
-                    Chọn...
-                </option>
-
-                {options.map(item => (
-
-                    <option
-                        key={item}
-                        value={item}
-                    >
-                        {item}
-                    </option>
-
-                ))}
-
-            </select>
-
-        </div>
+        />
 
     );
 

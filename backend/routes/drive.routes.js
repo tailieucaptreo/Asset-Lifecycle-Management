@@ -16,13 +16,17 @@ const role =
 
 router.post(
     "/preview-import",
+    auth,
+    role("admin"),
     upload.single("file"),
     controller.previewImport
 );
 
 router.post(
-    "/confirm-import",
-    controller.confirmImport
+    "/import",
+    auth,
+    role("admin"),
+    controller.importExcel
 );
 
 // ================= IMAGE =================
@@ -37,6 +41,7 @@ router.post(
 
 router.get(
     "/filters",
+    auth,
     controller.getFilters
 );
 
@@ -44,6 +49,8 @@ router.get(
 
 router.get(
     "/export",
+    auth,
+    role("admin", "user"),
     controller.exportExcel
 );
 
@@ -51,6 +58,7 @@ router.get(
 
 router.get(
     "/statistics",
+    auth,
     controller.getStatistics
 );
 
@@ -86,11 +94,13 @@ router.delete(
 
 router.get(
     "/",
+    auth,
     controller.getAll
 );
 
 router.get(
     "/:id",
+    auth,
     controller.getOne
 );
 
