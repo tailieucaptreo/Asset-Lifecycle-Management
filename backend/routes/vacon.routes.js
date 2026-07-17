@@ -56,10 +56,10 @@ router.post(
 
 // Cập nhật
 router.put(
-  "/:id",
+  "/history/:id",
   auth,
   adminOnly,
-  vaconController.update
+  vaconController.updateHistory
 );
 
 // Xóa

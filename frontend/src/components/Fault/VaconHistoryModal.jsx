@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, Pencil } from "lucide-react";
 
 export default function VaconHistoryModal({
 
@@ -10,7 +10,11 @@ export default function VaconHistoryModal({
 
     loading,
 
-    onClose
+    onClose,
+
+    role,
+
+    onEdit
 
 }) {
 
@@ -242,6 +246,10 @@ export default function VaconHistoryModal({
 
                                                         <th className="px-3 py-3">Note</th>
 
+                                                        <th className="px-3 py-3 text-center">
+                                                            Thao tác
+                                                        </th>
+
                                                     </tr>
 
                                                 </thead>
@@ -330,6 +338,25 @@ export default function VaconHistoryModal({
 
                                                                 </td>
 
+                                                                <td className="px-3 py-3 text-center">
+
+                                                                    {
+                                                                        role === "admin" && (
+                                                                            <button
+                                                                                onClick={() => onEdit(h)}
+                                                                                className="
+                                                                                    text-amber-600
+                                                                                    hover:text-amber-800
+                                                                                "
+                                                                                title="Chỉnh sửa"
+                                                                            >
+                                                                                <Pencil size={18} />
+                                                                            </button>
+                                                                        )
+                                                                    }
+
+                                                                </td>
+
                                                             </tr>
 
                                                         ))
@@ -371,38 +398,43 @@ export default function VaconHistoryModal({
                                                             className="
                                                                 flex
                                                                 justify-between
-                                                                items-center
+                                                                items-start
                                                                 mb-4
                                                             "
                                                         >
 
-                                                            <div className="font-bold text-lg">
+                                                            <div>
 
-                                                                Lỗi #{index + 1}
+                                                                <div className="font-bold text-lg">
+                                                                    Lỗi #{index + 1}
+                                                                </div>
 
-                                                            </div>
+                                                                <div className="text-xs text-gray-500">
 
-                                                            <div className="text-xs text-gray-500">
+                                                                    {
+                                                                        h.recordDate
+                                                                            ? new Date(h.recordDate).toLocaleDateString("vi-VN")
+                                                                            : "-"
+                                                                    }
 
-                                                                {
-
-                                                                    h.recordDate
-
-                                                                        ?
-
-                                                                        new Date(
-
-                                                                            h.recordDate
-
-                                                                        ).toLocaleDateString("vi-VN")
-
-                                                                        :
-
-                                                                        "-"
-
-                                                                }
+                                                                </div>
 
                                                             </div>
+
+                                                            {
+                                                                role === "admin" && (
+                                                                    <button
+                                                                        onClick={() => onEdit(h)}
+                                                                        className="
+                                                                            text-amber-600
+                                                                            hover:text-amber-800
+                                                                        "
+                                                                        title="Chỉnh sửa"
+                                                                    >
+                                                                        <Pencil size={20} />
+                                                                    </button>
+                                                                )
+                                                            }
 
                                                         </div>
 

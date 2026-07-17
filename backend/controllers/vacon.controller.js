@@ -1770,3 +1770,68 @@ exports.migrateData = async (req, res) => {
   }
 
 };
+
+exports.updateHistory = async (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+
+        const item =
+            await prisma.vaconHistory.update({
+
+                where: {
+
+                    id
+
+                },
+
+                data: {
+
+                    recordDate:
+                        req.body.recordDate
+                            ? new Date(req.body.recordDate)
+                            : null,
+
+                    operationHours:
+                        req.body.operationHours,
+
+                    powerUnitDate:
+                        req.body.powerUnitDate,
+
+                    faultHistory:
+                        req.body.faultHistory,
+
+                    description:
+                        req.body.description,
+
+                    possibleCause:
+                        req.body.possibleCause,
+
+                    correctiveActions:
+                        req.body.correctiveActions,
+
+                    note:
+                        req.body.note
+
+                }
+
+            });
+
+        res.json(item);
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        res.status(500).json({
+
+            message: err.message
+
+        });
+
+    }
+
+};

@@ -5,7 +5,7 @@ import API from "../config";
 
 import AbbTable from "../components/Fault/AbbTable";
 import AbbEditModal from "../components/Fault/AbbEditModal";
-import VaconEditModal from "../components/Fault/VaconEditModal";
+import VaconEditModal from "../components/Fault/VaconHistoryEditModal";
 import VaconDeviceTable from "../components/Fault/VaconDeviceTable";
 import VaconHistoryModal from "../components/Fault/VaconHistoryModal";
 import PreviewImportModal from "../components/PreviewImportModal";
@@ -51,14 +51,14 @@ export default function DriveFaultHistory() {
         useState(false);
 
     const [importLoading, setImportLoading] = useState(false);
-  
+
     const [openEdit, setOpenEdit] = useState(false);
 
     const [editing, setEditing] = useState(null);
 
-    const [openVaconEdit, setOpenVaconEdit] = useState(false);
+    const [openHistoryEdit, setOpenHistoryEdit] = useState(false);
 
-    const [editingVacon, setEditingVacon] = useState(null);
+    const [editingHistory, setEditingHistory] = useState(null);
 
     const [openVaconDetail, setOpenVaconDetail] = useState(false);
 
@@ -67,9 +67,9 @@ export default function DriveFaultHistory() {
     const [previewOpen, setPreviewOpen] = useState(false);
 
     const [previewRows, setPreviewRows] = useState([]);
-    
+
     const [summary, setSummary] = useState({});
-    
+
     const [sessionId, setSessionId] = useState("");
 
     async function loadData() {
@@ -283,16 +283,16 @@ export default function DriveFaultHistory() {
     const handleImport = async () => {
 
         try {
-    
+
             setImportLoading(true);
-    
+
             const token = localStorage.getItem("token");
-    
+
             const url =
                 tab === "VACON"
                     ? `${API}/api/vacon/import`
                     : `${API}/api/abb-faults/import`;
-    
+
             await axios.post(
                 url,
                 {
@@ -304,53 +304,53 @@ export default function DriveFaultHistory() {
                     }
                 }
             );
-    
+
             alert("Import thành công.");
-    
+
             setPreviewOpen(false);
-    
+
             setPreviewRows([]);
-    
+
             setSummary({});
-    
+
             setSessionId("");
-    
+
             await loadData();
-    
+
         } catch (err) {
-    
+
             console.error(err);
-    
+
             alert(
                 err.response?.data?.message ||
                 "Import thất bại."
             );
-    
+
         } finally {
-    
+
             setImportLoading(false);
-    
+
         }
-    
+
     };
-    
+
     const handlePreview = async (file) => {
 
         try {
-    
+
             setImportLoading(true);
-    
+
             const token = localStorage.getItem("token");
-    
+
             const formData = new FormData();
-    
+
             formData.append("file", file);
-    
+
             const url =
                 tab === "VACON"
                     ? `${API}/api/vacon/preview-import`
                     : `${API}/api/abb-faults/preview-import`;
-    
+
             const res = await axios.post(
                 url,
                 formData,
@@ -361,30 +361,30 @@ export default function DriveFaultHistory() {
                     }
                 }
             );
-    
+
             setSessionId(res.data.sessionId);
-    
+
             setSummary(res.data.summary);
-    
+
             setPreviewRows(res.data.rows);
-    
+
             setPreviewOpen(true);
-    
+
         } catch (err) {
-    
+
             console.error(err);
-    
+
             alert(
                 err.response?.data?.message ||
                 "Không đọc được file Excel."
             );
-    
+
         } finally {
-    
+
             setImportLoading(false);
-    
+
         }
-    
+
     };
 
     const handleSave = async (data) => {
@@ -428,6 +428,47 @@ export default function DriveFaultHistory() {
         }
 
     };
+
+    const handleSaveHistory = async (form) => {
+
+        try {
+
+            await axios.put(
+
+                `${API}/api/vacon/history/${form.id}`,
+
+                form,
+
+                {
+
+                    headers: {
+
+                        Authorization:
+                            `Bearer ${localStorage.getItem("token")}`
+
+                    }
+
+                }
+
+            );
+
+            alert("Đã cập nhật.");
+
+            setOpenHistoryEdit(false);
+
+            await handleVaconView(selectedDevice);
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            alert("Không thể cập nhật.");
+
+        }
+
+    }
 
     const handleSaveVacon = async (form) => {
 
@@ -715,13 +756,13 @@ export default function DriveFaultHistory() {
                                 onChange={(e) => {
 
                                     if (e.target.files?.length) {
-                                
+
                                         handlePreview(e.target.files[0]);
-                                
+
                                     }
-                                
+
                                     e.target.value = "";
-                                
+
                                 }}
 
                             />
@@ -810,13 +851,13 @@ export default function DriveFaultHistory() {
                 loading={importLoading}
                 onClose={() => {
                     setPreviewOpen(false);
-                
+
                     setPreviewRows([]);
-                
+
                     setSummary({});
-                
+
                     setSessionId("");
-                
+
                 }}
                 onConfirm={handleImport}
             />
@@ -855,6 +896,16 @@ export default function DriveFaultHistory() {
 
                 loading={historyLoading}
 
+                role={role}
+
+                onEdit={(item) => {
+
+                    setEditingHistory(item);
+
+                    setOpenHistoryEdit(true);
+
+                }}
+
                 onClose={() => {
 
                     setOpenHistory(false);
@@ -864,6 +915,24 @@ export default function DriveFaultHistory() {
                     setHistories([]);
 
                 }}
+
+            />
+
+            <VaconHistoryEditModal
+
+                open={openHistoryEdit}
+
+                data={editingHistory}
+
+                onClose={() => {
+
+                    setOpenHistoryEdit(false);
+
+                    setEditingHistory(null);
+
+                }}
+
+                onSave={handleSaveHistory}
 
             />
 

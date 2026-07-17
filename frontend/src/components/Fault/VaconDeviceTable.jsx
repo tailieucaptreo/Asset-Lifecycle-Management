@@ -16,8 +16,6 @@ export default function VaconDeviceTable({
 
     onViewHistory,
 
-    onEdit,
-
     onDelete
 
 }) {
@@ -207,13 +205,6 @@ export default function VaconDeviceTable({
                                                     role === "admin" &&
 
                                                     <>
-
-                                                        <button
-                                                            onClick={() => onEdit(item)}
-                                                            className="text-amber-600 hover:text-amber-800"
-                                                        >
-                                                            <Pencil size={18} />
-                                                        </button>
 
                                                         <button
                                                             onClick={() => onDelete(item)}
