@@ -1,10 +1,16 @@
 import { useState } from "react";
 import axios from "axios";
+
 import {
-    Upload,
+
     X,
+
+    Upload,
+
     FileSpreadsheet,
+
     Loader2
+
 } from "lucide-react";
 
 const API = import.meta.env.VITE_API_URL;
@@ -20,9 +26,13 @@ const getValue = (row = {}, ...keys) => {
         const value = row[key];
 
         if (
+
             value !== undefined &&
+
             value !== null &&
+
             value !== ""
+
         ) {
 
             return value;
@@ -52,20 +62,33 @@ function SummaryCard({
     return (
 
         <div
-            className={`
-                ${color}
+
+            className="
+
+                border
+
                 rounded-xl
-                p-4
-                text-white
-                shadow
-            `}
+
+                bg-white
+
+                p-5
+
+                shadow-sm
+
+            "
+
         >
 
             <div
+
                 className="
-                    text-sm
-                    opacity-90
+
+                    text-slate-500
+
+                    text-base
+
                 "
+
             >
 
                 {title}
@@ -73,11 +96,19 @@ function SummaryCard({
             </div>
 
             <div
-                className="
-                    mt-2
-                    text-3xl
+
+                className={`
+
+                    mt-3
+
+                    text-5xl
+
                     font-bold
-                "
+
+                    ${color}
+
+                `}
+
             >
 
                 {value ?? 0}
@@ -100,37 +131,48 @@ function ActionBadge({
 
 }) {
 
-    const styles = {
+    const style = {
 
         NEW:
+
             "bg-green-100 text-green-700",
 
         UPDATE:
+
             "bg-amber-100 text-amber-700",
 
         SKIP:
-            "bg-slate-200 text-slate-600"
+
+            "bg-slate-100 text-slate-600"
 
     };
-
-    const className =
-        styles[action] ??
-        "bg-red-100 text-red-700";
 
     return (
 
         <span
+
             className={`
+
                 inline-flex
+
                 items-center
+
                 justify-center
-                px-3
-                py-1
+
                 rounded-full
+
+                px-4
+
+                py-1
+
                 text-xs
+
                 font-semibold
-                ${className}
+
+                ${style[action]}
+
             `}
+
         >
 
             {action}
@@ -233,11 +275,9 @@ export default function DriveImportModal({
                     headers: {
 
                         Authorization:
-
                             `Bearer ${token}`,
 
                         "Content-Type":
-
                             "multipart/form-data"
 
                     }
@@ -278,7 +318,7 @@ export default function DriveImportModal({
 
                 err.response?.data?.message ||
 
-                "Không thể đọc file Excel."
+                "Không đọc được file Excel."
 
             );
 
@@ -323,7 +363,6 @@ export default function DriveImportModal({
                     headers: {
 
                         Authorization:
-
                             `Bearer ${token}`
 
                     }
@@ -367,69 +406,25 @@ export default function DriveImportModal({
     ===================================================== */
 
     return (
-         <div
-            className="
-                fixed
-                inset-0
-                bg-black/40
-                flex
-                items-center
-                justify-center
-                z-50
-                p-4
-            "
-        >
+                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6">
 
-            <div
-                className="
-                    bg-white
-                    rounded-2xl
-                    shadow-xl
-                    w-full
-                    max-w-7xl
-                    max-h-[90vh]
-                    overflow-hidden
-                    flex
-                    flex-col
-                "
-            >
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-[92vh] overflow-hidden flex flex-col">
 
-                {/* =========================
-                    Header
-                ========================= */}
+                {/* ================= Header ================= */}
 
-                <div
-                    className="
-                        border-b
-                        px-6
-                        py-4
-                        flex
-                        items-center
-                        justify-between
-                    "
-                >
+                <div className="border-b px-8 py-6 flex items-center justify-between">
 
                     <div>
 
-                        <h2
-                            className="
-                                text-xl
-                                font-semibold
-                            "
-                        >
+                        <h2 className="text-4xl font-bold">
 
-                            Import biến tần
+                            Preview Import Drive
 
                         </h2>
 
-                        <p
-                            className="
-                                text-sm
-                                text-gray-500
-                            "
-                        >
+                        <p className="text-slate-500 mt-2">
 
-                            Xem trước dữ liệu trước khi ghi vào hệ thống
+                            Kiểm tra dữ liệu trước khi import
 
                         </p>
 
@@ -439,101 +434,80 @@ export default function DriveImportModal({
 
                         onClick={handleClose}
 
-                        className="
-                            p-2
-                            rounded-lg
-                            hover:bg-gray-100
-                        "
+                        className="p-2 rounded-lg hover:bg-slate-100"
 
                     >
 
-                        <X size={22} />
+                        <X size={34} />
 
                     </button>
 
                 </div>
 
-                {/* =========================
-                    Body
-                ========================= */}
+                {/* ================= Body ================= */}
 
-                <div
-                    className="
-                        flex-1
-                        overflow-auto
-                        p-6
-                        space-y-6
-                    "
-                >
+                <div className="flex-1 overflow-auto p-8 space-y-8">
 
                     {/* Upload */}
 
-                    <div
-                        className="
-                            border-2
-                            border-dashed
-                            rounded-xl
-                            p-8
-                            text-center
-                        "
-                    >
+                    <div className="flex items-center gap-4">
 
-                        <FileSpreadsheet
-
-                            size={42}
+                        <label
 
                             className="
-                                mx-auto
-                                mb-4
-                                text-green-600
+                                inline-flex
+                                items-center
+                                gap-2
+                                bg-blue-600
+                                hover:bg-blue-700
+                                text-white
+                                px-5
+                                py-3
+                                rounded-xl
+                                cursor-pointer
                             "
 
-                        />
+                        >
 
-                        <input
+                            <Upload size={20} />
 
-                            className="
-                                block
-                                mx-auto
-                            "
+                            Chọn file Excel
 
-                            type="file"
+                            <input
 
-                            key={file?.name || "empty"}
+                                type="file"
 
-                            accept=".xlsx,.xls"
+                                accept=".xlsx,.xls"
 
-                            onChange={(e)=>
+                                hidden
 
-                                setFile(
+                                onChange={(e)=>
 
-                                    e.target.files?.[0] || null
+                                    setFile(
 
-                                )
+                                        e.target.files?.[0] || null
+
+                                    )
+
+                                }
+
+                            />
+
+                        </label>
+
+                        <div className="text-slate-600">
+
+                            {
+
+                                file
+
+                                    ? file.name
+
+                                    : "Chưa chọn file"
 
                             }
 
-                        />
-
-                        {
-
-                            file && (
-
-                                <p
-                                    className="
-                                        mt-3
-                                        text-sm
-                                        text-slate-600
-                                    "
-                                >
-
-                                    {file.name}
-
-                                </p>
-
-                            )
-
-                        }
+                        </div>
 
                         <button
 
@@ -542,17 +516,17 @@ export default function DriveImportModal({
                             disabled={loading}
 
                             className="
-                                mt-5
-                                px-5
-                                py-2
-                                rounded-xl
-                                bg-blue-600
-                                hover:bg-blue-700
-                                disabled:opacity-50
-                                text-white
+                                ml-auto
                                 inline-flex
                                 items-center
                                 gap-2
+                                bg-green-600
+                                hover:bg-green-700
+                                text-white
+                                px-6
+                                py-3
+                                rounded-xl
+                                disabled:opacity-50
                             "
 
                         >
@@ -573,7 +547,7 @@ export default function DriveImportModal({
 
                                         />
 
-                                        Đang đọc...
+                                        Đang Preview...
 
                                     </>
 
@@ -581,7 +555,7 @@ export default function DriveImportModal({
 
                                     <>
 
-                                        <Upload size={18} />
+                                        <FileSpreadsheet size={18} />
 
                                         Preview Import
 
@@ -599,14 +573,7 @@ export default function DriveImportModal({
 
                         summary && (
 
-                            <div
-                                className="
-                                    grid
-                                    grid-cols-2
-                                    md:grid-cols-4
-                                    gap-4
-                                "
-                            >
+                            <div className="grid grid-cols-4 gap-6">
 
                                 <SummaryCard
 
@@ -614,37 +581,37 @@ export default function DriveImportModal({
 
                                     value={summary.total}
 
-                                    color="bg-slate-500"
+                                    color="text-black"
 
                                 />
 
                                 <SummaryCard
 
-                                    title="New"
+                                    title="Tạo mới"
 
                                     value={summary.newCount}
 
-                                    color="bg-green-600"
+                                    color="text-green-600"
 
                                 />
 
                                 <SummaryCard
 
-                                    title="Update"
+                                    title="Cập nhật"
 
                                     value={summary.updateCount}
 
-                                    color="bg-amber-500"
+                                    color="text-amber-600"
 
                                 />
 
                                 <SummaryCard
 
-                                    title="Skip"
+                                    title="Bỏ qua"
 
                                     value={summary.skipCount}
 
-                                    color="bg-gray-500"
+                                    color="text-slate-500"
 
                                 />
 
@@ -654,406 +621,337 @@ export default function DriveImportModal({
 
                     }
 
-                    {/* =========================
-                        Preview Table
-                    ========================= */}
+                    {/* ================= Preview Table ================= */}
 
                     {
 
-                        rows.length > 0 ? (
+                        rows.length > 0 && (
 
-                            <div className="space-y-4">
+                            <div className="border rounded-2xl overflow-hidden">
+                                                                <div className="max-h-[460px] overflow-auto">
 
-                                <div className="flex items-center justify-between">
+                                    <table className="min-w-full text-sm">
 
-                                    <div>
+                                        <thead className="sticky top-0 bg-slate-100 z-20">
 
-                                        <h3 className="text-lg font-semibold">
+                                            <tr className="border-b">
 
-                                            Xem trước dữ liệu
+                                                <th className="px-4 py-3 text-left w-20">
+                                                    Action
+                                                </th>
 
-                                        </h3>
+                                                <th className="px-4 py-3 text-left">
+                                                    Device ID
+                                                </th>
 
-                                        <p className="text-sm text-gray-500">
+                                                <th className="px-4 py-3 text-left">
+                                                    Tên biến tần
+                                                </th>
 
-                                            Kiểm tra dữ liệu trước khi import
+                                                <th className="px-4 py-3 text-left">
+                                                    Hãng
+                                                </th>
 
-                                        </p>
+                                                <th className="px-4 py-3 text-left">
+                                                    Model
+                                                </th>
 
-                                    </div>
+                                                <th className="px-4 py-3 text-left">
+                                                    Tuyến
+                                                </th>
 
-                                    <div className="text-sm text-gray-500">
+                                                <th className="px-4 py-3 text-left">
+                                                    Nhà ga
+                                                </th>
 
-                                        {rows.length} dòng
+                                                <th className="px-4 py-3 text-left">
+                                                    Trạng thái
+                                                </th>
 
-                                    </div>
+                                                <th className="px-4 py-3 text-left">
+                                                    Thay đổi
+                                                </th>
 
-                                </div>
+                                            </tr>
 
-                                <div
-                                    className="
-                                        border
-                                        rounded-xl
-                                        overflow-hidden
-                                        bg-white
-                                    "
-                                >
+                                        </thead>
 
-                                    <div
-                                        className="
-                                            max-h-[420px]
-                                            overflow-auto
-                                        "
-                                    >
+                                        <tbody>
 
-                                        <table
-                                            className="
-                                                min-w-full
-                                                text-sm
-                                            "
-                                        >
+                                            {
 
-                                            <thead
-                                                className="
-                                                    sticky
-                                                    top-0
-                                                    bg-slate-100
-                                                    z-10
-                                                "
-                                            >
+                                                rows.map((item, index) => {
 
-                                                <tr>
+                                                    const row = item.row || {};
 
-                                                    <th className="px-4 py-3 text-left">
+                                                    const changedFields =
+                                                        Array.isArray(item.changedFields)
+                                                            ? item.changedFields
+                                                            : [];
 
-                                                        Action
+                                                    return (
 
-                                                    </th>
+                                                        <tr
+                                                            key={index}
+                                                            className="border-b hover:bg-slate-50"
+                                                        >
 
-                                                    <th className="px-4 py-3 text-left">
+                                                            <td className="px-4 py-3">
 
-                                                        Device ID
+                                                                <ActionBadge
+                                                                    action={item.action}
+                                                                />
 
-                                                    </th>
+                                                            </td>
 
-                                                    <th className="px-4 py-3 text-left">
+                                                            <td className="px-4 py-3 font-medium">
 
-                                                        Tên biến tần
+                                                                {
 
-                                                    </th>
+                                                                    getValue(
 
-                                                    <th className="px-4 py-3 text-left">
+                                                                        row,
 
-                                                        Hãng
+                                                                        "Mã thiết bị",
 
-                                                    </th>
+                                                                        "Device ID",
 
-                                                    <th className="px-4 py-3 text-left">
+                                                                        "deviceId"
 
-                                                        Model
+                                                                    )
 
-                                                    </th>
+                                                                }
 
-                                                    <th className="px-4 py-3 text-left">
+                                                            </td>
 
-                                                        Tuyến
+                                                            <td className="px-4 py-3">
 
-                                                    </th>
+                                                                {
 
-                                                    <th className="px-4 py-3 text-left">
+                                                                    getValue(
 
-                                                        Nhà ga
+                                                                        row,
 
-                                                    </th>
+                                                                        "Tên biến tần",
 
-                                                    <th className="px-4 py-3 text-left">
+                                                                        "Name"
 
-                                                        Trạng thái
+                                                                    )
 
-                                                    </th>
+                                                                }
 
-                                                    <th className="px-4 py-3 text-left">
+                                                            </td>
 
-                                                        Thay đổi
+                                                            <td className="px-4 py-3">
 
-                                                    </th>
+                                                                {
 
-                                                </tr>
+                                                                    getValue(
 
-                                            </thead>
+                                                                        row,
 
-                                            <tbody>
+                                                                        "Hãng",
 
-                                                {
+                                                                        "Brand"
 
-                                                    rows.map((item, index) => {
+                                                                    )
 
-                                                        const row = item.row || {};
+                                                                }
 
-                                                        const changedFields =
-                                                            Array.isArray(item.changedFields)
-                                                                ? item.changedFields
-                                                                : [];
+                                                            </td>
 
-                                                        return (
+                                                            <td className="px-4 py-3">
 
-                                                            <tr
-                                                                key={index}
-                                                                className="
-                                                                    border-t
-                                                                    hover:bg-slate-50
-                                                                "
-                                                            >
+                                                                {
 
-                                                                <td className="px-4 py-3">
+                                                                    getValue(
 
-                                                                    <ActionBadge
-                                                                        action={item.action}
-                                                                    />
+                                                                        row,
 
-                                                                </td>
+                                                                        "Model"
 
-                                                                <td className="px-4 py-3 font-medium">
+                                                                    )
 
-                                                                    {
+                                                                }
 
-                                                                        getValue(
-                                                                            row,
-                                                                            "Mã thiết bị",
-                                                                            "Device ID",
-                                                                            "deviceId"
+                                                            </td>
+
+                                                            <td className="px-4 py-3">
+
+                                                                {
+
+                                                                    getValue(
+
+                                                                        row,
+
+                                                                        "Tuyến",
+
+                                                                        "Line"
+
+                                                                    )
+
+                                                                }
+
+                                                            </td>
+
+                                                            <td className="px-4 py-3">
+
+                                                                {
+
+                                                                    getValue(
+
+                                                                        row,
+
+                                                                        "Nhà ga",
+
+                                                                        "Station"
+
+                                                                    )
+
+                                                                }
+
+                                                            </td>
+
+                                                            <td className="px-4 py-3">
+
+                                                                {
+
+                                                                    getValue(
+
+                                                                        row,
+
+                                                                        "Trạng thái",
+
+                                                                        "Status"
+
+                                                                    )
+
+                                                                }
+
+                                                            </td>
+
+                                                            <td className="px-4 py-3">
+
+                                                                {
+
+                                                                    item.action === "UPDATE"
+
+                                                                        ? (
+
+                                                                            <div className="flex flex-wrap gap-1">
+
+                                                                                {
+
+                                                                                    changedFields.length > 0
+
+                                                                                        ? changedFields.map(field => (
+
+                                                                                            <span
+
+                                                                                                key={field}
+
+                                                                                                className="
+                                                                                                    px-2
+                                                                                                    py-1
+                                                                                                    rounded-full
+                                                                                                    text-xs
+                                                                                                    bg-amber-100
+                                                                                                    text-amber-700
+                                                                                                "
+
+                                                                                            >
+
+                                                                                                {field}
+
+                                                                                            </span>
+
+                                                                                        ))
+
+                                                                                        : (
+
+                                                                                            <span className="text-slate-400">
+
+                                                                                                -
+
+                                                                                            </span>
+
+                                                                                        )
+
+                                                                                }
+
+                                                                            </div>
+
                                                                         )
 
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Tên biến tần",
-                                                                            "Name"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Hãng",
-                                                                            "Brand"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Model"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Tuyến",
-                                                                            "Line"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Nhà ga",
-                                                                            "Station"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        getValue(
-                                                                            row,
-                                                                            "Trạng thái",
-                                                                            "Status"
-                                                                        )
-
-                                                                    }
-
-                                                                </td>
-
-                                                                <td className="px-4 py-3">
-
-                                                                    {
-
-                                                                        item.action === "UPDATE"
+                                                                        : item.action === "NEW"
 
                                                                             ? (
 
-                                                                                <div className="flex flex-wrap gap-1">
+                                                                                <span className="text-green-600 font-medium">
 
-                                                                                    {
+                                                                                    Thêm mới
 
-                                                                                        changedFields.length > 0
-
-                                                                                            ? changedFields.map(field => (
-
-                                                                                                <span
-                                                                                                    key={field}
-                                                                                                    className="
-                                                                                                        px-2
-                                                                                                        py-1
-                                                                                                        rounded-full
-                                                                                                        text-xs
-                                                                                                        bg-amber-100
-                                                                                                        text-amber-700
-                                                                                                    "
-                                                                                                >
-
-                                                                                                    {field}
-
-                                                                                                </span>
-
-                                                                                            ))
-
-                                                                                            : (
-
-                                                                                                <span className="text-gray-400">
-
-                                                                                                    -
-
-                                                                                                </span>
-
-                                                                                            )
-
-                                                                                    }
-
-                                                                                </div>
+                                                                                </span>
 
                                                                             )
 
-                                                                            : item.action === "NEW"
+                                                                            : (
 
-                                                                                ? (
+                                                                                <span className="text-slate-400">
 
-                                                                                    <span className="text-green-600 font-medium">
+                                                                                    Không thay đổi
 
-                                                                                        Thêm mới
+                                                                                </span>
 
-                                                                                    </span>
+                                                                            )
 
-                                                                                )
+                                                                }
 
-                                                                                : (
+                                                            </td>
 
-                                                                                    <span className="text-gray-400">
+                                                        </tr>
 
-                                                                                        Không thay đổi
+                                                    );
 
-                                                                                    </span>
+                                                })
 
-                                                                                )
+                                            }
 
-                                                                    }
+                                        </tbody>
 
-                                                                </td>
-
-                                                            </tr>
-
-                                                        );
-
-                                                    })
-
-                                                }
-
-                                            </tbody>
-
-                                        </table>
-
-                                    </div>
+                                    </table>
 
                                 </div>
 
                             </div>
 
-                        ) : (
-
-                            summary && (
-
-                                <div
-                                    className="
-                                        border
-                                        rounded-xl
-                                        p-8
-                                        text-center
-                                        text-gray-500
-                                    "
-                                >
-
-                                    Không có dữ liệu để import.
-
-                                </div>
-
-                            )
-
                         )
 
                     }
-
-                    {/* =========================
-                        Footer
-                    ========================= */}
+                    {/* ================= Footer ================= */}
 
                 </div>
 
                 <div
                     className="
                         border-t
-                        px-6
-                        py-4
+                        bg-white
+                        px-8
+                        py-5
                         flex
                         items-center
                         justify-between
-                        bg-white
+                        shrink-0
                     "
                 >
 
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-slate-500">
 
                         {
 
                             summary
 
-                                ? `Sẽ tạo ${summary.newCount} mới • Cập nhật ${summary.updateCount} • Bỏ qua ${summary.skipCount}`
+                                ? `Tổng ${summary.total} • Thêm mới ${summary.newCount} • Cập nhật ${summary.updateCount} • Bỏ qua ${summary.skipCount}`
 
                                 : "Chọn file Excel để bắt đầu."
 
@@ -1072,17 +970,18 @@ export default function DriveImportModal({
                             disabled={importing}
 
                             className="
-                                px-5
-                                py-2
+                                px-6
+                                py-3
                                 rounded-xl
                                 border
-                                hover:bg-gray-100
+                                bg-white
+                                hover:bg-slate-100
                                 disabled:opacity-50
                             "
 
                         >
 
-                            Đóng
+                            Hủy
 
                         </button>
 
@@ -1099,16 +998,16 @@ export default function DriveImportModal({
                             }
 
                             className="
-                                px-5
-                                py-2
-                                rounded-xl
-                                bg-green-600
-                                hover:bg-green-700
-                                disabled:opacity-50
-                                text-white
                                 inline-flex
                                 items-center
                                 gap-2
+                                px-6
+                                py-3
+                                rounded-xl
+                                bg-green-600
+                                hover:bg-green-700
+                                text-white
+                                disabled:opacity-50
                             "
 
                         >
@@ -1122,8 +1021,11 @@ export default function DriveImportModal({
                                         <>
 
                                             <Loader2
+
                                                 size={18}
+
                                                 className="animate-spin"
+
                                             />
 
                                             Đang Import...
