@@ -5,7 +5,7 @@ import API from "../config";
 
 import AbbTable from "../components/Fault/AbbTable";
 import AbbEditModal from "../components/Fault/AbbEditModal";
-import VaconEditModal from "../components/Fault/VaconHistoryEditModal";
+import VaconHistoryEditModal from "../components/Fault/VaconHistoryEditModal";
 import VaconDeviceTable from "../components/Fault/VaconDeviceTable";
 import VaconHistoryModal from "../components/Fault/VaconHistoryModal";
 import PreviewImportModal from "../components/PreviewImportModal";
@@ -123,14 +123,6 @@ export default function DriveFaultHistory() {
         }
 
     }
-
-    const handleVaconEdit = (item) => {
-
-        setEditingVacon(item);
-
-        setOpenHistoryEdit(true);
-
-    };
 
     const handleVaconView = async (device) => {
 
@@ -470,47 +462,6 @@ export default function DriveFaultHistory() {
 
     }
 
-    const handleSaveVacon = async (form) => {
-
-        try {
-
-            await axios.put(
-
-                `${API}/api/vacon/${form.id}`,
-
-                form,
-
-                {
-
-                    headers: {
-
-                        Authorization:
-
-                            `Bearer ${localStorage.getItem("token")}`
-
-                    }
-
-                }
-
-            );
-
-            alert("Đã cập nhật.");
-
-            setOpenHistoryEdit(false);
-
-            loadData();
-
-        }
-
-        catch (err) {
-
-            console.log(err);
-
-            alert("Không thể cập nhật.");
-
-        }
-
-    };
 
     const handleVaconDelete = async (item) => {
 
@@ -871,18 +822,6 @@ export default function DriveFaultHistory() {
                 onClose={() => setOpenEdit(false)}
 
                 onSave={handleSave}
-
-            />
-
-            <VaconEditModal
-
-                open={openHistoryEdit}
-
-                data={editingVacon}
-
-                onClose={() => setOpenHistoryEdit(false)}
-
-                onSave={handleSaveVacon}
 
             />
 
