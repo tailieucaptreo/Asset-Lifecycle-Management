@@ -809,24 +809,42 @@ exports.previewImport = async (req, res) => {
 
         }
 
-        // Đọc Excel
+       // Đọc Excel
         const rows = await parseExcel(req.file);
-
+        
+        console.log("========== PREVIEW IMPORT ==========");
+        console.log("Excel rows:", rows.length);
+        
+        if (rows.length) {
+            console.log("First Excel row:");
+            console.log(rows[0]);
+        }
+        
         // So sánh
         const compare = await compareRows(rows);
-
+        
+        console.log("Compare rows:", compare.length);
+        
+        if (compare.length) {
+            console.log("First compare row:");
+            console.log(compare[0]);
+        }
+        
         // Thống kê
         const summary = {
-
+        
             total: compare.length,
-
+        
             newCount: compare.filter(x => x.status === "NEW").length,
-
+        
             updateCount: compare.filter(x => x.status === "UPDATE").length,
-
+        
             skipCount: compare.filter(x => x.status === "SKIP").length
-
+        
         };
+        
+        console.log("Summary:", summary);
+        console.log("==============================");
 
         // Xóa Preview cũ của user (nếu có)
         await prisma.importSession.deleteMany({
