@@ -71,10 +71,15 @@ router.delete(
 );
 
 router.post(
+    "/preview-import",
+    auth,
+    upload.single("file"),
+    vaconController.previewImport
+);
+
+router.post(
   "/import",
   auth,
-  adminOnly,
-  upload.single("file"),
   vaconController.importExcel
 );
 
