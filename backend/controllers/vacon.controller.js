@@ -3,6 +3,339 @@ const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 
+// ============================
+// PARSE EXCEL
+// ============================
+async function parseExcel(file) {
+
+    const workbook = XLSX.read(file.buffer, {
+        type: "buffer"
+    });
+
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    return XLSX.utils.sheet_to_json(sheet, {
+        defval: ""
+    });
+
+}
+
+// ============================
+// COMPARE ROWS
+// ============================
+async function compareRows(rows) {
+
+    function excelDateToJS(value) {
+
+        if (!value) return null;
+
+        if (typeof value === "number") {
+
+            const excelEpoch =
+                new Date(Date.UTC(1899, 11, 30));
+
+            return new Date(
+                excelEpoch.getTime() +
+                value * 86400000
+            );
+
+        }
+
+        if (
+            typeof value === "string" &&
+            value.includes("/")
+        ) {
+
+            const p = value.split("/");
+
+            if (p.length === 3) {
+
+                return new Date(
+
+                    Number(p[2]),
+
+                    Number(p[1]) - 1,
+
+                    Number(p[0])
+
+                );
+
+            }
+
+        }
+
+        const d = new Date(value);
+
+        return isNaN(d) ? null : d;
+
+    }
+
+    function excelTimeToString(value) {
+
+        if (!value) return "";
+
+        if (typeof value === "number") {
+
+            const total =
+                Math.round(value * 24 * 60 * 60);
+
+            const h =
+                String(Math.floor(total / 3600))
+                    .padStart(2, "0");
+
+            const m =
+                String(
+                    Math.floor((total % 3600) / 60)
+                ).padStart(2, "0");
+
+            const s =
+                String(total % 60)
+                    .padStart(2, "0");
+
+            return `${h}:${m}:${s}`;
+
+        }
+
+        return String(value);
+
+    }
+
+    let currentRecordDate = null;
+
+    const result = [];
+
+    for (const row of rows) {
+
+        //---------------------------------
+        // Record Date
+        //---------------------------------
+
+        if (
+            row["Record Date"] &&
+            String(row["Record Date"]).trim() !== ""
+        ) {
+
+            currentRecordDate =
+                excelDateToJS(row["Record Date"]);
+
+        }
+
+        const deviceName =
+            row["The Device Name"]
+                ? String(row["The Device Name"]).trim()
+                : "";
+
+        if (!deviceName) continue;
+
+        const serialNumber =
+            row["Serial number"]
+                ? String(row["Serial number"]).trim()
+                : "";
+
+        const station =
+            row["Station"]
+                ? String(row["Station"]).trim()
+                : "";
+
+        const tandem =
+            row["Tandem"]
+                ? String(row["Tandem"]).trim()
+                : "";
+
+        const application =
+            row["Application"]
+                ? String(row["Application"]).trim()
+                : "";
+
+        const operationHours =
+            excelTimeToString(
+                row["Operation Hours"]
+            );
+
+        //---------------------------------
+        // Tìm thiết bị
+        //---------------------------------
+
+        let device = null;
+
+        if (serialNumber) {
+
+            device =
+                await prisma.vaconDevice.findUnique({
+
+                    where: {
+
+                        serialNumber
+
+                    }
+
+                });
+
+        }
+
+        //---------------------------------
+        // NEW
+        //---------------------------------
+
+        if (!device) {
+
+            result.push({
+
+                status: "NEW",
+
+                deviceId: null,
+
+                updateData: {},
+
+                deviceName,
+
+                serialNumber,
+
+                station,
+
+                tandem,
+
+                application,
+
+                recordDate: currentRecordDate,
+
+                operationHours,
+
+                powerUnitDate:
+                    row["Power Unit Date"] || "",
+
+                faultHistory:
+                    row["Fault history"] || "",
+
+                description:
+                    row["Description"] || "",
+
+                possibleCause:
+                    row["Possible Cause"] || "",
+
+                correctiveActions:
+                    row["Corrective actions"] || "",
+
+                note:
+                    row["note"] || ""
+
+            });
+
+            continue;
+
+        }
+
+        //---------------------------------
+        // UPDATE DATA
+        //---------------------------------
+
+        const updateData = {};
+
+        if (
+            deviceName &&
+            device.deviceName !== deviceName
+        ) {
+
+            updateData.deviceName = deviceName;
+
+        }
+
+        if (
+            station &&
+            device.station !== station
+        ) {
+
+            updateData.station = station;
+
+        }
+
+        if (
+            tandem &&
+            device.tandem !== tandem
+        ) {
+
+            updateData.tandem = tandem;
+
+        }
+
+        if (
+            application &&
+            device.application !== application
+        ) {
+
+            updateData.application = application;
+
+        }
+
+        //---------------------------------
+        // Kiểm tra lịch sử
+        //---------------------------------
+
+        const history =
+            await prisma.vaconHistory.findFirst({
+
+                where: {
+
+                    deviceId: device.id,
+
+                    recordDate: currentRecordDate,
+
+                    operationHours
+
+                }
+
+            });
+
+        result.push({
+
+            status:
+                history
+                    ? "SKIP"
+                    : "UPDATE",
+
+            deviceId: device.id,
+
+            updateData,
+
+            deviceName,
+
+            serialNumber,
+
+            station,
+
+            tandem,
+
+            application,
+
+            recordDate: currentRecordDate,
+
+            operationHours,
+
+            powerUnitDate:
+                row["Power Unit Date"] || "",
+
+            faultHistory:
+                row["Fault history"] || "",
+
+            description:
+                row["Description"] || "",
+
+            possibleCause:
+                row["Possible Cause"] || "",
+
+            correctiveActions:
+                row["Corrective actions"] || "",
+
+            note:
+                row["note"] || ""
+
+        });
+
+    }
+
+    return result;
+
+}
 
 // ============================
 // GET ALL VACON DEVICE
@@ -541,374 +874,251 @@ exports.previewImport = async (req, res) => {
 };
 
 // ============================
-// IMPORT EXCEL
+// IMPORT FROM PREVIEW
 // ============================
 exports.importExcel = async (req, res) => {
 
-  try {
+    try {
 
-    if (!req.file) {
+        const { sessionId } = req.body;
 
-      return res.status(400).json({
-        message: "Chưa chọn file"
-      });
+        if (!sessionId) {
 
-    }
+            return res.status(400).json({
 
-    const workbook = XLSX.read(
-      req.file.buffer,
-      {
-        type: "buffer"
-      }
-    );
+                success: false,
 
-    const sheet =
-      workbook.Sheets[
-        workbook.SheetNames[0]
-      ];
-
-    const rows =
-      XLSX.utils.sheet_to_json(
-        sheet,
-        {
-          defval: ""
-        }
-      );
-
-    // ------------------------
-    // Chuyển ngày Excel
-    // ------------------------
-
-    function excelDateToJS(value) {
-
-      if (!value) return null;
-
-      if (typeof value === "number") {
-
-        const excelEpoch =
-          new Date(Date.UTC(1899, 11, 30));
-
-        return new Date(
-          excelEpoch.getTime()
-          +
-          value * 86400000
-        );
-
-      }
-
-      if (
-        typeof value === "string" &&
-        value.includes("/")
-      ) {
-
-        const p = value.split("/");
-
-        if (p.length === 3) {
-
-          return new Date(
-
-            Number(p[2]),
-
-            Number(p[1]) - 1,
-
-            Number(p[0])
-
-          );
-
-        }
-
-      }
-
-      const d = new Date(value);
-
-      return isNaN(d)
-        ? null
-        : d;
-
-    }
-
-    // ------------------------
-    // Chuyển giờ Excel
-    // ------------------------
-
-    function excelTimeToString(value) {
-
-      if (!value) return "";
-
-      if (typeof value === "number") {
-
-        const total =
-          Math.round(
-            value * 24 * 60 * 60
-          );
-
-        const h =
-          String(
-            Math.floor(total / 3600)
-          ).padStart(2, "0");
-
-        const m =
-          String(
-            Math.floor(
-              (total % 3600) / 60
-            )
-          ).padStart(2, "0");
-
-        const s =
-          String(
-            total % 60
-          ).padStart(2, "0");
-
-        return `${h}:${m}:${s}`;
-
-      }
-
-      return String(value);
-
-    }
-
-    let currentRecordDate = null;
-
-    let imported = 0;
-
-    await prisma.$transaction(async (tx) => {
-
-      for (const row of rows) {
-
-        // ------------------------
-        // Record Date
-        // ------------------------
-
-        if (
-          row["Record Date"] &&
-          String(row["Record Date"]).trim() !== ""
-        ) {
-
-          currentRecordDate =
-            excelDateToJS(
-              row["Record Date"]
-            );
-
-        }
-
-        const deviceName =
-          row["The Device Name"]
-            ? String(row["The Device Name"]).trim()
-            : null;
-
-        if (!deviceName) {
-
-          continue;
-
-        }
-
-        const serialNumber =
-          row["Serial number"]
-            ? String(row["Serial number"]).trim()
-            : null;
-
-        const station =
-          row["Station"]
-            ? String(row["Station"]).trim()
-            : null;
-
-        const tandem =
-          row["Tandem"]
-            ? String(row["Tandem"]).trim()
-            : null;
-
-        const application =
-          row["Application"]
-            ? String(row["Application"]).trim()
-            : null;
-
-        // ------------------------
-        // Tìm hoặc tạo thiết bị
-        // ------------------------
-
-        let device = null;
-
-        if (serialNumber) {
-
-          device =
-            await tx.vaconDevice.findUnique({
-
-              where: {
-
-                serialNumber
-
-              }
+                message: "Thiếu sessionId"
 
             });
 
         }
 
-        if (!device) {
-
-          device =
-            await tx.vaconDevice.create({
-
-              data: {
-
-                deviceName,
-
-                serialNumber,
-
-                station,
-
-                tandem,
-
-                application
-
-              }
-
-            });
-
-        } else {
-
-          await tx.vaconDevice.update({
+        const session = await prisma.importSession.findUnique({
 
             where: {
 
-              id: device.id
-
-            },
-
-            data: {
-
-              deviceName,
-
-              station,
-
-              tandem,
-
-              application
+                id: sessionId
 
             }
-
-          });
-
-        }
-
-        const operationHours =
-          excelTimeToString(
-            row["Operation Hours"]
-          );
-
-        // ------------------------
-        // Kiểm tra trùng
-        // ------------------------
-
-        const existed =
-          await tx.vaconHistory.findFirst({
-
-            where: {
-
-              deviceId: device.id,
-
-              recordDate: currentRecordDate,
-
-              operationHours
-
-            }
-
-          });
-
-        if (existed) {
-
-          continue;
-
-        }
-
-        // ------------------------
-        // Lưu lịch sử
-        // ------------------------
-
-        await tx.vaconHistory.create({
-
-          data: {
-
-            deviceId: device.id,
-
-            recordDate: currentRecordDate,
-
-            operationHours,
-
-            powerUnitDate:
-              row["Power Unit Date"]
-                ? String(
-                    row["Power Unit Date"]
-                  )
-                : null,
-
-            faultHistory:
-              row["Fault history"]
-                ? String(
-                    row["Fault history"]
-                  )
-                : null,
-
-            description:
-              row["Description"]
-                ? String(
-                    row["Description"]
-                  )
-                : null,
-
-            possibleCause:
-              row["Possible Cause"]
-                ? String(
-                    row["Possible Cause"]
-                  )
-                : null,
-
-            correctiveActions:
-              row["Corrective actions"]
-                ? String(
-                    row["Corrective actions"]
-                  )
-                : null,
-
-            note:
-              row["note"]
-                ? String(
-                    row["note"]
-                  )
-                : null
-
-          }
 
         });
 
-        imported++;
+        if (!session) {
 
-      }
+            return res.status(404).json({
 
-    });
+                success: false,
 
-    res.json({
+                message: "Preview không tồn tại"
 
-      success: true,
+            });
 
-      imported
+        }
 
-    });
+        if (session.module !== "VACON") {
 
-  }
+            return res.status(400).json({
 
-  catch (err) {
+                success: false,
 
-    console.error(err);
+                message: "Sai module"
 
-    res.status(500).json({
+            });
 
-      success: false,
+        }
 
-      message: err.message
+        if (new Date(session.expiredAt) < new Date()) {
 
-    });
+            await prisma.importSession.delete({
 
-  }
+                where: {
+
+                    id: session.id
+
+                }
+
+            });
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "Preview đã hết hạn"
+
+            });
+
+        }
+
+        const rows = session.data;
+
+        let created = 0;
+        let updated = 0;
+        let skipped = 0;
+        let histories = 0;
+
+        for (const item of rows) {
+
+            if (item.status === "NEW") {
+
+                const device = await prisma.vaconDevice.create({
+
+                    data: {
+
+                        deviceName: item.deviceName,
+
+                        serialNumber: item.serialNumber,
+
+                        station: item.station,
+
+                        tandem: item.tandem,
+
+                        application: item.application
+
+                    }
+
+                });
+
+                created++;
+
+                await prisma.vaconHistory.create({
+
+                    data: {
+
+                        deviceId: device.id,
+
+                        recordDate: item.recordDate,
+
+                        operationHours: item.operationHours,
+
+                        powerUnitDate: item.powerUnitDate,
+
+                        faultHistory: item.faultHistory,
+
+                        description: item.description,
+
+                        possibleCause: item.possibleCause,
+
+                        correctiveActions: item.correctiveActions,
+
+                        note: item.note
+
+                    }
+
+                });
+
+                histories++;
+
+                continue;
+
+            }
+
+            if (item.status === "UPDATE") {
+
+                if (
+
+                    item.updateData &&
+
+                    Object.keys(item.updateData).length
+
+                ) {
+
+                    await prisma.vaconDevice.update({
+
+                        where: {
+
+                            id: item.deviceId
+
+                        },
+
+                        data: item.updateData
+
+                    });
+
+                }
+
+                await prisma.vaconHistory.create({
+
+                    data: {
+
+                        deviceId: item.deviceId,
+
+                        recordDate: item.recordDate,
+
+                        operationHours: item.operationHours,
+
+                        powerUnitDate: item.powerUnitDate,
+
+                        faultHistory: item.faultHistory,
+
+                        description: item.description,
+
+                        possibleCause: item.possibleCause,
+
+                        correctiveActions: item.correctiveActions,
+
+                        note: item.note
+
+                    }
+
+                });
+
+                updated++;
+                histories++;
+
+                continue;
+
+            }
+
+            skipped++;
+
+        }
+
+        await prisma.importSession.delete({
+
+            where: {
+
+                id: session.id
+
+            }
+
+        });
+
+        res.json({
+
+            success: true,
+
+            summary: {
+
+                total: rows.length,
+
+                created,
+
+                updated,
+
+                skipped,
+
+                histories
+
+            }
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
 
 };
 
