@@ -73,35 +73,39 @@ async function compareRows(rows) {
     function excelTimeToString(value) {
 
         if (!value) return "";
-
+    
         if (typeof value === "number") {
-
+    
             const total =
                 Math.round(value * 24 * 60 * 60);
-
+    
             const h =
                 String(Math.floor(total / 3600))
                     .padStart(2, "0");
-
+    
             const m =
                 String(
                     Math.floor((total % 3600) / 60)
                 ).padStart(2, "0");
-
+    
             const s =
                 String(total % 60)
                     .padStart(2, "0");
-
+    
             return `${h}:${m}:${s}`;
-
+    
         }
-
+    
+        return String(value);
+    
+    }
+    
     function get(row, ...keys) {
-
+    
         for (const key of keys) {
-
+    
             const value = row[key];
-
+    
             if (
                 value !== undefined &&
                 value !== null &&
@@ -109,13 +113,12 @@ async function compareRows(rows) {
             ) {
                 return value;
             }
-
+    
         }
-
-        return String(value);
-
+    
+        return "";
+    
     }
-
     let currentRecordDate = null;
 
     const result = [];
