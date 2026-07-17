@@ -51,13 +51,9 @@ async function compareRows(rows) {
             if (p.length === 3) {
 
                 return new Date(
-
                     Number(p[2]),
-
                     Number(p[1]) - 1,
-
                     Number(p[0])
-
                 );
 
             }
@@ -73,39 +69,39 @@ async function compareRows(rows) {
     function excelTimeToString(value) {
 
         if (!value) return "";
-    
+
         if (typeof value === "number") {
-    
+
             const total =
                 Math.round(value * 24 * 60 * 60);
-    
+
             const h =
                 String(Math.floor(total / 3600))
                     .padStart(2, "0");
-    
+
             const m =
                 String(
                     Math.floor((total % 3600) / 60)
                 ).padStart(2, "0");
-    
+
             const s =
                 String(total % 60)
                     .padStart(2, "0");
-    
+
             return `${h}:${m}:${s}`;
-    
+
         }
-    
+
         return String(value);
-    
+
     }
-    
+
     function get(row, ...keys) {
-    
+
         for (const key of keys) {
-    
+
             const value = row[key];
-    
+
             if (
                 value !== undefined &&
                 value !== null &&
@@ -113,21 +109,82 @@ async function compareRows(rows) {
             ) {
                 return value;
             }
-    
+
         }
-    
+
         return "";
-    
+
     }
+
+    // ===================================
+    // Load DB chỉ 1 lần
+    // ===================================
+
+    const devices =
+        await prisma.vaconDevice.findMany();
+
+    const histories =
+        await prisma.vaconHistory.findMany({
+
+            select: {
+
+                deviceId: true,
+
+                recordDate: true,
+
+                operationHours: true
+
+            }
+
+        });
+
+    // ===================================
+    // Device Map
+    // ===================================
+
+    const deviceMap = new Map();
+
+    devices.forEach(device => {
+
+        if (device.serialNumber) {
+
+            deviceMap.set(
+                device.serialNumber.trim(),
+                device
+            );
+
+        }
+
+    });
+
+    // ===================================
+    // History Map
+    // ===================================
+
+    const historyMap = new Set();
+
+    histories.forEach(h => {
+
+        const date =
+            new Date(h.recordDate)
+                .toISOString()
+                .slice(0, 10);
+
+        historyMap.add(
+            `${h.deviceId}|${date}|${h.operationHours}`
+        );
+
+    });
+
+    // ===================================
+    // Compare
+    // ===================================
+
     let currentRecordDate = null;
 
     const result = [];
 
     for (const row of rows) {
-
-        //---------------------------------
-        // Record Date
-        //---------------------------------
 
         if (
             row["Record Date"] &&
@@ -135,7 +192,9 @@ async function compareRows(rows) {
         ) {
 
             currentRecordDate =
-                excelDateToJS(row["Record Date"]);
+                excelDateToJS(
+                    row["Record Date"]
+                );
 
         }
 
@@ -146,9 +205,9 @@ async function compareRows(rows) {
                 "The Device Name"
             )
         ).trim();
-        
+
         if (!deviceName) continue;
-        
+
         const serialNumber = String(
             get(
                 row,
@@ -156,86 +215,74 @@ async function compareRows(rows) {
                 "Serial number"
             )
         ).trim();
-        
+
         const station = String(
             get(row, "Station")
         ).trim();
-        
+
         const tandem = String(
             get(row, "Tandem")
         ).trim();
-        
+
         const application = String(
             get(row, "Application")
         ).trim();
-        
-        const operationHours = excelTimeToString(
+
+        const operationHours =
+            excelTimeToString(
+
+                get(
+                    row,
+                    "Operation Hours",
+                    "Operation hours"
+                )
+
+            );
+
+        const powerUnitDate =
             get(
                 row,
-                "Operation Hours",
-                "Operation hours"
-            )
-        );
-        
-        const powerUnitDate = get(
-            row,
-            "Power Unit Date",
-            "Power unit date"
-        );
-        
-        const faultHistory = get(
-            row,
-            "Fault History",
-            "Fault history"
-        );
-        
-        const description = get(
-            row,
-            "Description"
-        );
-        
-        const possibleCause = get(
-            row,
-            "Possible Cause",
-            "Possible cause"
-        );
-        
-        const correctiveActions = get(
-            row,
-            "Corrective Actions",
-            "Corrective actions"
-        );
-        
-        const note = get(
-            row,
-            "Note",
-            "note"
-        );
+                "Power Unit Date",
+                "Power unit date"
+            );
+
+        const faultHistory =
+            get(
+                row,
+                "Fault History",
+                "Fault history"
+            );
+
+        const description =
+            get(row, "Description");
+
+        const possibleCause =
+            get(
+                row,
+                "Possible Cause",
+                "Possible cause"
+            );
+
+        const correctiveActions =
+            get(
+                row,
+                "Corrective Actions",
+                "Corrective actions"
+            );
+
+        const note =
+            get(
+                row,
+                "Note",
+                "note"
+            );
 
         //---------------------------------
-        // Tìm thiết bị
+        // Device
         //---------------------------------
 
-        let device = null;
-
-        if (serialNumber) {
-
-            device =
-                await prisma.vaconDevice.findUnique({
-
-                    where: {
-
-                        serialNumber
-
-                    }
-
-                });
-
-        }
-
-        //---------------------------------
-        // NEW
-        //---------------------------------
+        const device =
+            deviceMap.get(serialNumber);
 
         if (!device) {
 
@@ -264,13 +311,13 @@ async function compareRows(rows) {
                 powerUnitDate,
 
                 faultHistory,
-                
+
                 description,
-                
+
                 possibleCause,
-                
+
                 correctiveActions,
-                
+
                 note
 
             });
@@ -280,70 +327,60 @@ async function compareRows(rows) {
         }
 
         //---------------------------------
-        // UPDATE DATA
+        // Update data
         //---------------------------------
 
         const updateData = {};
 
         if (
-            deviceName &&
             device.deviceName !== deviceName
         ) {
-
-            updateData.deviceName = deviceName;
-
+            updateData.deviceName =
+                deviceName;
         }
 
         if (
-            station &&
             device.station !== station
         ) {
-
-            updateData.station = station;
-
+            updateData.station =
+                station;
         }
 
         if (
-            tandem &&
             device.tandem !== tandem
         ) {
-
-            updateData.tandem = tandem;
-
+            updateData.tandem =
+                tandem;
         }
 
         if (
-            application &&
             device.application !== application
         ) {
-
-            updateData.application = application;
-
+            updateData.application =
+                application;
         }
 
         //---------------------------------
-        // Kiểm tra lịch sử
+        // History
         //---------------------------------
 
-        const history =
-            await prisma.vaconHistory.findFirst({
+        const date =
+            currentRecordDate
+                ? currentRecordDate
+                    .toISOString()
+                    .slice(0, 10)
+                : "";
 
-                where: {
+        const historyKey =
+            `${device.id}|${date}|${operationHours}`;
 
-                    deviceId: device.id,
-
-                    recordDate: currentRecordDate,
-
-                    operationHours
-
-                }
-
-            });
+        const existed =
+            historyMap.has(historyKey);
 
         result.push({
 
             status:
-                history
+                existed
                     ? "SKIP"
                     : "UPDATE",
 
@@ -368,13 +405,13 @@ async function compareRows(rows) {
             powerUnitDate,
 
             faultHistory,
-            
+
             description,
-            
+
             possibleCause,
-            
+
             correctiveActions,
-            
+
             note
 
         });
@@ -384,7 +421,6 @@ async function compareRows(rows) {
     return result;
 
 }
-
 // ============================
 // GET ALL VACON DEVICE
 // ============================
