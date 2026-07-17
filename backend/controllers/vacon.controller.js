@@ -120,37 +120,78 @@ async function compareRows(rows) {
 
         }
 
-        const deviceName =
-            row["The Device Name"]
-                ? String(row["The Device Name"]).trim()
-                : "";
-
+        const deviceName = String(
+            get(
+                row,
+                "Device Name",
+                "The Device Name"
+            )
+        ).trim();
+        
         if (!deviceName) continue;
-
-        const serialNumber =
-            row["Serial number"]
-                ? String(row["Serial number"]).trim()
-                : "";
-
-        const station =
-            row["Station"]
-                ? String(row["Station"]).trim()
-                : "";
-
-        const tandem =
-            row["Tandem"]
-                ? String(row["Tandem"]).trim()
-                : "";
-
-        const application =
-            row["Application"]
-                ? String(row["Application"]).trim()
-                : "";
-
-        const operationHours =
-            excelTimeToString(
-                row["Operation Hours"]
-            );
+        
+        const serialNumber = String(
+            get(
+                row,
+                "Serial Number",
+                "Serial number"
+            )
+        ).trim();
+        
+        const station = String(
+            get(row, "Station")
+        ).trim();
+        
+        const tandem = String(
+            get(row, "Tandem")
+        ).trim();
+        
+        const application = String(
+            get(row, "Application")
+        ).trim();
+        
+        const operationHours = excelTimeToString(
+            get(
+                row,
+                "Operation Hours",
+                "Operation hours"
+            )
+        );
+        
+        const powerUnitDate = get(
+            row,
+            "Power Unit Date",
+            "Power unit date"
+        );
+        
+        const faultHistory = get(
+            row,
+            "Fault History",
+            "Fault history"
+        );
+        
+        const description = get(
+            row,
+            "Description"
+        );
+        
+        const possibleCause = get(
+            row,
+            "Possible Cause",
+            "Possible cause"
+        );
+        
+        const correctiveActions = get(
+            row,
+            "Corrective Actions",
+            "Corrective actions"
+        );
+        
+        const note = get(
+            row,
+            "Note",
+            "note"
+        );
 
         //---------------------------------
         // Tìm thiết bị
@@ -201,23 +242,17 @@ async function compareRows(rows) {
 
                 operationHours,
 
-                powerUnitDate:
-                    row["Power Unit Date"] || "",
+                powerUnitDate,
 
-                faultHistory:
-                    row["Fault history"] || "",
-
-                description:
-                    row["Description"] || "",
-
-                possibleCause:
-                    row["Possible Cause"] || "",
-
-                correctiveActions:
-                    row["Corrective actions"] || "",
-
-                note:
-                    row["note"] || ""
+                faultHistory,
+                
+                description,
+                
+                possibleCause,
+                
+                correctiveActions,
+                
+                note
 
             });
 
@@ -311,23 +346,17 @@ async function compareRows(rows) {
 
             operationHours,
 
-            powerUnitDate:
-                row["Power Unit Date"] || "",
+            powerUnitDate,
 
-            faultHistory:
-                row["Fault history"] || "",
-
-            description:
-                row["Description"] || "",
-
-            possibleCause:
-                row["Possible Cause"] || "",
-
-            correctiveActions:
-                row["Corrective actions"] || "",
-
-            note:
-                row["note"] || ""
+            faultHistory,
+            
+            description,
+            
+            possibleCause,
+            
+            correctiveActions,
+            
+            note
 
         });
 
