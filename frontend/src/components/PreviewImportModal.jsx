@@ -122,78 +122,47 @@ export default function PreviewImportModal({
 
                             <tr>
 
-                                <th className="px-3 py-3">#</th>
-
-                                <th className="px-3 py-3">Device</th>
-
-                                <th className="px-3 py-3">Serial</th>
-
-                                <th className="px-3 py-3">Station</th>
-
-                                <th className="px-3 py-3">Status</th>
+                                <th className="px-4 py-3 text-center w-16">#</th>
+                                <th className="px-4 py-3 text-center">Device</th>
+                                <th className="px-4 py-3 text-center">Serial</th>
+                                <th className="px-4 py-3 text-center w-24">Station</th>
+                                <th className="px-4 py-3 text-center w-32">Status</th>
 
                             </tr>
 
                         </thead>
 
                         <tbody>
-
-                            {
-
-                                rows.map((item,index)=>(
-
-                                    <tr
-
-                                        key={index}
-
-                                        className="border-b"
-
-                                    >
-
-                                        <td className="px-3 py-3">
-
-                                            {index+1}
-
-                                        </td>
-
-                                        <td className="px-3 py-3">
-
-                                            {item.deviceName}
-
-                                        </td>
-
-                                        <td className="px-3 py-3">
-
-                                            {item.serialNumber}
-
-                                        </td>
-
-                                        <td className="px-3 py-3">
-
-                                            {item.station || "-"}
-
-                                        </td>
-
-                                        <td className="px-3 py-3">
-
-                                            <span
-
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColor[item.status]}`}
-
-                                            >
-
-                                                {item.status}
-
-                                            </span>
-
-                                        </td>
-
-                                    </tr>
-
-                                ))
-
-                            }
-
+                            {rows.map((item, index) => (
+                                <tr
+                                    key={index}
+                                    className="border-b hover:bg-slate-50"
+                                >
+                                    <td className="px-4 py-3 text-center">
+                                        {index + 1}
+                                    </td>
+                        
+                                    <td className="px-4 py-3 text-center">
+                                        {item.deviceName}
+                                    </td>
+                        
+                                    <td className="px-4 py-3 text-center">
+                                        {item.serialNumber}
+                                    </td>
+                        
+                                    <td className="px-4 py-3 text-center">
+                                        {item.station || "-"}
+                                    </td>
+                        
+                                    <td className="px-4 py-3 text-center">
+                                        <span
+                                            className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${statusColor[item.status]}`}
+                                        >
+                                            {item.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
 
                     </table>
