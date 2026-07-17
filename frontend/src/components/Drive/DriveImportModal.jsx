@@ -1,90 +1,381 @@
 import { useState } from "react";
-import { Upload, X, FileSpreadsheet } from "lucide-react";
+import axios from "axios";
+import {
+    Upload,
+    X,
+    FileSpreadsheet,
+    Loader2
+} from "lucide-react";
+
+const API = import.meta.env.VITE_API_URL;
+
+/* =========================================================
+   Helper
+========================================================= */
+
+const getValue = (row = {}, ...keys) => {
+
+    for (const key of keys) {
+
+        const value = row[key];
+
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== ""
+        ) {
+
+            return value;
+
+        }
+
+    }
+
+    return "";
+
+};
+
+/* =========================================================
+   Summary Card
+========================================================= */
+
+function SummaryCard({
+
+    title,
+
+    value,
+
+    color
+
+}) {
+
+    return (
+
+        <div
+            className={`
+                ${color}
+                rounded-xl
+                p-4
+                text-white
+                shadow
+            `}
+        >
+
+            <div
+                className="
+                    text-sm
+                    opacity-90
+                "
+            >
+
+                {title}
+
+            </div>
+
+            <div
+                className="
+                    mt-2
+                    text-3xl
+                    font-bold
+                "
+            >
+
+                {value ?? 0}
+
+            </div>
+
+        </div>
+
+    );
+
+}
+
+/* =========================================================
+   Action Badge
+========================================================= */
+
+function ActionBadge({
+
+    action
+
+}) {
+
+    const styles = {
+
+        NEW:
+            "bg-green-100 text-green-700",
+
+        UPDATE:
+            "bg-amber-100 text-amber-700",
+
+        SKIP:
+            "bg-slate-200 text-slate-600"
+
+    };
+
+    const className =
+        styles[action] ??
+        "bg-red-100 text-red-700";
+
+    return (
+
+        <span
+            className={`
+                inline-flex
+                items-center
+                justify-center
+                px-3
+                py-1
+                rounded-full
+                text-xs
+                font-semibold
+                ${className}
+            `}
+        >
+
+            {action}
+
+        </span>
+
+    );
+
+}
+
+/* =========================================================
+   Main Component
+========================================================= */
 
 export default function DriveImportModal({
 
     open,
 
-    preview = [],
-
-    loading,
-
-    importFile,
-
     onClose,
 
-    onUpload,
-
-    onConfirm
+    onSuccess
 
 }) {
 
+    const [file, setFile] = useState(null);
+
+    const [loading, setLoading] = useState(false);
+
+    const [importing, setImporting] = useState(false);
+
+    const [rows, setRows] = useState([]);
+
+    const [summary, setSummary] = useState(null);
+
+    const [sessionId, setSessionId] = useState(null);
+
+    const token =
+        localStorage.getItem("token");
+
     if (!open) return null;
 
-    const columns = [
-        { key: "typeCode", label: "Type code" },
-        { key: "serialNumber", label: "Serial number" },
-        { key: "line", label: "Tuyến cáp" },
-        { key: "station", label: "Đặt tại Ga" },
-        { key: "application", label: "Ký hiệu / Ứng dụng" },
-        { key: "firmware", label: "Firmware" },
-        { key: "currentStatus", label: "Tình trạng hiện tại" },
-        { key: "replaceReason", label: "Lý do thay thế" },
-        { key: "operationHours", label: "Giờ hoạt động" },
-        { key: "lastReplaceDate", label: "Ngày thay" },
-        { key: "onTimeDay", label: "On-time" },
-        { key: "runningDay", label: "Running Day" },
-        { key: "lastMaintenance", label: "Ngày bảo dưỡng" },
-        { key: "maintenanceWork", label: "Nội dung bảo dưỡng" },
-        { key: "note", label: "Ghi chú" }
-    ];
+    /* =====================================================
+       Reset
+    ===================================================== */
 
-    const formatValue = (key, value) => {
+    function reset() {
 
-        if (value === null || value === undefined || value === "") {
-    
-            return "";
-    
+        setFile(null);
+
+        setRows([]);
+
+        setSummary(null);
+
+        setSessionId(null);
+
+        setLoading(false);
+
+        setImporting(false);
+
+    }
+
+    function handleClose() {
+
+        reset();
+
+        onClose?.();
+
+    }
+
+    /* =====================================================
+       Preview Import
+    ===================================================== */
+
+    async function previewImport() {
+
+        if (!file) {
+
+            alert("Vui lòng chọn file Excel.");
+
+            return;
+
         }
-    
-        if (
-            key === "lastReplaceDate" ||
-            key === "lastMaintenance"
-        ) {
-    
-            const d = new Date(value);
-    
-            if (!isNaN(d.getTime())) {
-    
-                return d.toLocaleDateString("vi-VN");
-    
-            }
-    
+
+        try {
+
+            setLoading(true);
+
+            const formData = new FormData();
+
+            formData.append("file", file);
+
+            const res = await axios.post(
+
+                `${API}/api/drives/preview-import`,
+
+                formData,
+
+                {
+
+                    headers: {
+
+                        Authorization:
+
+                            `Bearer ${token}`,
+
+                        "Content-Type":
+
+                            "multipart/form-data"
+
+                    }
+
+                }
+
+            );
+
+            setRows(
+
+                Array.isArray(res.data.rows)
+
+                    ? res.data.rows
+
+                    : []
+
+            );
+
+            setSummary(
+
+                res.data.summary || null
+
+            );
+
+            setSessionId(
+
+                res.data.sessionId || null
+
+            );
+
         }
-    
-        return value;
-    
-    };
 
-    const chooseFile = (e) => {
+        catch (err) {
 
-        if (!e.target.files?.length) return;
-    
-        onUpload(e.target.files[0]);
-    
-    };
-    
+            console.error(err);
+
+            alert(
+
+                err.response?.data?.message ||
+
+                "Không thể đọc file Excel."
+
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
+
+    }
+
+    /* =====================================================
+       Confirm Import
+    ===================================================== */
+
+    async function confirmImport() {
+
+        if (!sessionId) {
+
+            return;
+
+        }
+
+        try {
+
+            setImporting(true);
+
+            await axios.post(
+
+                `${API}/api/drives/import`,
+
+                {
+
+                    sessionId
+
+                },
+
+                {
+
+                    headers: {
+
+                        Authorization:
+
+                            `Bearer ${token}`
+
+                    }
+
+                }
+
+            );
+
+            alert("Import thành công.");
+
+            await onSuccess?.();
+
+            handleClose();
+
+        }
+
+        catch (err) {
+
+            console.error(err);
+
+            alert(
+
+                err.response?.data?.message ||
+
+                "Import thất bại."
+
+            );
+
+        }
+
+        finally {
+
+            setImporting(false);
+
+        }
+
+    }
+
+    /* =====================================================
+       JSX
+    ===================================================== */
+
     return (
-
-        <div
+         <div
             className="
                 fixed
                 inset-0
                 bg-black/40
-                z-50
                 flex
                 items-center
                 justify-center
+                z-50
                 p-4
             "
         >
@@ -95,334 +386,769 @@ export default function DriveImportModal({
                     rounded-2xl
                     shadow-xl
                     w-full
-                    max-w-6xl
-                    h-[90vh]
+                    max-w-7xl
+                    max-h-[90vh]
+                    overflow-hidden
                     flex
                     flex-col
                 "
             >
 
-                {/* Header */}
+                {/* =========================
+                    Header
+                ========================= */}
 
                 <div
                     className="
-                        flex
-                        items-center
-                        justify-between
                         border-b
                         px-6
                         py-4
+                        flex
+                        items-center
+                        justify-between
                     "
                 >
 
-                    <h2
-                        className="
-                            text-xl
-                            font-semibold
-                        "
-                    >
+                    <div>
 
-                        Import biến tần
+                        <h2
+                            className="
+                                text-xl
+                                font-semibold
+                            "
+                        >
 
-                    </h2>
+                            Import biến tần
 
-                    <button onClick={onClose}>
-
-                        <X />
-
-                    </button>
-
-                </div>
-
-                {/* Upload */}
-
-                <div className="flex-1 overflow-y-auto p-6">
-
-                    <label
-                        className="
-                            border-2
-                            border-dashed
-                            rounded-2xl
-                            p-10
-                            flex
-                            flex-col
-                            items-center
-                            justify-center
-                            cursor-pointer
-                            hover:bg-slate-50
-                        "
-                    >
-
-                        <Upload
-                            size={42}
-                            className="mb-4 text-blue-600"
-                        />
-
-                        <p className="font-medium">
-
-                            Chọn file Excel
-
-                        </p>
+                        </h2>
 
                         <p
                             className="
                                 text-sm
                                 text-gray-500
-                                mt-2
                             "
                         >
 
-                            .xlsx hoặc .xls
+                            Xem trước dữ liệu trước khi ghi vào hệ thống
 
                         </p>
 
-                        <input
+                    </div>
 
-                            hidden
+                    <button
 
-                            type="file"
+                        onClick={handleClose}
 
-                            accept=".xlsx,.xls"
+                        className="
+                            p-2
+                            rounded-lg
+                            hover:bg-gray-100
+                        "
 
-                            onChange={chooseFile}
+                    >
 
-                        />
+                        <X size={22} />
 
-                    </label>
-
-                    {
-
-                        importFile &&
-
-                        <div
-                            className="
-                                mt-5
-                                flex
-                                items-center
-                                gap-3
-                                bg-slate-100
-                                rounded-xl
-                                p-3
-                            "
-                        >
-
-                            <FileSpreadsheet
-                                className="text-green-600"
-                            />
-
-                            <span>
-
-                                {importFile.name}
-
-                            </span>
-
-                        </div>
-
-                    }
+                    </button>
 
                 </div>
 
-                {/* Preview */}
+                {/* =========================
+                    Body
+                ========================= */}
 
-                {
+                <div
+                    className="
+                        flex-1
+                        overflow-auto
+                        p-6
+                        space-y-6
+                    "
+                >
 
-                    preview.length > 0 &&
+                    {/* Upload */}
 
                     <div
                         className="
-                            mt-6
+                            border-2
+                            border-dashed
+                            rounded-xl
+                            p-8
+                            text-center
                         "
                     >
 
-                        <div
+                        <FileSpreadsheet
+
+                            size={42}
+
                             className="
-                                flex
-                                justify-between
-                                items-center
-                                mb-3
+                                mx-auto
+                                mb-4
+                                text-green-600
                             "
-                        >
 
-                            <h3
-                                className="
-                                    font-semibold
-                                "
-                            >
+                        />
 
-                                Preview
+                        <input
 
-                            </h3>
-
-                            <span
-                                className="
-                                    text-sm
-                                    text-gray-500
-                                "
-                            >
-
-                                {preview.length} dòng
-
-                            </span>
-
-                        </div>
-
-                        <div
                             className="
-                                overflow-auto
-                                border
-                                rounded-xl
-                                max-h-[420px]
+                                block
+                                mx-auto
                             "
-                        >
 
-                            <table
-                                className="
-                                    min-w-[2200px]
-                                    table-auto
-                                    text-sm
-                                "
-                            >
+                            type="file"
 
-                                <thead
+                            key={file?.name || "empty"}
+
+                            accept=".xlsx,.xls"
+
+                            onChange={(e)=>
+
+                                setFile(
+
+                                    e.target.files?.[0] || null
+
+                                )
+
+                            }
+
+                        />
+
+                        {
+
+                            file && (
+
+                                <p
                                     className="
-                                        sticky
-                                        top-0
-                                        bg-slate-100
+                                        mt-3
+                                        text-sm
+                                        text-slate-600
                                     "
                                 >
 
-                                    <tr>
+                                    {file.name}
 
-                                        {
+                                </p>
 
-                                           columns.map(col => (
-                                            
-                                                <th
-                                                    key={col.key}
-                                                    className="px-4 py-3 whitespace-nowrap text-left"
-                                                >
-                                                    {col.label}
-                                                </th>
-                                            
-                                            ))
+                            )
 
-                                        }
+                        }
 
-                                    </tr>
+                        <button
 
-                                </thead>
+                            onClick={previewImport}
 
-                                <tbody>
+                            disabled={loading}
 
-                                    {
+                            className="
+                                mt-5
+                                px-5
+                                py-2
+                                rounded-xl
+                                bg-blue-600
+                                hover:bg-blue-700
+                                disabled:opacity-50
+                                text-white
+                                inline-flex
+                                items-center
+                                gap-2
+                            "
 
-                                        preview.map(
+                        >
 
-                                            (row, index) => (
+                            {
 
-                                                <tr
-                                                    key={index}
-                                                    className="
-                                                        border-t
-                                                    "
-                                                >
+                                loading
 
-                                                    {
+                                    ?
 
-                                                       columns.map(col => (
+                                    <>
 
-                                                            <td
-                                                                key={col.key}
-                                                                className="px-4 py-3 whitespace-nowrap"
-                                                            >
-                                                                {formatValue(col.key, row[col.key])}
-                                                            </td>
-                                                        
-                                                        ))
+                                        <Loader2
 
-                                                    }
+                                            size={18}
 
-                                                </tr>
+                                            className="animate-spin"
 
-                                            )
+                                        />
 
-                                        )
+                                        Đang đọc...
 
-                                    }
+                                    </>
 
-                                </tbody>
+                                    :
 
-                            </table>
+                                    <>
 
-                        </div>
+                                        <Upload size={18} />
+
+                                        Preview Import
+
+                                    </>
+
+                            }
+
+                        </button>
 
                     </div>
 
-                }
+                    {/* Summary */}
 
-                {/* Footer */}
+                    {
+
+                        summary && (
+
+                            <div
+                                className="
+                                    grid
+                                    grid-cols-2
+                                    md:grid-cols-4
+                                    gap-4
+                                "
+                            >
+
+                                <SummaryCard
+
+                                    title="Tổng"
+
+                                    value={summary.total}
+
+                                    color="bg-slate-500"
+
+                                />
+
+                                <SummaryCard
+
+                                    title="New"
+
+                                    value={summary.newCount}
+
+                                    color="bg-green-600"
+
+                                />
+
+                                <SummaryCard
+
+                                    title="Update"
+
+                                    value={summary.updateCount}
+
+                                    color="bg-amber-500"
+
+                                />
+
+                                <SummaryCard
+
+                                    title="Skip"
+
+                                    value={summary.skipCount}
+
+                                    color="bg-gray-500"
+
+                                />
+
+                            </div>
+
+                        )
+
+                    }
+
+                    {/* =========================
+                        Preview Table
+                    ========================= */}
+
+                    {
+
+                        rows.length > 0 ? (
+
+                            <div className="space-y-4">
+
+                                <div className="flex items-center justify-between">
+
+                                    <div>
+
+                                        <h3 className="text-lg font-semibold">
+
+                                            Xem trước dữ liệu
+
+                                        </h3>
+
+                                        <p className="text-sm text-gray-500">
+
+                                            Kiểm tra dữ liệu trước khi import
+
+                                        </p>
+
+                                    </div>
+
+                                    <div className="text-sm text-gray-500">
+
+                                        {rows.length} dòng
+
+                                    </div>
+
+                                </div>
+
+                                <div
+                                    className="
+                                        border
+                                        rounded-xl
+                                        overflow-hidden
+                                        bg-white
+                                    "
+                                >
+
+                                    <div
+                                        className="
+                                            max-h-[420px]
+                                            overflow-auto
+                                        "
+                                    >
+
+                                        <table
+                                            className="
+                                                min-w-full
+                                                text-sm
+                                            "
+                                        >
+
+                                            <thead
+                                                className="
+                                                    sticky
+                                                    top-0
+                                                    bg-slate-100
+                                                    z-10
+                                                "
+                                            >
+
+                                                <tr>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Action
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Device ID
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Tên biến tần
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Hãng
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Model
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Tuyến
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Nhà ga
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Trạng thái
+
+                                                    </th>
+
+                                                    <th className="px-4 py-3 text-left">
+
+                                                        Thay đổi
+
+                                                    </th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody>
+
+                                                {
+
+                                                    rows.map((item, index) => {
+
+                                                        const row = item.row || {};
+
+                                                        const changedFields =
+                                                            Array.isArray(item.changedFields)
+                                                                ? item.changedFields
+                                                                : [];
+
+                                                        return (
+
+                                                            <tr
+                                                                key={index}
+                                                                className="
+                                                                    border-t
+                                                                    hover:bg-slate-50
+                                                                "
+                                                            >
+
+                                                                <td className="px-4 py-3">
+
+                                                                    <ActionBadge
+                                                                        action={item.action}
+                                                                    />
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3 font-medium">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Mã thiết bị",
+                                                                            "Device ID",
+                                                                            "deviceId"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Tên biến tần",
+                                                                            "Name"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Hãng",
+                                                                            "Brand"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Model"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Tuyến",
+                                                                            "Line"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Nhà ga",
+                                                                            "Station"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        getValue(
+                                                                            row,
+                                                                            "Trạng thái",
+                                                                            "Status"
+                                                                        )
+
+                                                                    }
+
+                                                                </td>
+
+                                                                <td className="px-4 py-3">
+
+                                                                    {
+
+                                                                        item.action === "UPDATE"
+
+                                                                            ? (
+
+                                                                                <div className="flex flex-wrap gap-1">
+
+                                                                                    {
+
+                                                                                        changedFields.length > 0
+
+                                                                                            ? changedFields.map(field => (
+
+                                                                                                <span
+                                                                                                    key={field}
+                                                                                                    className="
+                                                                                                        px-2
+                                                                                                        py-1
+                                                                                                        rounded-full
+                                                                                                        text-xs
+                                                                                                        bg-amber-100
+                                                                                                        text-amber-700
+                                                                                                    "
+                                                                                                >
+
+                                                                                                    {field}
+
+                                                                                                </span>
+
+                                                                                            ))
+
+                                                                                            : (
+
+                                                                                                <span className="text-gray-400">
+
+                                                                                                    -
+
+                                                                                                </span>
+
+                                                                                            )
+
+                                                                                    }
+
+                                                                                </div>
+
+                                                                            )
+
+                                                                            : item.action === "NEW"
+
+                                                                                ? (
+
+                                                                                    <span className="text-green-600 font-medium">
+
+                                                                                        Thêm mới
+
+                                                                                    </span>
+
+                                                                                )
+
+                                                                                : (
+
+                                                                                    <span className="text-gray-400">
+
+                                                                                        Không thay đổi
+
+                                                                                    </span>
+
+                                                                                )
+
+                                                                    }
+
+                                                                </td>
+
+                                                            </tr>
+
+                                                        );
+
+                                                    })
+
+                                                }
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        ) : (
+
+                            summary && (
+
+                                <div
+                                    className="
+                                        border
+                                        rounded-xl
+                                        p-8
+                                        text-center
+                                        text-gray-500
+                                    "
+                                >
+
+                                    Không có dữ liệu để import.
+
+                                </div>
+
+                            )
+
+                        )
+
+                    }
+
+                    {/* =========================
+                        Footer
+                    ========================= */}
+
+                </div>
 
                 <div
                     className="
                         border-t
-                        bg-white
                         px-6
                         py-4
                         flex
-                        justify-end
-                        gap-3
-                        shrink-0
+                        items-center
+                        justify-between
+                        bg-white
                     "
                 >
 
-                    <button
-
-                        onClick={onClose}
-
-                        className="
-                            px-5
-                            py-2
-                            border
-                            rounded-xl
-                        "
-
-                    >
-
-                        Hủy
-
-                    </button>
-
-                    <button
-
-                        disabled={
-                            !importFile ||
-                            loading
-                        }
-
-                        onClick={onConfirm}
-
-                        className="
-                            px-5
-                            py-2
-                            rounded-xl
-                            bg-blue-600
-                            text-white
-                            disabled:opacity-50
-                        "
-
-                    >
+                    <div className="text-sm text-gray-500">
 
                         {
 
-                            loading
+                            summary
 
-                                ? "Đang import..."
+                                ? `Sẽ tạo ${summary.newCount} mới • Cập nhật ${summary.updateCount} • Bỏ qua ${summary.skipCount}`
 
-                                : "Import"
+                                : "Chọn file Excel để bắt đầu."
 
                         }
 
-                    </button>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+
+                        <button
+
+                            type="button"
+
+                            onClick={handleClose}
+
+                            disabled={importing}
+
+                            className="
+                                px-5
+                                py-2
+                                rounded-xl
+                                border
+                                hover:bg-gray-100
+                                disabled:opacity-50
+                            "
+
+                        >
+
+                            Đóng
+
+                        </button>
+
+                        <button
+
+                            type="button"
+
+                            onClick={confirmImport}
+
+                            disabled={
+                                !sessionId ||
+                                importing ||
+                                rows.length === 0
+                            }
+
+                            className="
+                                px-5
+                                py-2
+                                rounded-xl
+                                bg-green-600
+                                hover:bg-green-700
+                                disabled:opacity-50
+                                text-white
+                                inline-flex
+                                items-center
+                                gap-2
+                            "
+
+                        >
+
+                            {
+
+                                importing
+
+                                    ? (
+
+                                        <>
+
+                                            <Loader2
+                                                size={18}
+                                                className="animate-spin"
+                                            />
+
+                                            Đang Import...
+
+                                        </>
+
+                                    )
+
+                                    : (
+
+                                        <>
+
+                                            <Upload size={18} />
+
+                                            Xác nhận Import
+
+                                        </>
+
+                                    )
+
+                            }
+
+                        </button>
+
+                    </div>
 
                 </div>
 
