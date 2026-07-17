@@ -429,6 +429,118 @@ exports.remove = async (req, res) => {
 };
 
 // ============================
+// PREVIEW IMPORT
+// ============================
+exports.previewImport = async (req, res) => {
+
+    try {
+
+        if (!req.file) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: "Chưa chọn file"
+
+            });
+
+        }
+
+        // Đọc Excel
+        const rows = await parseExcel(req.file);
+
+        // So sánh
+        const compare = await compareRows(rows);
+
+        // Thống kê
+        const summary = {
+
+            total: compare.length,
+
+            newCount: compare.filter(x => x.status === "NEW").length,
+
+            updateCount: compare.filter(x => x.status === "UPDATE").length,
+
+            skipCount: compare.filter(x => x.status === "SKIP").length
+
+        };
+
+        // Xóa Preview cũ của user (nếu có)
+        await prisma.importSession.deleteMany({
+
+            where: {
+
+                module: "VACON",
+
+                userId: req.user.id
+
+            }
+
+        });
+
+        // Tạo Preview mới
+        const session = await prisma.importSession.create({
+
+            data: {
+
+                module: "VACON",
+
+                filename: req.file.originalname,
+
+                data: compare,
+
+                total: summary.total,
+
+                newCount: summary.newCount,
+
+                updateCount: summary.updateCount,
+
+                skipCount: summary.skipCount,
+
+                userId: req.user.id,
+
+                expiredAt: new Date(
+
+                    Date.now() + 30 * 60 * 1000
+
+                )
+
+            }
+
+        });
+
+        res.json({
+
+            success: true,
+
+            sessionId: session.id,
+
+            summary,
+
+            rows: compare
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+};
+
+// ============================
 // IMPORT EXCEL
 // ============================
 exports.importExcel = async (req, res) => {
