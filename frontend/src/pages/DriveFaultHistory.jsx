@@ -4,11 +4,11 @@ import axios from "axios";
 import API from "../config";
 
 import AbbTable from "../components/Fault/AbbTable";
-import DriveImportModal from "../components/Drive/DriveImportModal";
 import AbbEditModal from "../components/Fault/AbbEditModal";
 import VaconEditModal from "../components/Fault/VaconEditModal";
 import VaconDeviceTable from "../components/Fault/VaconDeviceTable";
 import VaconHistoryModal from "../components/Fault/VaconHistoryModal";
+import PreviewImportModal from "../components/PreviewImportModal";
 
 import {
     Upload,
@@ -50,14 +50,8 @@ export default function DriveFaultHistory() {
     const [historyLoading, setHistoryLoading] =
         useState(false);
 
-    const [openImport, setOpenImport] = useState(false);
-
-    const [preview, setPreview] = useState([]);
-
     const [importLoading, setImportLoading] = useState(false);
-
-    const [importFile, setImportFile] = useState(null);
-
+  
     const [openEdit, setOpenEdit] = useState(false);
 
     const [editing, setEditing] = useState(null);
@@ -69,6 +63,14 @@ export default function DriveFaultHistory() {
     const [openVaconDetail, setOpenVaconDetail] = useState(false);
 
     const [selectedVacon, setSelectedVacon] = useState(null);
+
+    const [previewOpen, setPreviewOpen] = useState(false);
+
+    const [previewRows, setPreviewRows] = useState([]);
+    
+    const [summary, setSummary] = useState({});
+    
+    const [sessionId, setSessionId] = useState("");
 
     async function loadData() {
 
@@ -281,142 +283,108 @@ export default function DriveFaultHistory() {
     const handleImport = async () => {
 
         try {
-
+    
             setImportLoading(true);
-
+    
             const token = localStorage.getItem("token");
-
-            if (!token) {
-
-                alert("Bạn chưa đăng nhập.");
-
-                return;
-
-            }
-
+    
             const url =
-
                 tab === "VACON"
-
-                    ? `${API}/api/vacon/confirm-import`
-
-                    : `${API}/api/abb-faults/confirm-import`;
-
+                    ? `${API}/api/vacon/import`
+                    : `${API}/api/abb-faults/import`;
+    
             await axios.post(
-
                 url,
-
                 {
-                    rows: preview
+                    sessionId
                 },
-
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 }
-
             );
-
+    
             alert("Import thành công.");
-
-            setOpenImport(false);
-
-            setPreview([]);
-
-            loadData();
-
-        }
-
-        catch (err) {
-
+    
+            setPreviewOpen(false);
+    
+            setPreviewRows([]);
+    
+            setSummary({});
+    
+            setSessionId("");
+    
+            await loadData();
+    
+        } catch (err) {
+    
             console.error(err);
-
-            if (err.response) {
-
-                alert(
-
-                    err.response.data.message ||
-
-                    `Import thất bại (${err.response.status})`
-
-                );
-
-            }
-
-            else {
-
-                alert("Không thể kết nối tới server.");
-
-            }
-
-        }
-
-        finally {
-
+    
+            alert(
+                err.response?.data?.message ||
+                "Import thất bại."
+            );
+    
+        } finally {
+    
             setImportLoading(false);
-
+    
         }
-
+    
     };
-
+    
     const handlePreview = async (file) => {
 
         try {
-
+    
             setImportLoading(true);
-            setImportFile(file);
-
+    
+            const token = localStorage.getItem("token");
+    
             const formData = new FormData();
-
+    
             formData.append("file", file);
-
+    
             const url =
-
                 tab === "VACON"
-
                     ? `${API}/api/vacon/preview-import`
-
                     : `${API}/api/abb-faults/preview-import`;
-
+    
             const res = await axios.post(
-
                 url,
-
                 formData,
-
                 {
-
                     headers: {
-
+                        Authorization: `Bearer ${token}`,
                         "Content-Type": "multipart/form-data"
-
                     }
-
                 }
-
             );
-
-            setPreview(res.data.rows);
-
-            setOpenImport(true);
-
-        }
-
-        catch (err) {
-
-            console.log(err);
-
-            alert("Không đọc được file Excel.");
-
-        }
-
-        finally {
-
+    
+            setSessionId(res.data.sessionId);
+    
+            setSummary(res.data.summary);
+    
+            setPreviewRows(res.data.rows);
+    
+            setPreviewOpen(true);
+    
+        } catch (err) {
+    
+            console.error(err);
+    
+            alert(
+                err.response?.data?.message ||
+                "Không đọc được file Excel."
+            );
+    
+        } finally {
+    
             setImportLoading(false);
-
+    
         }
-
+    
     };
 
     const handleSave = async (data) => {
@@ -747,15 +715,13 @@ export default function DriveFaultHistory() {
                                 onChange={(e) => {
 
                                     if (e.target.files?.length) {
-
-                                        handlePreview(
-
-                                            e.target.files[0]
-
-                                        );
-
+                                
+                                        handlePreview(e.target.files[0]);
+                                
                                     }
-
+                                
+                                    e.target.value = "";
+                                
                                 }}
 
                             />
@@ -836,13 +802,22 @@ export default function DriveFaultHistory() {
 
             }
 
-            <DriveImportModal
-                open={openImport}
-                preview={preview}
+            <PreviewImportModal
+                open={previewOpen}
+                module={tab}
+                summary={summary}
+                rows={previewRows}
                 loading={importLoading}
-                importFile={importFile}
-                onClose={() => setOpenImport(false)}
-                onUpload={handlePreview}
+                onClose={() => {
+                    setPreviewOpen(false);
+                
+                    setPreviewRows([]);
+                
+                    setSummary({});
+                
+                    setSessionId("");
+                
+                }}
                 onConfirm={handleImport}
             />
 
