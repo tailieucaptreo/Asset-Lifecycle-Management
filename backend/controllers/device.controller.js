@@ -2,6 +2,61 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const XLSX = require("xlsx");
 
+const crypto = require("crypto");
+
+// ================= IMPORT SESSION =================
+
+const importSessions = new Map();
+
+function createImportSession(rows, summary) {
+
+    const sessionId = crypto.randomUUID();
+
+    importSessions.set(sessionId, {
+
+        rows,
+
+        summary,
+
+        createdAt: Date.now()
+
+    });
+
+    return sessionId;
+
+}
+
+function getImportSession(sessionId) {
+
+    return importSessions.get(sessionId);
+
+}
+
+function deleteImportSession(sessionId) {
+
+    importSessions.delete(sessionId);
+
+}
+
+// ================= AUTO CLEAN SESSION =================
+
+// Xóa session quá 30 phút
+setInterval(() => {
+
+    const now = Date.now();
+
+    for (const [id, session] of importSessions.entries()) {
+
+        if (now - session.createdAt > 30 * 60 * 1000) {
+
+            importSessions.delete(id);
+
+        }
+
+    }
+
+}, 5 * 60 * 1000);
+
 // ================= HELPER =================
 const normalize = (v, def = "") =>
   v === undefined || v === null || v === ""
@@ -467,239 +522,518 @@ exports.deleteDevice = async (req, res) => {
   }
 };
 
-// ================= IMPORT =================
-exports.importExcel = async (req, res) => {
+// ================= PREVIEW IMPORT =================
 
-  try {
+exports.previewImport = async (req, res) => {
 
-    if (!req.file) {
+    try {
 
-      return res.status(400).json({
-        error: "Không có file"
-      });
+        if (!req.file) {
 
-    }
+            return res.status(400).json({
 
-    const workbook =
-      XLSX.read(
-        req.file.buffer,
-        {
-          type: "buffer"
+                message: "Không có file Excel."
+
+            });
+
         }
-      );
 
-    const sheet =
-      workbook.Sheets[
-      workbook.SheetNames[0]
-      ];
+        const workbook = XLSX.read(
 
-    const rows =
-      XLSX.utils.sheet_to_json(
-        sheet,
-        {
-          raw: true,
-          defval: null
-        }
-      );
+            req.file.buffer,
 
-    let inserted = 0;
+            {
 
-    const failed = [];
+                type: "buffer"
 
-    for (const row of rows) {
+            }
 
-      const data = {
-
-        deviceId:
-          String(
-            getField(
-              row,
-              [
-                "ma id",
-                "device id",
-                "id",
-                "ma thiet bi"
-              ]
-            ) || ""
-          ),
-
-        name:
-          String(
-            getField(
-              row,
-              ["ten"]
-            ) || ""
-          ),
-
-        category: detectCategory(
-          String(
-            getField(
-              row,
-              ["ten"]
-            ) || ""
-          )
-        ),
-
-        line:
-          String(
-            getField(
-              row,
-              ["tuyen"]
-            ) || ""
-          ),
-
-        station:
-          String(
-            getField(
-              row,
-              ["ga"]
-            ) || ""
-          ),
-
-        code:
-          String(
-            getField(
-              row,
-              [
-                "ky hieu",
-                "code"
-              ]
-            ) || ""
-          ),
-
-        area:
-          String(
-            getField(
-              row,
-              ["khu vuc"]
-            ) || ""
-          ),
-
-        status:
-          normalizeStatus(
-            getField(
-              row,
-              ["trang thai"]
-            )
-          ),
-
-        installDate:
-          parseDate(
-            getField(
-              row,
-              [
-                "ngay lap",
-                "ngay lap dat",
-                "ngay lap dat ",
-                "ngày lắp",
-                "ngày lắp đặt"
-              ]
-            )
-          ),
-
-        lifespan:
-          getField(
-            row,
-            [
-              "tuoi tho",
-              "tuoi tho thiet bi"
-            ]
-          )
-            ?
-            Number(
-              getField(
-                row,
-                [
-                  "tuoi tho",
-                  "tuoi tho thiet bi"
-                ]
-              )
-            )
-            : null
-
-      };
-
-      const errors =
-        validateRow(
-          data
         );
 
-      if (
-        errors.length
-      ) {
+        const sheet =
 
-        failed.push({
+            workbook.Sheets[
 
-          row,
+                workbook.SheetNames[0]
 
-          errors
+            ];
+
+        const excelRows =
+
+            XLSX.utils.sheet_to_json(
+
+                sheet,
+
+                {
+
+                    raw: true,
+
+                    defval: null
+
+                }
+
+            );
+
+        const rows = [];
+
+        let valid = 0;
+
+        let invalid = 0;
+
+        for (const row of excelRows) {
+
+            const data = {
+
+                deviceId:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "ma id",
+
+                                "device id",
+
+                                "id",
+
+                                "ma thiet bi"
+
+                            ]
+
+                        )
+
+                    ),
+
+                name:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "ten"
+
+                            ]
+
+                        )
+
+                    ),
+
+                category:
+
+                    detectCategory(
+
+                        normalize(
+
+                            getField(
+
+                                row,
+
+                                [
+
+                                    "ten"
+
+                                ]
+
+                            )
+
+                        )
+
+                    ),
+
+                line:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "tuyen"
+
+                            ]
+
+                        )
+
+                    ),
+
+                station:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "ga"
+
+                            ]
+
+                        )
+
+                    ),
+
+                code:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "ky hieu",
+
+                                "code"
+
+                            ]
+
+                        )
+
+                    ),
+
+                area:
+
+                    normalize(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "khu vuc"
+
+                            ]
+
+                        )
+
+                    ),
+
+                status:
+
+                    normalizeStatus(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "trang thai"
+
+                            ]
+
+                        )
+
+                    ),
+
+                installDate:
+
+                    parseDate(
+
+                        getField(
+
+                            row,
+
+                            [
+
+                                "ngay lap",
+
+                                "ngay lap dat",
+
+                                "ngày lắp",
+
+                                "ngày lắp đặt"
+
+                            ]
+
+                        )
+
+                    ),
+
+                lifespan:
+
+                    getField(
+
+                        row,
+
+                        [
+
+                            "tuoi tho",
+
+                            "tuoi tho thiet bi"
+
+                        ]
+
+                    )
+
+                        ?
+
+                        Number(
+
+                            getField(
+
+                                row,
+
+                                [
+
+                                    "tuoi tho",
+
+                                    "tuoi tho thiet bi"
+
+                                ]
+
+                            )
+
+                        )
+
+                        : null
+
+            };
+
+            const errors =
+
+                validateRow(
+
+                    data
+
+                );
+
+            if (errors.length) {
+
+                invalid++;
+
+            }
+
+            else {
+
+                valid++;
+
+            }
+
+            rows.push({
+
+                ...data,
+
+                errors
+
+            });
+
+        }
+
+        const summary = {
+
+            total:
+
+                rows.length,
+
+            valid,
+
+            invalid
+
+        };
+
+        const sessionId =
+
+            createImportSession(
+
+                rows,
+
+                summary
+
+            );
+
+        return res.json({
+
+            sessionId,
+
+            summary,
+
+            rows
 
         });
-
-        continue;
-
-      }
-
-      try {
-
-        await prisma.device.create({
-
-          data
-
-        });
-
-        inserted++;
-
-      }
-
-      catch (err) {
-
-        failed.push({
-
-          row,
-
-          errors: [
-            err.message
-          ]
-
-        });
-
-      }
 
     }
 
-    return res.json({
+    catch (err) {
 
-      ok: true,
+        console.log(err);
 
-      message: "Import thành công",
+        return res.status(500).json({
 
-      total: rows.length,
+            message:
 
-      success: inserted,
+                err.message
 
-      failedCount: failed.length,
+        });
 
-      failed
-
-    });
-
-  }
-
-  catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-
-      error:
-        err.message
-
-    });
-
-  }
+    }
 
 };
+
+// ================= CONFIRM IMPORT =================
+
+exports.confirmImport = async (req, res) => {
+
+    try {
+
+        const { sessionId } = req.body;
+
+        if (!sessionId) {
+
+            return res.status(400).json({
+
+                message: "Thiếu sessionId."
+
+            });
+
+        }
+
+        const session = getImportSession(sessionId);
+
+        if (!session) {
+
+            return res.status(404).json({
+
+                message: "Session import không tồn tại hoặc đã hết hạn."
+
+            });
+
+        }
+
+        const rows = session.rows;
+
+        let inserted = 0;
+
+        const failed = [];
+
+        await prisma.$transaction(
+
+            async (tx) => {
+
+                for (const item of rows) {
+
+                    if (item.errors?.length) {
+
+                        failed.push({
+
+                            deviceId: item.deviceId,
+
+                            name: item.name,
+
+                            errors: item.errors
+
+                        });
+
+                        continue;
+
+                    }
+
+                    try {
+
+                        await tx.device.create({
+
+                            data: {
+
+                                deviceId: item.deviceId,
+
+                                name: item.name,
+
+                                category: item.category,
+
+                                line: item.line,
+
+                                station: item.station,
+
+                                code: item.code,
+
+                                area: item.area,
+
+                                status: item.status,
+
+                                installDate: item.installDate,
+
+                                lifespan: item.lifespan
+
+                            }
+
+                        });
+
+                        inserted++;
+
+                    }
+
+                    catch (err) {
+
+                        failed.push({
+
+                            deviceId: item.deviceId,
+
+                            name: item.name,
+
+                            errors: [
+
+                                err.message
+
+                            ]
+
+                        });
+
+                    }
+
+                }
+
+            }
+
+        );
+
+        deleteImportSession(sessionId);
+
+        return res.json({
+
+            ok: true,
+
+            message: "Import thành công.",
+
+            total: rows.length,
+
+            success: inserted,
+
+            failedCount: failed.length,
+
+            failed
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+
+        return res.status(500).json({
+
+            message: err.message
+
+        });
+
+    }
+
+};
+
 
 // ================= GET ONE =================
 exports.getOne =

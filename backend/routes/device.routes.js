@@ -103,16 +103,38 @@ router.delete(
 );
 
 
-// ====================
-// IMPORT
+/// ====================
+// IMPORT PREVIEW
 // ====================
 
 router.post(
-    "/import",
+
+    "/import/preview",
+
     auth,
+
     role("admin"),
+
     upload.single("file"),
-    controller.importExcel
+
+    controller.previewImport
+
+);
+
+// ====================
+// CONFIRM IMPORT
+// ====================
+
+router.post(
+
+    "/import",
+
+    auth,
+
+    role("admin"),
+
+    controller.confirmImport
+
 );
 
 module.exports =
