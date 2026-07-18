@@ -584,7 +584,7 @@ exports.previewImport = async (req, res) => {
 
             });
 
-        
+
 
         console.log("Excel rows:", rows.length);
 
@@ -972,6 +972,17 @@ exports.exportExcel = async (req, res) => {
         sheet.addRow({
 
             ...drive,
+
+            status:
+                drive.status === "Running"
+                    ? "Đang chạy"
+                    : drive.status === "Maintenance"
+                        ? "Bảo trì"
+                        : drive.status === "Fault"
+                            ? "Lỗi"
+                            : drive.status === "Offline" || drive.status === "Standby"
+                                ? "Dự phòng"
+                                : drive.status,
 
             installDate: drive.installDate
                 ? new Date(drive.installDate).toLocaleDateString("vi-VN")
