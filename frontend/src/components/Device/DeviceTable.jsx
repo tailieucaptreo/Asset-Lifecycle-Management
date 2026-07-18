@@ -1,294 +1,240 @@
-import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../config";
-import EditDeviceModal from "./EditDeviceModal";
+
 import DeviceRow from "./DeviceRow";
-import DeviceFilter from "./DeviceFilter";
 import DeviceHeader from "./DeviceHeader";
 import DeviceCard from "./DeviceCard";
 
-export default function DeviceTable({ data = [], setData }) {
+export default function DeviceTable({
 
-  const nav = useNavigate();
+    data = [],
 
-  const [filters, setFilters] = useState({
-    name:"",
-    station:"",
-    status:""
-  });
-  const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({});
-  const role =
-  localStorage.getItem("role");
+    loading = false,
 
-  // ================= FILTER =================
-  const filteredData = useMemo(() => {
+    onEdit,
 
-    return data.filter((d) => {
+    onDelete
 
-      return (
-        (!filters.name ||
-          d.name?.toLowerCase().includes(filters.name.toLowerCase())) &&
+}) {
 
-        (!filters.station ||
-          d.station?.toLowerCase().includes(filters.station.toLowerCase())) &&
+    const nav =
+        useNavigate();
 
-        (!filters.status ||
-          d.status === filters.status)
-      );
-    });
+    // =========================
+    // LOADING
+    // =========================
 
-  }, [data, filters]);
+    if (loading) {
 
-  // ================= DELETE =================
-  const handleDelete = async (id) => {
+        return (
 
-  if (
-    !window.confirm(
-      "Xóa thiết bị này?"
-    )
-  ) return;
+            <div
+                className="
+                    bg-white
+                    rounded-xl
+                    shadow
+                    p-10
+                    text-center
+                    text-slate-500
+                "
+            >
 
-  try {
+                Đang tải dữ liệu...
 
-    const token =
-      localStorage.getItem(
-        "token"
-      );
+            </div>
 
-    const res =
-      await fetch(
-
-        `${API}/api/devices/${id}`,
-
-        {
-
-          method:
-            "DELETE",
-
-          headers:{
-
-            Authorization:
-              `Bearer ${token}`
-
-          }
-
-        }
-
-      );
-
-    if (!res.ok) {
-
-      const err =
-        await res.json();
-
-      throw new Error(
-        err.message ||
-        "Delete lỗi"
-      );
+        );
 
     }
 
-    setData(
-      prev =>
-      prev.filter(
-        d =>
-        d.id !== id
-      )
-    );
+    // =========================
+    // EMPTY
+    // =========================
 
-    alert(
-      "Xóa thành công"
-    );
+    if (!data.length) {
 
-  }
+        return (
 
-  catch(err){
+            <div
+                className="
+                    bg-white
+                    rounded-xl
+                    shadow
+                    p-10
+                    text-center
+                    text-slate-500
+                "
+            >
 
-    console.log(
-      err
-    );
+                Không có thiết bị.
 
-    alert(
-      err.message
-    );
+            </div>
 
-  }
+        );
 
-};
-
-  // ================= OPEN EDIT =================
-  const openEdit = (d) => {
-
-    setEditing(d);
-
-    setForm({
-      name: d.name || "",
-      line: d.line || "",
-      station: d.station || "",
-      code: d.code || "",
-      area: d.area || "",
-      deviceId: d.deviceId || "",
-      status: d.status || "Inactive",
-      lifespan: d.lifespan || "",
-
-      installDate: d.installDate
-        ? new Date(d.installDate)
-            .toISOString()
-            .split("T")[0]
-        : ""
-    });
-  };
-
-  // ================= CHANGE =================
-  const handleChange = (e) => {
-
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // ================= UPDATE =================
-  const handleUpdate = async () => {
-
-    try {
-
-      const payload = {
-        ...form,
-
-        lifespan: form.lifespan
-          ? Number(form.lifespan)
-          : null,
-
-        installDate: form.installDate || null
-      };
-
-      const res = await fetch(
-        `${API}/api/devices/${editing.id}`,
-        {
-          method: "PUT",
-          headers:{
-
-          Authorization:
-          `Bearer ${localStorage.getItem("token")}`,
-          
-          "Content-Type":
-          "application/json"
-          
-          },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      if (!res.ok) {
-
-        const err = await res.text();
-
-        throw new Error(err);
-      }
-
-      const updated = await res.json();
-
-      // realtime update
-      setData((prev) =>
-        prev.map((d) =>
-          d.id === updated.id
-            ? updated
-            : d
-        )
-      );
-
-      setEditing(null);
-
-    } catch (err) {
-
-      console.log("UPDATE ERROR:", err);
-
-      alert("Update lỗi: " + err.message);
     }
-  };
 
-  return (
+    return (
 
-    <>
-  
-      {/* ================= MOBILE ================= */}
-  
-      <div className="lg:hidden space-y-4">
-  
-        <DeviceFilter
-          filters={filters}
-          setFilters={setFilters}
-          data={data}
-        />
-  
-        {filteredData.map((device) => (
-  
-          <DeviceCard
-            key={device.id}
-            device={device}
-            role={role}
-            onView={(d) => nav(`/devices/${d.id}`)}
-            onEdit={openEdit}
-            onDelete={handleDelete}
-          />
-  
-        ))}
-  
-      </div>
-  
-      {/* ================= DESKTOP ================= */}
-      <DeviceFilter
-          filters={filters}
-          setFilters={setFilters}
-          data={data}
-       />
-      
-      <div className="hidden lg:block bg-white rounded-xl shadow overflow-hidden">
-  
-        <div className="w-full overflow-auto">
-  
-          <table className="w-full table-auto text-sm border border-gray-200">
-  
-            <thead className="sticky top-0 z-20">
-  
-              <DeviceHeader />
-  
-            </thead>
-  
-            <tbody className="divide-y">
-  
-              {filteredData.map((device) => (
-  
-                <DeviceRow
-                  key={device.id}
-                  device={device}
-                  role={role}
-                  onView={() => nav(`/devices/${device.id}`)}
-                  onEdit={openEdit}
-                  onDelete={handleDelete}
-                />
-  
-              ))}
-  
-            </tbody>
-  
-          </table>
-  
-        </div>
-  
-      </div>
-  
-      <EditDeviceModal
-        editing={editing}
-        form={form}
-        onChange={handleChange}
-        onClose={() => setEditing(null)}
-        onSave={handleUpdate}
-      />
-  
-    </>
-  
-  );
+        <>
+
+            {/* ================= MOBILE ================= */}
+
+            <div className="lg:hidden space-y-4">
+
+                {
+
+                    data.map(device => (
+
+                        <DeviceCard
+
+                            key={device.id}
+
+                            device={device}
+
+                            role={
+                                localStorage.getItem(
+                                    "role"
+                                )
+                            }
+
+                            onView={() =>
+
+                                nav(
+
+                                    `/devices/${device.id}`
+
+                                )
+
+                            }
+
+                            onEdit={() =>
+
+                                onEdit?.(
+
+                                    device
+
+                                )
+
+                            }
+
+                            onDelete={() =>
+
+                                onDelete?.(
+
+                                    device
+
+                                )
+
+                            }
+
+                        />
+
+                    ))
+
+                }
+
+            </div>
+            {/* ================= DESKTOP ================= */}
+
+            <div
+                className="
+                    hidden
+                    lg:block
+                    bg-white
+                    rounded-xl
+                    shadow
+                    overflow-hidden
+                "
+            >
+
+                <div className="overflow-x-auto">
+
+                    <table
+                        className="
+                            min-w-full
+                            text-sm
+                            border
+                            border-slate-200
+                        "
+                    >
+
+                        <thead
+                            className="
+                                sticky
+                                top-0
+                                z-20
+                                bg-slate-100
+                            "
+                        >
+
+                            <DeviceHeader />
+
+                        </thead>
+
+                        <tbody className="divide-y">
+
+                            {
+
+                                data.map(device => (
+
+                                    <DeviceRow
+
+                                        key={device.id}
+
+                                        device={device}
+
+                                        role={
+                                            localStorage.getItem(
+                                                "role"
+                                            )
+                                        }
+
+                                        onView={() =>
+
+                                            nav(
+
+                                                `/devices/${device.id}`
+
+                                            )
+
+                                        }
+
+                                        onEdit={() =>
+
+                                            onEdit?.(
+
+                                                device
+
+                                            )
+
+                                        }
+
+                                        onDelete={() =>
+
+                                            onDelete?.(
+
+                                                device
+
+                                            )
+
+                                        }
+
+                                    />
+
+                                ))
+
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+         </>
+
+    );
+
 }

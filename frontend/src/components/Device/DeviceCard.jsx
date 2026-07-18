@@ -22,6 +22,8 @@ export default function DeviceCard({
 
 }) {
 
+  if (!device) return null;
+
   return (
 
     <div
@@ -138,7 +140,7 @@ export default function DeviceCard({
 
         <button
 
-          onClick={() => onView(device)}
+          onClick={onView}
 
           className="
             p-2
@@ -159,7 +161,7 @@ export default function DeviceCard({
 
             <button
 
-              onClick={() => onEdit(device)}
+              onClick={onEdit}
 
               className="
                 p-2
@@ -176,7 +178,7 @@ export default function DeviceCard({
 
             <button
 
-              onClick={() => onDelete(device.id)}
+              onClick={onDelete}
 
               className="
                 p-2

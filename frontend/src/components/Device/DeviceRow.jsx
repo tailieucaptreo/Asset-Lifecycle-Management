@@ -1,19 +1,18 @@
-import { useNavigate } from "react-router-dom";
 import DeviceStatus from "./DeviceStatus";
 
-export default function DeviceRow({
+export default function DeviceRow(props) {
 
-  device,
+  const {
+    device,
+    role,
+    onView,
+    onEdit,
+    onDelete
+  } = props;
 
-  role,
+  if (!device) return null;
 
-  onEdit,
-
-  onDelete
-
-}) {
-
-  const nav = useNavigate();
+} {
 
   return (
 
@@ -28,7 +27,7 @@ export default function DeviceRow({
           cursor-pointer
           hover:underline
         "
-        onClick={() => nav(`/devices/${device.id}`)}
+        onClick={onView}
       >
         {device.name}
       </td>
@@ -73,8 +72,8 @@ export default function DeviceRow({
         {device.installDate
 
           ? new Date(
-              device.installDate
-            ).toLocaleDateString("vi-VN")
+            device.installDate
+          ).toLocaleDateString("vi-VN")
 
           : "-"}
 
@@ -96,7 +95,7 @@ export default function DeviceRow({
 
             <button
 
-              onClick={() => onEdit(device)}
+              onClick={onEdit}
 
               className="
                 text-blue-600
@@ -110,7 +109,7 @@ export default function DeviceRow({
 
             <button
 
-              onClick={() => onDelete(device.id)}
+              onClick={onDelete}
 
               className="
                 text-red-600
