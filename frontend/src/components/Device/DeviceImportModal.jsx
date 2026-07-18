@@ -6,7 +6,10 @@ const statusColor = {
 
     UPDATE: "bg-yellow-100 text-yellow-700",
 
+    ERROR: "bg-red-100 text-red-700",
+
     SKIP: "bg-slate-100 text-slate-700"
+
 
 };
 
@@ -15,6 +18,8 @@ const statusLabel = {
     NEW: "Mới",
 
     UPDATE: "Cập nhật",
+
+    ERROR: "Lỗi",
 
     SKIP: "Bỏ qua"
 
@@ -232,7 +237,7 @@ export default function DeviceImportModal({
 
                             title="Thiết bị mới"
 
-                            value={summary?.newCount || 0}
+                            value={summary?.insert || 0}
 
                             color="text-green-600"
 
@@ -251,7 +256,7 @@ export default function DeviceImportModal({
 
                             title="Cập nhật"
 
-                            value={summary?.updateCount || 0}
+                            value={summary?.update || 0}
 
                             color="text-amber-600"
 
@@ -270,7 +275,7 @@ export default function DeviceImportModal({
 
                             title="Bỏ qua"
 
-                            value={summary?.skipCount || 0}
+                            value={summary?.invalid || 0}
 
                             color="text-slate-600"
 
@@ -388,16 +393,19 @@ export default function DeviceImportModal({
 
                                     const bg =
 
-                                        row.status === "NEW"
+                                        row.action === "NEW"
 
                                             ? "bg-green-50"
 
-                                            : row.status === "UPDATE"
+                                            : row.action === "UPDATE"
 
                                                 ? "bg-yellow-50"
 
-                                                : "bg-slate-50";
+                                                : row.action === "ERROR"
 
+                                                    ? "bg-red-50"
+
+                                                    : "bg-slate-50";
                                     return (
 
                                         <tr
@@ -418,7 +426,7 @@ export default function DeviceImportModal({
 
                                                 <Badge
 
-                                                    status={row.status}
+                                                    sstatus={row.action}
 
                                                 />
 
@@ -527,7 +535,7 @@ export default function DeviceImportModal({
                     </div>
 
                 </div>
-                
+
                 {/* ================= FOOTER ================= */}
 
                 <div
@@ -556,19 +564,19 @@ export default function DeviceImportModal({
 
                         <span className="ml-3 text-green-600 font-medium">
 
-                            Mới: {summary?.newCount || 0}
+                            Mới: {summary?.insert || 0}
 
                         </span>
 
                         <span className="ml-3 text-amber-600 font-medium">
 
-                            Cập nhật: {summary?.updateCount || 0}
+                            Cập nhật: {summary?.update || 0}
 
                         </span>
 
                         <span className="ml-3 text-slate-600 font-medium">
 
-                            Bỏ qua: {summary?.skipCount || 0}
+                            Bỏ qua: {summary?.invalid || 0}
 
                         </span>
 
@@ -630,7 +638,7 @@ export default function DeviceImportModal({
 
                                     ? "Đang import..."
 
-                                    : `Import ${summary?.newCount || 0} mới + ${summary?.updateCount || 0} cập nhật`
+                                    : `Import ${summary?.insert || 0} mới + ${summary?.update || 0} cập nhật`
 
                             }
 
