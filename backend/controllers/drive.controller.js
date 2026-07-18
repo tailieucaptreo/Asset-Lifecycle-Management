@@ -6,8 +6,6 @@ const ExcelJS = require("exceljs");
 
 const xlsx = require("xlsx");
 
-const fs = require("fs");
-
 function get(row, ...keys) {
     for (const key of keys) {
         if (row[key] !== undefined && row[key] !== null && row[key] !== "") {
@@ -571,7 +569,10 @@ exports.previewImport = async (req, res) => {
 
         }
 
-        const workbook = xlsx.readFile(req.file.path);
+        const workbook = xlsx.read(req.file.buffer, {
+            type: "buffer",
+        });
+
 
         const sheet =
             workbook.Sheets[workbook.SheetNames[0]];
@@ -583,7 +584,7 @@ exports.previewImport = async (req, res) => {
 
             });
 
-        fs.unlinkSync(req.file.path);
+        
 
         console.log("Excel rows:", rows.length);
 
