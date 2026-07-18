@@ -12,6 +12,272 @@ const toNumber = (value, defaultValue = 0) => {
   return isNaN(n) ? defaultValue : n;
 };
 
+// ================= NORMALIZE ROW =================
+const normalizeSpareRow = (r) => {
+
+  const initialQuantity =
+    Number(
+      r["SL"] ??
+      r["Số lượng"] ??
+      r["Ban đầu"] ??
+      r["Initial"] ??
+      0
+    );
+
+  const importQty =
+    Number(
+      r["Nhập"] ??
+      r["Import"] ??
+      0
+    );
+
+  const exportQty =
+    Number(
+      r["Xuất"] ??
+      r["Export"] ??
+      0
+    );
+
+  return {
+
+    name:
+      r["Tên vật tư"] ??
+      r["Tên thiết bị"] ??
+      r["Name"] ??
+      "",
+
+    deviceId:
+      String(
+        r["Mã vật tư"] ??
+        r["Mã ID"] ??
+        r["Device ID"] ??
+        ""
+      ).trim(),
+
+    symbol:
+      r["Ký hiệu"] ??
+      r["Symbol"] ??
+      "",
+
+    materialCode:
+      r["Mã vật tư SAP"] ??
+      r["Material Code"] ??
+      "",
+
+    warehouse:
+      r["Kho"] ??
+      "",
+
+    cabinet:
+      r["Tủ"] ??
+      "",
+
+    shelf:
+      r["Ngăn"] ??
+      r["Kệ"] ??
+      "",
+
+    slot:
+      r["Số khay"] ??
+      r["Khay"] ??
+      "",
+
+    unit:
+      r["ĐVT"] ??
+      r["Đvt"] ??
+      "Cái",
+
+    initialQuantity,
+
+    importQty,
+
+    exportQty,
+
+    quantity:
+      initialQuantity +
+      importQty -
+      exportQty,
+
+    condition:
+      r["Tình trạng"] ??
+      "New",
+
+    note:
+      r["Ghi chú"] ??
+      "",
+
+    image:
+      ""
+
+  };
+
+};
+
+// ================= COMPARE FIELD =================
+const compareField = (oldValue, newValue) => {
+
+  const a =
+    oldValue === null ||
+      oldValue === undefined
+      ? ""
+      : String(oldValue).trim();
+
+  const b =
+    newValue === null ||
+      newValue === undefined
+      ? ""
+      : String(newValue).trim();
+
+  return a !== b;
+
+};
+
+// ================= CHANGED FIELDS =================
+const getChangedFields = (
+  current,
+  incoming
+) => {
+
+  const fields = [];
+
+  if (compareField(current.name, incoming.name))
+    fields.push("name");
+
+  if (compareField(current.symbol, incoming.symbol))
+    fields.push("symbol");
+
+  if (
+    compareField(
+      current.materialCode,
+      incoming.materialCode
+    )
+  )
+    fields.push("materialCode");
+
+  if (
+    compareField(
+      current.warehouse,
+      incoming.warehouse
+    )
+  )
+    fields.push("warehouse");
+
+  if (
+    compareField(
+      current.cabinet,
+      incoming.cabinet
+    )
+  )
+    fields.push("cabinet");
+
+  if (
+    compareField(
+      current.shelf,
+      incoming.shelf
+    )
+  )
+    fields.push("shelf");
+
+  if (
+    compareField(
+      current.slot,
+      incoming.slot
+    )
+  )
+    fields.push("slot");
+
+  if (
+    compareField(
+      current.unit,
+      incoming.unit
+    )
+  )
+    fields.push("unit");
+
+  if (
+    Number(current.initialQuantity) !==
+    Number(incoming.initialQuantity)
+  )
+    fields.push("initialQuantity");
+
+  if (
+    Number(current.importQty) !==
+    Number(incoming.importQty)
+  )
+    fields.push("importQty");
+
+  if (
+    Number(current.exportQty) !==
+    Number(incoming.exportQty)
+  )
+    fields.push("exportQty");
+
+  if (
+    compareField(
+      current.condition,
+      incoming.condition
+    )
+  )
+    fields.push("condition");
+
+  if (
+    compareField(
+      current.note,
+      incoming.note
+    )
+  )
+    fields.push("note");
+
+  return fields;
+
+};
+
+// ================= COMPARE ROWS =================
+const compareRows = (
+  current,
+  incoming
+) => {
+
+  if (!current) {
+
+    return {
+
+      action: "NEW",
+
+      changedFields: []
+
+    };
+
+  }
+
+  const changedFields =
+    getChangedFields(
+      current,
+      incoming
+    );
+
+  if (changedFields.length === 0) {
+
+    return {
+
+      action: "SKIP",
+
+      changedFields
+
+    };
+
+  }
+
+  return {
+
+    action: "UPDATE",
+
+    changedFields
+
+  };
+
+};
+
 // ================= GET ALL =================
 exports.getAll = async (req, res) => {
 
@@ -597,179 +863,215 @@ exports.importExcel = async (req, res) => {
     });
   }
 };
+
 // ================= PREVIEW IMPORT =================
 exports.previewImport = async (req, res) => {
 
   try {
 
     if (!req.file) {
-
       return res.status(400).json({
-        error: "Không có file"
+        error: "Không có file Excel"
       });
+    }
+
+    // =====================
+    // READ EXCEL
+    // =====================
+
+    const workbook = XLSX.read(
+      req.file.buffer,
+      {
+        type: "buffer"
+      }
+    );
+
+    const sheet =
+      workbook.Sheets[
+      workbook.SheetNames[0]
+      ];
+
+    const rawRows =
+      XLSX.utils.sheet_to_json(
+        sheet,
+        {
+          defval: ""
+        }
+      );
+
+    // =====================
+    // PREVIEW
+    // =====================
+
+    const previewRows = [];
+
+    let newCount = 0;
+    let updateCount = 0;
+    let skipCount = 0;
+
+    // =====================
+    // LOOP
+    // =====================
+
+    for (const excelRow of rawRows) {
+
+      const row =
+        normalizeSpareRow(excelRow);
+
+      // bỏ dòng trống
+      if (
+        !row.name &&
+        !row.deviceId
+      ) {
+        continue;
+      }
+
+      const exist =
+        await prisma.spareDevice.findFirst({
+
+          where: {
+            deviceId:
+              row.deviceId
+          }
+
+        });
+
+      // =====================
+      // NEW
+      // =====================
+
+      if (!exist) {
+
+        newCount++;
+
+        previewRows.push({
+
+          action: "NEW",
+
+          changedFields: [],
+
+          row
+
+        });
+
+        continue;
+      }
+
+      // =====================
+      // UPDATE / SKIP
+      // =====================
+
+      const result =
+        compareRows(
+          exist,
+          row
+        );
+
+      previewRows.push({
+
+        action:
+          result.action,
+
+        changedFields:
+          result.changedFields,
+
+        row
+
+      });
+
+      switch (result.action) {
+
+        case "NEW":
+          newCount++;
+          break;
+
+        case "UPDATE":
+          updateCount++;
+          break;
+
+        default:
+          skipCount++;
+
+      }
 
     }
 
-    const workbook = XLSX.read(
-      req.file.buffer, { type: "buffer" }
-    );
+    // =====================
+    // SUMMARY
+    // =====================
 
-    const sheet = workbook.Sheets[
-      workbook.SheetNames[0]
-    ];
+    const summary = {
 
-    const rawRows = XLSX.utils.sheet_to_json(
-      sheet
-    );
+      total:
+        previewRows.length,
 
-    const rows = rawRows.map((r) => {
-      const initialQuantity = Number(
+      newCount,
 
-        r["SL"]
+      updateCount,
 
-        ??
+      skipCount
 
-        r["Số lượng"]
+    };
 
-        ??
+    // =====================
+    // SAVE SESSION
+    // =====================
 
-        r["Ban đầu"]
-
-        ??
-
-        0
-
+    const expiredAt =
+      new Date(
+        Date.now() +
+        30 * 60 * 1000
       );
 
-      const importQty = Number(
-        r["Nhập"] || 0
-      );
+    const session =
+      await prisma.importSession.create({
 
-      const exportQty = Number(
-        r["Xuất"] || 0
-      );
+        data: {
 
-      return {
+          module: "spare",
 
-        name:
+          filename:
+            req.file.originalname,
 
-          r["Tên vật tư"]
+          data:
+            previewRows,
 
-          ||
+          total:
+            summary.total,
 
-          r["Tên thiết bị"]
+          newCount:
+            summary.newCount,
 
-          ||
+          updateCount:
+            summary.updateCount,
 
-          "",
+          skipCount:
+            summary.skipCount,
 
+          userId:
+            req.user?.id || null,
 
-        deviceId:
+          expiredAt
 
-          String(
+        }
 
-            r["Mã vật tư"]
+      });
 
-            ||
-
-            r["Mã ID"]
-
-            ||
-
-            ""
-
-          ),
-
-
-        // QUAN TRỌNG
-        quantity:
-
-          initialQuantity,
-
-        initialQuantity,
-
-        importQty,
-
-        exportQty,
-
-
-        unit:
-
-          r["Đvt"]
-
-          ||
-
-          r["ĐVT"]
-
-          ||
-
-          "Cái",
-
-
-        cabinet:
-
-          r["Tủ"]
-
-          ||
-
-          "",
-
-
-        shelf:
-
-          r["Ngăn"]
-
-          ||
-
-          r["Kệ"]
-
-          ||
-
-          "",
-
-
-        slot:
-
-          r["Số khay"]
-
-          ||
-
-          r["Khay"]
-
-          ||
-
-          "",
-
-
-        warehouse:
-
-          r["Kho"]
-
-          ||
-
-          "",
-
-
-        symbol:
-
-          r["Ký hiệu"]
-
-          ||
-
-          "",
-
-
-        condition:
-
-          "New"
-
-      };
-
-    });
+    // =====================
+    // RESPONSE
+    // =====================
 
     res.json({
 
-      ok: true, rows
+      ok: true,
+
+      sessionId:
+        session.id,
+
+      summary,
+
+      rows:
+        previewRows
 
     });
 
@@ -789,102 +1091,320 @@ exports.previewImport = async (req, res) => {
   }
 
 };
+
 // ================= CONFIRM IMPORT =================
 exports.confirmImport = async (req, res) => {
 
   try {
 
-    const rows = req.body.rows || [];
+    const { sessionId } = req.body;
 
-    for (const row of rows) {
+    if (!sessionId) {
 
-      const quantity =
-
-        Number(row.initialQuantity || 0)
-
-        +
-
-        Number(row.importQty || 0)
-
-        -
-
-        Number(row.exportQty || 0);
-
-      await prisma.spareDevice.create({
-
-        data: {
-
-          name: row.name || "",
-
-          deviceId:
-            row.deviceId || "",
-
-          quantity,
-
-          initialQuantity:
-            Number(
-              row.initialQuantity || 0
-            ),
-
-          importQty:
-            Number(
-              row.importQty || 0
-            ),
-
-          exportQty:
-            Number(
-              row.exportQty || 0
-            ),
-
-          unit:
-            row.unit || "Cái",
-
-          warehouse:
-            row.warehouse || "",
-
-          cabinet:
-            row.cabinet || "",
-
-          shelf:
-            row.shelf || "",
-
-          slot:
-            row.slot || "",
-
-          symbol:
-            row.symbol || "",
-
-          condition:
-            row.condition || "New"
-        }
+      return res.status(400).json({
+        error: "Thiếu sessionId"
       });
 
-      // ================= HISTORY =================
-      await prisma.spareHistory.create({
-
-        data: {
-
-          action: "Import Excel",
-
-          deviceName: row.name,
-
-          quantity
-        }
-      });
     }
 
-    res.json({
-      ok: true
+    // ======================
+    // GET SESSION
+    // ======================
+
+    const session =
+      await prisma.importSession.findUnique({
+
+        where: {
+          id: sessionId
+        }
+
+      });
+
+    if (!session) {
+
+      return res.status(404).json({
+        error: "Không tìm thấy phiên import"
+      });
+
+    }
+
+    if (session.module !== "spare") {
+
+      return res.status(400).json({
+        error: "Sai loại phiên import"
+      });
+
+    }
+
+    const rows = session.data || [];
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    // ======================
+    // LOOP
+    // ======================
+
+    for (const item of rows) {
+
+      const row = item.row;
+
+      if (!row) continue;
+
+      // ======================
+      // NEW
+      // ======================
+
+      if (item.action === "NEW") {
+
+        await prisma.spareDevice.create({
+
+          data: {
+
+            name: row.name,
+
+            deviceId: row.deviceId,
+
+            symbol: row.symbol,
+
+            materialCode: row.materialCode,
+
+            initialQuantity:
+              Number(row.initialQuantity || 0),
+
+            quantity:
+              Number(row.initialQuantity || 0)
+              +
+              Number(row.importQty || 0)
+              -
+              Number(row.exportQty || 0),
+
+            importQty:
+              Number(row.importQty || 0),
+
+            exportQty:
+              Number(row.exportQty || 0),
+
+            unit:
+              row.unit,
+
+            condition:
+              row.condition || "New",
+
+            warehouse:
+              row.warehouse,
+
+            cabinet:
+              row.cabinet,
+
+            shelf:
+              row.shelf,
+
+            slot:
+              row.slot,
+
+            note:
+              row.note,
+
+            image:
+              row.image,
+
+            editedBy:
+              req.user?.username || ""
+
+          }
+
+        });
+
+        await prisma.spareHistory.create({
+
+          data: {
+
+            action: "Import Excel (New)",
+
+            deviceName:
+              row.name,
+
+            quantity:
+              Number(row.initialQuantity || 0),
+
+            editedBy:
+              req.user?.username || "",
+
+            note:
+              "Import Excel"
+
+          }
+
+        });
+
+        created++;
+
+        continue;
+
+      }
+
+      // ======================
+      // UPDATE
+      // ======================
+
+      if (item.action === "UPDATE") {
+
+        await prisma.spareDevice.updateMany({
+
+          where: {
+
+            deviceId:
+              row.deviceId
+
+          },
+
+          data: {
+
+            name:
+              row.name,
+
+            symbol:
+              row.symbol,
+
+            materialCode:
+              row.materialCode,
+
+            initialQuantity:
+              Number(row.initialQuantity || 0),
+
+            quantity:
+              Number(row.initialQuantity || 0)
+              +
+              Number(row.importQty || 0)
+              -
+              Number(row.exportQty || 0),
+
+            importQty:
+              Number(row.importQty || 0),
+
+            exportQty:
+              Number(row.exportQty || 0),
+
+            unit:
+              row.unit,
+
+            condition:
+              row.condition,
+
+            warehouse:
+              row.warehouse,
+
+            cabinet:
+              row.cabinet,
+
+            shelf:
+              row.shelf,
+
+            slot:
+              row.slot,
+
+            note:
+              row.note,
+
+            image:
+              row.image,
+
+            editedBy:
+              req.user?.username || ""
+
+          }
+
+        });
+
+        await prisma.spareHistory.create({
+
+          data: {
+
+            action: "Import Excel (Update)",
+
+            deviceName:
+              row.name,
+
+            quantity:
+              Number(row.initialQuantity || 0),
+
+            editedBy:
+              req.user?.username || "",
+
+            note:
+              `Updated: ${item.changedFields.join(", ")}`
+
+          }
+
+        });
+
+        updated++;
+
+        continue;
+
+      }
+
+      // ======================
+      // SKIP
+      // ======================
+
+      skipped++;
+
+    }
+
+    // ======================
+    // DELETE SESSION
+    // ======================
+
+    await prisma.importSession.delete({
+
+      where: {
+
+        id: sessionId
+
+      }
+
     });
 
-  } catch (err) {
+    // ======================
+    // RESPONSE
+    // ======================
+
+    res.json({
+
+      ok: true,
+
+      message: "Import thành công",
+
+      result: {
+
+        created,
+
+        updated,
+
+        skipped
+
+      }
+
+    });
+
+  }
+
+  catch (err) {
 
     console.log(err);
 
     res.status(500).json({
-      error: err.message
+
+      error:
+        err.message
+
     });
+
   }
+
 };
 // ================= EXPORT EXCEL =================
 exports.exportExcel = async (req, res) => {
