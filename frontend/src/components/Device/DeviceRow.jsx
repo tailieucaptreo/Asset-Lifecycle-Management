@@ -1,18 +1,20 @@
 import DeviceStatus from "./DeviceStatus";
 
-export default function DeviceRow(props) {
+export default function DeviceRow({
 
-  const {
-    device,
-    role,
-    onView,
-    onEdit,
-    onDelete
-  } = props;
+  device,
+
+  role,
+
+  onView,
+
+  onEdit,
+
+  onDelete
+
+}) {
 
   if (!device) return null;
-
-} {
 
   return (
 
