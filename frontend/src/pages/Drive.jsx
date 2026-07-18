@@ -50,6 +50,8 @@ export default function Drive() {
 
     const [previewRows, setPreviewRows] = useState([]);
 
+    const [sessionId, setSessionId] = useState(null);
+
     const [summary, setSummary] = useState({
         total: 0,
         newCount: 0,
@@ -320,32 +322,43 @@ export default function Drive() {
 
         if (!file) return;
 
-        setImportFile(file);
+        try {
 
-        const form = new FormData();
+            setImportFile(file);
 
-        form.append("file", file);
+            const form = new FormData();
 
-        const res = await axios.post(
+            form.append("file", file);
 
-            `${API}/api/drives/preview-import`,
+            const res = await axios.post(
+                `${API}/api/drives/preview-import`,
+                form,
+                {
+                    ...config,
+                    headers: {
+                        ...config.headers,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
 
-            form,
+            console.log(res.data);
 
-            {
-                ...config,
-                headers: {
-                    ...config.headers,
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
+            setSessionId(res.data.sessionId);
 
-        setSummary(res.data.summary);
+            setSummary(res.data.summary);
 
-        setPreviewRows(res.data.rows);
+            setPreviewRows(res.data.rows);
 
-        setOpenImport(true);
+            setOpenImport(true);
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(err.response?.data?.message || "Preview thất bại.");
+
+        }
 
     };
 
@@ -355,9 +368,17 @@ export default function Drive() {
 
         setImportLoading(true);
 
-        const form = new FormData();
+        await axios.post(
 
-        form.append("file", importFile);
+            `${API}/api/drives/import`,
+
+            {
+                sessionId
+            },
+
+            config
+
+        );
 
         try {
 
@@ -536,16 +557,11 @@ export default function Drive() {
 
             <DriveImportModal
                 open={openImport}
+                summary={summary}
+                rows={previewRows}
+                loading={importLoading}
                 onClose={() => setOpenImport(false)}
-                onSuccess={async () => {
-
-                    await loadDrives();
-
-                    await loadFilters();
-
-                    await loadStatistics();
-
-                }}
+                onConfirm={confirmImport}
             />
 
         </div>
