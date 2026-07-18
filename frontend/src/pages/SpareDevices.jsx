@@ -20,7 +20,7 @@ export default function SpareDevices() {
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
-  
+
   const [data, setData] = useState([]);
 
   const [search, setSearch] = useState("");
@@ -38,6 +38,17 @@ export default function SpareDevices() {
   const [previewRows, setPreviewRows] = useState([]);
 
   const [showPreview, setShowPreview] = useState(false);
+
+  const [summary, setSummary] = useState({
+    total: 0,
+    newCount: 0,
+    updateCount: 0,
+    skipCount: 0,
+  });
+
+  const [sessionId, setSessionId] = useState(null);
+
+  const [importLoading, setImportLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -82,15 +93,15 @@ export default function SpareDevices() {
 
     axios.get(
 
-    `${API}/api/spare-devices`,
-    
-    {
-    headers:{
-    Authorization:
-    `Bearer ${token}`
-    }
-    }
-    
+      `${API}/api/spare-devices`,
+
+      {
+        headers: {
+          Authorization:
+            `Bearer ${token}`
+        }
+      }
+
     )
       .then((res) => {
         setData(res.data);
@@ -183,35 +194,35 @@ export default function SpareDevices() {
       if (editing) {
 
         await axios.put(
-        
-        `${API}/api/spare-devices/${editing.id}`,
-        
-        payload,
-        
-        {
-        headers:{
-        Authorization:
-        `Bearer ${token}`
-        }
-        }
-        
+
+          `${API}/api/spare-devices/${editing.id}`,
+
+          payload,
+
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+
         );
 
       } else {
 
         await axios.post(
-        
-        `${API}/api/spare-devices`,
-        
-        payload,
-        
-        {
-        headers:{
-        Authorization:
-        `Bearer ${token}`
-        }
-        }
-        
+
+          `${API}/api/spare-devices`,
+
+          payload,
+
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
+          }
+
         );
       }
 
@@ -267,7 +278,7 @@ export default function SpareDevices() {
 
       unit:
         item.unit || "Cái",
-      
+
       editedBy:
         item.editedBy || "",
 
@@ -292,15 +303,15 @@ export default function SpareDevices() {
 
       await axios.delete(
 
-      `${API}/api/spare-devices/${id}`,
-      
-      {
-      headers:{
-      Authorization:
-      `Bearer ${token}`
-      }
-      }
-      
+        `${API}/api/spare-devices/${id}`,
+
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        }
+
       );
 
       fetchData();
@@ -334,48 +345,52 @@ export default function SpareDevices() {
       formData.append("file", file);
 
       const res = await axios.post(
-
         `${API}/api/spare-devices/preview-import`,
-
         formData,
-
         {
           headers: {
-            "Content-Type":
-              "multipart/form-data"
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      setPreviewRows(
-        res.data.rows || []
-      );
+      setSessionId(res.data.sessionId);
+
+      setSummary(res.data.summary);
+
+      setPreviewRows(res.data.rows);
 
       setShowPreview(true);
 
     } catch (err) {
 
-      console.log(err);
+      console.error(err);
 
-      alert("❌ Import lỗi");
+      alert("Preview thất bại.");
+
     }
+
   };
-  
+
   // ================= CONFIRM IMPORT =================
   const handleConfirmImport = async () => {
 
     try {
 
+      setImportLoading(true);
+
       await axios.post(
-
         `${API}/api/spare-devices/confirm-import`,
-
         {
-          rows: previewRows
+          sessionId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-
-      alert("✅ Import thành công");
 
       setShowPreview(false);
 
@@ -385,10 +400,16 @@ export default function SpareDevices() {
 
     } catch (err) {
 
-      console.log(err);
+      console.error(err);
 
-      alert("❌ Import thất bại");
+      alert("Import thất bại.");
+
+    } finally {
+
+      setImportLoading(false);
+
     }
+
   };
 
   // ================= LOAD HISTORY =================
@@ -424,11 +445,11 @@ export default function SpareDevices() {
   const location = useLocation();
 
   useEffect(() => {
-      if (location.state?.edit) {
-          setEditing(location.state.edit);
-          setForm(location.state.edit);
-          setShowModal(true);
-      }
+    if (location.state?.edit) {
+      setEditing(location.state.edit);
+      setForm(location.state.edit);
+      setShowModal(true);
+    }
   }, [location.state]);
 
   // ================= RENDER =================
@@ -436,125 +457,128 @@ export default function SpareDevices() {
 
     <div className="p-6 bg-gray-100 min-h-screen">
 
-       {/* HEADER */}
-       <SpareHeader
+      {/* HEADER */}
+      <SpareHeader
 
-          role={role}
-      
-       />
+        role={role}
+
+      />
 
       {/* TOOLBAR */}
-       <SpareToolbar
+      <SpareToolbar
 
-            role={role}
-        
-            search={search}
-        
-            setSearch={setSearch}
-        
-            filter={filter}
-        
-            setFilter={setFilter}
-        
-            onExport={handleExport}
-        
-            onImport={handleImportExcel}
-        
-            onCreate={openCreate}
-        
-            onHistory={loadHistory}
-        
-      /> 
+        role={role}
+
+        search={search}
+
+        setSearch={setSearch}
+
+        filter={filter}
+
+        setFilter={setFilter}
+
+        onExport={handleExport}
+
+        onImport={handleImportExcel}
+
+        onCreate={openCreate}
+
+        onHistory={loadHistory}
+
+      />
 
       {/* Desktop */}
       <div className="hidden lg:block">
-      
-          <SpareTable
-              data={filtered}
-              role={role}
-              onView={(item) => navigate(`/spare-devices/${item.id}`)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-          />
-      
+
+        <SpareTable
+          data={filtered}
+          role={role}
+          onView={(item) => navigate(`/spare-devices/${item.id}`)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+
       </div>
-      
+
       {/* Mobile */}
       <div
-          className="
+        className="
               grid
               grid-cols-1
               gap-4
               lg:hidden
           "
       >
-      
-          {filtered.map(item => (
-      
-              <SpareCard
-                  key={item.id}
-                  item={item}
-                  role={role}
-                  onView={(item) => navigate(`/spare-devices/${item.id}`)}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-              />
-      
-          ))}
-      
+
+        {filtered.map(item => (
+
+          <SpareCard
+            key={item.id}
+            item={item}
+            role={role}
+            onView={(item) => navigate(`/spare-devices/${item.id}`)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+
+        ))}
+
       </div>
 
       {/* ================= PREVIEW IMPORT ================= */}
       <ImportPreviewModal
-      
-          show={showPreview}
-      
-          previewData={previewRows}
-      
-          onClose={() => setShowPreview(false)}
-      
-          onImport={handleConfirmImport}
-      
+
+        show={showPreview}
+
+        summary={summary}
+
+        rows={previewRows}
+
+        loading={importLoading}
+
+        onClose={() => setShowPreview(false)}
+        
+        onConfirm={handleConfirmImport}
       />
 
       {/* ================= HISTORY ================= */}
       <HistoryModal
-      
-          show={showHistory}
-      
-          history={historyData}
-      
-          onClose={() => setShowHistory(false)}
-      
+
+        show={showHistory}
+
+        history={historyData}
+
+        onClose={() => setShowHistory(false)}
+
       />
-      
+
       {/* ================= MODAL ================= */}
       <EditSpareModal
 
-          show={showModal}
-      
-          editing={editing}
-      
-          form={form}
-      
-          setForm={setForm}
-      
-          role={role}
-      
-          defaultForm={defaultForm}
-      
-          onClose={() => {
-      
-              setShowModal(false);
-      
-              setEditing(null);
-      
-              setForm(defaultForm);
-      
-          }}
-      
-          onSave={handleSave}
-      
+        show={showModal}
+
+        editing={editing}
+
+        form={form}
+
+        setForm={setForm}
+
+        role={role}
+
+        defaultForm={defaultForm}
+
+        onClose={() => {
+
+          setShowModal(false);
+
+          setEditing(null);
+
+          setForm(defaultForm);
+
+        }}
+
+        onSave={handleSave}
+
       />
 
     </div>
