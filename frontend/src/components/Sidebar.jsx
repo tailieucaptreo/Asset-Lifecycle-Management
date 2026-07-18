@@ -87,27 +87,8 @@ export default function Sidebar({
               className={`p-2 rounded cursor-pointer ${active("/devices")}`}
               onClick={() => go("/devices")}
             >
-              📋 Tổng thiết bị
+              📋 Tổng thiết bị các tuyến cáp
             </div>
-
-            {role === "admin" && (
-
-              <div
-                className={`p-2 rounded cursor-pointer ${active("/add")}`}
-                onClick={() => go("/add")}
-              >
-                ➕ Nhập thiết bị
-              </div>
-            )}
-
-            {role === "admin" && (
-              <div
-                className={`p-2 rounded cursor-pointer ${active("/import")}`}
-                onClick={() => go("/import")}
-              >
-                📥 Import Excel
-              </div>
-            )}
 
             <div
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"

@@ -1,4 +1,10 @@
-import {RefreshCw, Plus, Download} from "lucide-react";
+import {
+    RefreshCw,
+    Plus,
+    Download,
+    Upload,
+    History
+} from "lucide-react";
 
 export default function DeviceToolbar({
 
@@ -8,9 +14,14 @@ export default function DeviceToolbar({
 
     onExport,
 
+    onImport,
+
     onAdd,
 
+    onHistory,
+
     role
+
 
 }) {
 
@@ -62,13 +73,13 @@ export default function DeviceToolbar({
 
                 >
 
-                    <RefreshCw size={18}/>
+                    <RefreshCw size={18} />
 
                     Reload
 
                 </button>
 
-                {role==="admin" && (
+                {role === "admin" && (
 
                     <button
 
@@ -88,9 +99,37 @@ export default function DeviceToolbar({
 
                     >
 
-                        <Plus size={18}/>
+                        <Plus size={18} />
 
                         Thêm
+
+                    </button>
+
+                )}
+
+                {role === "admin" && (
+
+                    <button
+
+                        onClick={onImport}
+
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            px-4
+                            py-2
+                            rounded-lg
+                            bg-amber-500
+                            text-white
+                            hover:bg-amber-600
+                        "
+
+                    >
+
+                        <Upload size={18} />
+
+                        Import
 
                     </button>
 
@@ -114,11 +153,43 @@ export default function DeviceToolbar({
 
                 >
 
-                    <Download size={18}/>
+                    <Download size={18} />
 
                     Export
 
                 </button>
+
+                {
+
+                    onHistory && (
+
+                        <button
+
+                            onClick={onHistory}
+
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                px-4    
+                                py-2
+                                rounded-lg
+                                bg-violet-600
+                                text-white
+                                hover:bg-violet-700
+                            "
+
+                        >
+
+                            <History size={18} />
+
+                            History
+
+                        </button>
+
+                    )
+
+                }
 
             </div>
 
