@@ -63,8 +63,6 @@ export default function Drive() {
 
     const [importLoading, setImportLoading] = useState(false);
 
-    const fileInputRef = useRef(null);
-
     const [statistics, setStatistics] = useState({
 
         total: 0,
@@ -318,8 +316,6 @@ export default function Drive() {
 
     const handlePreview = async (e) => {
 
-        const file = e.target.files?.[0];
-
         if (!file) return;
 
         try {
@@ -467,14 +463,6 @@ export default function Drive() {
 
         <div className="max-w-[1600px] mx-auto px-8 py-6 space-y-6">
 
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                hidden
-                onChange={handlePreview}
-            />
-
             <DriveHeader
 
                 total={statistics.total}
@@ -495,7 +483,7 @@ export default function Drive() {
 
                 onCreate={handleCreate}
 
-                onImport={() => fileInputRef.current.click()}
+                onImport={handlePreview}
 
                 onExport={handleExport}
 

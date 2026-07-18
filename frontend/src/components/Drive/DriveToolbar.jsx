@@ -42,9 +42,9 @@ export default function DriveToolbar({
                     gap-4
                 "
             >
-            
+
                 {/* Left */}
-            
+
                 <div
                     className="
                         flex
@@ -54,11 +54,11 @@ export default function DriveToolbar({
                         flex-1
                     "
                 >
-            
+
                     {/* Search */}
-            
+
                     <div className="relative flex-1 max-w-[820px]">
-            
+
                         <Search
                             size={18}
                             className="
@@ -69,17 +69,17 @@ export default function DriveToolbar({
                                 text-gray-400
                             "
                         />
-            
+
                         <input
-            
+
                             value={search}
-            
+
                             onChange={(e) =>
                                 setSearch(e.target.value)
                             }
-            
+
                             placeholder="Tìm biến tần..."
-            
+
                             className="
                                 w-full
                                 border
@@ -91,15 +91,15 @@ export default function DriveToolbar({
                                 focus:ring-2
                                 focus:ring-blue-500
                             "
-            
+
                         />
-            
+
                     </div>
 
-                </div>    
-            
+                </div>
+
                 {/* Right */}
-            
+
                 <div
                     className="
                         flex
@@ -108,11 +108,11 @@ export default function DriveToolbar({
                         justify-end
                     "
                 >
-            
+
                     <button
-            
+
                         onClick={onHistory}
-            
+
                         className="
                             h-11
                             flex
@@ -123,19 +123,19 @@ export default function DriveToolbar({
                             bg-slate-100
                             hover:bg-slate-200
                         "
-            
+
                     >
-            
+
                         <History size={18} />
-            
+
                         Lịch sử lỗi
-            
+
                     </button>
-            
+
                     <button
-            
+
                         onClick={onExport}
-            
+
                         className="
                             h-11
                             flex
@@ -147,18 +147,18 @@ export default function DriveToolbar({
                             text-white
                             hover:bg-green-700
                         "
-            
+
                     >
-            
+
                         <Download size={18} />
-            
+
                         Export
-            
+
                     </button>
 
                     {
                         role === "admin" && (
-                            
+
                             <label
                                 className="
                                     h-11
@@ -173,23 +173,34 @@ export default function DriveToolbar({
                                     cursor-pointer
                                 "
                             >
-                    
+
                                 <Upload size={18} />
-                    
+
                                 Import
-                    
+
+                                <input
+                                    type="file"
+                                    hidden accept=".xlsx,.xls"
+                                    onChange={(e) => {
+                                        if (e.target.files?.length) {
+                                            onImport(e.target.files[0]);
+
+                                        }
+                                    }}
+                                />
+
                             </label>
                         )
-                    }        
-                    
+                    }
+
                     {
-            
+
                         role === "admin" && (
-            
+
                             <button
-            
+
                                 onClick={onCreate}
-            
+
                                 className="
                                     h-11
                                     flex
@@ -201,24 +212,24 @@ export default function DriveToolbar({
                                     text-white
                                     hover:bg-blue-700
                                 "
-            
+
                             >
-            
+
                                 <Plus size={18} />
-            
+
                                 Thêm biến tần
-            
+
                             </button>
-            
+
                         )
-            
+
                     }
-            
+
                 </div>
-            
+
             </div>
-            
-       </div>     
+
+        </div>
 
     );
 
