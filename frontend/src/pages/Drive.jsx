@@ -314,7 +314,7 @@ export default function Drive() {
 
     };
 
-    const handlePreview = async (e) => {
+    const handlePreview = async (file) => {
 
         if (!file) return;
 
@@ -338,12 +338,8 @@ export default function Drive() {
                 }
             );
 
-            console.log(res.data);
-
             setSessionId(res.data.sessionId);
-
             setSummary(res.data.summary);
-
             setPreviewRows(res.data.rows);
 
             setOpenImport(true);
@@ -353,53 +349,34 @@ export default function Drive() {
             console.error(err);
 
             alert(err.response?.data?.message || "Preview thất bại.");
-
         }
-
     };
 
     const confirmImport = async () => {
 
-        if (!importFile) return;
-
-        setImportLoading(true);
-
-        await axios.post(
-
-            `${API}/api/drives/import`,
-
-            {
-                sessionId
-            },
-
-            config
-
-        );
+        if (!sessionId) return;
 
         try {
 
+            setImportLoading(true);
+
             await axios.post(
-
                 `${API}/api/drives/import`,
-
-                form,
-
-                {
-                    ...config,
-                    headers: {
-                        ...config.headers,
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
+                { sessionId },
+                config
             );
 
             setOpenImport(false);
 
             await loadDrives();
-
             await loadFilters();
-
             await loadStatistics();
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert(err.response?.data?.message || "Import thất bại.");
 
         } finally {
 
