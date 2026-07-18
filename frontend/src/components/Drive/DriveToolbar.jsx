@@ -178,26 +178,6 @@ export default function DriveToolbar({
                     
                                 Import
                     
-                                <input
-                    
-                                    type="file"
-                    
-                                    hidden
-                    
-                                    accept=".xlsx,.xls"
-                    
-                                    onChange={(e) => {
-                    
-                                        if (e.target.files?.length) {
-                    
-                                            onImport(e.target.files[0]);
-                    
-                                        }
-                    
-                                    }}
-                    
-                                />
-                    
                             </label>
                         )
                     }        
