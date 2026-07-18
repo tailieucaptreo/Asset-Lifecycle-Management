@@ -3,6 +3,7 @@ import axios from "axios";
 
 import API from "../config";
 
+import { useRef } from "react";
 import DriveHeader from "../components/Drive/DriveHeader";
 import DriveToolbar from "../components/Drive/DriveToolbar";
 import DriveFilter from "../components/Drive/DriveFilter";
@@ -46,6 +47,21 @@ export default function Drive() {
     const [selectedDrive, setSelectedDrive] = useState(null);
 
     const [openImport, setOpenImport] = useState(false);
+
+    const [previewRows, setPreviewRows] = useState([]);
+
+    const [summary, setSummary] = useState({
+        total: 0,
+        newCount: 0,
+        updateCount: 0,
+        skipCount: 0,
+    });
+
+    const [importFile, setImportFile] = useState(null);
+
+    const [importLoading, setImportLoading] = useState(false);
+
+    const fileInputRef = useRef(null);
 
     const [statistics, setStatistics] = useState({
 
@@ -298,6 +314,84 @@ export default function Drive() {
 
     };
 
+    const handlePreview = async (e) => {
+
+        const file = e.target.files?.[0];
+
+        if (!file) return;
+
+        setImportFile(file);
+
+        const form = new FormData();
+
+        form.append("file", file);
+
+        const res = await axios.post(
+
+            `${API}/api/drives/preview-import`,
+
+            form,
+
+            {
+                ...config,
+                headers: {
+                    ...config.headers,
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        setSummary(res.data.summary);
+
+        setPreviewRows(res.data.rows);
+
+        setOpenImport(true);
+
+    };
+
+    const confirmImport = async () => {
+
+        if (!importFile) return;
+
+        setImportLoading(true);
+
+        const form = new FormData();
+
+        form.append("file", importFile);
+
+        try {
+
+            await axios.post(
+
+                `${API}/api/drives/import`,
+
+                form,
+
+                {
+                    ...config,
+                    headers: {
+                        ...config.headers,
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            setOpenImport(false);
+
+            await loadDrives();
+
+            await loadFilters();
+
+            await loadStatistics();
+
+        } finally {
+
+            setImportLoading(false);
+
+        }
+
+    };
+
     const handleExport = async () => {
 
         try {
@@ -352,6 +446,14 @@ export default function Drive() {
 
         <div className="max-w-[1600px] mx-auto px-8 py-6 space-y-6">
 
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                hidden
+                onChange={handlePreview}
+            />
+
             <DriveHeader
 
                 total={statistics.total}
@@ -372,7 +474,7 @@ export default function Drive() {
 
                 onCreate={handleCreate}
 
-                onImport={() => setOpenImport(true)}
+                onImport={() => fileInputRef.current.click()}
 
                 onExport={handleExport}
 
