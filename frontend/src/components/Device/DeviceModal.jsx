@@ -1,423 +1,139 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import API from "../../config";
+import { X } from "lucide-react";
 
-import {
-    X,
-    ClipboardList,
-    MapPin,
-    CalendarClock,
-    Save
-} from "lucide-react";
+const defaultDevice = {
 
-// ======================================================
-// CATEGORY OPTIONS
-// ======================================================
+    name: "",
 
-const CATEGORY_OPTIONS = [
+    line: "",
 
-    "PLC",
+    station: "",
 
-    "Biến tần",
+    category: "",
 
-    "BECKHOFF",
+    code: "",
 
-    "Điện điều khiển",
+    area: "",
 
-    "Cảm biến",
+    deviceId: "",
 
-    "Động cơ",
+    status: "Đang hoạt động",
 
-    "An toàn",
+    installDate: "",
 
-    "Khác"
+    lastMaintenance: "",
 
-];
+    lifespan: "",
 
-// ======================================================
-// STATUS OPTIONS
-// ======================================================
+    expiryDate: ""
 
-const STATUS_OPTIONS = [
-
-    {
-        value: "Active",
-        label: "Đang hoạt động"
-    },
-
-    {
-        value: "Maintenance",
-        label: "Bảo trì"
-    },
-
-    {
-        value: "Inactive",
-        label: "Ngừng hoạt động"
-    },
-
-    {
-        value: "Expired",
-        label: "Hết hạn"
-    }
-
-];
-
-// ======================================================
-// FORMAT DATE
-// ======================================================
-
-function formatDate(value) {
-
-    if (!value) return "";
-
-    const date = new Date(value);
-
-    if (isNaN(date.getTime())) return "";
-
-    return date.toISOString().split("T")[0];
-
-}
-
-// ======================================================
-// ADD YEARS
-// ======================================================
-
-function addYears(date, years) {
-
-    if (!date || !years) return "";
-
-    const d = new Date(date);
-
-    d.setFullYear(
-
-        d.getFullYear() + Number(years)
-
-    );
-
-    return formatDate(d);
-
-}
-
-// ======================================================
-// CARD TITLE
-// ======================================================
-
-function SectionTitle({
-
-    icon,
-
-    title
-
-}) {
-
-    return (
-
-        <div
-            className="
-                flex
-                items-center
-                gap-2
-                mb-5
-            "
-        >
-
-            <div
-                className="
-                    w-10
-                    h-10
-                    rounded-xl
-                    bg-blue-100
-                    text-blue-600
-                    flex
-                    items-center
-                    justify-center
-                "
-            >
-
-                {icon}
-
-            </div>
-
-            <h2
-                className="
-                    text-xl
-                    font-bold
-                    text-slate-800
-                "
-            >
-
-                {title}
-
-            </h2>
-
-        </div>
-
-    );
-
-}
-
-// ======================================================
-// INPUT
-// ======================================================
-
-function Input({
-
-    label,
-
-    ...props
-
-}) {
-
-    return (
-
-        <div>
-
-            <label
-                className="
-                    block
-                    text-sm
-                    font-semibold
-                    text-slate-700
-                    mb-2
-                "
-            >
-
-                {label}
-
-            </label>
-
-            <input
-
-                {...props}
-
-                className={`
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    px-4
-                    py-3
-                    outline-none
-                    transition
-                    focus:border-blue-500
-                    focus:ring-2
-                    focus:ring-blue-100
-                    ${props.readOnly
-                        ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-                        : "bg-white"}
-                    ${props.className || ""}
-                `}
-
-            />
-
-        </div>
-
-    );
-
-}
-
-// ======================================================
-// SELECT
-// ======================================================
-
-function Select({
-
-    label,
-
-    options,
-
-    className = "",
-
-    ...props
-
-}) {
-
-    return (
-
-        <div>
-
-            <label
-                className="
-                    block
-                    text-sm
-                    font-semibold
-                    text-slate-700
-                    mb-2
-                "
-            >
-
-                {label}
-
-            </label>
-
-            <select
-
-                {...props}
-
-                className={`
-                    w-full
-                    rounded-xl
-                    border
-                    border-slate-300
-                    px-4
-                    py-3
-                    outline-none
-                    transition
-                    focus:border-blue-500
-                    focus:ring-2
-                    focus:ring-blue-100
-                    ${className}
-                `}
-
-            >
-
-                <option value="">
-
-                    -- Chọn --
-
-                </option>
-
-                {options.map(item => (
-
-                    typeof item === "string"
-
-                        ? (
-
-                            <option
-
-                                key={item}
-
-                                value={item}
-
-                            >
-
-                                {item}
-
-                            </option>
-
-                        )
-
-                        : (
-
-                            <option
-
-                                key={item.value}
-
-                                value={item.value}
-
-                            >
-
-                                {item.label}
-
-                            </option>
-
-                        )
-
-                ))}
-
-            </select>
-
-        </div>
-
-    );
-
-}
-
-// ======================================================
-// DEVICE MODAL
-// ======================================================
+};
 
 export default function DeviceModal({
 
     open,
 
-    device,
-
     onClose,
 
-    onSave,
+    onSuccess,
 
-    loading = false
+    device = null
 
 }) {
 
-    const [form, setForm] = useState({
+    const [form, setForm] =
+        useState(defaultDevice);
 
-        name: "",
+    const [loading, setLoading] =
+        useState(false);
 
-        category: "",
+    const token =
+        localStorage.getItem("token");
 
-        status: "Active",
+    const config = {
 
-        deviceId: "",
+        headers: {
 
-        code: "",
+            Authorization:
+                `Bearer ${token}`
 
-        area: "",
+        }
 
-        line: "",
+    };
 
-        station: "",
-
-        installDate: "",
-
-        lastMaintenance: "",
-
-        lifespan: "",
-
-        expiryDate: ""
-
-    });
-
-    // ================= LOAD DEVICE =================
+    // ==========================
+    // LOAD DATA WHEN EDIT
+    // ==========================
 
     useEffect(() => {
 
-        if (!device) return;
+        if (!open) return;
 
-        setForm({
+        if (device) {
 
-            name: device.name || "",
+            setForm({
 
-            category: device.category || "",
+                name:
+                    device.name || "",
 
-            status: device.status || "Active",
+                line:
+                    device.line || "",
 
-            deviceId: device.deviceId || "",
+                station:
+                    device.station || "",
 
-            code: device.code || "",
+                category:
+                    device.category || "",
 
-            area: device.area || "",
+                code:
+                    device.code || "",
 
-            line: device.line || "",
+                area:
+                    device.area || "",
 
-            station: device.station || "",
+                deviceId:
+                    device.deviceId || "",
 
-            installDate: formatDate(
+                status:
+                    device.status || "Đang hoạt động",
 
-                device.installDate
+                installDate:
+                    device.installDate
+                        ? device.installDate.slice(0, 10)
+                        : "",
 
-            ),
+                lastMaintenance:
+                    device.lastMaintenance
+                        ? device.lastMaintenance.slice(0, 10)
+                        : "",
 
-            lastMaintenance: formatDate(
+                lifespan:
+                    device.lifespan || "",
 
-                device.lastMaintenance
+                expiryDate:
+                    device.expiryDate
+                        ? device.expiryDate.slice(0, 10)
+                        : ""
 
-            ),
+            });
 
-            lifespan: device.lifespan || "",
+        }
 
-            expiryDate: formatDate(
+        else {
 
-                device.expiryDate
+            setForm(defaultDevice);
 
-            )
+        }
 
-        });
+    }, [open, device]);
 
-    }, [device]);
+    // ==========================
+    // AUTO CALCULATE EXPIRY DATE
+    // ==========================
 
-    // ================= AUTO CALCULATE EXPIRED =================
-
-    const expiryDate = useMemo(() => {
+    useEffect(() => {
 
         if (
 
@@ -427,17 +143,34 @@ export default function DeviceModal({
 
         ) {
 
-            return "";
+            return;
 
         }
 
-        return addYears(
+        const date =
+            new Date(form.installDate);
 
-            form.installDate,
+        date.setFullYear(
 
-            form.lifespan
+            date.getFullYear() +
+
+            Number(form.lifespan)
 
         );
+
+        setForm(prev => ({
+
+            ...prev,
+
+            expiryDate:
+
+                date
+
+                    .toISOString()
+
+                    .slice(0, 10)
+
+        }));
 
     }, [
 
@@ -447,9 +180,11 @@ export default function DeviceModal({
 
     ]);
 
-    // ================= CHANGE =================
+    // ==========================
+    // HANDLE CHANGE
+    // ==========================
 
-    const handleChange = e => {
+    const handleChange = (e) => {
 
         const {
 
@@ -469,51 +204,175 @@ export default function DeviceModal({
 
     };
 
-    // ================= SAVE =================
+    // ==========================
+    // HANDLE SUBMIT
+    // ==========================
 
-    const handleSubmit = e => {
+    const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        onSave({
+        if (!form.name.trim()) {
 
-            ...form,
+            alert("Vui lòng nhập tên thiết bị");
 
-            expiryDate
+            return;
 
-        });
+        }
+
+        if (!form.line.trim()) {
+
+            alert("Vui lòng nhập tuyến");
+
+            return;
+
+        }
+
+        if (!form.station.trim()) {
+
+            alert("Vui lòng nhập nhà ga");
+
+            return;
+
+        }
+
+        try {
+
+            setLoading(true);
+
+            const payload = {
+
+                name:
+                    form.name.trim(),
+
+                line:
+                    form.line.trim(),
+
+                station:
+                    form.station.trim(),
+
+                category:
+                    form.category.trim(),
+
+                code:
+                    form.code.trim(),
+
+                area:
+                    form.area.trim(),
+
+                deviceId:
+                    form.deviceId.trim(),
+
+                status:
+                    form.status,
+
+                installDate:
+                    form.installDate || null,
+
+                lastMaintenance:
+                    form.lastMaintenance || null,
+
+                lifespan:
+                    Number(form.lifespan || 0),
+
+                expiryDate:
+                    form.expiryDate || null
+
+            };
+
+            // =====================
+            // UPDATE
+            // =====================
+
+            if (device?.id) {
+
+                await axios.put(
+
+                    `${API}/api/devices/${device.id}`,
+
+                    payload,
+
+                    config
+
+                );
+
+            }
+
+            // =====================
+            // CREATE
+            // =====================
+
+            else {
+
+                await axios.post(
+
+                    `${API}/api/devices`,
+
+                    payload,
+
+                    config
+
+                );
+
+            }
+
+            if (onSuccess) {
+
+                await onSuccess();
+
+            }
+
+            setForm(defaultDevice);
+
+            onClose();
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            alert(
+
+                err.response?.data?.error ||
+
+                err.response?.data?.message ||
+
+                "Không thể lưu thiết bị"
+
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
+
+        }
 
     };
 
-    if (!open) return null;
+    // ==========================
+    // CLOSE
+    // ==========================
 
+    if (!open) {
+
+        return null;
+
+    }
     return (
 
-        <div
-            className="
-                fixed
-                inset-0
-                z-50
-                bg-black/40
-                backdrop-blur-sm
-                flex
-                items-center
-                justify-center
-                p-4
-            "
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
 
             <div
                 className="
+                    w-full
+                    max-w-6xl
                     bg-white
                     rounded-2xl
                     shadow-2xl
-                    w-full
-                    max-w-6xl
-                    max-h-[92vh]
                     overflow-hidden
-                    flex
-                    flex-col
                 "
             >
 
@@ -524,58 +383,28 @@ export default function DeviceModal({
                         flex
                         items-center
                         justify-between
-                        px-7
-                        py-5
+                        px-6
+                        py-4
                         border-b
-                        bg-slate-50
                     "
                 >
 
-                    <div>
+                    <h2 className="text-2xl font-bold">
 
-                        <h1
-                            className="
-                                text-3xl
-                                font-bold
-                                text-slate-800
-                            "
-                        >
+                        {device
+                            ? "Cập nhật thiết bị"
+                            : "Thêm thiết bị"}
 
-                            {device?.id
-
-                                ? "Cập nhật thiết bị"
-
-                                : "Thêm thiết bị"}
-
-                        </h1>
-
-                        <p
-                            className="
-                                mt-1
-                                text-sm
-                                text-slate-500
-                            "
-                        >
-
-                            Quản lý thông tin và vòng đời thiết bị.
-
-                        </p>
-
-                    </div>
+                    </h2>
 
                     <button
 
                         onClick={onClose}
 
                         className="
-                            w-10
-                            h-10
-                            rounded-xl
-                            hover:bg-slate-200
-                            flex
-                            items-center
-                            justify-center
-                            transition
+                            p-2
+                            rounded-lg
+                            hover:bg-slate-100
                         "
 
                     >
@@ -586,56 +415,34 @@ export default function DeviceModal({
 
                 </div>
 
-                {/* ================= BODY ================= */}
+                {/* ================= FORM ================= */}
 
                 <form
-
                     onSubmit={handleSubmit}
-
-                    className="
-                        flex-1
-                        overflow-y-auto
-                        p-7
-                        space-y-8
-                    "
+                    className="p-6"
                 >
 
-                    {/* ====================================================== */}
-                    {/* THÔNG TIN CHUNG */}
-                    {/* ====================================================== */}
+                    {/* ================= THÔNG TIN CHUNG ================= */}
 
-                    <div
-                        className="
-                            bg-white
-                            border
-                            rounded-2xl
-                            shadow-sm
-                            p-6
-                        "
-                    >
+                    <div className="mb-8">
 
-                        <SectionTitle
+                        <h3 className="font-semibold text-lg mb-4">
 
-                            icon={<ClipboardList size={22} />}
+                            Thông tin chung
 
-                            title="Thông tin chung"
+                        </h3>
 
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
 
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                lg:grid-cols-3
-                                gap-6
-                            "
-                        >
+                            <div>
 
-                            <div className="lg:col-span-2">
+                                <label className="block mb-1 font-medium">
 
-                                <Input
+                                    Tên thiết bị
 
-                                    label="Tên thiết bị"
+                                </label>
+
+                                <input
 
                                     name="name"
 
@@ -643,7 +450,7 @@ export default function DeviceModal({
 
                                     onChange={handleChange}
 
-                                    placeholder="Nhập tên thiết bị"
+                                    className="w-full border rounded-lg px-3 py-2"
 
                                     required
 
@@ -653,9 +460,35 @@ export default function DeviceModal({
 
                             <div>
 
-                                <Select
+                                <label className="block mb-1 font-medium">
 
-                                    label="Trạng thái"
+                                    Phân loại
+
+                                </label>
+
+                                <input
+
+                                    name="category"
+
+                                    value={form.category}
+
+                                    onChange={handleChange}
+
+                                    className="w-full border rounded-lg px-3 py-2"
+
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Trạng thái
+
+                                </label>
+
+                                <select
 
                                     name="status"
 
@@ -663,121 +496,101 @@ export default function DeviceModal({
 
                                     onChange={handleChange}
 
-                                    options={STATUS_OPTIONS}
+                                    className="w-full border rounded-lg px-3 py-2"
+
+                                >
+
+                                    <option>
+
+                                        Đang hoạt động
+
+                                    </option>
+
+                                    <option>
+
+                                        Bảo trì
+
+                                    </option>
+
+                                    <option>
+
+                                        Hỏng
+
+                                    </option>
+
+                                    <option>
+
+                                        Dự phòng
+
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Mã ID
+
+                                </label>
+
+                                <input
+
+                                    name="deviceId"
+
+                                    value={form.deviceId}
+
+                                    onChange={handleChange}
+
+                                    className="w-full border rounded-lg px-3 py-2"
 
                                 />
 
                             </div>
 
-                            <Input
+                            <div>
 
-                                label="Mã ID"
+                                <label className="block mb-1 font-medium">
 
-                                name="deviceId"
+                                    Ký hiệu
 
-                                value={form.deviceId}
+                                </label>
 
-                                onChange={handleChange}
+                                <input
 
-                                placeholder="Device ID"
+                                    name="code"
 
-                            />
+                                    value={form.code}
 
-                            <Input
+                                    onChange={handleChange}
 
-                                label="Ký hiệu"
+                                    className="w-full border rounded-lg px-3 py-2"
 
-                                name="code"
+                                />
 
-                                value={form.code}
+                            </div>
 
-                                onChange={handleChange}
+                            <div>
 
-                                placeholder="Ví dụ: 200A2"
+                                <label className="block mb-1 font-medium">
 
-                            />
+                                    Khu vực
 
-                            <Select
+                                </label>
 
-                                label="Phân loại"
+                                <input
 
-                                name="category"
+                                    name="area"
 
-                                value={form.category}
+                                    value={form.area}
 
-                                onChange={handleChange}
+                                    onChange={handleChange}
 
-                                options={CATEGORY_OPTIONS}
+                                    className="w-full border rounded-lg px-3 py-2"
 
-                            />
-
-                        </div>
-
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                lg:grid-cols-2
-                                gap-6
-                                mt-6
-                            "
-                        >
-
-                            <Input
-
-                                label="Khu vực"
-
-                                name="area"
-
-                                value={form.area}
-
-                                onChange={handleChange}
-
-                                placeholder="Ví dụ: Phòng điều khiển"
-
-                            />
-
-                            <div
-                                className="
-                                    rounded-xl
-                                    border
-                                    bg-slate-50
-                                    px-4
-                                    py-3
-                                    flex
-                                    flex-col
-                                    justify-center
-                                "
-                            >
-
-                                <span
-                                    className="
-                                        text-sm
-                                        font-semibold
-                                        text-slate-700
-                                    "
-                                >
-
-                                    Thông tin
-
-                                </span>
-
-                                <span
-                                    className="
-                                        mt-2
-                                        text-sm
-                                        text-slate-500
-                                        leading-6
-                                    "
-                                >
-
-                                    Thiết bị được định danh theo
-
-                                    <strong> Tuyến + Ký hiệu </strong>
-
-                                    để tránh trùng dữ liệu khi import.
-
-                                </span>
+                                />
 
                             </div>
 
@@ -785,222 +598,197 @@ export default function DeviceModal({
 
                     </div>
 
-                                        {/* ====================================================== */}
-                    {/* VỊ TRÍ LẮP ĐẶT */}
-                    {/* ====================================================== */}
+                    {/* ================= VỊ TRÍ ================= */}
 
-                    <div
-                        className="
-                            bg-white
-                            border
-                            rounded-2xl
-                            shadow-sm
-                            p-6
-                        "
-                    >
+                    <div className="mb-8">
 
-                        <SectionTitle
+                        <h3 className="font-semibold text-lg mb-4">
 
-                            icon={<MapPin size={22} />}
+                            Vị trí lắp đặt
 
-                            title="Vị trí lắp đặt"
+                        </h3>
 
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                md:grid-cols-2
-                                lg:grid-cols-3
-                                gap-6
-                            "
-                        >
+                            <div>
 
-                            <Input
+                                <label className="block mb-1 font-medium">
 
-                                label="Tuyến"
+                                    Tuyến
 
-                                name="line"
+                                </label>
 
-                                value={form.line}
+                                <input
 
-                                onChange={handleChange}
+                                    name="line"
 
-                                placeholder="Ví dụ: Tuyến 1"
+                                    value={form.line}
 
-                                required
+                                    onChange={handleChange}
 
-                            />
+                                    className="w-full border rounded-lg px-3 py-2"
 
-                            <Input
+                                />
 
-                                label="Nhà ga"
+                            </div>
 
-                                name="station"
+                            <div>
 
-                                value={form.station}
+                                <label className="block mb-1 font-medium">
 
-                                onChange={handleChange}
+                                    Nhà ga
 
-                                placeholder="Ví dụ: Ga đi"
+                                </label>
 
-                            />
+                                <input
 
-                            <Input
+                                    name="station"
 
-                                label="Khu vực"
+                                    value={form.station}
 
-                                name="area"
+                                    onChange={handleChange}
 
-                                value={form.area}
+                                    className="w-full border rounded-lg px-3 py-2"
 
-                                onChange={handleChange}
+                                />
 
-                                placeholder="Ví dụ: Tủ MCC"
+                            </div>
 
-                            />
+                        </div>
+
+                    </div>
+                    
+                    {/* ================= THỜI GIAN ================= */}
+
+                    <div className="mb-8">
+
+                        <h3 className="font-semibold text-lg mb-4">
+
+                            Thời gian & Tuổi thọ
+
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Ngày lắp đặt
+
+                                </label>
+
+                                <input
+
+                                    type="date"
+
+                                    name="installDate"
+
+                                    value={form.installDate}
+
+                                    onChange={handleChange}
+
+                                    className="w-full border rounded-lg px-3 py-2"
+
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Bảo trì gần nhất
+
+                                </label>
+
+                                <input
+
+                                    type="date"
+
+                                    name="lastMaintenance"
+
+                                    value={form.lastMaintenance}
+
+                                    onChange={handleChange}
+
+                                    className="w-full border rounded-lg px-3 py-2"
+
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Tuổi thọ (năm)
+
+                                </label>
+
+                                <input
+
+                                    type="number"
+
+                                    min="0"
+
+                                    name="lifespan"
+
+                                    value={form.lifespan}
+
+                                    onChange={handleChange}
+
+                                    className="w-full border rounded-lg px-3 py-2"
+
+                                />
+
+                            </div>
+
+                            <div>
+
+                                <label className="block mb-1 font-medium">
+
+                                    Ngày hết hạn
+
+                                </label>
+
+                                <input
+
+                                    type="date"
+
+                                    name="expiryDate"
+
+                                    value={form.expiryDate}
+
+                                    readOnly
+
+                                    className="
+                                        w-full
+                                        border
+                                        rounded-lg
+                                        px-3
+                                        py-2
+                                        bg-slate-100
+                                        text-slate-600
+                                    "
+
+                                />
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                    {/* ====================================================== */}
-                    {/* THỜI GIAN & TUỔI THỌ */}
-                    {/* ====================================================== */}
-
-                    <div
-                        className="
-                            bg-white
-                            border
-                            rounded-2xl
-                            shadow-sm
-                            p-6
-                        "
-                    >
-
-                        <SectionTitle
-
-                            icon={<CalendarClock size={22} />}
-
-                            title="Thời gian & Tuổi thọ"
-
-                        />
-
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                md:grid-cols-2
-                                lg:grid-cols-4
-                                gap-6
-                            "
-                        >
-
-                            <Input
-
-                                label="Ngày lắp đặt"
-
-                                type="date"
-
-                                name="installDate"
-
-                                value={form.installDate}
-
-                                onChange={handleChange}
-
-                            />
-
-                            <Input
-
-                                label="Bảo trì gần nhất"
-
-                                type="date"
-
-                                name="lastMaintenance"
-
-                                value={form.lastMaintenance}
-
-                                onChange={handleChange}
-
-                            />
-
-                            <Input
-
-                                label="Tuổi thọ (năm)"
-
-                                type="number"
-
-                                min="0"
-
-                                name="lifespan"
-
-                                value={form.lifespan}
-
-                                onChange={handleChange}
-
-                                placeholder="10"
-
-                            />
-
-                            <Input
-
-                                label="Ngày hết hạn"
-
-                                type="date"
-
-                                value={expiryDate}
-
-                                readOnly
-
-                            />
-
-                        </div>
-
-                        <div
-                            className="
-                                mt-6
-                                rounded-xl
-                                bg-blue-50
-                                border
-                                border-blue-200
-                                px-5
-                                py-4
-                            "
-                        >
-
-                            <p
-                                className="
-                                    text-sm
-                                    text-blue-700
-                                    leading-6
-                                "
-                            >
-
-                                <strong>Lưu ý:</strong> Ngày hết hạn sẽ được tính
-                                tự động từ <strong>Ngày lắp đặt</strong> +
-                                <strong> Tuổi thọ</strong>. Trường này chỉ hiển
-                                thị và không thể chỉnh sửa thủ công.
-
-                            </p>
-
-                        </div>
-
-                    </div>
                     {/* ================= FOOTER ================= */}
 
                     <div
                         className="
-                            sticky
-                            bottom-0
-                            bg-white
-                            border-t
-                            px-7
-                            py-5
                             flex
-                            items-center
                             justify-end
                             gap-3
+                            pt-6
+                            border-t
                         "
                     >
 
@@ -1012,12 +800,11 @@ export default function DeviceModal({
 
                             className="
                                 px-6
-                                py-3
-                                rounded-xl
+                                py-2.5
+                                rounded-lg
                                 border
                                 border-slate-300
                                 hover:bg-slate-100
-                                transition
                             "
 
                         >
@@ -1033,37 +820,23 @@ export default function DeviceModal({
                             disabled={loading}
 
                             className="
-                                inline-flex
-                                items-center
-                                gap-2
                                 px-6
-                                py-3
-                                rounded-xl
+                                py-2.5
+                                rounded-lg
                                 bg-blue-600
                                 text-white
                                 hover:bg-blue-700
                                 disabled:opacity-50
                                 disabled:cursor-not-allowed
-                                transition
                             "
 
                         >
 
-                            <Save size={18} />
-
-                            {
-
-                                loading
-
-                                    ? "Đang lưu..."
-
-                                    : device?.id
-
-                                        ? "Cập nhật"
-
-                                        : "Thêm thiết bị"
-
-                            }
+                            {loading
+                                ? "Đang lưu..."
+                                : device
+                                    ? "Cập nhật"
+                                    : "Thêm thiết bị"}
 
                         </button>
 
