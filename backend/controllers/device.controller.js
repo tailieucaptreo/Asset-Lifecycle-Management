@@ -10,31 +10,31 @@ const importSessions = new Map();
 
 function createImportSession(rows, summary) {
 
-    const sessionId = crypto.randomUUID();
+  const sessionId = crypto.randomUUID();
 
-    importSessions.set(sessionId, {
+  importSessions.set(sessionId, {
 
-        rows,
+    rows,
 
-        summary,
+    summary,
 
-        createdAt: Date.now()
+    createdAt: Date.now()
 
-    });
+  });
 
-    return sessionId;
+  return sessionId;
 
 }
 
 function getImportSession(sessionId) {
 
-    return importSessions.get(sessionId);
+  return importSessions.get(sessionId);
 
 }
 
 function deleteImportSession(sessionId) {
 
-    importSessions.delete(sessionId);
+  importSessions.delete(sessionId);
 
 }
 
@@ -43,17 +43,17 @@ function deleteImportSession(sessionId) {
 // Xóa session quá 30 phút
 setInterval(() => {
 
-    const now = Date.now();
+  const now = Date.now();
 
-    for (const [id, session] of importSessions.entries()) {
+  for (const [id, session] of importSessions.entries()) {
 
-        if (now - session.createdAt > 30 * 60 * 1000) {
+    if (now - session.createdAt > 30 * 60 * 1000) {
 
-            importSessions.delete(id);
-
-        }
+      importSessions.delete(id);
 
     }
+
+  }
 
 }, 5 * 60 * 1000);
 
@@ -234,7 +234,7 @@ const detectCategory = (name = "") => {
   ) {
     return "PLC";
   }
-  
+
   // BECKHOFF
   if (
     t.includes("beckhoff") ||
@@ -248,7 +248,7 @@ const detectCategory = (name = "") => {
   ) {
     return "BECKHOFF";
   }
-  
+
   // AN TOÀN (PILZ)
   if (
     t.includes("safety")
@@ -452,7 +452,8 @@ exports.createDevice = async (req, res) => {
         ...d,
         status: normalizeStatus(d.status),
         installDate: parseDate(d.installDate),
-        lastMaintenance: parseDate(d.lastMaintenance)
+        lastMaintenance: parseDate(d.lastMaintenance),
+        expiryDate: parseDate(d.expiryDate)
       }
     });
 
@@ -483,7 +484,8 @@ exports.updateDevice = async (req, res) => {
         ...d,
         status: normalizeStatus(d.status),
         installDate: parseDate(d.installDate),
-        lastMaintenance: parseDate(d.lastMaintenance)
+        lastMaintenance: parseDate(d.lastMaintenance),
+        expiryDate: parseDate(d.expiryDate)
       }
     });
 
@@ -524,305 +526,305 @@ exports.deleteDevice = async (req, res) => {
 
 async function compareRows(rows) {
 
-    const devices = await prisma.device.findMany({
+  const devices = await prisma.device.findMany({
 
-        select: {
+    select: {
 
-            id: true,
+      id: true,
 
-            deviceId: true,
+      deviceId: true,
 
-            name: true,
+      name: true,
 
-            category: true,
+      category: true,
 
-            line: true,
+      line: true,
 
-            station: true,
+      station: true,
 
-            code: true,
+      code: true,
 
-            area: true,
+      area: true,
 
-            status: true,
+      status: true,
 
-            installDate: true,
+      installDate: true,
 
-            lifespan: true
-
-        }
-
-    });
-
-    const deviceMap = new Map();
-
-    devices.forEach(device => {
-    
-        if (device.line && device.code) {
-    
-            const key =
-                `${normalize(device.line)}_${normalize(device.code)}`;
-    
-            deviceMap.set(key, device);
-    
-        }
-    
-    });
-
-    let newCount = 0;
-
-    let updateCount = 0;
-
-    let skipCount = 0;
-
-    const result = [];
-
-    for (const row of rows) {
-
-        const data = {
-
-            deviceId: normalize(
-
-                get(
-                    row,
-                    "Mã ID",
-                    "Device ID",
-                    "deviceId",
-                    "Mã thiết bị"
-                )
-            ),
-
-            name: normalize(
-
-                get(
-                    row,
-                    "Tên thiết bị",
-                    "Tên",
-                    "Name"
-                )
-            ),
-
-            category: normalize(
-
-                get(
-                    row,
-                    "Phân loại",
-                    "Category"
-                )
-            ),
-
-            line: normalize(
-
-                get(
-                    row,
-                    "Tuyến",
-                    "Line"
-                )
-            ),
-
-            station: normalize(
-
-                get(
-                    row,
-                    "Nhà ga",
-                    "Station"
-                )
-            ),
-
-            code: normalize(
-
-                get(
-                    row,
-                    "Ký hiệu",
-                    "Code"
-                )
-            ),
-
-            area: normalize(
-
-                get(
-                    row,
-                    "Khu vực",
-                    "Area"
-                )
-            ),
-
-            status: normalize(
-
-                get(
-                    row,
-                    "Trạng thái",
-                    "Status"
-                )
-            ),
-
-            installDate: parseDate(
-
-                get(
-                    row,
-                    "Ngày lắp",
-                    "Ngày lắp đặt",
-                    "Install Date"
-                )
-            ),
-
-            lifespan: Number(
-
-                get(
-                    row,
-                    "Tuổi thọ",
-                    "Lifespan"
-                ) || 0
-
-            )
-
-        };
-
-        function get(row, ...keys) {
-
-            for (const key of keys) {
-        
-                if (
-                    row[key] !== undefined &&
-                    row[key] !== null &&
-                    row[key] !== ""
-                ) {
-                    return row[key];
-                }
-        
-            }
-        
-            return null;
-        
-        }
-
-        // Thiếu dữ liệu
-
-        if (!data.line || !data.code || !data.name) {
-
-            skipCount++;
-        
-            result.push({
-        
-                action: "SKIP",
-        
-                reason: "Thiếu Tuyến hoặc Ký hiệu hoặc Tên thiết bị",
-        
-                changedFields: [],
-        
-                row: data
-        
-            });
-        
-            continue;
-        
-        }
-
-        const key =
-            `${normalize(data.line)}_${normalize(data.code)}`;
-        
-        const old = deviceMap.get(key);
-
-        // Thiết bị mới
-
-        if (!old) {
-
-            newCount++;
-
-            result.push({
-
-                action: "NEW",
-
-                changedFields: [],
-
-                row: data
-
-            });
-
-            continue;
-
-        }
-
-        const changedFields = [];
-
-        if (normalize(old.name) !== data.name)
-            changedFields.push("Tên thiết bị");
-
-        if (normalize(old.category) !== data.category)
-            changedFields.push("Phân loại");
-
-        if (normalize(old.line) !== data.line)
-            changedFields.push("Tuyến");
-
-        if (normalize(old.station) !== data.station)
-            changedFields.push("Nhà ga");
-
-        if (normalize(old.code) !== data.code)
-            changedFields.push("Ký hiệu");
-
-        if (normalize(old.area) !== data.area)
-            changedFields.push("Khu vực");
-
-        if (normalize(old.status) !== data.status)
-            changedFields.push("Trạng thái");
-
-        if (!sameDate(old.installDate, data.installDate))
-            changedFields.push("Ngày lắp");
-
-        if (Number(old.lifespan || 0) !== Number(data.lifespan || 0))
-            changedFields.push("Tuổi thọ");
-
-        if (changedFields.length) {
-
-            updateCount++;
-
-            result.push({
-
-                action: "UPDATE",
-
-                changedFields,
-
-                row: data
-
-            });
-
-        }
-
-        else {
-
-            skipCount++;
-
-            result.push({
-
-                action: "SKIP",
-
-                changedFields: [],
-
-                row: data
-
-            });
-
-        }
+      lifespan: true
 
     }
 
-    return {
+  });
 
-        summary: {
+  const deviceMap = new Map();
 
-            total: rows.length,
+  devices.forEach(device => {
 
-            newCount,
+    if (device.line && device.code) {
 
-            updateCount,
+      const key =
+        `${normalize(device.line)}_${normalize(device.code)}`;
 
-            skipCount
+      deviceMap.set(key, device);
 
-        },
+    }
 
-        rows: result
+  });
+
+  let newCount = 0;
+
+  let updateCount = 0;
+
+  let skipCount = 0;
+
+  const result = [];
+
+  for (const row of rows) {
+
+    const data = {
+
+      deviceId: normalize(
+
+        get(
+          row,
+          "Mã ID",
+          "Device ID",
+          "deviceId",
+          "Mã thiết bị"
+        )
+      ),
+
+      name: normalize(
+
+        get(
+          row,
+          "Tên thiết bị",
+          "Tên",
+          "Name"
+        )
+      ),
+
+      category: normalize(
+
+        get(
+          row,
+          "Phân loại",
+          "Category"
+        )
+      ),
+
+      line: normalize(
+
+        get(
+          row,
+          "Tuyến",
+          "Line"
+        )
+      ),
+
+      station: normalize(
+
+        get(
+          row,
+          "Nhà ga",
+          "Station"
+        )
+      ),
+
+      code: normalize(
+
+        get(
+          row,
+          "Ký hiệu",
+          "Code"
+        )
+      ),
+
+      area: normalize(
+
+        get(
+          row,
+          "Khu vực",
+          "Area"
+        )
+      ),
+
+      status: normalize(
+
+        get(
+          row,
+          "Trạng thái",
+          "Status"
+        )
+      ),
+
+      installDate: parseDate(
+
+        get(
+          row,
+          "Ngày lắp",
+          "Ngày lắp đặt",
+          "Install Date"
+        )
+      ),
+
+      lifespan: Number(
+
+        get(
+          row,
+          "Tuổi thọ",
+          "Lifespan"
+        ) || 0
+
+      )
 
     };
+
+    function get(row, ...keys) {
+
+      for (const key of keys) {
+
+        if (
+          row[key] !== undefined &&
+          row[key] !== null &&
+          row[key] !== ""
+        ) {
+          return row[key];
+        }
+
+      }
+
+      return null;
+
+    }
+
+    // Thiếu dữ liệu
+
+    if (!data.line || !data.code || !data.name) {
+
+      skipCount++;
+
+      result.push({
+
+        action: "SKIP",
+
+        reason: "Thiếu Tuyến hoặc Ký hiệu hoặc Tên thiết bị",
+
+        changedFields: [],
+
+        row: data
+
+      });
+
+      continue;
+
+    }
+
+    const key =
+      `${normalize(data.line)}_${normalize(data.code)}`;
+
+    const old = deviceMap.get(key);
+
+    // Thiết bị mới
+
+    if (!old) {
+
+      newCount++;
+
+      result.push({
+
+        action: "NEW",
+
+        changedFields: [],
+
+        row: data
+
+      });
+
+      continue;
+
+    }
+
+    const changedFields = [];
+
+    if (normalize(old.name) !== data.name)
+      changedFields.push("Tên thiết bị");
+
+    if (normalize(old.category) !== data.category)
+      changedFields.push("Phân loại");
+
+    if (normalize(old.line) !== data.line)
+      changedFields.push("Tuyến");
+
+    if (normalize(old.station) !== data.station)
+      changedFields.push("Nhà ga");
+
+    if (normalize(old.code) !== data.code)
+      changedFields.push("Ký hiệu");
+
+    if (normalize(old.area) !== data.area)
+      changedFields.push("Khu vực");
+
+    if (normalize(old.status) !== data.status)
+      changedFields.push("Trạng thái");
+
+    if (!sameDate(old.installDate, data.installDate))
+      changedFields.push("Ngày lắp");
+
+    if (Number(old.lifespan || 0) !== Number(data.lifespan || 0))
+      changedFields.push("Tuổi thọ");
+
+    if (changedFields.length) {
+
+      updateCount++;
+
+      result.push({
+
+        action: "UPDATE",
+
+        changedFields,
+
+        row: data
+
+      });
+
+    }
+
+    else {
+
+      skipCount++;
+
+      result.push({
+
+        action: "SKIP",
+
+        changedFields: [],
+
+        row: data
+
+      });
+
+    }
+
+  }
+
+  return {
+
+    summary: {
+
+      total: rows.length,
+
+      newCount,
+
+      updateCount,
+
+      skipCount
+
+    },
+
+    rows: result
+
+  };
 
 }
 
@@ -830,259 +832,263 @@ async function compareRows(rows) {
 
 exports.previewImport = async (req, res) => {
 
-    try {
+  try {
 
-        if (!req.file) {
+    if (!req.file) {
 
-            return res.status(400).json({
+      return res.status(400).json({
 
-                message: "Chưa chọn file Excel."
+        message: "Chưa chọn file Excel."
 
-            });
+      });
+
+    }
+
+    const workbook = XLSX.read(
+
+      req.file.buffer,
+
+      {
+
+        type: "buffer"
+
+      }
+
+    );
+
+    const sheet =
+
+      workbook.Sheets[
+
+      workbook.SheetNames[0]
+
+      ];
+
+    const excelRows =
+
+      XLSX.utils.sheet_to_json(
+
+        sheet,
+
+        {
+
+          raw: true,
+
+          defval: ""
 
         }
 
-        const workbook = XLSX.read(
+      );
 
-            req.file.buffer,
+    const result =
 
-            {
+      await compareRows(
 
-                type: "buffer"
+        excelRows
 
-            }
+      );
 
-        );
+    const sessionId =
 
-        const sheet =
+      createImportSession(
 
-            workbook.Sheets[
+        result.rows,
 
-                workbook.SheetNames[0]
+        result.summary
 
-            ];
+      );
 
-        const excelRows =
+    return res.json({
 
-            XLSX.utils.sheet_to_json(
+      success: true,
 
-                sheet,
+      sessionId,
 
-                {
+      summary: result.summary,
 
-                    raw: true,
+      rows: result.rows
 
-                    defval: ""
+    });
 
-                }
+  }
 
-            );
+  catch (err) {
 
-        const result =
+    console.error(err);
 
-            await compareRows(
+    return res.status(500).json({
 
-                excelRows
+      message: err.message
 
-            );
+    });
 
-        const sessionId =
-
-            createImportSession(
-
-                result.rows,
-
-                result.summary
-
-            );
-
-        return res.json({
-
-            success: true,
-
-            sessionId,
-
-            summary: result.summary,
-
-            rows: result.rows
-
-        });
-
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        return res.status(500).json({
-
-            message: err.message
-
-        });
-
-    }
+  }
 
 };
 
 // ================= CONFIRM IMPORT =================
 exports.confirmImport = async (req, res) => {
 
-    try {
+  try {
 
-        const { sessionId } = req.body;
+    const { sessionId } = req.body;
 
-        if (!sessionId) {
+    if (!sessionId) {
 
-            return res.status(400).json({
-                message: "Thiếu sessionId."
-            });
+      return res.status(400).json({
+        message: "Thiếu sessionId."
+      });
+
+    }
+
+    const session = getImportSession(sessionId);
+
+    if (!session) {
+
+      return res.status(404).json({
+        message: "Phiên import đã hết hạn."
+      });
+
+    }
+
+    const rows = session.rows;
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    const failed = [];
+
+    for (const item of rows) {
+
+      if (item.action === "SKIP") {
+
+        skipped++;
+        continue;
+
+      }
+
+      const d = item.row;
+
+      const data = {
+
+        name: d.name,
+
+        category: d.category,
+
+        line: d.line,
+
+        station: d.station,
+
+        code: d.code,
+
+        area: d.area,
+
+        deviceId: d.deviceId,
+
+        status: normalizeStatus(d.status),
+
+        installDate: parseDate(d.installDate),
+
+        lastMaintenance: parseDate(d.lastMaintenance),
+
+        lifespan: Number(d.lifespan || 0),
+
+        expiryDate: parseDate(d.expiryDate)
+
+      };
+
+      try {
+
+        if (item.action === "NEW") {
+
+          await prisma.device.create({
+            data
+          });
+
+          created++;
 
         }
 
-        const session = getImportSession(sessionId);
+        else if (item.action === "UPDATE") {
 
-        if (!session) {
+          await prisma.device.update({
 
-            return res.status(404).json({
-                message: "Phiên import đã hết hạn."
-            });
+            where: {
 
-        }
-
-        const rows = session.rows;
-
-        let created = 0;
-        let updated = 0;
-        let skipped = 0;
-
-        const failed = [];
-
-        for (const item of rows) {
-
-            if (item.action === "SKIP") {
-
-                skipped++;
-                continue;
-
-            }
-
-            const d = item.row;
-
-            const data = {
-
-                name: d.name,
-
-                category: d.category,
+              line_code: {
 
                 line: d.line,
 
-                station: d.station,
+                code: d.code
 
-                code: d.code,
-
-                area: d.area,
-
-                deviceId: d.deviceId,
-
-                status: d.status,
-
-                installDate: d.installDate,
-
-                lifespan: d.lifespan
-
-            };
-
-            try {
-
-                if (item.action === "NEW") {
-
-                    await prisma.device.create({
-                        data
-                    });
-
-                    created++;
-
-                }
-
-                else if (item.action === "UPDATE") {
-
-                    await prisma.device.update({
-
-                        where: {
-
-                            line_code: {
-
-                                line: d.line,
-
-                                code: d.code
-
-                            }
-
-                        },
-
-                        data
-
-                    });
-
-                    updated++;
-
-                }
-
-            }
-
-            catch (err) {
-
-                failed.push({
-
-                    deviceId: d.deviceId,
-
-                    name: d.name,
-
-                    message: err.message
-
-                });
-
-            }
-
-        }
-
-        deleteImportSession(sessionId);
-
-        return res.json({
-
-            success: true,
-
-            summary: {
-
-                total: rows.length,
-
-                created,
-
-                updated,
-
-                skipped,
-
-                failed: failed.length
+              }
 
             },
 
-            failed
+            data
+
+          });
+
+          updated++;
+
+        }
+
+      }
+
+      catch (err) {
+
+        failed.push({
+
+          deviceId: d.deviceId,
+
+          name: d.name,
+
+          message: err.message
 
         });
 
-    }
-
-    catch (err) {
-
-        console.error(err);
-
-        return res.status(500).json({
-
-            message: err.message
-
-        });
+      }
 
     }
+
+    deleteImportSession(sessionId);
+
+    return res.json({
+
+      success: true,
+
+      summary: {
+
+        total: rows.length,
+
+        created,
+
+        updated,
+
+        skipped,
+
+        failed: failed.length
+
+      },
+
+      failed
+
+    });
+
+  }
+
+  catch (err) {
+
+    console.error(err);
+
+    return res.status(500).json({
+
+      message: err.message
+
+    });
+
+  }
 
 };
 // ================= GET ONE =================
