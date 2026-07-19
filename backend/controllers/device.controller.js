@@ -919,87 +919,107 @@ exports.confirmImport = async (req, res) => {
         let inserted = 0;
 
         const failed = [];
+        
+        for (const item of rows) {
 
-        await prisma.$transaction(
-
-            async (tx) => {
-
-                for (const item of rows) {
-
-                    if (item.errors?.length) {
-
-                        failed.push({
-
-                            deviceId: item.deviceId,
-
-                            name: item.name,
-
-                            errors: item.errors
-
-                        });
-
-                        continue;
-
-                    }
-
-                    try {
-
-                        await tx.device.create({
-
-                            data: {
-
-                                deviceId: item.deviceId,
-
-                                name: item.name,
-
-                                category: item.category,
-
-                                line: item.line,
-
-                                station: item.station,
-
-                                code: item.code,
-
-                                area: item.area,
-
-                                status: item.status,
-
-                                installDate: item.installDate,
-
-                                lifespan: item.lifespan
-
-                            }
-
-                        });
-
-                        inserted++;
-
-                    }
-
-                    catch (err) {
-
-                        failed.push({
-
-                            deviceId: item.deviceId,
-
-                            name: item.name,
-
-                            errors: [
-
-                                err.message
-
-                            ]
-
-                        });
-
-                    }
-
-                }
-
+            if (item.errors?.length) {
+        
+                failed.push({
+        
+                    deviceId: item.deviceId,
+        
+                    name: item.name,
+        
+                    errors: item.errors
+        
+                });
+        
+                continue;
+        
             }
-
-        );
-
+        
+            try {
+        
+                await prisma.device.upsert({
+        
+                    where: {
+        
+                        deviceId: item.deviceId
+        
+                    },
+        
+                    update: {
+        
+                        name: item.name,
+        
+                        category: item.category,
+        
+                        line: item.line,
+        
+                        station: item.station,
+        
+                        code: item.code,
+        
+                        area: item.area,
+        
+                        status: item.status,
+        
+                        installDate: item.installDate,
+        
+                        lifespan: item.lifespan
+        
+                    },
+        
+                    create: {
+        
+                        deviceId: item.deviceId,
+        
+                        name: item.name,
+        
+                        category: item.category,
+        
+                        line: item.line,
+        
+                        station: item.station,
+        
+                        code: item.code,
+        
+                        area: item.area,
+        
+                        status: item.status,
+        
+                        installDate: item.installDate,
+        
+                        lifespan: item.lifespan
+        
+                    }
+        
+                });
+        
+                inserted++;
+        
+            }
+        
+            catch (err) {
+        
+                failed.push({
+        
+                    deviceId: item.deviceId,
+        
+                    name: item.name,
+        
+                    errors: [
+        
+                        err.message
+        
+                    ]
+        
+                });
+        
+            }
+        
+        }
+        
         deleteImportSession(sessionId);
 
         return res.json({
