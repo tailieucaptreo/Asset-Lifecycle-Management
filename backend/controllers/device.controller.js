@@ -522,6 +522,298 @@ exports.deleteDevice = async (req, res) => {
   }
 };
 
+async function compareRows(rows) {
+
+    const devices = await prisma.device.findMany({
+
+        select: {
+
+            id: true,
+
+            deviceId: true,
+
+            name: true,
+
+            category: true,
+
+            line: true,
+
+            station: true,
+
+            code: true,
+
+            area: true,
+
+            status: true,
+
+            installDate: true,
+
+            lifespan: true
+
+        }
+
+    });
+
+    const deviceMap = new Map();
+
+    devices.forEach(device => {
+
+        if (device.deviceId) {
+
+            deviceMap.set(
+
+                normalize(device.deviceId),
+
+                device
+
+            );
+
+        }
+
+    });
+
+    let newCount = 0;
+
+    let updateCount = 0;
+
+    let skipCount = 0;
+
+    const result = [];
+
+    for (const row of rows) {
+
+        const data = {
+
+            deviceId: normalize(
+
+                get(
+                    row,
+                    "Mã ID",
+                    "Device ID",
+                    "deviceId",
+                    "Mã thiết bị"
+                )
+            ),
+
+            name: normalize(
+
+                get(
+                    row,
+                    "Tên thiết bị",
+                    "Tên",
+                    "Name"
+                )
+            ),
+
+            category: normalize(
+
+                get(
+                    row,
+                    "Phân loại",
+                    "Category"
+                )
+            ),
+
+            line: normalize(
+
+                get(
+                    row,
+                    "Tuyến",
+                    "Line"
+                )
+            ),
+
+            station: normalize(
+
+                get(
+                    row,
+                    "Nhà ga",
+                    "Station"
+                )
+            ),
+
+            code: normalize(
+
+                get(
+                    row,
+                    "Ký hiệu",
+                    "Code"
+                )
+            ),
+
+            area: normalize(
+
+                get(
+                    row,
+                    "Khu vực",
+                    "Area"
+                )
+            ),
+
+            status: normalize(
+
+                get(
+                    row,
+                    "Trạng thái",
+                    "Status"
+                )
+            ),
+
+            installDate: excelDate(
+
+                get(
+                    row,
+                    "Ngày lắp",
+                    "Ngày lắp đặt",
+                    "Install Date"
+                )
+            ),
+
+            lifespan: Number(
+
+                get(
+                    row,
+                    "Tuổi thọ",
+                    "Lifespan"
+                ) || 0
+
+            )
+
+        };
+
+        // Thiếu dữ liệu
+
+        if (!data.deviceId || !data.name) {
+
+            skipCount++;
+
+            result.push({
+
+                action: "SKIP",
+
+                reason: "Thiếu Device ID hoặc Tên thiết bị",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+            continue;
+
+        }
+
+        const old =
+
+            deviceMap.get(
+
+                data.deviceId
+
+            );
+
+        // Thiết bị mới
+
+        if (!old) {
+
+            newCount++;
+
+            result.push({
+
+                action: "NEW",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+            continue;
+
+        }
+
+        const changedFields = [];
+
+        if (normalize(old.name) !== data.name)
+            changedFields.push("Tên thiết bị");
+
+        if (normalize(old.category) !== data.category)
+            changedFields.push("Phân loại");
+
+        if (normalize(old.line) !== data.line)
+            changedFields.push("Tuyến");
+
+        if (normalize(old.station) !== data.station)
+            changedFields.push("Nhà ga");
+
+        if (normalize(old.code) !== data.code)
+            changedFields.push("Ký hiệu");
+
+        if (normalize(old.area) !== data.area)
+            changedFields.push("Khu vực");
+
+        if (normalize(old.status) !== data.status)
+            changedFields.push("Trạng thái");
+
+        if (!sameDate(old.installDate, data.installDate))
+            changedFields.push("Ngày lắp");
+
+        if (Number(old.lifespan || 0) !== Number(data.lifespan || 0))
+            changedFields.push("Tuổi thọ");
+
+        if (changedFields.length) {
+
+            updateCount++;
+
+            result.push({
+
+                action: "UPDATE",
+
+                changedFields,
+
+                row: data
+
+            });
+
+        }
+
+        else {
+
+            skipCount++;
+
+            result.push({
+
+                action: "SKIP",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+        }
+
+    }
+
+    return {
+
+        summary: {
+
+            total: rows.length,
+
+            newCount,
+
+            updateCount,
+
+            skipCount
+
+        },
+
+        rows: result
+
+    };
+
+}
+
 // ================= PREVIEW IMPORT =================
 
 exports.previewImport = async (req, res) => {
@@ -532,7 +824,7 @@ exports.previewImport = async (req, res) => {
 
             return res.status(400).json({
 
-                message: "Không có file Excel."
+                message: "Chưa chọn file Excel."
 
             });
 
@@ -568,301 +860,39 @@ exports.previewImport = async (req, res) => {
 
                     raw: true,
 
-                    defval: null
+                    defval: ""
 
                 }
 
             );
 
-        const rows = [];
+        const result =
 
-        let valid = 0;
+            await compareRows(
 
-        let invalid = 0;
+                excelRows
 
-        for (const row of excelRows) {
-
-            const data = {
-
-                deviceId:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "ma id",
-
-                                "device id",
-
-                                "id",
-
-                                "ma thiet bi"
-
-                            ]
-
-                        )
-
-                    ),
-
-                name:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "ten"
-
-                            ]
-
-                        )
-
-                    ),
-
-                category:
-
-                    detectCategory(
-
-                        normalize(
-
-                            getField(
-
-                                row,
-
-                                [
-
-                                    "ten"
-
-                                ]
-
-                            )
-
-                        )
-
-                    ),
-
-                line:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "tuyen"
-
-                            ]
-
-                        )
-
-                    ),
-
-                station:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "ga"
-
-                            ]
-
-                        )
-
-                    ),
-
-                code:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "ky hieu",
-
-                                "code"
-
-                            ]
-
-                        )
-
-                    ),
-
-                area:
-
-                    normalize(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "khu vuc"
-
-                            ]
-
-                        )
-
-                    ),
-
-                status:
-
-                    normalizeStatus(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "trang thai"
-
-                            ]
-
-                        )
-
-                    ),
-
-                installDate:
-
-                    parseDate(
-
-                        getField(
-
-                            row,
-
-                            [
-
-                                "ngay lap",
-
-                                "ngay lap dat",
-
-                                "ngày lắp",
-
-                                "ngày lắp đặt"
-
-                            ]
-
-                        )
-
-                    ),
-
-                lifespan:
-
-                    getField(
-
-                        row,
-
-                        [
-
-                            "tuoi tho",
-
-                            "tuoi tho thiet bi"
-
-                        ]
-
-                    )
-
-                        ?
-
-                        Number(
-
-                            getField(
-
-                                row,
-
-                                [
-
-                                    "tuoi tho",
-
-                                    "tuoi tho thiet bi"
-
-                                ]
-
-                            )
-
-                        )
-
-                        : null
-
-            };
-
-            const errors =
-
-                validateRow(
-
-                    data
-
-                );
-
-            if (errors.length) {
-
-                invalid++;
-
-            }
-
-            else {
-
-                valid++;
-
-            }
-
-            rows.push({
-
-                ...data,
-
-                errors
-
-            });
-
-        }
-
-        const summary = {
-
-            total:
-
-                rows.length,
-
-            valid,
-
-            invalid
-
-        };
+            );
 
         const sessionId =
 
             createImportSession(
 
-                rows,
+                result.rows,
 
-                summary
+                result.summary
 
             );
 
         return res.json({
 
+            success: true,
+
             sessionId,
 
-            summary,
+            summary: result.summary,
 
-            rows
+            rows: result.rows
 
         });
 
@@ -870,13 +900,11 @@ exports.previewImport = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         return res.status(500).json({
 
-            message:
-
-                err.message
+            message: err.message
 
         });
 
@@ -885,7 +913,6 @@ exports.previewImport = async (req, res) => {
 };
 
 // ================= CONFIRM IMPORT =================
-
 exports.confirmImport = async (req, res) => {
 
     try {
@@ -908,7 +935,7 @@ exports.confirmImport = async (req, res) => {
 
             return res.status(404).json({
 
-                message: "Session import không tồn tại hoặc đã hết hạn."
+                message: "Phiên import đã hết hạn."
 
             });
 
@@ -916,123 +943,147 @@ exports.confirmImport = async (req, res) => {
 
         const rows = session.rows;
 
-        let inserted = 0;
+        let created = 0;
+
+        let updated = 0;
+
+        let skipped = 0;
 
         const failed = [];
-        
+
         for (const item of rows) {
 
-            if (item.errors?.length) {
-        
-                failed.push({
-        
-                    deviceId: item.deviceId,
-        
-                    name: item.name,
-        
-                    errors: item.errors
-        
-                });
-        
+            if (item.action === "SKIP") {
+
+                skipped++;
+
                 continue;
-        
+
             }
-        
+
+            const d = item.row;
+
             try {
-        
-                await prisma.device.upsert({
-        
+
+                const existed = await prisma.device.findUnique({
+
                     where: {
-        
-                        deviceId: item.deviceId
-        
-                    },
-        
-                    update: {
-        
-                        name: item.name,
-        
-                        category: item.category,
-        
-                        line: item.line,
-        
-                        station: item.station,
-        
-                        code: item.code,
-        
-                        area: item.area,
-        
-                        status: item.status,
-        
-                        installDate: item.installDate,
-        
-                        lifespan: item.lifespan
-        
-                    },
-        
-                    create: {
-        
-                        deviceId: item.deviceId,
-        
-                        name: item.name,
-        
-                        category: item.category,
-        
-                        line: item.line,
-        
-                        station: item.station,
-        
-                        code: item.code,
-        
-                        area: item.area,
-        
-                        status: item.status,
-        
-                        installDate: item.installDate,
-        
-                        lifespan: item.lifespan
-        
+
+                        deviceId: d.deviceId
+
                     }
-        
+
                 });
-        
-                inserted++;
-        
+
+                if (existed) {
+
+                    await prisma.device.update({
+
+                        where: {
+
+                            id: existed.id
+
+                        },
+
+                        data: {
+
+                            name: d.name,
+
+                            category: d.category,
+
+                            line: d.line,
+
+                            station: d.station,
+
+                            code: d.code,
+
+                            area: d.area,
+
+                            status: d.status,
+
+                            installDate: d.installDate,
+
+                            lifespan: d.lifespan
+
+                        }
+
+                    });
+
+                    updated++;
+
+                }
+
+                else {
+
+                    await prisma.device.create({
+
+                        data: {
+
+                            deviceId: d.deviceId,
+
+                            name: d.name,
+
+                            category: d.category,
+
+                            line: d.line,
+
+                            station: d.station,
+
+                            code: d.code,
+
+                            area: d.area,
+
+                            status: d.status,
+
+                            installDate: d.installDate,
+
+                            lifespan: d.lifespan
+
+                        }
+
+                    });
+
+                    created++;
+
+                }
+
             }
-        
+
             catch (err) {
-        
+
                 failed.push({
-        
-                    deviceId: item.deviceId,
-        
-                    name: item.name,
-        
-                    errors: [
-        
-                        err.message
-        
-                    ]
-        
+
+                    deviceId: d.deviceId,
+
+                    name: d.name,
+
+                    message: err.message
+
                 });
-        
+
             }
-        
+
         }
-        
+
         deleteImportSession(sessionId);
 
         return res.json({
 
-            ok: true,
+            success: true,
 
-            message: "Import thành công.",
+            summary: {
 
-            total: rows.length,
+                total: rows.length,
 
-            success: inserted,
+                created,
 
-            failedCount: failed.length,
+                updated,
+
+                skipped,
+
+                failed: failed.length
+
+            },
 
             failed
 
@@ -1042,7 +1093,7 @@ exports.confirmImport = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         return res.status(500).json({
 
@@ -1053,7 +1104,6 @@ exports.confirmImport = async (req, res) => {
     }
 
 };
-
 
 // ================= GET ONE =================
 exports.getOne =
