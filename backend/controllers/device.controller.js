@@ -934,9 +934,7 @@ exports.confirmImport = async (req, res) => {
         if (!sessionId) {
 
             return res.status(400).json({
-
                 message: "Thiếu sessionId."
-
             });
 
         }
@@ -946,9 +944,7 @@ exports.confirmImport = async (req, res) => {
         if (!session) {
 
             return res.status(404).json({
-
                 message: "Phiên import đã hết hạn."
-
             });
 
         }
@@ -956,9 +952,7 @@ exports.confirmImport = async (req, res) => {
         const rows = session.rows;
 
         let created = 0;
-
         let updated = 0;
-
         let skipped = 0;
 
         const failed = [];
@@ -968,103 +962,70 @@ exports.confirmImport = async (req, res) => {
             if (item.action === "SKIP") {
 
                 skipped++;
-
                 continue;
 
             }
 
             const d = item.row;
 
+            const data = {
+
+                name: d.name,
+
+                category: d.category,
+
+                line: d.line,
+
+                station: d.station,
+
+                code: d.code,
+
+                area: d.area,
+
+                deviceId: d.deviceId,
+
+                status: d.status,
+
+                installDate: d.installDate,
+
+                lifespan: d.lifespan
+
+            };
+
             try {
 
-                const existed = await prisma.device.findUnique({
+                if (item.action === "NEW") {
 
-                    where: {
-                
-                        line_code: {
-                
-                            line: d.line,
-                
-                            code: d.code
-                
-                        }
-                
-                    }
-                
-                });
+                    await prisma.device.create({
+                        data
+                    });
 
-                await prisma.device.upsert({
-
-                    where: {
-                
-                        line_code: {
-                
-                            line: d.line,
-                
-                            code: d.code
-                
-                        }
-                
-                    },
-                
-                    update: {
-                
-                        name: d.name,
-                
-                        category: d.category,
-                
-                        line: d.line,
-                
-                        station: d.station,
-                
-                        code: d.code,
-                
-                        area: d.area,
-                
-                        deviceId: d.deviceId,
-                
-                        status: d.status,
-                
-                        installDate: d.installDate,
-                
-                        lifespan: d.lifespan
-                
-                    },
-                
-                    create: {
-                
-                        name: d.name,
-                
-                        category: d.category,
-                
-                        line: d.line,
-                
-                        station: d.station,
-                
-                        code: d.code,
-                
-                        area: d.area,
-                
-                        deviceId: d.deviceId,
-                
-                        status: d.status,
-                
-                        installDate: d.installDate,
-                
-                        lifespan: d.lifespan
-                
-                    }
-                
-                });
-                
-                if (existed) {
-                
-                    updated++;
-                
-                } else {
-                
                     created++;
-                
+
+                }
+
+                else if (item.action === "UPDATE") {
+
+                    await prisma.device.update({
+
+                        where: {
+
+                            line_code: {
+
+                                line: d.line,
+
+                                code: d.code
+
+                            }
+
+                        },
+
+                        data
+
+                    });
+
+                    updated++;
+
                 }
 
             }
@@ -1124,7 +1085,6 @@ exports.confirmImport = async (req, res) => {
     }
 
 };
-
 // ================= GET ONE =================
 exports.getOne =
   async (
