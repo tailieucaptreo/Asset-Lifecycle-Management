@@ -678,6 +678,24 @@ async function compareRows(rows) {
 
         };
 
+        function get(row, ...keys) {
+
+            for (const key of keys) {
+        
+                if (
+                    row[key] !== undefined &&
+                    row[key] !== null &&
+                    row[key] !== ""
+                ) {
+                    return row[key];
+                }
+        
+            }
+        
+            return null;
+        
+        }
+
         // Thiếu dữ liệu
 
         if (!data.line || !data.code || !data.name) {
