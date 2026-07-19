@@ -557,19 +557,16 @@ async function compareRows(rows) {
     const deviceMap = new Map();
 
     devices.forEach(device => {
-
-        if (device.deviceId) {
-
-            deviceMap.set(
-
-                normalize(device.deviceId),
-
-                device
-
-            );
-
+    
+        if (device.line && device.code) {
+    
+            const key =
+                `${normalize(device.line)}_${normalize(device.code)}`;
+    
+            deviceMap.set(key, device);
+    
         }
-
+    
     });
 
     let newCount = 0;
@@ -659,7 +656,7 @@ async function compareRows(rows) {
                 )
             ),
 
-            installDate: excelDate(
+            installDate: parseDate(
 
                 get(
                     row,
@@ -683,33 +680,30 @@ async function compareRows(rows) {
 
         // Thiếu dữ liệu
 
-        if (!data.deviceId || !data.name) {
+        if (!data.line || !data.code || !data.name) {
 
             skipCount++;
-
+        
             result.push({
-
+        
                 action: "SKIP",
-
-                reason: "Thiếu Device ID hoặc Tên thiết bị",
-
+        
+                reason: "Thiếu Tuyến hoặc Ký hiệu hoặc Tên thiết bị",
+        
                 changedFields: [],
-
+        
                 row: data
-
+        
             });
-
+        
             continue;
-
+        
         }
 
-        const old =
-
-            deviceMap.get(
-
-                data.deviceId
-
-            );
+        const key =
+            `${normalize(data.line)}_${normalize(data.code)}`;
+        
+        const old = deviceMap.get(key);
 
         // Thiết bị mới
 
@@ -968,83 +962,91 @@ exports.confirmImport = async (req, res) => {
                 const existed = await prisma.device.findUnique({
 
                     where: {
-
-                        deviceId: d.deviceId
-
+                
+                        line_code: {
+                
+                            line: d.line,
+                
+                            code: d.code
+                
+                        }
+                
                     }
-
+                
                 });
 
+                await prisma.device.upsert({
+
+                    where: {
+                
+                        line_code: {
+                
+                            line: d.line,
+                
+                            code: d.code
+                
+                        }
+                
+                    },
+                
+                    update: {
+                
+                        name: d.name,
+                
+                        category: d.category,
+                
+                        line: d.line,
+                
+                        station: d.station,
+                
+                        code: d.code,
+                
+                        area: d.area,
+                
+                        deviceId: d.deviceId,
+                
+                        status: d.status,
+                
+                        installDate: d.installDate,
+                
+                        lifespan: d.lifespan
+                
+                    },
+                
+                    create: {
+                
+                        name: d.name,
+                
+                        category: d.category,
+                
+                        line: d.line,
+                
+                        station: d.station,
+                
+                        code: d.code,
+                
+                        area: d.area,
+                
+                        deviceId: d.deviceId,
+                
+                        status: d.status,
+                
+                        installDate: d.installDate,
+                
+                        lifespan: d.lifespan
+                
+                    }
+                
+                });
+                
                 if (existed) {
-
-                    await prisma.device.update({
-
-                        where: {
-
-                            id: existed.id
-
-                        },
-
-                        data: {
-
-                            name: d.name,
-
-                            category: d.category,
-
-                            line: d.line,
-
-                            station: d.station,
-
-                            code: d.code,
-
-                            area: d.area,
-
-                            status: d.status,
-
-                            installDate: d.installDate,
-
-                            lifespan: d.lifespan
-
-                        }
-
-                    });
-
+                
                     updated++;
-
-                }
-
-                else {
-
-                    await prisma.device.create({
-
-                        data: {
-
-                            deviceId: d.deviceId,
-
-                            name: d.name,
-
-                            category: d.category,
-
-                            line: d.line,
-
-                            station: d.station,
-
-                            code: d.code,
-
-                            area: d.area,
-
-                            status: d.status,
-
-                            installDate: d.installDate,
-
-                            lifespan: d.lifespan
-
-                        }
-
-                    });
-
+                
+                } else {
+                
                     created++;
-
+                
                 }
 
             }
