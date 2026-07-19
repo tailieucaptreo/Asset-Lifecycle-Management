@@ -237,7 +237,7 @@ export default function DeviceImportModal({
 
                             title="Thiết bị mới"
 
-                            value={summary?.insert || 0}
+                            value={summary?.newCount || 0}
 
                             color="text-green-600"
 
@@ -256,7 +256,7 @@ export default function DeviceImportModal({
 
                             title="Cập nhật"
 
-                            value={summary?.update || 0}
+                            value={summary?.updateCount || 0}
 
                             color="text-amber-600"
 
@@ -275,7 +275,7 @@ export default function DeviceImportModal({
 
                             title="Bỏ qua"
 
-                            value={summary?.invalid || 0}
+                            value={summary?.skipCount || 0}
 
                             color="text-slate-600"
 
@@ -560,7 +560,7 @@ export default function DeviceImportModal({
 
                         <span className="ml-3 text-green-600 font-medium">
 
-                            Mới: {summary?.insert || 0}
+                           Mới: {summary?.newCount || 0}
 
                         </span>
 
@@ -572,7 +572,7 @@ export default function DeviceImportModal({
 
                         <span className="ml-3 text-slate-600 font-medium">
 
-                            Bỏ qua: {summary?.invalid || 0}
+                            Bỏ qua: {summary?.skipCount || 0}
 
                         </span>
 
@@ -605,16 +605,9 @@ export default function DeviceImportModal({
                         </button>
 
                         <button
-
                             type="button"
-
                             onClick={onConfirm}
-
-                            disabled={
-                                loading ||
-                                !rows?.length
-                            }
-
+                            disabled={loading || !rows?.length}
                             className="
                                 px-6
                                 py-2.5
@@ -625,19 +618,8 @@ export default function DeviceImportModal({
                                 disabled:opacity-50
                                 disabled:cursor-not-allowed
                             "
-
                         >
-
-                            {
-
-                                loading
-
-                                    ? "Đang import..."
-
-                                    : `Import ${summary?.insert || 0} mới + ${summary?.update || 0} cập nhật`
-
-                            }
-
+                            {loading ? "Đang xác nhận..." : "Xác nhận"}
                         </button>
 
                     </div>
