@@ -391,6 +391,8 @@ export default function DeviceImportModal({
 
                                 {(rows || []).map((row, index) => {
 
+                                    const data = row.row || {};
+
                                     const bg =
 
                                         row.action === "NEW"
@@ -426,7 +428,7 @@ export default function DeviceImportModal({
 
                                                 <Badge
 
-                                                    sstatus={row.action}
+                                                    status={row.action}
 
                                                 />
 
@@ -434,67 +436,61 @@ export default function DeviceImportModal({
 
                                             <td className="px-3 py-3 border-b font-medium">
 
-                                                {row.name || "-"}
+                                                {data.name || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.line || "-"}
+                                                {data.line || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.station || "-"}
+                                                {data.station || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.category || "-"}
+                                                {data.category || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.deviceId || "-"}
+                                                {data.deviceId || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.code || "-"}
+                                                {data.code || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.area || "-"}
+                                                {data.area || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.deviceStatus ||
-
-                                                    row.statusDevice ||
-
-                                                    row.runningStatus ||
-
-                                                    "-"}
+                                                {data.status || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b">
 
-                                                {row.lifespan || "-"}
+                                                {data.lifespan || "-"}
 
                                             </td>
 
                                             <td className="px-3 py-3 border-b text-slate-500">
 
-                                                {row.note ||
+                                                {data.note ||
 
                                                     row.message ||
 
