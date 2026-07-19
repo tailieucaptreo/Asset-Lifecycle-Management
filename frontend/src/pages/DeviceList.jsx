@@ -388,6 +388,7 @@ export default function DeviceList() {
           }
 
         );
+      console.log("PREVIEW =", res.data);
 
       setSummary(
 
