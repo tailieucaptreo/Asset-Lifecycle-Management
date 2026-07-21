@@ -59,7 +59,7 @@ export default function DeviceRow({
       </td>
 
       {/* KHU VỰC */}
-      <td className="p-3">
+      <td className="p-3 test-center">
         {device.area || "-"}
       </td>
 
