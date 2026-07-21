@@ -985,8 +985,6 @@ exports.confirmImport = async (req, res) => {
         
             )
       
-                : null
-      
       };
 
       try {
