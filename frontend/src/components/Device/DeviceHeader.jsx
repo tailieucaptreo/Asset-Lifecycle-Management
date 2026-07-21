@@ -21,10 +21,6 @@ export default function DeviceHeader() {
       </th>
 
       <th className="px-4 py-3 text-center whitespace-nowrap">
-        Phân loại
-      </th>
-
-      <th className="px-4 py-3 text-center whitespace-nowrap">
         Ký hiệu
       </th>
 
