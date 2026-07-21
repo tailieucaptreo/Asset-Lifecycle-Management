@@ -474,15 +474,15 @@ exports.getDevices = async (req, res) => {
     });
 
     const data = raw.map(d => ({
-      ...d,
 
-      status:
-        calcMaintenance(
-          d
-        )
-
-    })
-    );
+        ...d,
+    
+        status:
+            d.status ||
+    
+            calcMaintenance(d)
+    
+    }));
 
     res.json(data);
 
@@ -1253,6 +1253,8 @@ exports.exportDevices = async (req, res) => {
 
         "Tên thiết bị":
           d.name,
+
+        "Phân loại": d.category || detectCategory(d.name),
 
         "Tuyến":
           d.line,
