@@ -48,7 +48,7 @@ export default function DeviceStatus({ status }) {
 
     Inactive: {
 
-      text: "Ngừng sử dụng",
+      text: "Cần bảo trì",
 
       color:
         "bg-gray-100 text-gray-700 border-gray-300",
