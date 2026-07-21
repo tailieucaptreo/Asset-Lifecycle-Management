@@ -264,7 +264,7 @@ const detectCategory = (
 
 ) => {
 
-    const text = [
+    const t = [
 
         name,
 
