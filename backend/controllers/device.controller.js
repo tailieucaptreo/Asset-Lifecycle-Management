@@ -81,104 +81,17 @@ const normalize = (v, def = "") => {
 };
 
 // ================= DATE =================
-const parseDate = (v) => {
+const {
 
-  if (
-    v === undefined ||
-    v === null ||
-    v === ""
-  ) {
-    return null;
-  }
+    parseDate,
 
-  // Date object
-  if (
-    v instanceof Date
-  ) {
-    return v;
-  }
+    sameDate,
 
-  // Excel serial
-  if (
-    typeof v === "number"
-  ) {
+    formatDate,
 
-    const utcDays =
-      Math.floor(
-        v - 25569
-      );
+    calculateExpiryDate
 
-    const utcValue =
-      utcDays *
-      86400;
-
-    const date =
-      new Date(
-        utcValue * 1000
-      );
-
-    return isNaN(
-      date.getTime()
-    )
-      ? null
-      : date;
-
-  }
-
-  // Chuỗi dd/mm/yyyy
-  if (
-    typeof v === "string"
-  ) {
-
-    const s =
-      v.trim();
-
-    const parts =
-      s.split("/");
-
-    if (
-      parts.length === 3
-    ) {
-
-      const [
-        day,
-        month,
-        year
-      ] = parts;
-
-      const date =
-        new Date(
-
-          Number(year),
-
-          Number(month) - 1,
-
-          Number(day)
-
-        );
-
-      return isNaN(
-        date.getTime()
-      )
-        ? null
-        : date;
-
-    }
-
-    const date =
-      new Date(s);
-
-    return isNaN(
-      date.getTime()
-    )
-      ? null
-      : date;
-
-  }
-
-  return null;
-
-};
+} = require("../utils/date");
 
 // ================= SAME DATE =================
 function sameDate(a, b) {
@@ -1079,31 +992,18 @@ exports.confirmImport = async (req, res) => {
           lifespan: Number(d.lifespan || 0),
       
           expiryDate:
-              parseDate(d.expiryDate) ||
+
+            parseDate(d.expiryDate) ||
+        
+            calculateExpiryDate(
+        
+                d.installDate,
+        
+                d.lifespan
+        
+            )
       
-              (
-                  parseDate(d.installDate)
-      
-                      ? (() => {
-      
-                          const x =
-                              parseDate(d.installDate);
-      
-                          x.setFullYear(
-      
-                              x.getFullYear() +
-      
-                              Number(d.lifespan || 0)
-      
-                          );
-      
-                          return x;
-      
-                      })()
-      
-                      : null
-      
-              )
+                : null
       
       };
 
@@ -1312,11 +1212,7 @@ exports.exportDevices = async (req, res) => {
           calcMaintenance(d),
 
         "Ngày lắp":
-          d.installDate
-            ? d.installDate
-              .toISOString()
-              .split("T")[0]
-            : "",
+          formatDate(d.installDate)
 
         "Tuổi thọ":
           d.lifespan
