@@ -57,29 +57,6 @@ setInterval(() => {
 
 }, 5 * 60 * 1000);
 
-// ================= HELPER =================
-const normalize = (v, def = "") => {
-
-  if (
-    v === undefined ||
-    v === null ||
-    v === ""
-  ) {
-
-    return def;
-
-  }
-
-  return v
-    .toString()
-    .replace(/\r\n/g, " ")
-    .replace(/\n/g, " ")
-    .replace(/\r/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-};
-
 // ================= DATE =================
 const {
 
@@ -92,25 +69,6 @@ const {
     calculateExpiryDate
 
 } = require("../utils/date");
-
-// ================= GET VALUE =================
- function get(row, ...keys) {
-
-      for (const key of keys) {
-
-        if (
-          row[key] !== undefined &&
-          row[key] !== null &&
-          row[key] !== ""
-        ) {
-          return row[key];
-        }
-
-      }
-
-      return null;
-
-    }
 
 // ================= STATUS =================
 const {
@@ -126,52 +84,18 @@ const {
     detectCategory
 } = require("../services/category.service");
 
-// ================= GET FIELD =================
-const getField = (row, keys) => {
+// ================= NORMAL =================
+const {
 
-  for (let key of Object.keys(row)) {
+    normalize,
 
-    const k = key
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
+    get,
 
-    if (keys.some(x => k.includes(x))) {
-      return row[key];
-    }
-  }
+    getField,
 
-  return null;
-};
+    validateRow
 
-// ================= VALIDATE IMPORT =================
-
-function validateRow(data) {
-
-  const errors = [];
-
-  if (!data.line) {
-
-    errors.push("Thiếu Tuyến");
-
-  }
-
-  if (!data.code) {
-
-    errors.push("Thiếu Ký hiệu");
-
-  }
-
-  if (!data.name) {
-
-    errors.push("Thiếu Tên thiết bị");
-
-  }
-
-  return errors;
-
-}
+} = require("../utils/normalize");
 
 // ================= GET =================
 exports.getDevices = async (req, res) => {
