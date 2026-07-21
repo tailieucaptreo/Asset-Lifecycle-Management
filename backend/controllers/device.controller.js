@@ -533,178 +533,62 @@ exports.previewImport = async (req, res) => {
 };
 
 // ================= CONFIRM IMPORT =================
-exports.confirmImport = async (req, res) => {
+const { importRows } =
+    require("../services/import.service");
 
-  try {
+exports.confirmImport =
+async (req, res) => {
 
-    const { sessionId } = req.body;
+    try {
 
-    if (!sessionId) {
+        const { sessionId } = req.body;
 
-      return res.status(400).json({
-        message: "Thiếu sessionId."
-      });
+        const session =
+            getImportSession(sessionId);
 
-    }
+        if (!session) {
 
-    const session = getImportSession(sessionId);
+            return res.status(404).json({
 
-    if (!session) {
+                message:
+                    "Phiên import đã hết hạn."
 
-      return res.status(404).json({
-        message: "Phiên import đã hết hạn."
-      });
-
-    }
-
-    const rows = session.rows;
-
-    let created = 0;
-    let updated = 0;
-    let skipped = 0;
-
-    const failed = [];
-
-    for (const item of rows) {
-
-      if (item.action === "SKIP") {
-
-        skipped++;
-        continue;
-
-      }
-
-      const d = item.row;
-
-      const data = {
-
-          name: d.name,
-      
-          category: d.category || detectCategory(d.name, d.code, d.model),
-      
-          line: d.line,
-      
-          station: d.station,
-      
-          code: d.code,
-      
-          area: d.area,
-      
-          deviceId: d.deviceId,
-      
-          status: normalizeStatus(d.status),
-      
-          installDate: parseDate(d.installDate),
-      
-          lastMaintenance: parseDate(d.lastMaintenance),
-      
-          lifespan: Number(d.lifespan || 0),
-      
-          expiryDate:
-
-            parseDate(d.expiryDate) ||
-        
-            calculateExpiryDate(
-        
-                d.installDate,
-        
-                d.lifespan
-        
-            )
-      
-      };
-
-      try {
-
-        if (item.action === "NEW") {
-
-          await prisma.device.create({
-            data
-          });
-
-          created++;
+            });
 
         }
 
-        else if (item.action === "UPDATE") {
+        const result =
+            await importRows(
 
-          await prisma.device.update({
+                prisma,
 
-            where: {
+                session.rows
 
-              line_code: {
+            );
 
-                line: d.line,
+        deleteImportSession(
+            sessionId
+        );
 
-                code: d.code
+        res.json({
 
-              }
+            success: true,
 
-            },
-
-            data
-
-          });
-
-          updated++;
-
-        }
-
-      }
-
-      catch (err) {
-
-        failed.push({
-
-          deviceId: d.deviceId,
-
-          name: d.name,
-
-          message: err.message
+            ...result
 
         });
 
-      }
-
     }
 
-    deleteImportSession(sessionId);
+    catch (err) {
 
-    return res.json({
+        res.status(500).json({
 
-      success: true,
+            message: err.message
 
-      summary: {
+        });
 
-        total: rows.length,
-
-        created,
-
-        updated,
-
-        skipped,
-
-        failed: failed.length
-
-      },
-
-      failed
-
-    });
-
-  }
-
-  catch (err) {
-
-    console.error(err);
-
-    return res.status(500).json({
-
-      message: err.message
-
-    });
-
-  }
+    }
 
 };
 // ================= GET ONE =================
