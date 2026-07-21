@@ -24,6 +24,10 @@ export default function DeviceHeader() {
         Ký hiệu
       </th>
 
+       <th className="px-4 py-3 text-center whitespace-nowrap">
+        Khu vực
+      </th>
+
       <th className="px-4 py-3 text-center whitespace-nowrap">
         Mã ID
       </th>
