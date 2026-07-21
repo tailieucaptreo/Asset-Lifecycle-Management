@@ -254,12 +254,36 @@ const normalizeStatus = (v) => {
 
 // ================= CATEGORY =================
 
-const detectCategory = (name = "") => {
+const detectCategory = (
 
-  const t = name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    name = "",
+
+    code = "",
+
+    model = ""
+
+) => {
+
+    const text = [
+
+        name,
+
+        code,
+
+        model
+
+    ]
+
+        .filter(Boolean)
+
+        .join(" ")
+
+        .toLowerCase()
+
+        .normalize("NFD")
+
+        .replace(/[\u0300-\u036f]/g, "");
+
 
   // BIẾN TẦN
   if (
@@ -1034,7 +1058,7 @@ exports.confirmImport = async (req, res) => {
 
           name: d.name,
       
-          category: d.category || detectCategory(d.name),
+          category: d.category || detectCategory(d.name, d.code, d.model),
       
           line: d.line,
       
