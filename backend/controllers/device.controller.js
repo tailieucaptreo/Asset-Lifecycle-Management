@@ -1192,7 +1192,7 @@ exports.exportDevices = async (req, res) => {
           calcMaintenance(d),
 
         "Ngày lắp":
-          formatDate(d.installDate)
+          formatDate(d.installDate),
 
         "Tuổi thọ":
           d.lifespan
