@@ -93,24 +93,6 @@ const {
 
 } = require("../utils/date");
 
-// ================= SAME DATE =================
-function sameDate(a, b) {
-
-  const d1 = parseDate(a);
-  const d2 = parseDate(b);
-
-  if (!d1 && !d2) return true;
-
-  if (!d1 || !d2) return false;
-
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
-
-}
-
 // ================= GET VALUE =================
  function get(row, ...keys) {
 
