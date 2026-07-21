@@ -1378,29 +1378,31 @@ exports.getCategories = async (req, res) => {
 
   try {
 
-    const result =
-      await prisma.device.groupBy({
+    const devices = await prisma.device.findMany({
+      select: {
+        category: true
+      }
+    });
 
-        by: ["category"],
+    const map = {};
 
-        _count: {
-          id: true
-        }
+    for (const d of devices) {
 
-      });
+      const key = d.category?.trim() || "Chưa phân loại";
+
+      map[key] = (map[key] || 0) + 1;
+
+    }
 
     res.json(
 
-      result.map(item => ({
+      Object.entries(map).map(([name, count]) => ({
 
-        id:
-          item.category || "unknown",
+        id: name,
 
-        name:
-          item.category || "Chưa phân loại",
+        name,
 
-        count:
-          item._count.id
+        count
 
       }))
 
@@ -1413,7 +1415,9 @@ exports.getCategories = async (req, res) => {
     console.log(err);
 
     res.status(500).json({
+
       error: err.message
+
     });
 
   }
