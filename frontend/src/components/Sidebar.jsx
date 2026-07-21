@@ -101,7 +101,7 @@ export default function Sidebar({
               className="p-2 cursor-pointer hover:bg-gray-700 rounded"
               onClick={() => go("/devices/error")}
             >
-              ⚠ Thiết bị lỗi
+              ⚠ Quản lý động cơ
             </div>
 
             <div
