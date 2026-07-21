@@ -798,6 +798,14 @@ async function compareRows(rows) {
 
     if (changedFields.length) {
 
+      console.log({
+
+          name: data.name,
+      
+          changedFields
+      
+      });
+
       updateCount++;
 
       result.push({
