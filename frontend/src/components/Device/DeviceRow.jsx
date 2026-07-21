@@ -45,7 +45,7 @@ export default function DeviceRow({
       </td>
 
       {/* TRẠNG THÁI */}
-      <td className="p-3">
+      <td className="p-3 test-center font-mono">
 
         <DeviceStatus
           status={device.status || "Inactive"}
@@ -54,12 +54,12 @@ export default function DeviceRow({
       </td>
 
       {/* KÝ HIỆU */}
-      <td className="p-3">
+      <td className="p-3 test-center font-mono">
         {device.code || "-"}
       </td>
 
       {/* KHU VỰC */}
-      <td className="p-3 test-center">
+      <td className="p-3 test-center font-mono">
         {device.area || "-"}
       </td>
 
