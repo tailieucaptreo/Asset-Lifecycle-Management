@@ -163,6 +163,43 @@ const parseDate = (v) => {
 
 };
 
+// ================= SAME DATE =================
+function sameDate(a, b) {
+
+  const d1 = parseDate(a);
+  const d2 = parseDate(b);
+
+  if (!d1 && !d2) return true;
+
+  if (!d1 || !d2) return false;
+
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+
+}
+
+// ================= GET VALUE =================
+ function get(row, ...keys) {
+
+      for (const key of keys) {
+
+        if (
+          row[key] !== undefined &&
+          row[key] !== null &&
+          row[key] !== ""
+        ) {
+          return row[key];
+        }
+
+      }
+
+      return null;
+
+    }
+
 // ================= STATUS =================
 const normalizeStatus = (v) => {
 
@@ -384,19 +421,21 @@ function validateRow(data) {
 
   const errors = [];
 
-  if (!data.deviceId) {
+  if (!data.line) {
 
-    errors.push(
-      "Thiếu mã ID"
-    );
+    errors.push("Thiếu Tuyến");
+
+  }
+
+  if (!data.code) {
+
+    errors.push("Thiếu Ký hiệu");
 
   }
 
   if (!data.name) {
 
-    errors.push(
-      "Thiếu tên thiết bị"
-    );
+    errors.push("Thiếu Tên thiết bị");
 
   }
 
@@ -524,6 +563,7 @@ exports.deleteDevice = async (req, res) => {
   }
 };
 
+// =========Comparerow=========================
 async function compareRows(rows) {
 
   const devices = await prisma.device.findMany({
@@ -679,24 +719,6 @@ async function compareRows(rows) {
       )
 
     };
-
-    function get(row, ...keys) {
-
-      for (const key of keys) {
-
-        if (
-          row[key] !== undefined &&
-          row[key] !== null &&
-          row[key] !== ""
-        ) {
-          return row[key];
-        }
-
-      }
-
-      return null;
-
-    }
 
     // Thiếu dữ liệu
 
@@ -972,30 +994,55 @@ exports.confirmImport = async (req, res) => {
 
       const data = {
 
-        name: d.name,
-
-        category: d.category,
-
-        line: d.line,
-
-        station: d.station,
-
-        code: d.code,
-
-        area: d.area,
-
-        deviceId: d.deviceId,
-
-        status: normalizeStatus(d.status),
-
-        installDate: parseDate(d.installDate),
-
-        lastMaintenance: parseDate(d.lastMaintenance),
-
-        lifespan: Number(d.lifespan || 0),
-
-        expiryDate: parseDate(d.expiryDate)
-
+          name: d.name,
+      
+          category: d.category || detectCategory(d.name),
+      
+          line: d.line,
+      
+          station: d.station,
+      
+          code: d.code,
+      
+          area: d.area,
+      
+          deviceId: d.deviceId,
+      
+          status: normalizeStatus(d.status),
+      
+          installDate: parseDate(d.installDate),
+      
+          lastMaintenance: parseDate(d.lastMaintenance),
+      
+          lifespan: Number(d.lifespan || 0),
+      
+          expiryDate:
+              parseDate(d.expiryDate) ||
+      
+              (
+                  parseDate(d.installDate)
+      
+                      ? (() => {
+      
+                          const x =
+                              parseDate(d.installDate);
+      
+                          x.setFullYear(
+      
+                              x.getFullYear() +
+      
+                              Number(d.lifespan || 0)
+      
+                          );
+      
+                          return x;
+      
+                      })()
+      
+                      : null
+      
+              )
+      
       };
 
       try {
