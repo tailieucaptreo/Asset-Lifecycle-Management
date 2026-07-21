@@ -58,10 +58,27 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 // ================= HELPER =================
-const normalize = (v, def = "") =>
-  v === undefined || v === null || v === ""
-    ? def
-    : v.toString().trim();
+const normalize = (v, def = "") => {
+
+  if (
+    v === undefined ||
+    v === null ||
+    v === ""
+  ) {
+
+    return def;
+
+  }
+
+  return v
+    .toString()
+    .replace(/\r\n/g, " ")
+    .replace(/\n/g, " ")
+    .replace(/\r/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+};
 
 // ================= DATE =================
 const parseDate = (v) => {
@@ -769,26 +786,26 @@ async function compareRows(rows) {
 
     const changedFields = [];
 
-    if (normalize(old.name) !== data.name)
-      changedFields.push("Tên thiết bị");
-
-    if (normalize(old.category) !== data.category)
-      changedFields.push("Phân loại");
-
-    if (normalize(old.line) !== data.line)
-      changedFields.push("Tuyến");
-
-    if (normalize(old.station) !== data.station)
-      changedFields.push("Nhà ga");
-
-    if (normalize(old.code) !== data.code)
-      changedFields.push("Ký hiệu");
-
-    if (normalize(old.area) !== data.area)
-      changedFields.push("Khu vực");
-
-    if (normalize(old.status) !== data.status)
-      changedFields.push("Trạng thái");
+    if (normalize(old.name) !== normalize(data.name))
+        changedFields.push("Tên thiết bị");
+    
+    if (normalize(old.category) !== normalize(data.category))
+        changedFields.push("Phân loại");
+    
+    if (normalize(old.line) !== normalize(data.line))
+        changedFields.push("Tuyến");
+    
+    if (normalize(old.station) !== normalize(data.station))
+        changedFields.push("Nhà ga");
+    
+    if (normalize(old.code) !== normalize(data.code))
+        changedFields.push("Ký hiệu");
+    
+    if (normalize(old.area) !== normalize(data.area))
+        changedFields.push("Khu vực");
+    
+    if (normalize(old.status) !== normalize(data.status))
+        changedFields.push("Trạng thái");
 
     if (!sameDate(old.installDate, data.installDate))
       changedFields.push("Ngày lắp");
