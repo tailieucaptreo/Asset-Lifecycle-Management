@@ -1422,32 +1422,31 @@ exports.getCategories = async (req, res) => {
 
 exports.updateCategories = async (req, res) => {
 
-  const devices =
-    await prisma.device.findMany();
+  const devices = await prisma.device.findMany();
+
+  let updated = 0;
 
   for (const device of devices) {
 
-    const category =
-      detectCategory(
-        device.name
-      );
+    const category = detectCategory(
+      device.name,
+      device.code,
+      device.model
+    );
+
+    console.log(device.name, "=>", category);
 
     await prisma.device.update({
-
-      where: {
-        id: device.id
-      },
-
-      data: {
-        category
-      }
-
+      where: { id: device.id },
+      data: { category }
     });
 
+    updated++;
   }
 
   res.json({
-    ok: true
+    ok: true,
+    updated
   });
 
 };
