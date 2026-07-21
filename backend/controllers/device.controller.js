@@ -113,39 +113,13 @@ const {
     }
 
 // ================= STATUS =================
-const normalizeStatus = (v) => {
+const {
 
-  if (!v) return "Inactive";
+    normalizeStatus,
 
-  const t = v
-    .toString()
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    calcMaintenance
 
-  console.log("STATUS =", t);
-
-  // ACTIVE
-  if (
-    t === "active" ||
-    t.includes("active") ||
-    t.includes("dang su dung") ||
-    t.includes("su dung")
-  ) {
-    return "Active";
-  }
-
-  // MAINTENANCE
-  if (
-    t.includes("maintenance") ||
-    t.includes("bao tri")
-  ) {
-    return "Maintenance";
-  }
-
-  return "Inactive";
-};
+} = require("../utils/status");
 
 // ================= CATEGORY =================
 
@@ -283,66 +257,6 @@ const detectCategory = (
     return "Điện điều khiển";
   }
   return "Khác";
-};
-// ================= AUTO MAINTENANCE =================
-
-const calcMaintenance = (device) => {
-
-  if (
-    !device.installDate
-    ||
-    !device.lifespan
-  ) {
-
-    return "Inactive";
-
-  }
-
-  const now =
-    new Date();
-
-  const install =
-    new Date(
-      device.installDate
-    );
-
-  const totalDays =
-    Number(
-      device.lifespan
-    ) * 365;
-
-  const usedDays =
-    (
-      now - install
-    )
-    / 86400000;
-
-  const percent =
-    usedDays
-    /
-    totalDays;
-
-  // HẾT HẠN
-  if (
-    percent >= 1
-  ) {
-
-    return "Expired";
-
-  }
-
-  // ĐẾN KỲ BẢO TRÌ
-  if (
-    percent >= 0.7
-  ) {
-
-    return "Maintenance";
-
-  }
-
-  // ĐANG HOẠT ĐỘNG
-  return "Active";
-
 };
 
 // ================= GET FIELD =================
