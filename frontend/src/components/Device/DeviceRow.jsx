@@ -63,9 +63,15 @@ export default function DeviceRow({
         {device.area || "-"}
       </td>
 
-      {/* ID */}
-      <td className="p-3 font-mono">
-        {device.deviceId}
+      {/* MÃ ID */}
+      <td
+          className="
+              p-3
+              text-center
+              font-mono
+          "
+      >
+          {device.deviceId || "-"}
       </td>
 
       {/* NGÀY LẮP */}
