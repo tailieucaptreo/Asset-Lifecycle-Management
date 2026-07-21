@@ -335,21 +335,34 @@ const detectCategory = (name = "") => {
   if (
     t.includes("relay") ||
     t.includes("contactor") ||
-    t.includes("switch") ||
-    t.includes("chong set") ||
-    t.includes("abb ms") ||
-    t.includes("relay") ||
-    t.includes("mccb") ||
     t.includes("mcb") ||
-    t.includes("mcr") ||
+    t.includes("mccb") ||
+    t.includes("rcbo") ||
+    t.includes("rcd") ||
+    t.includes("elr") ||
+    t.includes("cb") ||
+    t.includes("aptomat") ||
+    t.includes("switch") ||
+    t.includes("selector") ||
+    t.includes("push button") ||
+    t.includes("button") ||
+    t.includes("nut nhan") ||
+    t.includes("den") ||
+    t.includes("lamp") ||
+    t.includes("pilot") ||
+    t.includes("power supply") ||
+    t.includes("nguon") ||
+    t.includes("terminal") ||
+    t.includes("fuse") ||
+    t.includes("cau chi") ||
+    t.includes("chong set") ||
+    t.includes("surge") ||
+    t.includes("spd") ||
     t.includes("role nhiet") ||
-    t.includes("relay nhiet") ||
-    t.includes("bo chong set") ||
-    t.includes("elr")
+    t.includes("relay nhiet")
   ) {
     return "Điện điều khiển";
   }
-
   return "Khác";
 };
 // ================= AUTO MAINTENANCE =================
