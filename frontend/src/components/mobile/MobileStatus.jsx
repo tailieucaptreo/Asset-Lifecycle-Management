@@ -40,7 +40,7 @@ export default function MobileStatus({
             case "off":
 
                 return {
-                    text: "Offline",
+                    text: "Dự phòng",
                     className: "bg-gray-200 text-gray-700"
                 };
 
