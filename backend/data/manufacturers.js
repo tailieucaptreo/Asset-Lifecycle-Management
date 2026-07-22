@@ -1,92 +1,384 @@
 // =======================================
-// Manufacturers
+// Manufacturers Library
 // =======================================
 
 module.exports = [
 
+    // =============================
     // ABB
-    "ABB",
+    // =============================
 
+    {
+        name: "ABB",
+        aliases: [
+            "abb"
+        ],
+        category: "Biến tần",
+        score: 20
+    },
+
+    // =============================
     // VACON
-    "VACON",
+    // =============================
 
-    "DANFOSS",
+    {
+        name: "VACON",
+        aliases: [
+            "vacon"
+        ],
+        category: "Biến tần",
+        score: 30
+    },
 
+    {
+        name: "DANFOSS",
+        aliases: [
+            "danfoss"
+        ],
+        category: "Biến tần",
+        score: 25
+    },
+
+    // =============================
     // PLC
-    "PILZ",
+    // =============================
 
-    "SIEMENS",
+    {
+        name: "PILZ",
+        aliases: [
+            "pilz"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "MITSUBISHI",
+    {
+        name: "SIEMENS",
+        aliases: [
+            "siemens",
+            "simatic"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "OMRON",
+    {
+        name: "MITSUBISHI",
+        aliases: [
+            "mitsubishi"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "SCHNEIDER",
+    {
+        name: "OMRON",
+        aliases: [
+            "omron"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "ALLEN BRADLEY",
+    {
+        name: "SCHNEIDER",
+        aliases: [
+            "schneider",
+            "telemecanique"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "ROCKWELL",
+    {
+        name: "ALLEN BRADLEY",
+        aliases: [
+            "allen bradley",
+            "ab"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    // I/O
-    "BECKHOFF",
+    {
+        name: "ROCKWELL",
+        aliases: [
+            "rockwell"
+        ],
+        category: "PLC",
+        score: 20
+    },
 
-    "WAGO",
+    // =============================
+    // BECKHOFF
+    // =============================
 
-    "PHOENIX CONTACT",
+    {
+        name: "BECKHOFF",
+        aliases: [
+            "beckhoff"
+        ],
+        category: "BECKHOFF",
+        score: 40
+    },
 
-    "WEIDMULLER",
+    {
+        name: "WAGO",
+        aliases: [
+            "wago"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    // Sensor
-    "SICK",
+    {
+        name: "PHOENIX CONTACT",
+        aliases: [
+            "phoenix",
+            "phoenix contact"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "IFM",
+    {
+        name: "WEIDMULLER",
+        aliases: [
+            "weidmuller"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "BALLUFF",
+    // =============================
+    // SENSOR
+    // =============================
 
-    "TURCK",
+    {
+        name: "SICK",
+        aliases: [
+            "sick"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "PEPPERL+FUCHS",
+    {
+        name: "IFM",
+        aliases: [
+            "ifm"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "BANNER",
+    {
+        name: "BALLUFF",
+        aliases: [
+            "balluff"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "LEUZE",
+    {
+        name: "TURCK",
+        aliases: [
+            "turck"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "KEYENCE",
+    {
+        name: "PEPPERL+FUCHS",
+        aliases: [
+            "pepperl",
+            "pepperl+fuchs"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    // Motion
-    "SEW",
+    {
+        name: "BANNER",
+        aliases: [
+            "banner"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "NORD",
+    {
+        name: "LEUZE",
+        aliases: [
+            "leuze"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "LENZE",
+    {
+        name: "KEYENCE",
+        aliases: [
+            "keyence"
+        ],
+        category: "Cảm biến",
+        score: 30
+    },
 
-    "YASKAWA",
+    // =============================
+    // MOTOR
+    // =============================
 
-    "BOSCH REXROTH",
+    {
+        name: "SEW",
+        aliases: [
+            "sew"
+        ],
+        category: "Động cơ",
+        score: 20
+    },
 
-    // Electric
-    "EATON",
+    {
+        name: "NORD",
+        aliases: [
+            "nord"
+        ],
+        category: "Động cơ",
+        score: 20
+    },
 
-    "FUJI",
+    {
+        name: "LENZE",
+        aliases: [
+            "lenze"
+        ],
+        category: "Động cơ",
+        score: 20
+    },
 
-    "DELTA",
+    {
+        name: "YASKAWA",
+        aliases: [
+            "yaskawa"
+        ],
+        category: "Động cơ",
+        score: 20
+    },
 
-    "LS",
+    {
+        name: "BOSCH REXROTH",
+        aliases: [
+            "bosch rexroth",
+            "rexroth"
+        ],
+        category: "Động cơ",
+        score: 20
+    },
 
-    "GE",
+    // =============================
+    // ELECTRIC
+    // =============================
 
-    "TELEMECANIQUE",
+    {
+        name: "EATON",
+        aliases: [
+            "eaton"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "CARLO GAVAZZI",
+    {
+        name: "FUJI",
+        aliases: [
+            "fuji"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "FINDER",
+    {
+        name: "DELTA",
+        aliases: [
+            "delta"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "RITTAL",
+    {
+        name: "LS",
+        aliases: [
+            "ls"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "MOELLER",
+    {
+        name: "GE",
+        aliases: [
+            "general electric",
+            "ge"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "HAGER",
+    {
+        name: "CARLO GAVAZZI",
+        aliases: [
+            "carlo gavazzi"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
 
-    "CHINT"
+    {
+        name: "FINDER",
+        aliases: [
+            "finder"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
+
+    {
+        name: "RITTAL",
+        aliases: [
+            "rittal"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
+
+    {
+        name: "MOELLER",
+        aliases: [
+            "moeller"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
+
+    {
+        name: "HAGER",
+        aliases: [
+            "hager"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    },
+
+    {
+        name: "CHINT",
+        aliases: [
+            "chint"
+        ],
+        category: "Điện điều khiển",
+        score: 20
+    }
 
 ];
