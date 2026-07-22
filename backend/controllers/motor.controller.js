@@ -617,13 +617,19 @@ exports.previewImport = async (req, res) => {
     try {
 
         if (!req.file) {
+
             return res.status(400).json({
+
                 message: "Chưa chọn file."
+
             });
+
         }
 
         const workbook = XLSX.read(req.file.buffer, {
+
             type: "buffer"
+
         });
 
         const sheet =
@@ -632,7 +638,9 @@ exports.previewImport = async (req, res) => {
             ];
 
         const rows = XLSX.utils.sheet_to_json(sheet, {
+
             defval: ""
+
         });
 
         const preview = [];
@@ -643,9 +651,9 @@ exports.previewImport = async (req, res) => {
 
         for (const excelRow of rows) {
 
-            // ===========================
-            // MAP EXCEL -> OBJECT
-            // ===========================
+            // =========================
+            // MAP EXCEL
+            // =========================
 
             const row = {
 
@@ -655,106 +663,106 @@ exports.previewImport = async (req, res) => {
                     excelRow.deviceId ??
                     ""
                 ).trim(),
-            
+
                 name: String(
                     excelRow["Tên thiết bị"] ??
                     excelRow["Tên động cơ"] ??
                     excelRow.name ??
                     ""
                 ).trim(),
-            
+
                 type: String(
                     excelRow["Loại thiết bị"] ??
                     excelRow["Loại"] ??
                     excelRow.type ??
                     ""
                 ).trim(),
-            
+
                 brand: String(
                     excelRow["Hãng"] ??
                     excelRow.brand ??
                     ""
                 ).trim(),
-            
+
                 model: String(
                     excelRow["Model"] ??
                     excelRow.model ??
                     ""
                 ).trim(),
-            
+
                 serial: String(
                     excelRow["Serial Number ID"] ??
                     excelRow.serial ??
                     ""
                 ).trim(),
-            
+
                 power: String(
                     excelRow["Công suất (kW)"] ??
                     excelRow["Công suất"] ??
                     excelRow.power ??
                     ""
                 ).trim(),
-            
+
                 bearingCode: String(
                     excelRow["Mã ổ bi"] ??
                     excelRow.bearingCode ??
                     ""
                 ).trim(),
-            
-                runningHours: String(
+
+                runningHours: Number(
                     excelRow["Số giờ vận hành"] ??
                     excelRow.runningHours ??
-                    ""
-                ).trim(),
-            
+                    0
+                ),
+
                 line: String(
                     excelRow["Tuyến cáp"] ??
                     excelRow["Tuyến"] ??
                     excelRow.line ??
                     ""
                 ).trim(),
-            
+
                 station: String(
                     excelRow["Nhà ga"] ??
                     excelRow.station ??
                     ""
                 ).trim(),
-            
+
                 location: String(
                     excelRow["Vị trí lắp đặt"] ??
                     excelRow.location ??
                     ""
                 ).trim(),
-            
+
                 warehouse: String(
                     excelRow["Vị trí lưu kho"] ??
                     excelRow.warehouse ??
                     ""
                 ).trim(),
-            
+
                 status: String(
                     excelRow["Trạng thái"] ??
                     excelRow.status ??
                     ""
                 ).trim(),
-            
+
                 replacementDate:
                     excelRow["Thời gian thay thế"] || "",
-            
+
                 maintenanceDate:
                     excelRow["Ngày bảo trì"] || "",
-            
+
                 note: String(
                     excelRow["Ghi chú"] ??
                     excelRow.note ??
                     ""
                 ).trim()
-            
+
             };
 
-            // ===========================
+            // =========================
             // Không có mã TB
-            // ===========================
+            // =========================
 
             if (!row.deviceId) {
 
@@ -764,7 +772,11 @@ exports.previewImport = async (req, res) => {
 
                     action: "SKIP",
 
-                    changedFields: [],
+                    changedFields: [
+
+                        "Thiếu Mã Vật Tư/ID"
+
+                    ],
 
                     row
 
@@ -774,22 +786,24 @@ exports.previewImport = async (req, res) => {
 
             }
 
-            // ===========================
-            // Tìm DB
-            // ===========================
+            // =========================
+            // Kiểm tra DB
+            // =========================
 
             const exists =
                 await prisma.motor.findUnique({
 
                     where: {
+
                         deviceId: row.deviceId
+
                     }
 
                 });
 
-            // ===========================
+            // =========================
             // Chưa tồn tại
-            // ===========================
+            // =========================
 
             if (!exists) {
 
@@ -809,13 +823,13 @@ exports.previewImport = async (req, res) => {
 
             }
 
-            // ===========================
+            // =========================
             // So sánh
-            // ===========================
+            // =========================
 
             const changedFields = [];
 
-            const fields = [
+            const compareFields = [
 
                 "name",
 
@@ -825,17 +839,29 @@ exports.previewImport = async (req, res) => {
 
                 "model",
 
+                "serial",
+
                 "power",
+
+                "bearingCode",
+
+                "runningHours",
 
                 "line",
 
                 "station",
 
-                "status"
+                "location",
+
+                "warehouse",
+
+                "status",
+
+                "note"
 
             ];
 
-            fields.forEach(field => {
+            compareFields.forEach(field => {
 
                 const oldValue =
                     String(
@@ -854,10 +880,6 @@ exports.previewImport = async (req, res) => {
                 }
 
             });
-
-            // ===========================
-            // Kết quả
-            // ===========================
 
             if (changedFields.length === 0) {
 
@@ -919,7 +941,7 @@ exports.previewImport = async (req, res) => {
 
         res.status(500).json({
 
-            message: "Không thể xem trước file import."
+            message: "Không thể xem trước dữ liệu."
 
         });
 
@@ -945,19 +967,16 @@ exports.importMotors = async (req, res) => {
 
         }
 
-        const workbook = XLSX.read(
+        const workbook = XLSX.read(req.file.buffer, {
 
-            req.file.buffer,
+            type: "buffer"
 
-            {
+        });
 
-                type: "buffer"
-
-            }
-
-        );
-
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
 
         const rows = XLSX.utils.sheet_to_json(sheet, {
 
@@ -966,62 +985,148 @@ exports.importMotors = async (req, res) => {
         });
 
         let created = 0;
-
         let updated = 0;
+        let skipped = 0;
 
-        for (const row of rows) {
-
-            const deviceId = String(
-
-                row["Mã TB"] ||
-
-                row.deviceId ||
-
-                ""
-
-            ).trim();
-
-            if (!deviceId) continue;
+        for (const excelRow of rows) {
 
             const data = {
 
-                deviceId: row["Mã Vật Tư/ID"],
-               name: row["Tên thiết bị"],
-               type: row["Loại thiết bị"],
-               brand: row["Hãng"],
-               model: row["Model"],
-               serial: row["Serial Number ID"],
-               power: row["Công suất (kW)"],
-               bearingCode: row["Mã ổ bi"],
-               runningHours: row["Số giờ vận hành"],
-               line: row["Tuyến cáp"],
-               station: row["Nhà ga"],
-               location: row["Vị trí lắp đặt"],
-               warehouse: row["Vị trí lưu kho"],
-               status: row["Trạng thái"],
-               replacementDate: row["Thời gian thay thế"],
-               maintenanceDate: row["Ngày bảo trì"],
-               note: row["Ghi chú"],
+                deviceId: String(
+                    excelRow["Mã Vật Tư/ID"] ??
+                    excelRow["Mã TB"] ??
+                    excelRow.deviceId ??
+                    ""
+                ).trim(),
+
+                name: String(
+                    excelRow["Tên thiết bị"] ??
+                    excelRow["Tên động cơ"] ??
+                    excelRow.name ??
+                    ""
+                ).trim(),
+
+                type: String(
+                    excelRow["Loại thiết bị"] ??
+                    excelRow["Loại"] ??
+                    excelRow.type ??
+                    ""
+                ).trim(),
+
+                brand: String(
+                    excelRow["Hãng"] ??
+                    excelRow.brand ??
+                    ""
+                ).trim(),
+
+                model: String(
+                    excelRow["Model"] ??
+                    excelRow.model ??
+                    ""
+                ).trim(),
+
+                serial: String(
+                    excelRow["Serial Number ID"] ??
+                    excelRow.serial ??
+                    ""
+                ).trim(),
+
+                power: String(
+                    excelRow["Công suất (kW)"] ??
+                    excelRow["Công suất"] ??
+                    excelRow.power ??
+                    ""
+                ).trim(),
+
+                bearingCode: String(
+                    excelRow["Mã ổ bi"] ??
+                    excelRow.bearingCode ??
+                    ""
+                ).trim(),
+
+                runningHours:
+                    Number(
+                        excelRow["Số giờ vận hành"] ??
+                        excelRow.runningHours ??
+                        0
+                    ),
+
+                line: String(
+                    excelRow["Tuyến cáp"] ??
+                    excelRow["Tuyến"] ??
+                    excelRow.line ??
+                    ""
+                ).trim(),
+
+                station: String(
+                    excelRow["Nhà ga"] ??
+                    excelRow.station ??
+                    ""
+                ).trim(),
+
+                location: String(
+                    excelRow["Vị trí lắp đặt"] ??
+                    excelRow.location ??
+                    ""
+                ).trim(),
+
+                warehouse: String(
+                    excelRow["Vị trí lưu kho"] ??
+                    excelRow.warehouse ??
+                    ""
+                ).trim(),
+
+                status: String(
+                    excelRow["Trạng thái"] ??
+                    excelRow.status ??
+                    "Running"
+                ).trim(),
+
+                replacementDate:
+                    excelRow["Thời gian thay thế"]
+                        ? new Date(excelRow["Thời gian thay thế"])
+                        : null,
+
+                maintenanceDate:
+                    excelRow["Ngày bảo trì"]
+                        ? new Date(excelRow["Ngày bảo trì"])
+                        : null,
+
+                note: String(
+                    excelRow["Ghi chú"] ??
+                    excelRow.note ??
+                    ""
+                ).trim()
 
             };
 
-            const exists = await prisma.motor.findUnique({
+            if (!data.deviceId) {
 
-                where: {
+                skipped++;
 
-                    deviceId
+                continue;
 
-                }
+            }
 
-            });
+            const exists =
+                await prisma.motor.findUnique({
+
+                    where: {
+
+                        deviceId: data.deviceId
+
+                    }
+
+                });
 
             if (!exists) {
 
-                const motor = await prisma.motor.create({
+                const motor =
+                    await prisma.motor.create({
 
-                    data
+                        data
 
-                });
+                    });
 
                 await writeHistory({
 
@@ -1029,7 +1134,9 @@ exports.importMotors = async (req, res) => {
 
                     action: "IMPORT",
 
-                    user: req.user?.username || "System",
+                    user:
+                        req.user?.username ||
+                        "System",
 
                     deviceId: motor.deviceId,
 
@@ -1063,9 +1170,11 @@ exports.importMotors = async (req, res) => {
 
                     action: "IMPORT",
 
-                    user: req.user?.username || "System",
+                    user:
+                        req.user?.username ||
+                        "System",
 
-                    deviceId,
+                    deviceId: data.deviceId,
 
                     name: data.name,
 
@@ -1085,7 +1194,9 @@ exports.importMotors = async (req, res) => {
 
             created,
 
-            updated
+            updated,
+
+            skipped
 
         });
 
@@ -1097,14 +1208,13 @@ exports.importMotors = async (req, res) => {
 
         res.status(500).json({
 
-            message: "Không thể import."
+            message: "Không thể import dữ liệu."
 
         });
 
     }
 
 };
-
 
 /* =====================================================
    EXPORT EXCEL
