@@ -1,253 +1,252 @@
-// =======================================
-// Category Score Engine
-// =======================================
+const MODELS = require("../data/models");
+const MANUFACTURERS = require("../data/manufacturers");
+const RULES = require("../data/category.rules");
+const normalize = require("../utils/normalize");
 
-function calculateScore({
+// ======================================
+// Init Score
+// ======================================
 
-    text,
+function createScoreBoard() {
 
-    brand,
+    const board = {};
 
-    model,
+    for (const rule of RULES) {
 
-    rules
-
-}) {
-
-    const scores = {};
-
-    for (const rule of rules) {
-
-        let score = 0;
-
-        // ==========================
-        // Include Keywords
-        // ==========================
-
-        if (Array.isArray(rule.include)) {
-
-            for (const keyword of rule.include) {
-
-                if (text.includes(keyword)) {
-
-                    score += rule.priority;
-
-                }
-
-            }
-
-        }
-
-        // ==========================
-        // Exclude Keywords
-        // ==========================
-
-        if (Array.isArray(rule.exclude)) {
-
-            for (const keyword of rule.exclude) {
-
-                if (text.includes(keyword)) {
-
-                    score = 0;
-
-                    break;
-
-                }
-
-            }
-
-        }
-
-        // ==========================
-        // Brand Bonus
-        // ==========================
-
-        if (
-
-            brand &&
-
-            Array.isArray(rule.brands)
-
-        ) {
-
-            if (
-
-                rule.brands.some(
-
-                    b =>
-
-                    b.toLowerCase() ===
-
-                    brand.toLowerCase()
-
-                )
-
-            ) {
-
-                score += 30;
-
-            }
-
-        }
-
-        // ==========================
-        // Model Regex Bonus
-        // ==========================
-
-        if (
-
-            model &&
-
-            Array.isArray(rule.models)
-
-        ) {
-
-            for (const regex of rule.models) {
-
-                if (regex.test(model)) {
-
-                    score += 50;
-
-                }
-
-            }
-
-        }
-
-        scores[rule.category] = score;
+        board[rule.category] = 0;
 
     }
 
-    return scores;
+    return board;
 
 }
 
-// =======================================
-// Best Category
-// =======================================
+// ======================================
+// Score By Model
+// ======================================
 
-function getBestCategory(scores) {
+function scoreModels(text, board) {
 
-    let best = {
+    for (const item of MODELS) {
 
-        category: "Khác",
+        if (item.regex.test(text)) {
 
-        score: 0
-
-    };
-
-    let second = 0;
-
-    for (
-
-        const [
-
-            category,
-
-            score
-
-        ]
-
-        of Object.entries(scores)
-
-    ) {
-
-        if (score > best.score) {
-
-            second = best.score;
-
-            best = {
-
-                category,
-
-                score
-
-            };
-
-        }
-
-        else if (
-
-            score > second
-
-        ) {
-
-            second = score;
+            board[item.category] += item.score;
 
         }
 
     }
+
+}
+
+// ======================================
+// Score By Manufacturer
+// ======================================
+
+function scoreManufacturers(text, board) {
+
+    let detectedBrand = "";
+
+    for (const brand of MANUFACTURERS) {
+
+        for (const alias of brand.aliases) {
+
+            if (text.includes(normalize(alias))) {
+
+                detectedBrand = brand.name;
+
+                board[brand.category] += brand.score;
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    return detectedBrand;
+
+}
+
+// ======================================
+// Score By Keyword
+// ======================================
+
+function scoreKeywords(text, board) {
+
+    for (const rule of RULES) {
+
+        for (const keyword of rule.keywords) {
+
+            if (text.includes(normalize(keyword))) {
+
+                board[rule.category] += rule.priority;
+
+            }
+
+        }
+
+    }
+
+}
+
+// ======================================
+// Best Category
+// ======================================
+
+function getBest(board) {
+
+    let bestCategory = "Khác";
+
+    let bestScore = 0;
+
+    let secondScore = 0;
+
+    for (const [category, score] of Object.entries(board)) {
+
+        if (score > bestScore) {
+
+            secondScore = bestScore;
+
+            bestScore = score;
+
+            bestCategory = category;
+
+        }
+
+        else if (score > secondScore) {
+
+            secondScore = score;
+
+        }
+
+    }
+
+    const confidence =
+
+        bestScore === 0
+
+            ? 0
+
+            : Math.round(
+
+                bestScore *
+
+                100 /
+
+                (bestScore + secondScore)
+
+            );
 
     return {
 
-        ...best,
+        category: bestCategory,
 
-        confidence:
+        score: bestScore,
 
-            calculateConfidence(
-
-                best.score,
-
-                second
-
-            )
+        confidence
 
     };
 
 }
 
-// =======================================
-// Confidence
-// =======================================
+// ======================================
+// Main
+// ======================================
 
-function calculateConfidence(
+function scoreCategory({
 
-    best,
+    name = "",
 
-    second
+    code = "",
 
-) {
+    model = "",
 
-    if (
+    brand = ""
 
-        best === 0
+}) {
 
-    ) {
+    let text = [
 
-        return 0;
+        name,
 
-    }
+        code,
 
-    if (
+        model,
 
-        second === 0
+        brand
 
-    ) {
+    ]
 
-        return 100;
+        .join(" ");
 
-    }
+    text = normalize(text);
 
-    return Math.round(
+    const board =
 
-        best /
+        createScoreBoard();
 
-        (best + second)
+    scoreModels(
 
-        * 100
+        text,
+
+        board
 
     );
 
-}
+    const detectedBrand =
 
-// =======================================
+        scoreManufacturers(
+
+            text,
+
+            board
+
+        );
+
+    scoreKeywords(
+
+        text,
+
+        board
+
+    );
+
+    const best =
+
+        getBest(board);
+
+    return {
+
+        category:
+
+            best.category,
+
+        score:
+
+            best.score,
+
+        confidence:
+
+            best.confidence,
+
+        brand:
+
+            brand ||
+
+            detectedBrand ||
+
+            "",
+
+        board
+
+    };
+
+}
 
 module.exports = {
 
-    calculateScore,
-
-    getBestCategory,
-
-    calculateConfidence
+    scoreCategory
 
 };
