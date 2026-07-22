@@ -4,7 +4,7 @@ import {
     Trash2
 } from "lucide-react";
 
-import MobileMotorCard from "../mobile/MobileMotorCard";
+import MobileMotorCard from "./MobileMotorCard";
 
 export default function MotorTable({
 
