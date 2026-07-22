@@ -455,7 +455,7 @@ export default function Dashboard() {
 
         {/* EXPIRED */}
         <Card
-          title="Thiết bị đang dử dụng quá tuổi thọ"
+          title="Thiết bị đang sử dụng quá tuổi thọ"
           value={expired}
           color="bg-red-500"
           icon={<AlertTriangle />}
