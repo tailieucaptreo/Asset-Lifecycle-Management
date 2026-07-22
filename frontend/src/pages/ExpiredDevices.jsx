@@ -132,9 +132,9 @@ export default function ExpiredDevices() {
 
       :
 
-      <Table
-        data={data}
-        setData={setData}
+      <DeviceTable
+          data={data}
+          loading={loading}
       />
 
       }
