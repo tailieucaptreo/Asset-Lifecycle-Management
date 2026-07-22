@@ -113,92 +113,54 @@ function Card({
                 relative
                 overflow-hidden
                 rounded-2xl
-                p-4
+                border
+                border-slate-200
+                bg-white
+                p-5
                 text-left
+                shadow-sm
                 transition-all
-                duration-300
-                shadow-md
-                hover:shadow-xl
+                duration-200
+                hover:shadow-lg
                 hover:-translate-y-1
-                bg-gradient-to-br
-                ${cfg.color}
-                text-white
                 ${active
-                    ? "ring-4 ring-blue-300 scale-[1.02]"
+                    ? "ring-2 ring-blue-500 border-blue-500"
                     : ""
                 }
             `}
         >
 
-            <div
-                className="
-                    absolute
-                    -right-4
-                    -top-4
-                    w-20
-                    h-20
-                    rounded-full
-                    bg-white/10
-                "
-            />
-
-            <div
-                className="
-                    flex
-                    justify-between
-                    items-start
-                "
-            >
+            <div className="flex justify-between items-center">
 
                 <div>
-
-                    <p
-                        className="
-                            text-sm
-                            opacity-90
-                        "
-                    >
+            
+                    <p className="text-sm text-slate-500">
                         {cfg.title}
                     </p>
-
-                    <h2
-                        className="
-                            mt-3
-                            text-3xl
-                            font-bold
-                        "
-                    >
+            
+                    <h2 className="mt-2 text-4xl font-bold text-slate-900">
                         {item.value}
                     </h2>
-
-                    <p
-                        className="
-                            text-xs
-                            opacity-80
-                            mt-1
-                        "
-                    >
-                        thiết bị
-                    </p>
-
+            
                 </div>
-
+            
                 <div
                     className="
-                        w-12
-                        h-12
-                        rounded-xl
-                        bg-white/20
+                        w-14
+                        h-14
+                        rounded-2xl
+                        bg-blue-50
                         flex
                         items-center
                         justify-center
                     "
                 >
-
-                    <Icon size={26} />
-
+                    <Icon
+                        size={28}
+                        className="text-blue-600"
+                    />
                 </div>
-
+            
             </div>
 
         </button>
