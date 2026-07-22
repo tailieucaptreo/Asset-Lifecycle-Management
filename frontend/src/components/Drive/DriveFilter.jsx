@@ -184,7 +184,7 @@ export default function DriveFilter({
                         Fault
                     </option>
 
-                    <option value="Spare">
+                    <option value="Offline">
                         Dự phòng
                     </option>
 
