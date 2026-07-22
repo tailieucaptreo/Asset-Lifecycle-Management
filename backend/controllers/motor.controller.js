@@ -37,6 +37,26 @@ async function writeHistory({
     }
 }
 
+function getMotorKey(data) {
+
+    return [
+
+        data.deviceId ?? "",
+
+        data.line ?? "",
+
+        data.station ?? "",
+
+        data.location ?? ""
+
+    ]
+
+    .map(v => String(v).trim())
+
+    .join("|");
+
+}
+
 /* =====================================================
    GET ALL
 ===================================================== */
@@ -96,10 +116,25 @@ exports.createMotor = async (req, res) => {
 
         const data = req.body;
 
-        const exists = await prisma.motor.findUnique({
+        const exists =
+        await prisma.motor.findFirst({
+        
             where: {
-                deviceId: data.deviceId
+        
+                deviceId:
+                    data.deviceId,
+        
+                line:
+                    data.line,
+        
+                station:
+                    data.station,
+        
+                location:
+                    data.location
+        
             }
+        
         });
 
         if (exists) {
@@ -231,20 +266,31 @@ exports.updateMotor = async (req, res) => {
 
         }
 
-        const duplicate = await prisma.motor.findFirst({
-
+        const duplicate =
+        await prisma.motor.findFirst({
+        
             where: {
-
-                deviceId: data.deviceId,
-
+        
+                deviceId:
+                    data.deviceId,
+        
+                line:
+                    data.line,
+        
+                station:
+                    data.station,
+        
+                location:
+                    data.location,
+        
                 NOT: {
-
+        
                     id
-
+        
                 }
-
+        
             }
-
+        
         });
 
         if (duplicate) {
@@ -932,9 +978,9 @@ exports.previewImport = async (req, res) => {
 
             motorMap.set(
 
-                motor.deviceId,
+                getMotorKey(m),
 
-                motor
+                m
 
             );
 
@@ -984,7 +1030,7 @@ exports.previewImport = async (req, res) => {
 
             const exists =
                 motorMap.get(
-                    row.deviceId
+                    getMotorKey(row)
                 );
 
             // Chưa tồn tại
@@ -1195,9 +1241,8 @@ exports.importMotors = async (req, res) => {
 
             motorMap.set(
 
-                motor.deviceId,
+                getMotorKey(data)
 
-                motor
 
             );
 
@@ -1234,7 +1279,7 @@ exports.importMotors = async (req, res) => {
 
             const exists =
                 motorMap.get(
-                    data.deviceId
+                    getMotorKey(data)
                 );
 
             // Chưa tồn tại
