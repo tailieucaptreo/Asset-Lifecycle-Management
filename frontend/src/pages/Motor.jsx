@@ -497,53 +497,37 @@ export default function Motor() {
             />
 
             <MotorModal
-
                 open={openModal}
-
                 mode={modalMode}
-
                 motor={selectedMotor}
-
                 token={token}
-
                 onClose={() => {
-
                     setOpenModal(false);
-
                 }}
-
-                <MotorImportModal
-
-                open={openImport}
-
-                onClose={() => {
-
-                    setOpenImport(false);
-
-                }}
-
                 onSuccess={async () => {
-
-                    setOpenImport(false);
-
+                    setOpenModal(false);
                     await loadMotors();
-
                     await loadStatistics();
-
                 }}
-
             />
-
-            <MotorHistoryModal
-
-                open={openHistory}
-
+            
+            <MotorImportModal
+                open={openImport}
                 onClose={() => {
-
-                    setOpenHistory(false);
-
+                    setOpenImport(false);
                 }}
-
+                onSuccess={async () => {
+                    setOpenImport(false);
+                    await loadMotors();
+                    await loadStatistics();
+                }}
+            />
+            
+            <MotorHistoryModal
+                open={openHistory}
+                onClose={() => {
+                    setOpenHistory(false);
+                }}
             />
 
         </>
