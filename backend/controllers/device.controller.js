@@ -134,65 +134,71 @@ exports.getDevices = async (req, res) => {
 };
 
 // ================= CREATE =================
-exports.createDevice = async (req, res) => {
+const categoryInfo = detectCategory({
+    name: d.name,
+    code: d.code,
+    model: d.model,
+    brand: d.brand
+});
 
-  try {
+const result = await prisma.device.create({
 
-    const d = req.body;
+    data: {
 
-    const result = await prisma.device.create({
-      data: {
         ...d,
+
+        category: categoryInfo.category,
+
+        brand: categoryInfo.brand,
+
         status: normalizeStatus(d.status),
+
         installDate: parseDate(d.installDate),
+
         lastMaintenance: parseDate(d.lastMaintenance),
+
         expiryDate: parseDate(d.expiryDate)
-      }
-    });
 
-    res.json(result);
+    }
 
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      error: err.message
-    });
-  }
-};
+});
 
 // ================= UPDATE =================
-exports.updateDevice = async (req, res) => {
+const categoryInfo = detectCategory({
 
-  try {
+    name: d.name,
 
-    const id = Number(req.params.id);
+    code: d.code,
 
-    const d = req.body;
+    model: d.model,
 
-    const updated = await prisma.device.update({
-      where: { id },
-      data: {
+    brand: d.brand
+
+});
+
+const updated = await prisma.device.update({
+
+    where: { id },
+
+    data: {
+
         ...d,
+
+        category: categoryInfo.category,
+
+        brand: categoryInfo.brand,
+
         status: normalizeStatus(d.status),
+
         installDate: parseDate(d.installDate),
+
         lastMaintenance: parseDate(d.lastMaintenance),
+
         expiryDate: parseDate(d.expiryDate)
-      }
-    });
 
-    res.json(updated);
+    }
 
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      error: err.message
-    });
-  }
-};
+});
 
 // ================= DELETE =================
 exports.deleteDevice = async (req, res) => {
@@ -473,7 +479,21 @@ exports.exportDevices = async (req, res) => {
         "Tên thiết bị":
           d.name,
 
-        "Phân loại": d.category || detectCategory(d.name),
+        "Phân loại":
+
+        d.category ||
+        
+        detectCategory({
+        
+            name: d.name,
+        
+            code: d.code,
+        
+            model: d.model,
+        
+            brand: d.brand
+        
+        }).category,
 
         "Tuyến":
           d.line,
@@ -610,21 +630,47 @@ exports.updateCategories = async (req, res) => {
 
   for (const device of devices) {
 
-    const category = detectCategory(
+    const result = detectCategory({
+
+      name: device.name,
+  
+      code: device.code,
+  
+      model: device.model,
+  
+      brand: device.brand
+  
+  });
+  
+  console.log(
+  
       device.name,
-      device.code,
-      device.model
-    );
-
-    console.log(device.name, "=>", category);
-
-    await prisma.device.update({
-      where: { id: device.id },
-      data: { category }
-    });
-
-    updated++;
-  }
+  
+      "=>",
+  
+      result.category,
+  
+      result.score
+  
+  );
+  
+  await prisma.device.update({
+  
+      where: {
+  
+          id: device.id
+  
+      },
+  
+      data: {
+  
+          category: result.category,
+  
+          brand: result.brand
+  
+      }
+  
+  });
 
   res.json({
     ok: true,
