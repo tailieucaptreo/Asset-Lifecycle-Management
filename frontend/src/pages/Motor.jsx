@@ -512,13 +512,35 @@ export default function Motor() {
 
                 }}
 
+                <MotorImportModal
+
+                open={openImport}
+
+                onClose={() => {
+
+                    setOpenImport(false);
+
+                }}
+
                 onSuccess={async () => {
 
-                    setOpenModal(false);
+                    setOpenImport(false);
 
                     await loadMotors();
 
                     await loadStatistics();
+
+                }}
+
+            />
+
+            <MotorHistoryModal
+
+                open={openHistory}
+
+                onClose={() => {
+
+                    setOpenHistory(false);
 
                 }}
 
@@ -529,3 +551,9 @@ export default function Motor() {
     );
 
 })()}
+
+        </div>
+
+    );
+
+}
