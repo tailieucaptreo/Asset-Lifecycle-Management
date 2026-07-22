@@ -98,8 +98,8 @@ export default function Sidebar({
             </div>
 
             <div
-              className="p-2 cursor-pointer hover:bg-gray-700 rounded"
-              onClick={() => go("/devices/error")}
+              className={`p-2 rounded cursor-pointer ${active("/motors")}`}
+              onClick={() => go("/motors")}
             >
               ⚠ Quản lý động cơ
             </div>
