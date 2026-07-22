@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
@@ -80,6 +80,14 @@ export default function Motor() {
 
     const [openImport, setOpenImport] = useState(false);
 
+    const fileInputRef = useRef(null);
+
+    const [selectedFile, setSelectedFile] = useState(null);
+    
+    const [previewData, setPreviewData] = useState([]);
+    
+    const [summary, setSummary] = useState(null);
+
     const [openHistory, setOpenHistory] = useState(false);
 
     console.log("API =", API);
@@ -126,6 +134,62 @@ export default function Motor() {
 
         }
 
+    };
+
+    const handleImportFile = async (e) => {
+
+        const file = e.target.files?.[0];
+    
+        if (!file) return;
+    
+        setSelectedFile(file);
+    
+        try {
+    
+            const form = new FormData();
+    
+            form.append("file", file);
+    
+            const res = await axios.post(
+    
+                `${API}/api/motors/preview-import`,
+    
+                form,
+    
+                {
+    
+                    headers: {
+    
+                        Authorization: `Bearer ${token}`
+    
+                    }
+    
+                }
+    
+            );
+    
+            setPreviewData(res.data.preview);
+    
+            setSummary(res.data.summary);
+    
+            setOpenImport(true);
+    
+        }
+    
+        catch (err) {
+    
+            console.error(err);
+    
+            alert(
+    
+                err.response?.data?.message ||
+    
+                "Không thể xem trước dữ liệu."
+    
+            );
+    
+        }
+    
     };
 
     const loadStatistics = async () => {
@@ -200,7 +264,7 @@ export default function Motor() {
 
                 }}
 
-                onImport={() => setOpenImport(true)}
+                onImport={() => fileInputRef.current?.click()}
 
                 onHistory={() => setOpenHistory(true)}
 
@@ -216,6 +280,20 @@ export default function Motor() {
 
                 }}
 
+            />
+
+            <input
+
+                ref={fileInputRef}
+            
+                type="file"
+            
+                accept=".xlsx"
+            
+                hidden
+            
+                onChange={handleImportFile}
+            
             />
 
             <MotorFilter
@@ -518,15 +596,37 @@ export default function Motor() {
             />
             
             <MotorImportModal
+
                 open={openImport}
+            
+                file={selectedFile}
+            
+                preview={previewData}
+            
+                summary={summary}
+            
                 onClose={() => {
+            
                     setOpenImport(false);
+            
+                    setSelectedFile(null);
+            
+                    setPreviewData([]);
+            
+                    setSummary(null);
+            
                 }}
+            
                 onSuccess={async () => {
+            
                     setOpenImport(false);
+            
                     await loadMotors();
+            
                     await loadStatistics();
+            
                 }}
+            
             />
             
             <MotorHistoryModal
