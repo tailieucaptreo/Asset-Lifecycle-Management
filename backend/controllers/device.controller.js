@@ -134,34 +134,58 @@ exports.getDevices = async (req, res) => {
 };
 
 // ================= CREATE =================
-const categoryInfo = detectCategory({
-    name: d.name,
-    code: d.code,
-    model: d.model,
-    brand: d.brand
-});
+exports.createDevice = async (req, res) => {
 
-const result = await prisma.device.create({
+    try {
 
-    data: {
+        const d = req.body;
 
-        ...d,
+        const categoryInfo = detectCategory({
+            name: d.name,
+            code: d.code,
+            model: d.model,
+            brand: d.brand
+        });
 
-        category: categoryInfo.category,
+        const result = await prisma.device.create({
 
-        brand: categoryInfo.brand,
+            data: {
 
-        status: normalizeStatus(d.status),
+                ...d,
 
-        installDate: parseDate(d.installDate),
+                category: categoryInfo.category,
 
-        lastMaintenance: parseDate(d.lastMaintenance),
+                brand: categoryInfo.brand,
 
-        expiryDate: parseDate(d.expiryDate)
+                status: normalizeStatus(d.status),
+
+                installDate: parseDate(d.installDate),
+
+                lastMaintenance: parseDate(d.lastMaintenance),
+
+                expiryDate: parseDate(d.expiryDate)
+
+            }
+
+        });
+
+        res.json(result);
 
     }
 
-});
+    catch(err){
+
+        console.log(err);
+
+        res.status(500).json({
+
+            error:err.message
+
+        });
+
+    }
+
+};
 
 // ================= UPDATE =================
 const categoryInfo = detectCategory({
