@@ -6,14 +6,13 @@ export default function MotorHeader() {
 
         <div
             className="
-                bg-gradient-to-r
-                from-indigo-600
-                via-blue-600
-                to-cyan-600
-                rounded-3xl
-                shadow-xl
-                overflow-hidden
                 relative
+                overflow-hidden
+                bg-white
+                rounded-3xl
+                border
+                border-slate-200
+                shadow-sm
             "
         >
 
@@ -27,7 +26,7 @@ export default function MotorHeader() {
                     w-40
                     h-40
                     rounded-full
-                    bg-white/10
+                    bg-blue-50
                 "
             />
 
@@ -39,7 +38,7 @@ export default function MotorHeader() {
                     w-24
                     h-24
                     rounded-full
-                    bg-white/10
+                    bg-blue-50
                 "
             />
 
@@ -67,18 +66,16 @@ export default function MotorHeader() {
                             w-16
                             h-16
                             rounded-2xl
-                            bg-white/20
-                            backdrop-blur
+                            bg-blue-50
                             flex
                             items-center
                             justify-center
-                            shadow-lg
                         "
                     >
 
                         <Cog
                             size={34}
-                            className="text-white"
+                            className="text-blue-600"
                         />
 
                     </div>
@@ -90,7 +87,7 @@ export default function MotorHeader() {
                                 text-3xl
                                 md:text-4xl
                                 font-bold
-                                text-white
+                                text-slate-900
                             "
                         >
                             Quản lý động cơ
@@ -99,7 +96,7 @@ export default function MotorHeader() {
                         <p
                             className="
                                 mt-2
-                                text-blue-100
+                                text-slate-500
                                 max-w-3xl
                                 leading-relaxed
                             "
@@ -129,17 +126,20 @@ export default function MotorHeader() {
                         className="
                             flex
                             items-center
-                            gap-2
+                            gap-3
                             rounded-2xl
-                            bg-white/15
-                            backdrop-blur
-                            px-4
+                            border
+                            border-slate-200
+                            bg-slate-50
+                            px-5
                             py-3
-                            text-white
                         "
                     >
 
-                        <Activity size={20} />
+                        <Activity
+                            size={20}
+                            className="text-blue-600"
+                        />
 
                         <div>
 
@@ -148,13 +148,13 @@ export default function MotorHeader() {
                                     text-xs
                                     uppercase
                                     tracking-wider
-                                    text-blue-100
+                                    text-slate-500
                                 "
                             >
                                 Module
                             </div>
 
-                            <div className="font-semibold">
+                            <div className="font-semibold text-slate-800">
                                 Motor Management
                             </div>
 
