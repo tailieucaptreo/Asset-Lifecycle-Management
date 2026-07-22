@@ -26,6 +26,7 @@ import CategoryDetail from "./pages/CategoryDetail";
 import SpareDetail from "./pages/SpareDetail";
 import Drive from "./pages/Drive";
 import DriveFaultHistory from "./pages/DriveFaultHistory";
+import Motor from "./pages/Motor";
 
 function Layout() {
 
@@ -251,6 +252,14 @@ function Layout() {
           <Route
               path="/drive-faults"
               element={<DriveFaultHistory />}
+          />
+
+          <Route
+
+              path="/motors"
+          
+              element={<Motor />}
+          
           />
 
         </Routes>
