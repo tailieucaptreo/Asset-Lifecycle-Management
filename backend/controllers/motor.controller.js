@@ -960,11 +960,11 @@ exports.previewImport = async (req, res) => {
 
             if (!row.deviceId) {
 
-                skipCount++;
+                newCount++;
 
                 preview.push({
 
-                    action: "SKIP",
+                    action: "NEW",
 
                     changedFields: [
 
@@ -1226,10 +1226,10 @@ exports.importMotors = async (req, res) => {
 
             if (!data.deviceId) {
 
-                skipped++;
-
+                createList.push(data);
+            
                 continue;
-
+            
             }
 
             const exists =
