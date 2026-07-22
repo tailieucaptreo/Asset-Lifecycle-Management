@@ -81,7 +81,7 @@ export default function MotorImportModal({
             const res =
                 await axios.post(
 
-                    `${API}/motors/preview-import`,
+                    `${API}/api/motors/preview-import`,
 
                     form,
 
@@ -149,7 +149,7 @@ export default function MotorImportModal({
 
             await axios.post(
 
-                `${API}/motors/import`,
+                `${API}/api/motors/import`,
 
                 form,
 
