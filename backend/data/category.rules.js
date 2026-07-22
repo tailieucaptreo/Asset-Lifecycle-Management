@@ -1,357 +1,291 @@
-// =======================================
-// Category Rules
-// Priority: càng lớn càng ưu tiên
-// =======================================
+// backend/data/category.rules.js
 
 module.exports = [
 
-    // ===========================
+    // =====================================================
     // BIẾN TẦN
-    // ===========================
+    // =====================================================
+
     {
         category: "Biến tần",
         priority: 100,
+
         keywords: [
 
-            // ABB
-            "acs355",
-            "acs550",
-            "acs580",
-            "acs800",
-            "acs880",
+            { text: "drive", weight: 25 },
+            { text: "vfd", weight: 40 },
+            { text: "inverter", weight: 40 },
+            { text: "frequency converter", weight: 45 },
 
-            // VACON
-            "vacon",
-            "nxa",
-            "nxb",
-            "nxi",
+            { text: "acs", weight: 30 },
+            { text: "vacon", weight: 40 },
+            { text: "danfoss", weight: 30 },
 
-            // Danfoss
-            "danfoss",
-            "fc51",
-            "fc102",
-            "fc202",
-            "fc302",
+            { text: "sinamics", weight: 40 },
+            { text: "atv", weight: 35 },
+            { text: "movidrive", weight: 40 },
+            { text: "movitrac", weight: 40 }
 
-            "inverter",
-            "frequency converter",
-            "drive",
-            "vfd"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // PLC
-    // ===========================
+    // =====================================================
+
     {
         category: "PLC",
         priority: 95,
+
         keywords: [
 
-            "plc",
+            { text: "plc", weight: 50 },
+            { text: "cpu", weight: 40 },
 
-            "cpu",
+            { text: "simatic", weight: 40 },
+            { text: "s7", weight: 45 },
 
-            "pilz",
+            { text: "pilz", weight: 35 },
+            { text: "pss", weight: 35 },
 
-            "pss",
-            "pssu",
+            { text: "mitsubishi", weight: 30 },
+            { text: "omron", weight: 30 },
 
-            "siemens",
-            "simatic",
-            "s7",
+            { text: "schneider", weight: 20 },
+            { text: "modicon", weight: 35 },
 
-            "omron",
-            "cj1",
-            "cp1",
-            "nx1",
+            { text: "allen bradley", weight: 35 },
+            { text: "rockwell", weight: 30 }
 
-            "mitsubishi",
-            "fx3",
-            "fx5",
-            "q series",
-
-            "allen bradley",
-
-            "rockwell"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // BECKHOFF
-    // ===========================
+    // =====================================================
+
     {
         category: "BECKHOFF",
         priority: 90,
+
         keywords: [
 
-            "beckhoff",
+            { text: "beckhoff", weight: 50 },
 
-            "ethercat",
+            { text: "ethercat", weight: 30 },
 
-            "ek1100",
+            { text: "ek", weight: 20 },
+            { text: "el", weight: 20 },
+            { text: "kl", weight: 20 },
+            { text: "bk", weight: 20 },
+            { text: "cx", weight: 20 }
 
-            "bk9050",
-
-            "cx",
-
-            "el1008",
-            "el1018",
-            "el1809",
-            "el2008",
-            "el2809",
-            "el3002",
-            "el3054",
-            "el3062",
-            "el3202",
-            "el3314",
-            "el3403",
-
-            "kl1408",
-            "kl2408",
-            "kl3202"
         ]
     },
 
-    // ===========================
-    // THIẾT BỊ AN TOÀN
-    // ===========================
+    // =====================================================
+    // AN TOÀN
+    // =====================================================
+
     {
         category: "An toàn",
         priority: 85,
+
         keywords: [
 
-            "emergency stop",
+            { text: "safety", weight: 40 },
 
-            "emergency",
+            { text: "emergency stop", weight: 45 },
+            { text: "estop", weight: 45 },
 
-            "estop",
+            { text: "safety relay", weight: 45 },
+            { text: "light curtain", weight: 45 },
 
-            "e-stop",
+            { text: "guard switch", weight: 35 },
 
-            "safety",
+            { text: "rope switch", weight: 40 },
 
-            "safety relay",
+            { text: "speed monitor", weight: 35 },
 
-            "safety switch",
+            { text: "overspeed", weight: 35 }
 
-            "light curtain",
-
-            "pilz s1um",
-
-            "overspeed",
-
-            "speed monitor",
-
-            "rope switch",
-
-            "safety contact",
-
-            "guard switch"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // ĐIỆN ĐIỀU KHIỂN
-    // ===========================
+    // =====================================================
+
     {
         category: "Điện điều khiển",
         priority: 80,
+
         keywords: [
 
-            "relay",
+            { text: "relay", weight: 20 },
 
-            "interposing relay",
+            { text: "interface relay", weight: 35 },
 
-            "contactor",
+            { text: "time relay", weight: 35 },
 
-            "mcb",
+            { text: "solid state relay", weight: 35 },
 
-            "mccb",
+            { text: "contactor", weight: 30 },
 
-            "rcbo",
+            { text: "breaker", weight: 20 },
 
-            "rcd",
+            { text: "mcb", weight: 25 },
+            { text: "mccb", weight: 25 },
+            { text: "rcbo", weight: 25 },
 
-            "fuse",
+            { text: "terminal", weight: 25 },
 
-            "cau chi",
+            { text: "terminal block", weight: 30 },
 
-            "elr",
+            { text: "selector", weight: 25 },
 
-            "terminal",
+            { text: "push button", weight: 30 },
 
-            "terminal block",
+            { text: "pilot lamp", weight: 25 },
 
-            "socket",
+            { text: "buzzer", weight: 20 },
 
-            "selector",
+            { text: "horn", weight: 20 },
 
-            "selector switch",
+            { text: "power supply", weight: 30 },
 
-            "key switch",
+            { text: "smps", weight: 30 },
 
-            "chia khoa",
+            { text: "ups", weight: 35 },
 
-            "switch",
+            { text: "psu", weight: 35 }
 
-            "push button",
-
-            "button",
-
-            "nut nhan",
-
-            "pilot lamp",
-
-            "indicator",
-
-            "lamp",
-
-            "den",
-
-            "buzzer",
-
-            "horn",
-
-            "power supply",
-
-            "24vdc",
-
-            "smps",
-
-            "ups",
-
-            "charger",
-
-            "potentiometer",
-
-            "bien tro",
-
-            "chiet ap"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // CẢM BIẾN
-    // ===========================
+    // =====================================================
+
     {
         category: "Cảm biến",
         priority: 75,
+
         keywords: [
 
-            "sensor",
+            { text: "sensor", weight: 40 },
 
-            "encoder",
+            { text: "encoder", weight: 40 },
 
-            "resolver",
+            { text: "resolver", weight: 40 },
 
-            "photo sensor",
+            { text: "photoelectric", weight: 35 },
 
-            "photoelectric",
+            { text: "photo sensor", weight: 35 },
 
-            "laser sensor",
+            { text: "laser", weight: 35 },
 
-            "inductive",
+            { text: "proximity", weight: 35 },
 
-            "proximity",
+            { text: "inductive", weight: 35 },
 
-            "limit switch",
+            { text: "limit switch", weight: 30 },
 
-            "reed switch",
+            { text: "reed switch", weight: 30 },
 
-            "temperature sensor",
+            { text: "temperature sensor", weight: 35 },
 
-            "pressure sensor",
+            { text: "pressure sensor", weight: 35 },
 
-            "load cell"
+            { text: "load cell", weight: 35 }
+
         ]
     },
 
-    // ===========================
+    // =====================================================
     // ĐỘNG CƠ
-    // ===========================
+    // =====================================================
+
     {
         category: "Động cơ",
         priority: 70,
+
         keywords: [
 
-            "motor",
+            { text: "motor", weight: 40 },
 
-            "servo",
+            { text: "servo", weight: 40 },
 
-            "gear motor",
+            { text: "gear motor", weight: 45 },
 
-            "gearbox",
+            { text: "gearbox", weight: 30 },
 
-            "brake motor",
+            { text: "brake motor", weight: 40 },
 
-            "fan",
+            { text: "fan", weight: 20 },
 
-            "blower",
+            { text: "blower", weight: 25 }
 
-            "cooling fan"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // NGUỒN
-    // ===========================
+    // =====================================================
+
     {
         category: "Nguồn",
         priority: 65,
+
         keywords: [
 
-            "battery",
+            { text: "battery", weight: 35 },
 
-            "ac dc",
+            { text: "rectifier", weight: 40 },
 
-            "dc dc",
+            { text: "transformer", weight: 35 },
 
-            "power module",
+            { text: "power module", weight: 35 },
 
-            "rectifier",
+            { text: "24 volt", weight: 20 },
 
-            "transformer",
+            { text: "48 volt", weight: 20 }
 
-            "24 volt",
-
-            "48 volt"
         ]
     },
 
-    // ===========================
+    // =====================================================
     // TRUYỀN THÔNG
-    // ===========================
+    // =====================================================
+
     {
         category: "Truyền thông",
         priority: 60,
+
         keywords: [
 
-            "ethernet",
+            { text: "ethernet", weight: 35 },
 
-            "ethercat",
+            { text: "profinet", weight: 35 },
 
-            "profibus",
+            { text: "profibus", weight: 35 },
 
-            "profinet",
+            { text: "modbus", weight: 35 },
 
-            "modbus",
+            { text: "ethercat", weight: 35 },
 
-            "canopen",
+            { text: "canopen", weight: 35 },
 
-            "gateway",
+            { text: "gateway", weight: 35 },
 
-            "converter",
+            { text: "converter", weight: 30 },
 
-            "hub",
+            { text: "network switch", weight: 35 },
 
-            "network switch",
+            { text: "fiber converter", weight: 35 },
 
-            "industrial switch",
+            { text: "modem", weight: 25 }
 
-            "fiber converter",
-
-            "modem"
         ]
     }
 
