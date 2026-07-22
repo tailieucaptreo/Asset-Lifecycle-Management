@@ -459,7 +459,7 @@ export default function Dashboard() {
           value={expired}
           color="bg-red-500"
           icon={<AlertTriangle />}
-          to="/devices/expired"
+          to="/devices?status=Expired"
         />
 
         {/* SPARE DEVICE */}
