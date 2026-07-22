@@ -605,6 +605,8 @@ export default function Motor() {
             
                 summary={summary}
             
+                token={token}
+            
                 onClose={() => {
             
                     setOpenImport(false);
