@@ -861,176 +861,123 @@ export default function MotorImportModal({
                             </div>
 
                         }
+                                                {/* Footer */}
 
-                        {/* Footer */}
-
-                <div
-                    className="
-                        border-t
-                        bg-white
-                        px-6
-                        py-4
-                        flex
-                        flex-col
-                        md:flex-row
-                        md:items-center
-                        md:justify-between
-                        gap-4
-                    "
-                >
-
-                    <div
-                        className="
-                            text-sm
-                            text-slate-500
-                        "
-                    >
-
-                        {
-
-                            preview.length > 0
-
-                                ?
-
-                                <>
-                                    Có <strong>{summary.total}</strong> bản ghi.
-
-                                    {" "}
-
-                                    Trong đó
-
-                                    {" "}
-
-                                    <span className="text-green-600 font-medium">
-
-                                        {summary.new} mới
-
-                                    </span>
-
-                                    ,
-
-                                    {" "}
-
-                                    <span className="text-yellow-600 font-medium">
-
-                                        {summary.update} cập nhật
-
-                                    </span>
-
-                                    ,
-
-                                    {" "}
-
-                                    <span className="text-slate-600 font-medium">
-
-                                        {summary.skip} bỏ qua
-
-                                    </span>
-
-                                </>
-
-                                :
-
-                                "Chưa có dữ liệu để import."
-
-                        }
-
-                    </div>
-
-                    <div
-                        className="
-                            flex
-                            justify-end
-                            gap-3
-                        "
-                    >
-
-                        <button
-
-                            onClick={onClose}
-
-                            disabled={importing}
-
+                        <div
                             className="
-                                px-5
-                                py-2.5
-                                rounded-xl
-                                border
-                                hover:bg-slate-100
-                                disabled:opacity-50
-                                transition
-                            "
-
-                        >
-
-                            Đóng
-
-                        </button>
-
-                        <button
-
-                            onClick={handleImport}
-
-                            disabled={
-                                importing ||
-                                !file ||
-                                preview.length === 0
-                            }
-
-                            className="
-                                inline-flex
-                                items-center
-                                gap-2
-                                rounded-xl
-                                bg-blue-600
-                                hover:bg-blue-700
-                                disabled:bg-slate-300
-                                text-white
+                                border-t
+                                bg-white
                                 px-6
-                                py-2.5
-                                transition
+                                py-4
+                                flex
+                                flex-col
+                                md:flex-row
+                                md:items-center
+                                md:justify-between
+                                gap-4
                             "
-
                         >
 
-                            {
+                            <div className="text-sm text-slate-500">
 
-                                importing
-
-                                    ?
-
+                                {preview.length > 0 ? (
                                     <>
+                                        Có <strong>{summary.total}</strong> bản ghi.
 
-                                        <Loader2
-                                            size={18}
-                                            className="animate-spin"
-                                        />
+                                        {" "}Trong đó{" "}
 
-                                        Đang import...
+                                        <span className="text-green-600 font-medium">
+                                            {summary.new} mới
+                                        </span>
 
+                                        ,{" "}
+
+                                        <span className="text-yellow-600 font-medium">
+                                            {summary.update} cập nhật
+                                        </span>
+
+                                        ,{" "}
+
+                                        <span className="text-slate-600 font-medium">
+                                            {summary.skip} bỏ qua
+                                        </span>
                                     </>
+                                ) : (
+                                    "Chưa có dữ liệu để import."
+                                )}
 
-                                    :
+                            </div>
 
-                                    <>
+                            <div className="flex justify-end gap-3">
 
-                                        <Upload size={18} />
+                                <button
+                                    onClick={onClose}
+                                    disabled={importing}
+                                    className="
+                                        px-5
+                                        py-2.5
+                                        rounded-xl
+                                        border
+                                        hover:bg-slate-100
+                                        disabled:opacity-50
+                                        transition
+                                    "
+                                >
+                                    Đóng
+                                </button>
 
-                                        Xác nhận Import
+                                <button
+                                    onClick={handleImport}
+                                    disabled={
+                                        importing ||
+                                        !file ||
+                                        preview.length === 0
+                                    }
+                                    className="
+                                        inline-flex
+                                        items-center
+                                        gap-2
+                                        rounded-xl
+                                        bg-blue-600
+                                        hover:bg-blue-700
+                                        disabled:bg-slate-300
+                                        text-white
+                                        px-6
+                                        py-2.5
+                                        transition
+                                    "
+                                >
 
-                                    </>
+                                    {importing ? (
+                                        <>
+                                            <Loader2
+                                                size={18}
+                                                className="animate-spin"
+                                            />
+                                            Đang import...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Upload size={18} />
+                                            Xác nhận Import
+                                        </>
+                                    )}
 
-                            }
+                                </button>
 
-                        </button>
+                            </div>
 
-                    </div>
+                        </div>
 
-                </div>
+                    </div> 
 
-            </div>
+                )} 
 
-        </div>
+            </div> 
+
+        </div> 
+
+    </div> 
 
     );
 
@@ -1041,13 +988,9 @@ export default function MotorImportModal({
 =========================== */
 
 function SummaryCard({
-
     title,
-
     value,
-
     color
-
 }) {
 
     return (
@@ -1060,27 +1003,12 @@ function SummaryCard({
             `}
         >
 
-            <div
-                className="
-                    text-sm
-                    font-medium
-                "
-            >
-
+            <div className="text-sm font-medium">
                 {title}
-
             </div>
 
-            <div
-                className="
-                    mt-2
-                    text-3xl
-                    font-bold
-                "
-            >
-
+            <div className="mt-2 text-3xl font-bold">
                 {value}
-
             </div>
 
         </div>
@@ -1088,3 +1016,4 @@ function SummaryCard({
     );
 
 }
+     
