@@ -649,70 +649,107 @@ exports.previewImport = async (req, res) => {
 
             const row = {
 
-                deviceId:
-                    String(
-                        excelRow["Mã TB"] ??
-                        excelRow["Mã thiết bị"] ??
-                        excelRow.deviceId ??
-                        ""
-                    ).trim(),
-
-                name:
-                    String(
-                        excelRow["Tên động cơ"] ??
-                        excelRow.name ??
-                        ""
-                    ).trim(),
-
-                type:
-                    String(
-                        excelRow["Loại"] ??
-                        excelRow.type ??
-                        ""
-                    ).trim(),
-
-                brand:
-                    String(
-                        excelRow["Hãng"] ??
-                        excelRow.brand ??
-                        ""
-                    ).trim(),
-
-                model:
-                    String(
-                        excelRow["Model"] ??
-                        excelRow.model ??
-                        ""
-                    ).trim(),
-
-                power:
-                    String(
-                        excelRow["Công suất"] ??
-                        excelRow.power ??
-                        ""
-                    ).trim(),
-
-                line:
-                    String(
-                        excelRow["Tuyến"] ??
-                        excelRow.line ??
-                        ""
-                    ).trim(),
-
-                station:
-                    String(
-                        excelRow["Nhà ga"] ??
-                        excelRow.station ??
-                        ""
-                    ).trim(),
-
-                status:
-                    String(
-                        excelRow["Trạng thái"] ??
-                        excelRow.status ??
-                        ""
-                    ).trim()
-
+                deviceId: String(
+                    excelRow["Mã Vật Tư/ID"] ??
+                    excelRow["Mã TB"] ??
+                    excelRow.deviceId ??
+                    ""
+                ).trim(),
+            
+                name: String(
+                    excelRow["Tên thiết bị"] ??
+                    excelRow["Tên động cơ"] ??
+                    excelRow.name ??
+                    ""
+                ).trim(),
+            
+                type: String(
+                    excelRow["Loại thiết bị"] ??
+                    excelRow["Loại"] ??
+                    excelRow.type ??
+                    ""
+                ).trim(),
+            
+                brand: String(
+                    excelRow["Hãng"] ??
+                    excelRow.brand ??
+                    ""
+                ).trim(),
+            
+                model: String(
+                    excelRow["Model"] ??
+                    excelRow.model ??
+                    ""
+                ).trim(),
+            
+                serial: String(
+                    excelRow["Serial Number ID"] ??
+                    excelRow.serial ??
+                    ""
+                ).trim(),
+            
+                power: String(
+                    excelRow["Công suất (kW)"] ??
+                    excelRow["Công suất"] ??
+                    excelRow.power ??
+                    ""
+                ).trim(),
+            
+                bearingCode: String(
+                    excelRow["Mã ổ bi"] ??
+                    excelRow.bearingCode ??
+                    ""
+                ).trim(),
+            
+                runningHours: String(
+                    excelRow["Số giờ vận hành"] ??
+                    excelRow.runningHours ??
+                    ""
+                ).trim(),
+            
+                line: String(
+                    excelRow["Tuyến cáp"] ??
+                    excelRow["Tuyến"] ??
+                    excelRow.line ??
+                    ""
+                ).trim(),
+            
+                station: String(
+                    excelRow["Nhà ga"] ??
+                    excelRow.station ??
+                    ""
+                ).trim(),
+            
+                location: String(
+                    excelRow["Vị trí lắp đặt"] ??
+                    excelRow.location ??
+                    ""
+                ).trim(),
+            
+                warehouse: String(
+                    excelRow["Vị trí lưu kho"] ??
+                    excelRow.warehouse ??
+                    ""
+                ).trim(),
+            
+                status: String(
+                    excelRow["Trạng thái"] ??
+                    excelRow.status ??
+                    ""
+                ).trim(),
+            
+                replacementDate:
+                    excelRow["Thời gian thay thế"] || "",
+            
+                maintenanceDate:
+                    excelRow["Ngày bảo trì"] || "",
+            
+                note: String(
+                    excelRow["Ghi chú"] ??
+                    excelRow.note ??
+                    ""
+                ).trim()
+            
             };
 
             // ===========================
@@ -948,23 +985,23 @@ exports.importMotors = async (req, res) => {
 
             const data = {
 
-                deviceId,
-
-                name: row["Tên động cơ"] || row.name,
-
-                type: row["Loại"] || row.type,
-
-                brand: row["Hãng"] || row.brand,
-
-                model: row["Model"] || row.model,
-
-                power: row["Công suất"] || row.power,
-
-                line: row["Tuyến"] || row.line,
-
-                station: row["Nhà ga"] || row.station,
-
-                status: row["Trạng thái"] || row.status
+                deviceId: row["Mã Vật Tư/ID"],
+               name: row["Tên thiết bị"],
+               type: row["Loại thiết bị"],
+               brand: row["Hãng"],
+               model: row["Model"],
+               serial: row["Serial Number ID"],
+               power: row["Công suất (kW)"],
+               bearingCode: row["Mã ổ bi"],
+               runningHours: row["Số giờ vận hành"],
+               line: row["Tuyến cáp"],
+               station: row["Nhà ga"],
+               location: row["Vị trí lắp đặt"],
+               warehouse: row["Vị trí lưu kho"],
+               status: row["Trạng thái"],
+               replacementDate: row["Thời gian thay thế"],
+               maintenanceDate: row["Ngày bảo trì"],
+               note: row["Ghi chú"],
 
             };
 
