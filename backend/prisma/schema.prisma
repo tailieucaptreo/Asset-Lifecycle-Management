@@ -339,7 +339,7 @@ model Motor {
 
   id                Int       @id @default(autoincrement())
 
-  deviceId          String?    @unique
+  deviceId          String?   
   name              String
   type              String
   brand             String
@@ -377,6 +377,7 @@ model Motor {
   histories         MotorHistory[]
   maintenances      MotorMaintenance[]
   faults            MotorFault[]
+  @@unique([deviceId, line, station, location])
 }
 
 model MotorHistory {
