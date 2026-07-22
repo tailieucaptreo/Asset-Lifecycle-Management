@@ -1,11 +1,14 @@
 const normalize = require("../utils/normalize");
+
+const MODELS = require("../data/models");
+const MANUFACTURERS = require("../data/manufacturers");
 const RULES = require("../data/category.rules");
 const ALIAS = require("../data/category.alias");
-const MANUFACTURERS = require("../data/manufacturers");
 
-// =============================
+// =====================================
 // Apply Alias
-// =============================
+// =====================================
+
 function applyAlias(text) {
 
     let result = text;
@@ -13,8 +16,11 @@ function applyAlias(text) {
     for (const [from, to] of Object.entries(ALIAS)) {
 
         result = result.replaceAll(
+
             normalize(from),
+
             normalize(to)
+
         );
 
     }
@@ -23,64 +29,119 @@ function applyAlias(text) {
 
 }
 
-// =============================
-// Detect Manufacturer
-// =============================
+// =====================================
+// Detect Brand
+// =====================================
+
 function detectBrand(text) {
 
     for (const brand of MANUFACTURERS) {
 
-        if (text.includes(normalize(brand))) {
+        for (const alias of brand.aliases) {
 
-            return brand;
+            if (text.includes(normalize(alias))) {
 
-        }
-
-    }
-
-    return "";
-
-}
-
-// =============================
-// Score Rule
-// =============================
-function scoreRules(text) {
-
-    const scores = {};
-
-    for (const rule of RULES) {
-
-        scores[rule.category] = 0;
-
-    }
-
-    for (const rule of RULES) {
-
-        let score = 0;
-
-        for (const keyword of rule.keywords) {
-
-            if (text.includes(normalize(keyword))) {
-
-                score += rule.priority;
+                return brand;
 
             }
 
         }
 
-        scores[rule.category] += score;
-
     }
 
-    return scores;
+    return null;
 
 }
 
-// =============================
-// Highest Score
-// =============================
-function getBest(scores) {
+// =====================================
+// Init Score
+// =====================================
+
+function createBoard() {
+
+    const board = {};
+
+    for (const rule of RULES) {
+
+        board[rule.category] = 0;
+
+    }
+
+    return board;
+
+}
+
+// =====================================
+// Score Model
+// =====================================
+
+function scoreModels(text, board) {
+
+    for (const model of MODELS) {
+
+        if (model.regex.test(text)) {
+
+            board[model.category] += model.score;
+
+        }
+
+    }
+
+}
+
+// =====================================
+// Score Manufacturer
+// =====================================
+
+function scoreManufacturers(text, board) {
+
+    const brand = detectBrand(text);
+
+    if (brand) {
+
+        board[brand.category] += brand.score;
+
+    }
+
+    return brand;
+
+}
+
+// =====================================
+// Score Keywords
+// =====================================
+
+function scoreKeywords(text, board) {
+
+    for (const rule of RULES) {
+
+        for (const keyword of rule.keywords) {
+
+            if (
+
+                text.includes(
+
+                    normalize(keyword.text)
+
+                )
+
+            ) {
+
+                board[rule.category] += keyword.weight;
+
+            }
+
+        }
+
+    }
+
+}
+
+// =====================================
+// Get Best
+// =====================================
+
+function getBest(board) {
 
     let bestCategory = "Khác";
 
@@ -88,7 +149,7 @@ function getBest(scores) {
 
     let secondScore = 0;
 
-    for (const [category, score] of Object.entries(scores)) {
+    for (const [category, score] of Object.entries(board)) {
 
         if (score > bestScore) {
 
@@ -116,11 +177,11 @@ function getBest(scores) {
 
             : Math.round(
 
-                (bestScore /
+                bestScore *
 
-                    (bestScore + secondScore)
+                100 /
 
-                ) * 100
+                (bestScore + secondScore)
 
             );
 
@@ -136,9 +197,10 @@ function getBest(scores) {
 
 }
 
-// =============================
+// =====================================
 // Detect Category
-// =============================
+// =====================================
+
 function detectCategory({
 
     name = "",
@@ -149,7 +211,7 @@ function detectCategory({
 
     brand = ""
 
-}) {
+} = {}) {
 
     let text = [
 
@@ -167,17 +229,37 @@ function detectCategory({
 
     text = applyAlias(text);
 
+    const board = createBoard();
+
+    scoreModels(
+
+        text,
+
+        board
+
+    );
+
     const detectedBrand =
 
-        detectBrand(text);
+        scoreManufacturers(
 
-    const scores =
+            text,
 
-        scoreRules(text);
+            board
+
+        );
+
+    scoreKeywords(
+
+        text,
+
+        board
+
+    );
 
     const best =
 
-        getBest(scores);
+        getBest(board);
 
     return {
 
@@ -187,20 +269,52 @@ function detectCategory({
 
             brand ||
 
-            detectedBrand ||
+            detectedBrand?.name ||
 
             "",
 
         score: best.score,
 
-        confidence: best.confidence
+        confidence: best.confidence,
+
+        board
 
     };
 
 }
 
+// =====================================
+// Detect Many
+// =====================================
+
+function detectMany(rows = []) {
+
+    return rows.map(row => ({
+
+        ...row,
+
+        categoryInfo:
+
+            detectCategory({
+
+                name: row.name,
+
+                code: row.code,
+
+                model: row.model,
+
+                brand: row.brand
+
+            })
+
+    }));
+
+}
+
 module.exports = {
 
-    detectCategory
+    detectCategory,
+
+    detectMany
 
 };
