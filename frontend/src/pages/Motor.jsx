@@ -82,6 +82,12 @@ export default function Motor() {
 
     const [openHistory, setOpenHistory] = useState(false);
 
+    console.log("API =", API);
+
+    console.log(
+        `${API}/api/motors`
+    );
+
     const loadMotors = async () => {
 
         try {
