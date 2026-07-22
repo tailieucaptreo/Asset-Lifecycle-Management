@@ -840,6 +840,10 @@ exports.previewImport = async (req, res) => {
 
         }
 
+        // =========================
+        // Đọc Excel
+        // =========================
+
         const workbook = XLSX.read(req.file.buffer, {
 
             type: "buffer"
@@ -857,19 +861,102 @@ exports.previewImport = async (req, res) => {
 
         });
 
+        // =========================
+        // Load toàn bộ Motor 1 lần
+        // =========================
+
+        const motors =
+            await prisma.motor.findMany({
+
+                select: {
+
+                    id: true,
+
+                    deviceId: true,
+
+                    name: true,
+
+                    type: true,
+
+                    brand: true,
+
+                    model: true,
+
+                    serial: true,
+
+                    power: true,
+
+                    voltage: true,
+
+                    current: true,
+
+                    frequency: true,
+
+                    rpm: true,
+
+                    efficiency: true,
+
+                    pole: true,
+
+                    bearingCode: true,
+
+                    runningHours: true,
+
+                    line: true,
+
+                    station: true,
+
+                    location: true,
+
+                    warehouse: true,
+
+                    status: true,
+
+                    replacementDate: true,
+
+                    maintenanceDate: true,
+
+                    note: true
+
+                }
+
+            });
+
+        // =========================
+        // Tạo Map
+        // =========================
+
+        const motorMap = new Map();
+
+        motors.forEach(motor => {
+
+            motorMap.set(
+
+                motor.deviceId,
+
+                motor
+
+            );
+
+        });
+
+        // =========================
+        // Preview
+        // =========================
+
         const preview = [];
 
         let newCount = 0;
+
         let updateCount = 0;
+
         let skipCount = 0;
 
         for (const excelRow of rows) {
 
             const row = mapMotorRow(excelRow);
 
-            // =========================
-            // Thiếu mã thiết bị
-            // =========================
+            // Không có mã thiết bị
 
             if (!row.deviceId) {
 
@@ -893,24 +980,14 @@ exports.previewImport = async (req, res) => {
 
             }
 
-            // =========================
-            // Kiểm tra trong DB
-            // =========================
+            // Tra cứu trong Map
 
             const exists =
-                await prisma.motor.findUnique({
+                motorMap.get(
+                    row.deviceId
+                );
 
-                    where: {
-
-                        deviceId: row.deviceId
-
-                    }
-
-                });
-
-            // =========================
             // Chưa tồn tại
-            // =========================
 
             if (!exists) {
 
@@ -930,14 +1007,17 @@ exports.previewImport = async (req, res) => {
 
             }
 
-            // =========================
-            // So sánh dữ liệu
-            // =========================
+            // So sánh
 
             const changedFields =
-                compareMotor(exists, row);
+                compareMotor(
+                    exists,
+                    row
+                );
 
-            if (changedFields.length === 0) {
+            if (
+                changedFields.length === 0
+            ) {
 
                 skipCount++;
 
@@ -971,7 +1051,7 @@ exports.previewImport = async (req, res) => {
 
         }
 
-        res.json({
+        return res.json({
 
             summary: {
 
@@ -995,7 +1075,7 @@ exports.previewImport = async (req, res) => {
 
         console.error(err);
 
-        res.status(500).json({
+        return res.status(500).json({
 
             message: "Không thể xem trước dữ liệu."
 
@@ -1023,6 +1103,10 @@ exports.importMotors = async (req, res) => {
 
         }
 
+        // =========================
+        // Đọc Excel
+        // =========================
+
         const workbook = XLSX.read(req.file.buffer, {
 
             type: "buffer"
@@ -1040,17 +1124,105 @@ exports.importMotors = async (req, res) => {
 
         });
 
-        let created = 0;
-        let updated = 0;
+        // =========================
+        // Load toàn bộ Motor
+        // =========================
+
+        const motors =
+            await prisma.motor.findMany({
+
+                select: {
+
+                    id: true,
+
+                    deviceId: true,
+
+                    name: true,
+
+                    type: true,
+
+                    brand: true,
+
+                    model: true,
+
+                    serial: true,
+
+                    power: true,
+
+                    voltage: true,
+
+                    current: true,
+
+                    frequency: true,
+
+                    rpm: true,
+
+                    efficiency: true,
+
+                    pole: true,
+
+                    bearingCode: true,
+
+                    runningHours: true,
+
+                    line: true,
+
+                    station: true,
+
+                    location: true,
+
+                    warehouse: true,
+
+                    status: true,
+
+                    replacementDate: true,
+
+                    maintenanceDate: true,
+
+                    note: true
+
+                }
+
+            });
+
+        // =========================
+        // Tạo Map
+        // =========================
+
+        const motorMap = new Map();
+
+        motors.forEach(motor => {
+
+            motorMap.set(
+
+                motor.deviceId,
+
+                motor
+
+            );
+
+        });
+
+        // =========================
+        // Danh sách xử lý
+        // =========================
+
+        const createList = [];
+
+        const updateList = [];
+
         let skipped = 0;
+
+        // =========================
+        // Phân loại dữ liệu
+        // =========================
 
         for (const excelRow of rows) {
 
-            const data = mapMotorRow(excelRow);
+            const data =
+                mapMotorRow(excelRow);
 
-            // =========================
-            // Thiếu mã thiết bị
-            // =========================
+            // Thiếu mã TB
 
             if (!data.deviceId) {
 
@@ -1061,61 +1233,33 @@ exports.importMotors = async (req, res) => {
             }
 
             const exists =
-                await prisma.motor.findUnique({
+                motorMap.get(
+                    data.deviceId
+                );
 
-                    where: {
-
-                        deviceId: data.deviceId
-
-                    }
-
-                });
-
-            // =========================
-            // Thêm mới
-            // =========================
+            // Chưa tồn tại
 
             if (!exists) {
 
-                const motor =
-                    await prisma.motor.create({
-
-                        data
-
-                    });
-
-                await writeHistory({
-
-                    motorId: motor.id,
-
-                    action: "IMPORT",
-
-                    user:
-                        req.user?.username ||
-                        "System",
-
-                    deviceId: motor.deviceId,
-
-                    name: motor.name,
-
-                    note: "Import thêm mới"
-
-                });
-
-                created++;
+                createList.push(data);
 
                 continue;
 
             }
 
-            // =========================
-            // Không có thay đổi
-            // =========================
+            // So sánh
 
             const changedFields =
-                compareMotor(exists, data);
+                compareMotor(
+                    exists,
+                    data
+                );
 
-            if (changedFields.length === 0) {
+            // Không thay đổi
+
+            if (
+                changedFields.length === 0
+            ) {
 
                 skipped++;
 
@@ -1123,25 +1267,38 @@ exports.importMotors = async (req, res) => {
 
             }
 
-            // =========================
-            // Cập nhật
-            // =========================
+            // Chuẩn bị Update
 
-            await prisma.motor.update({
+            updateList.push({
 
-                where: {
+                id: exists.id,
 
-                    id: exists.id
+                data,
 
-                },
-
-                data
+                changedFields
 
             });
 
+        }
+
+        // =========================
+        // Import thêm mới
+        // =========================
+
+        let created = 0;
+
+        for (const data of createList) {
+
+            const motor =
+                await prisma.motor.create({
+
+                    data
+
+                });
+
             await writeHistory({
 
-                motorId: exists.id,
+                motorId: motor.id,
 
                 action: "IMPORT",
 
@@ -1149,19 +1306,73 @@ exports.importMotors = async (req, res) => {
                     req.user?.username ||
                     "System",
 
-                deviceId: data.deviceId,
+                deviceId: motor.deviceId,
 
-                name: data.name,
+                name: motor.name,
 
-                note:
-                    "Import cập nhật",
+                note: "Import thêm mới"
 
-                changes: {
+            });
 
-                    fields:
-                        changedFields
+            created++;
 
-                }
+        }
+
+        // =========================
+        // Import cập nhật
+        // =========================
+
+        let updated = 0;
+
+        for (const item of updateList) {
+
+            const motor =
+                await prisma.motor.update({
+
+                    where: {
+
+                        id: item.id
+
+                    },
+
+                    data: item.data
+
+                });
+
+            const changes = {};
+
+            item.changedFields.forEach(field => {
+
+                changes[field] = {
+
+                    old:
+                        motorMap
+                            .get(item.data.deviceId)?.[field] ?? null,
+
+                    new:
+                        item.data[field]
+
+                };
+
+            });
+
+            await writeHistory({
+
+                motorId: motor.id,
+
+                action: "IMPORT",
+
+                user:
+                    req.user?.username ||
+                    "System",
+
+                deviceId: motor.deviceId,
+
+                name: motor.name,
+
+                note: "Import cập nhật",
+
+                changes
 
             });
 
@@ -1169,7 +1380,11 @@ exports.importMotors = async (req, res) => {
 
         }
 
-        res.json({
+        // =========================
+        // Trả kết quả
+        // =========================
+
+        return res.json({
 
             message: "Import thành công.",
 
@@ -1189,7 +1404,7 @@ exports.importMotors = async (req, res) => {
 
         console.error(err.stack);
 
-        res.status(500).json({
+        return res.status(500).json({
 
             message: err.message
 
@@ -1198,7 +1413,6 @@ exports.importMotors = async (req, res) => {
     }
 
 };
-
 /* =====================================================
    EXPORT EXCEL
 ===================================================== */
