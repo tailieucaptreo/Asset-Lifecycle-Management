@@ -339,7 +339,7 @@ model Motor {
 
   id                Int       @id @default(autoincrement())
 
-  deviceId          String    @unique
+  deviceId          String?    @unique
   name              String
   type              String
   brand             String
