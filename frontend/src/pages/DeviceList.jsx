@@ -89,6 +89,32 @@ export default function DeviceList() {
 
   });
 
+  const calcStatus = (d) => {
+
+    if (!d.installDate || !d.lifespan) {
+      return "Active";
+    }
+  
+    const install = new Date(d.installDate);
+  
+    const usedYear =
+      (new Date() - install) /
+      (1000 * 60 * 60 * 24 * 365);
+  
+    const percent =
+      usedYear / Number(d.lifespan);
+  
+    if (percent >= 1) {
+      return "Expired";
+    }
+  
+    if (percent >= 0.7) {
+      return "Maintenance";
+    }
+  
+    return "Active";
+  };
+
   // =========================
   // LOAD DEVICES
   // =========================
@@ -132,17 +158,14 @@ export default function DeviceList() {
 
         if (status) {
 
-          rows =
-            rows.filter(
-
-              item =>
-
-                item.status ===
-
-                status
-
-            );
-
+          rows = rows.filter(
+        
+            item =>
+        
+              calcStatus(item) === status
+        
+          );
+        
         }
 
         setDevices(rows);
@@ -260,13 +283,15 @@ export default function DeviceList() {
     }
 
     if (filters.status) {
-
+    
       rows = rows.filter(
-
-        item => item.status === filters.status
-
+    
+        item =>
+    
+          calcStatus(item) === filters.status
+    
       );
-
+    
     }
 
     setFilteredData(rows);
