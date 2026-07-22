@@ -35,7 +35,7 @@ export default function MobileStatus({
                     className: "bg-red-100 text-red-700"
                 };
 
-            case "offline":
+            case "Spare":
 
             case "off":
 
