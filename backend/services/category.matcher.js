@@ -1,208 +1,165 @@
-// =======================================
-// Category Matcher
-// =======================================
+const MODELS = require("../data/models");
+const MANUFACTURERS = require("../data/manufacturers");
+const RULES = require("../data/category.rules");
+const normalize = require("../utils/normalize");
 
-// -------------------------
-// Match một keyword
-// -------------------------
-function matchKeyword(text, keyword) {
+// =====================================
+// Normalize Text
+// =====================================
 
-    if (!keyword) return false;
+function buildText({
 
-    return text.includes(
-        keyword.toLowerCase()
-    );
+    name = "",
 
-}
+    code = "",
 
-// -------------------------
-// Match nhiều keyword
-// -------------------------
-function matchKeywords(text, keywords = []) {
+    model = "",
 
-    let matched = [];
-
-    for (const keyword of keywords) {
-
-        if (matchKeyword(text, keyword)) {
-
-            matched.push(keyword);
-
-        }
-
-    }
-
-    return matched;
-
-}
-
-// -------------------------
-// Match Brand
-// -------------------------
-function matchBrand(brand = "", brands = []) {
-
-    if (!brand) return false;
-
-    return brands.some(item =>
-
-        item.toLowerCase() ===
-
-        brand.toLowerCase()
-
-    );
-
-}
-
-// -------------------------
-// Match Regex Model
-// -------------------------
-function matchModel(model = "", models = []) {
-
-    if (!model) return false;
-
-    for (const regex of models) {
-
-        if (regex.test(model)) {
-
-            return true;
-
-        }
-
-    }
-
-    return false;
-
-}
-
-// -------------------------
-// Match Exclude
-// -------------------------
-function matchExclude(text, excludes = []) {
-
-    for (const keyword of excludes) {
-
-        if (matchKeyword(text, keyword)) {
-
-            return true;
-
-        }
-
-    }
-
-    return false;
-
-}
-
-// -------------------------
-// Match Rule
-// -------------------------
-function matchRule({
-
-    text,
-
-    brand,
-
-    model,
-
-    rule
+    brand = ""
 
 }) {
 
-    // Bị loại
-    if (
+    return normalize(
 
-        matchExclude(
+        [
 
-            text,
+            name,
 
-            rule.exclude || []
-
-        )
-
-    ) {
-
-        return {
-
-            matched: false,
-
-            score: 0,
-
-            keywords: []
-
-        };
-
-    }
-
-    let score = 0;
-
-    let keywords = [];
-
-    // Match keyword
-    const matchedKeywords =
-
-        matchKeywords(
-
-            text,
-
-            rule.include || []
-
-        );
-
-    keywords.push(
-
-        ...matchedKeywords
-
-    );
-
-    score +=
-
-        matchedKeywords.length *
-
-        rule.priority;
-
-    // Match Brand
-    if (
-
-        matchBrand(
-
-            brand,
-
-            rule.brands || []
-
-        )
-
-    ) {
-
-        score += 30;
-
-    }
-
-    // Match Model
-    if (
-
-        matchModel(
+            code,
 
             model,
 
-            rule.models || []
+            brand
 
-        )
+        ].join(" ")
 
-    ) {
+    );
 
-        score += 50;
+}
+
+// =====================================
+// Match Models
+// =====================================
+
+function matchModels(text) {
+
+    const matches = [];
+
+    for (const item of MODELS) {
+
+        if (item.regex.test(text)) {
+
+            matches.push(item);
+
+        }
 
     }
 
+    return matches;
+
+}
+
+// =====================================
+// Match Manufacturers
+// =====================================
+
+function matchManufacturers(text) {
+
+    const matches = [];
+
+    for (const brand of MANUFACTURERS) {
+
+        const hit =
+
+            brand.aliases.some(alias =>
+
+                text.includes(normalize(alias))
+
+            );
+
+        if (hit) {
+
+            matches.push(brand);
+
+        }
+
+    }
+
+    return matches;
+
+}
+
+// =====================================
+// Match Keywords
+// =====================================
+
+function matchKeywords(text) {
+
+    const matches = [];
+
+    for (const rule of RULES) {
+
+        for (const keyword of rule.keywords) {
+
+            if (
+
+                text.includes(
+
+                    normalize(keyword.text)
+
+                )
+
+            ) {
+
+                matches.push({
+
+                    category:
+
+                        rule.category,
+
+                    priority:
+
+                        rule.priority,
+
+                    ...keyword
+
+                });
+
+            }
+
+        }
+
+    }
+
+    return matches;
+
+}
+
+// =====================================
+// Match All
+// =====================================
+
+function match(data) {
+
+    const text =
+
+        buildText(data);
+
     return {
 
-        matched:
+        text,
 
-            score > 0,
+        models:
 
-        score,
+            matchModels(text),
 
-        keywords
+        manufacturers:
+
+            matchManufacturers(text),
+
+        keywords:
+
+            matchKeywords(text)
 
     };
 
@@ -210,16 +167,14 @@ function matchRule({
 
 module.exports = {
 
-    matchKeyword,
+    buildText,
+
+    matchModels,
+
+    matchManufacturers,
 
     matchKeywords,
 
-    matchBrand,
-
-    matchModel,
-
-    matchExclude,
-
-    matchRule
+    match
 
 };
