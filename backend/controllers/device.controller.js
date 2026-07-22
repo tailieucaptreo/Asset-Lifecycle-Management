@@ -153,53 +153,47 @@ exports.getDevices = async (req, res) => {
 // =====================================================
 
 exports.getOne = async (req, res) => {
-
     try {
+        console.log("URL:", req.originalUrl);
+        console.log("Params:", req.params);
 
-        const id = Number(req.params.id);
+        const rawId = req.params.id;
+
+        if (!rawId) {
+            return res.status(400).json({
+                message: "Thiếu id."
+            });
+        }
+
+        const id = Number(rawId);
+
+        if (Number.isNaN(id)) {
+            return res.status(400).json({
+                message: "ID không hợp lệ."
+            });
+        }
 
         const device = await prisma.device.findUnique({
-
-            where: {
-
-                id
-
-            }
-
+            where: { id }
         });
 
         if (!device) {
-
             return res.status(404).json({
-
                 message: "Không tìm thấy thiết bị."
-
             });
-
         }
 
-        res.json({
-
+        return res.json({
             ...device,
-
             status: calcMaintenance(device)
-
         });
 
-    }
-
-    catch (err) {
-
+    } catch (err) {
         console.error(err);
-
         res.status(500).json({
-
             error: err.message
-
         });
-
     }
-
 };
 
 // =====================================================
