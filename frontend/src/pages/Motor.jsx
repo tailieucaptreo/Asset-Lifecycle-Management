@@ -96,7 +96,7 @@ export default function Motor() {
 
             const res = await axios.get(
 
-                `${API}/motors`,
+                `${API}/api/motors`,
 
                 {
 
@@ -134,7 +134,7 @@ export default function Motor() {
 
             const res = await axios.get(
 
-                `${API}/motors/statistics`,
+                `${API}/api/motors/statistics`,
 
                 {
 
