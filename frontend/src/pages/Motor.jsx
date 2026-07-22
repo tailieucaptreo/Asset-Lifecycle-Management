@@ -50,7 +50,7 @@ export default function Motor() {
 
         lifting: 0,
 
-        otherType: 0
+        otherMotor: 0
 
     });
 
@@ -164,7 +164,7 @@ export default function Motor() {
 
     return (
 
-        <div className="space-y-6">
+        <div className="max-w-[1650px] mx-auto px-6 xl:px-8 py-6 space-y-6">
 
             <MotorHeader />
 
