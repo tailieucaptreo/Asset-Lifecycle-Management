@@ -617,27 +617,22 @@ exports.previewImport = async (req, res) => {
     try {
 
         if (!req.file) {
-
             return res.status(400).json({
-
                 message: "Chưa chọn file."
-
             });
-
         }
 
         const workbook = XLSX.read(req.file.buffer, {
-
             type: "buffer"
-
         });
 
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const sheet =
+            workbook.Sheets[
+                workbook.SheetNames[0]
+            ];
 
         const rows = XLSX.utils.sheet_to_json(sheet, {
-
             defval: ""
-
         });
 
         const preview = [];
@@ -646,19 +641,85 @@ exports.previewImport = async (req, res) => {
         let updateCount = 0;
         let skipCount = 0;
 
-        for (const row of rows) {
+        for (const excelRow of rows) {
 
-            const deviceId = String(
+            // ===========================
+            // MAP EXCEL -> OBJECT
+            // ===========================
 
-                row["Mã TB"] ||
+            const row = {
 
-                row.deviceId ||
+                deviceId:
+                    String(
+                        excelRow["Mã TB"] ??
+                        excelRow["Mã thiết bị"] ??
+                        excelRow.deviceId ??
+                        ""
+                    ).trim(),
 
-                ""
+                name:
+                    String(
+                        excelRow["Tên động cơ"] ??
+                        excelRow.name ??
+                        ""
+                    ).trim(),
 
-            ).trim();
+                type:
+                    String(
+                        excelRow["Loại"] ??
+                        excelRow.type ??
+                        ""
+                    ).trim(),
 
-            if (!deviceId) {
+                brand:
+                    String(
+                        excelRow["Hãng"] ??
+                        excelRow.brand ??
+                        ""
+                    ).trim(),
+
+                model:
+                    String(
+                        excelRow["Model"] ??
+                        excelRow.model ??
+                        ""
+                    ).trim(),
+
+                power:
+                    String(
+                        excelRow["Công suất"] ??
+                        excelRow.power ??
+                        ""
+                    ).trim(),
+
+                line:
+                    String(
+                        excelRow["Tuyến"] ??
+                        excelRow.line ??
+                        ""
+                    ).trim(),
+
+                station:
+                    String(
+                        excelRow["Nhà ga"] ??
+                        excelRow.station ??
+                        ""
+                    ).trim(),
+
+                status:
+                    String(
+                        excelRow["Trạng thái"] ??
+                        excelRow.status ??
+                        ""
+                    ).trim()
+
+            };
+
+            // ===========================
+            // Không có mã TB
+            // ===========================
+
+            if (!row.deviceId) {
 
                 skipCount++;
 
@@ -676,15 +737,22 @@ exports.previewImport = async (req, res) => {
 
             }
 
-            const exists = await prisma.motor.findUnique({
+            // ===========================
+            // Tìm DB
+            // ===========================
 
-                where: {
+            const exists =
+                await prisma.motor.findUnique({
 
-                    deviceId
+                    where: {
+                        deviceId: row.deviceId
+                    }
 
-                }
+                });
 
-            });
+            // ===========================
+            // Chưa tồn tại
+            // ===========================
 
             if (!exists) {
 
@@ -704,33 +772,55 @@ exports.previewImport = async (req, res) => {
 
             }
 
+            // ===========================
+            // So sánh
+            // ===========================
+
             const changedFields = [];
 
-            Object.keys(row).forEach(key => {
+            const fields = [
 
-                if (
+                "name",
 
+                "type",
+
+                "brand",
+
+                "model",
+
+                "power",
+
+                "line",
+
+                "station",
+
+                "status"
+
+            ];
+
+            fields.forEach(field => {
+
+                const oldValue =
                     String(
+                        exists[field] ?? ""
+                    ).trim();
 
-                        exists[key] ?? ""
-
-                    )
-
-                    !==
-
+                const newValue =
                     String(
+                        row[field] ?? ""
+                    ).trim();
 
-                        row[key] ?? ""
+                if (oldValue !== newValue) {
 
-                    )
-
-                ) {
-
-                    changedFields.push(key);
+                    changedFields.push(field);
 
                 }
 
             });
+
+            // ===========================
+            // Kết quả
+            // ===========================
 
             if (changedFields.length === 0) {
 
@@ -746,7 +836,9 @@ exports.previewImport = async (req, res) => {
 
                 });
 
-            } else {
+            }
+
+            else {
 
                 updateCount++;
 
@@ -790,14 +882,13 @@ exports.previewImport = async (req, res) => {
 
         res.status(500).json({
 
-            message: "Không thể preview file."
+            message: "Không thể xem trước file import."
 
         });
 
     }
 
 };
-
 
 /* =====================================================
    IMPORT
