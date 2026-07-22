@@ -32,7 +32,7 @@ export default function DriveCard({
 
     const standby =
         drives.filter(
-            d => d.status === "Spare" || d.status === "Standby"
+            d => d.status === "Offline" || d.status === "Standby"
         ).length;
 
     const cards = [
