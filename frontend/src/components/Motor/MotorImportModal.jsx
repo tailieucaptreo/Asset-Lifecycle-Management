@@ -177,6 +177,14 @@ export default function MotorImportModal({
 
             form.append("file", file);
 
+            console.log("TOKEN:", token);
+
+            const headers = {
+                Authorization: `Bearer ${token}`
+            };
+            
+            console.log(headers);
+
             await axios.post(
 
                 `${API}/api/motors/import`,
