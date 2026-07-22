@@ -6,12 +6,40 @@ const RULES = require("../data/category.rules");
 const ALIAS = require("../data/category.alias");
 
 // =====================================
+// Tokenize
+// =====================================
+
+function tokenize(text = "") {
+
+    const normalized = normalize(text);
+
+    const tokens = new Set();
+
+    normalized
+        .split(/[\s,;:/()]+/)
+        .filter(Boolean)
+        .forEach(token => {
+
+            tokens.add(token);
+
+            token
+                .split(/[-_.]+/)
+                .filter(Boolean)
+                .forEach(part => tokens.add(part));
+
+        });
+
+    return [...tokens];
+
+}
+
+// =====================================
 // Apply Alias
 // =====================================
 
-function applyAlias(text) {
+function applyAlias(text = "") {
 
-    let result = text;
+    let result = normalize(text);
 
     for (const [from, to] of Object.entries(ALIAS)) {
 
@@ -30,16 +58,26 @@ function applyAlias(text) {
 }
 
 // =====================================
-// Detect Brand
+// Detect Manufacturer
 // =====================================
 
 function detectBrand(text) {
+
+    const normalized = normalize(text);
 
     for (const brand of MANUFACTURERS) {
 
         for (const alias of brand.aliases) {
 
-            if (text.includes(normalize(alias))) {
+            if (
+
+                normalized.includes(
+
+                    normalize(alias)
+
+                )
+
+            ) {
 
                 return brand;
 
@@ -54,7 +92,7 @@ function detectBrand(text) {
 }
 
 // =====================================
-// Init Score
+// Create Score Board
 // =====================================
 
 function createBoard() {
@@ -67,67 +105,31 @@ function createBoard() {
 
     }
 
+    board["Khác"] = 0;
+
     return board;
 
 }
 
 // =====================================
-// Score Model
+// Score Models (Ưu tiên cao nhất)
 // =====================================
 
 function scoreModels(text, board) {
 
-    for (const model of MODELS) {
+    const tokens = tokenize(text);
 
-        if (model.regex.test(text)) {
+    for (const token of tokens) {
 
-            board[model.category] += model.score;
+        for (const model of MODELS) {
 
-        }
+            model.regex.lastIndex = 0;
 
-    }
+            if (model.regex.test(token)) {
 
-}
-
-// =====================================
-// Score Manufacturer
-// =====================================
-
-function scoreManufacturers(text, board) {
-
-    const brand = detectBrand(text);
-
-    if (brand) {
-
-        board[brand.category] += brand.score;
-
-    }
-
-    return brand;
-
-}
-
-// =====================================
-// Score Keywords
-// =====================================
-
-function scoreKeywords(text, board) {
-
-    for (const rule of RULES) {
-
-        for (const keyword of rule.keywords) {
-
-            if (
-
-                text.includes(
-
-                    normalize(keyword.text)
-
-                )
-
-            ) {
-
-                board[rule.category] += keyword.weight;
+                board[model.category] =
+                    (board[model.category] || 0) +
+                    model.score;
 
             }
 
@@ -138,52 +140,137 @@ function scoreKeywords(text, board) {
 }
 
 // =====================================
-// Get Best
+// Score Manufacturers
 // =====================================
 
-function getBest(board) {
+function scoreManufacturers(text, board) {
 
-    let bestCategory = "Khác";
+    const detectedBrand = detectBrand(text);
 
-    let bestScore = 0;
+    if (!detectedBrand) {
 
-    let secondScore = 0;
+        return null;
 
-    for (const [category, score] of Object.entries(board)) {
+    }
 
-        if (score > bestScore) {
+    board[detectedBrand.category] =
+        (board[detectedBrand.category] || 0) +
+        detectedBrand.score;
 
-            secondScore = bestScore;
+    return detectedBrand;
 
-            bestScore = score;
+}
 
-            bestCategory = category;
+// =====================================
+// Score Keywords
+// =====================================
 
-        }
+function scoreKeywords(text, board) {
 
-        else if (score > secondScore) {
+    const normalizedText = normalize(text);
 
-            secondScore = score;
+    const tokens = tokenize(normalizedText);
+
+    for (const rule of RULES) {
+
+        for (const keyword of rule.keywords) {
+
+            const keywordText =
+                normalize(keyword.text);
+
+            let matched = false;
+
+            // 1. Match cả chuỗi
+            if (
+
+                normalizedText.includes(
+
+                    keywordText
+
+                )
+
+            ) {
+
+                matched = true;
+
+            }
+
+            // 2. Match từng token
+            else {
+
+                matched = tokens.some(token =>
+
+                    token === keywordText ||
+
+                    token.startsWith(keywordText) ||
+
+                    keywordText.startsWith(token)
+
+                );
+
+            }
+
+            if (matched) {
+
+                board[rule.category] =
+                    (board[rule.category] || 0) +
+                    keyword.weight;
+
+            }
 
         }
 
     }
 
-    const confidence =
+}
 
-        bestScore === 0
+// =====================================
+// Get Best Category
+// =====================================
 
-            ? 0
+function getBest(board) {
 
-            : Math.round(
+    const ranking = Object.entries(board)
 
-                bestScore *
+        .sort((a, b) => b[1] - a[1]);
 
-                100 /
+    const [bestCategory, bestScore] =
 
-                (bestScore + secondScore)
+        ranking[0] || ["Khác", 0];
 
-            );
+    const secondScore =
+
+        ranking[1]?.[1] || 0;
+
+    if (bestScore <= 0) {
+
+        return {
+
+            category: "Khác",
+
+            score: 0,
+
+            confidence: 0
+
+        };
+
+    }
+
+    const confidence = Math.min(
+
+        100,
+
+        Math.round(
+
+            bestScore *
+
+            100 /
+
+            (bestScore + secondScore)
+
+        )
+
+    );
 
     return {
 
@@ -213,7 +300,7 @@ function detectCategory({
 
 } = {}) {
 
-    let text = [
+    const originalText = [
 
         name,
 
@@ -223,14 +310,17 @@ function detectCategory({
 
         brand
 
-    ].join(" ");
+    ]
 
-    text = normalize(text);
+        .filter(Boolean)
 
-    text = applyAlias(text);
+        .join(" ");
+
+    const text = applyAlias(originalText);
 
     const board = createBoard();
 
+    // 1. Model (ưu tiên cao nhất)
     scoreModels(
 
         text,
@@ -239,6 +329,7 @@ function detectCategory({
 
     );
 
+    // 2. Manufacturer
     const detectedBrand =
 
         scoreManufacturers(
@@ -249,6 +340,7 @@ function detectCategory({
 
         );
 
+    // 3. Keyword
     scoreKeywords(
 
         text,
@@ -257,29 +349,203 @@ function detectCategory({
 
     );
 
-    const best =
+    let result = getBest(board);
 
-        getBest(board);
-
+    // Áp dụng luật ưu tiên tuyệt đối
+    result = overrideRules(
+    
+        result,
+    
+        text
+    
+    );
+    
     return {
-
-        category: best.category,
-
+    
+        category: result.category,
+    
         brand:
-
+    
             brand ||
-
+    
             detectedBrand?.name ||
-
+    
             "",
-
-        score: best.score,
-
-        confidence: best.confidence,
-
-        board
-
+    
+        score: result.score,
+    
+        confidence: result.confidence,
+    
+        board,
+    
+        debug: {
+    
+            text,
+    
+            tokens: tokenize(text)
+    
+        }
+    
     };
+
+}
+
+// =====================================
+// Override Rules
+// Ưu tiên tuyệt đối theo Model
+// =====================================
+
+function overrideRules(result, text) {
+
+    const tokens = tokenize(text);
+
+    // ========= BIẾN TẦN =========
+
+    if (
+
+        tokens.some(token =>
+
+            /^ACS/i.test(token) ||
+
+            /^ACH/i.test(token) ||
+
+            /^ACQ/i.test(token) ||
+
+            /^DCS/i.test(token) ||
+
+            /^NXA/i.test(token) ||
+
+            /^NXB/i.test(token) ||
+
+            /^NXI/i.test(token) ||
+
+            /^NXS/i.test(token) ||
+
+            /^NXP/i.test(token) ||
+
+            /^VACON/i.test(token) ||
+
+            /^FC51/i.test(token) ||
+
+            /^FC102/i.test(token) ||
+
+            /^FC202/i.test(token) ||
+
+            /^FC302/i.test(token) ||
+
+            /^ATV/i.test(token) ||
+
+            /^MOVIDRIVE/i.test(token) ||
+
+            /^MOVITRAC/i.test(token)
+
+        )
+
+    ) {
+
+        result.category = "Biến tần";
+
+        result.confidence = 100;
+
+    }
+
+    // ========= PLC =========
+
+    if (
+
+        tokens.some(token =>
+
+            /^PSS/i.test(token) ||
+
+            /^PSSU/i.test(token) ||
+
+            /^TM221/i.test(token) ||
+
+            /^TM241/i.test(token) ||
+
+            /^CPU/i.test(token) ||
+
+            /^S7/i.test(token)
+
+        )
+
+    ) {
+
+        result.category = "PLC";
+
+        result.confidence = 100;
+
+    }
+
+    // ========= SAFETY =========
+
+    if (
+
+        tokens.some(token =>
+
+            /^PNOZ/i.test(token) ||
+
+            /^PSEN/i.test(token)
+
+        )
+
+    ) {
+
+        result.category = "An toàn";
+
+        result.confidence = 100;
+
+    }
+
+    // ========= BECKHOFF =========
+
+    if (
+
+        tokens.some(token =>
+
+            /^EL\d+/i.test(token) ||
+
+            /^EK\d+/i.test(token) ||
+
+            /^BK\d+/i.test(token) ||
+
+            /^KL\d+/i.test(token) ||
+
+            /^CX\d+/i.test(token)
+
+        )
+
+    ) {
+
+        result.category = "BECKHOFF";
+
+        result.confidence = 100;
+
+    }
+
+    // ========= NGUỒN =========
+
+    if (
+
+        tokens.some(token =>
+
+            /^QUINT/i.test(token) ||
+
+            /^UNO/i.test(token) ||
+
+            /^TRIO/i.test(token)
+
+        )
+
+    ) {
+
+        result.category = "Nguồn";
+
+        result.confidence = 100;
+
+    }
+
+    return result;
 
 }
 
@@ -293,23 +559,25 @@ function detectMany(rows = []) {
 
         ...row,
 
-        categoryInfo:
+        categoryInfo: detectCategory({
 
-            detectCategory({
+            name: row.name,
 
-                name: row.name,
+            code: row.code,
 
-                code: row.code,
+            model: row.model,
 
-                model: row.model,
+            brand: row.brand
 
-                brand: row.brand
-
-            })
+        })
 
     }));
 
 }
+
+// =====================================
+// Export
+// =====================================
 
 module.exports = {
 
