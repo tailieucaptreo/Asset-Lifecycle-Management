@@ -454,6 +454,217 @@ exports.deleteMotor = async (req, res) => {
 
 };
 
+/* =====================================================
+   IMPORT HELPER
+===================================================== */
+
+function mapMotorRow(excelRow) {
+
+    return {
+
+        deviceId: ImportHelper.text(
+            excelRow["Mã Vật Tư/ID"] ??
+            excelRow["Mã TB"] ??
+            excelRow.deviceId
+        ),
+
+        name: ImportHelper.text(
+            excelRow["Tên thiết bị"] ??
+            excelRow["Tên động cơ"] ??
+            excelRow.name
+        ),
+
+        type: ImportHelper.text(
+            excelRow["Loại thiết bị"] ??
+            excelRow["Loại"] ??
+            excelRow.type
+        ),
+
+        brand: ImportHelper.text(
+            excelRow["Hãng"] ??
+            excelRow.brand
+        ),
+
+        model: ImportHelper.text(
+            excelRow["Model"] ??
+            excelRow.model
+        ),
+
+        serial: ImportHelper.nullableText(
+            excelRow["Serial Number ID"] ??
+            excelRow.serial
+        ),
+
+        power: ImportHelper.nullableText(
+            excelRow["Công suất (kW)"] ??
+            excelRow["Công suất"] ??
+            excelRow.power
+        ),
+
+        voltage: ImportHelper.nullableText(
+            excelRow["Điện áp"] ??
+            excelRow.voltage
+        ),
+
+        current: ImportHelper.nullableText(
+            excelRow["Dòng điện"] ??
+            excelRow.current
+        ),
+
+        frequency: ImportHelper.nullableText(
+            excelRow["Tần số"] ??
+            excelRow.frequency
+        ),
+
+        rpm: ImportHelper.nullableText(
+            excelRow["RPM"] ??
+            excelRow.rpm
+        ),
+
+        efficiency: ImportHelper.nullableText(
+            excelRow["Hiệu suất"] ??
+            excelRow.efficiency
+        ),
+
+        pole: ImportHelper.nullableText(
+            excelRow["Pole"] ??
+            excelRow.pole
+        ),
+
+        bearingCode: ImportHelper.nullableText(
+            excelRow["Mã ổ bi"] ??
+            excelRow.bearingCode
+        ),
+
+        runningHours: ImportHelper.number(
+            excelRow["Số giờ vận hành"] ??
+            excelRow.runningHours
+        ),
+
+        line: ImportHelper.text(
+            excelRow["Tuyến cáp"] ??
+            excelRow["Tuyến"] ??
+            excelRow.line
+        ),
+
+        station: ImportHelper.text(
+            excelRow["Nhà ga"] ??
+            excelRow.station
+        ),
+
+        location: ImportHelper.nullableText(
+            excelRow["Vị trí lắp đặt"] ??
+            excelRow.location
+        ),
+
+        warehouse: ImportHelper.nullableText(
+            excelRow["Vị trí lưu kho"] ??
+            excelRow.warehouse
+        ),
+
+        status: ImportHelper.text(
+            excelRow["Trạng thái"] ??
+            excelRow.status ??
+            "Running"
+        ),
+
+        replacementDate: ImportHelper.date(
+            excelRow["Thời gian thay thế"]
+        ),
+
+        maintenanceDate: ImportHelper.date(
+            excelRow["Ngày bảo trì"]
+        ),
+
+        note: ImportHelper.nullableText(
+            excelRow["Ghi chú"] ??
+            excelRow.note
+        )
+
+    };
+
+}
+
+/* =====================================================
+   COMPARE HELPER
+===================================================== */
+
+function compareMotor(oldData, newData) {
+
+    const changedFields = [];
+
+    const fields = [
+
+        "name",
+
+        "type",
+
+        "brand",
+
+        "model",
+
+        "serial",
+
+        "power",
+
+        "voltage",
+
+        "current",
+
+        "frequency",
+
+        "rpm",
+
+        "efficiency",
+
+        "pole",
+
+        "bearingCode",
+
+        "runningHours",
+
+        "line",
+
+        "station",
+
+        "location",
+
+        "warehouse",
+
+        "status",
+
+        "replacementDate",
+
+        "maintenanceDate",
+
+        "note"
+
+    ];
+
+    for (const field of fields) {
+
+        const oldValue =
+            oldData[field] == null
+                ? ""
+                : String(oldData[field]).trim();
+
+        const newValue =
+            newData[field] == null
+                ? ""
+                : String(newData[field]).trim();
+
+        if (oldValue !== newValue) {
+
+            changedFields.push(field);
+
+        }
+
+    }
+
+    return changedFields;
+
+}
+
 
 /* =====================================================
    STATISTICS
@@ -654,117 +865,10 @@ exports.previewImport = async (req, res) => {
 
         for (const excelRow of rows) {
 
-            // =========================
-            // MAP EXCEL
-            // =========================
-
-            const row = {
-
-                deviceId: String(
-                    excelRow["Mã Vật Tư/ID"] ??
-                    excelRow["Mã TB"] ??
-                    excelRow.deviceId ??
-                    ""
-                ).trim(),
-
-                name: String(
-                    excelRow["Tên thiết bị"] ??
-                    excelRow["Tên động cơ"] ??
-                    excelRow.name ??
-                    ""
-                ).trim(),
-
-                type: String(
-                    excelRow["Loại thiết bị"] ??
-                    excelRow["Loại"] ??
-                    excelRow.type ??
-                    ""
-                ).trim(),
-
-                brand: String(
-                    excelRow["Hãng"] ??
-                    excelRow.brand ??
-                    ""
-                ).trim(),
-
-                model: String(
-                    excelRow["Model"] ??
-                    excelRow.model ??
-                    ""
-                ).trim(),
-
-                serial: String(
-                    excelRow["Serial Number ID"] ??
-                    excelRow.serial ??
-                    ""
-                ).trim(),
-
-                power: String(
-                    excelRow["Công suất (kW)"] ??
-                    excelRow["Công suất"] ??
-                    excelRow.power ??
-                    ""
-                ).trim(),
-
-                bearingCode: String(
-                    excelRow["Mã ổ bi"] ??
-                    excelRow.bearingCode ??
-                    ""
-                ).trim(),
-
-                runningHours: Number(
-                    excelRow["Số giờ vận hành"] ??
-                    excelRow.runningHours ??
-                    0
-                ),
-
-                line: String(
-                    excelRow["Tuyến cáp"] ??
-                    excelRow["Tuyến"] ??
-                    excelRow.line ??
-                    ""
-                ).trim(),
-
-                station: String(
-                    excelRow["Nhà ga"] ??
-                    excelRow.station ??
-                    ""
-                ).trim(),
-
-                location: String(
-                    excelRow["Vị trí lắp đặt"] ??
-                    excelRow.location ??
-                    ""
-                ).trim(),
-
-                warehouse: String(
-                    excelRow["Vị trí lưu kho"] ??
-                    excelRow.warehouse ??
-                    ""
-                ).trim(),
-
-                status: String(
-                    excelRow["Trạng thái"] ??
-                    excelRow.status ??
-                    ""
-                ).trim(),
-
-                replacementDate:
-                    excelRow["Thời gian thay thế"] || "",
-
-                maintenanceDate:
-                    excelRow["Ngày bảo trì"] || "",
-
-                note: String(
-                    excelRow["Ghi chú"] ??
-                    excelRow.note ??
-                    ""
-                ).trim()
-
-            };
+            const row = mapMotorRow(excelRow);
 
             // =========================
-            // Không có mã TB
+            // Thiếu mã thiết bị
             // =========================
 
             if (!row.deviceId) {
@@ -790,7 +894,7 @@ exports.previewImport = async (req, res) => {
             }
 
             // =========================
-            // Kiểm tra DB
+            // Kiểm tra trong DB
             // =========================
 
             const exists =
@@ -827,62 +931,11 @@ exports.previewImport = async (req, res) => {
             }
 
             // =========================
-            // So sánh
+            // So sánh dữ liệu
             // =========================
 
-            const changedFields = [];
-
-            const compareFields = [
-
-                "name",
-
-                "type",
-
-                "brand",
-
-                "model",
-
-                "serial",
-
-                "power",
-
-                "bearingCode",
-
-                "runningHours",
-
-                "line",
-
-                "station",
-
-                "location",
-
-                "warehouse",
-
-                "status",
-
-                "note"
-
-            ];
-
-            compareFields.forEach(field => {
-
-                const oldValue =
-                    String(
-                        exists[field] ?? ""
-                    ).trim();
-
-                const newValue =
-                    String(
-                        row[field] ?? ""
-                    ).trim();
-
-                if (oldValue !== newValue) {
-
-                    changedFields.push(field);
-
-                }
-
-            });
+            const changedFields =
+                compareMotor(exists, row);
 
             if (changedFields.length === 0) {
 
@@ -892,7 +945,7 @@ exports.previewImport = async (req, res) => {
 
                     action: "SKIP",
 
-                    changedFields,
+                    changedFields: [],
 
                     row
 
@@ -993,115 +1046,11 @@ exports.importMotors = async (req, res) => {
 
         for (const excelRow of rows) {
 
-            const data = {
+            const data = mapMotorRow(excelRow);
 
-                deviceId: String(
-                    excelRow["Mã Vật Tư/ID"] ??
-                    excelRow["Mã TB"] ??
-                    excelRow.deviceId ??
-                    ""
-                ).trim(),
-
-                name: String(
-                    excelRow["Tên thiết bị"] ??
-                    excelRow["Tên động cơ"] ??
-                    excelRow.name ??
-                    ""
-                ).trim(),
-
-                type: String(
-                    excelRow["Loại thiết bị"] ??
-                    excelRow["Loại"] ??
-                    excelRow.type ??
-                    ""
-                ).trim(),
-
-                brand: String(
-                    excelRow["Hãng"] ??
-                    excelRow.brand ??
-                    ""
-                ).trim(),
-
-                model: String(
-                    excelRow["Model"] ??
-                    excelRow.model ??
-                    ""
-                ).trim(),
-
-                serial: String(
-                    excelRow["Serial Number ID"] ??
-                    excelRow.serial ??
-                    ""
-                ).trim(),
-
-                power: String(
-                    excelRow["Công suất (kW)"] ??
-                    excelRow["Công suất"] ??
-                    excelRow.power ??
-                    ""
-                ).trim(),
-
-                bearingCode: String(
-                    excelRow["Mã ổ bi"] ??
-                    excelRow.bearingCode ??
-                    ""
-                ).trim(),
-
-                runningHours:
-                    Number(
-                        excelRow["Số giờ vận hành"] ??
-                        excelRow.runningHours ??
-                        0
-                    ),
-
-                line: String(
-                    excelRow["Tuyến cáp"] ??
-                    excelRow["Tuyến"] ??
-                    excelRow.line ??
-                    ""
-                ).trim(),
-
-                station: String(
-                    excelRow["Nhà ga"] ??
-                    excelRow.station ??
-                    ""
-                ).trim(),
-
-                location: String(
-                    excelRow["Vị trí lắp đặt"] ??
-                    excelRow.location ??
-                    ""
-                ).trim(),
-
-                warehouse: String(
-                    excelRow["Vị trí lưu kho"] ??
-                    excelRow.warehouse ??
-                    ""
-                ).trim(),
-
-                status: String(
-                    excelRow["Trạng thái"] ??
-                    excelRow.status ??
-                    "Running"
-                ).trim(),
-
-                replacementDate:
-                    excelRow["Thời gian thay thế"]
-                        ? new Date(excelRow["Thời gian thay thế"])
-                        : null,
-
-                maintenanceDate:
-                    excelRow["Ngày bảo trì"]
-                        ? new Date(excelRow["Ngày bảo trì"])
-                        : null,
-
-                note: String(
-                    excelRow["Ghi chú"] ??
-                    excelRow.note ??
-                    ""
-                ).trim()
-
-            };
+            // =========================
+            // Thiếu mã thiết bị
+            // =========================
 
             if (!data.deviceId) {
 
@@ -1121,6 +1070,10 @@ exports.importMotors = async (req, res) => {
                     }
 
                 });
+
+            // =========================
+            // Thêm mới
+            // =========================
 
             if (!exists) {
 
@@ -1151,43 +1104,68 @@ exports.importMotors = async (req, res) => {
 
                 created++;
 
-            }
-
-            else {
-
-                await prisma.motor.update({
-
-                    where: {
-
-                        id: exists.id
-
-                    },
-
-                    data
-
-                });
-
-                await writeHistory({
-
-                    motorId: exists.id,
-
-                    action: "IMPORT",
-
-                    user:
-                        req.user?.username ||
-                        "System",
-
-                    deviceId: data.deviceId,
-
-                    name: data.name,
-
-                    note: "Import cập nhật"
-
-                });
-
-                updated++;
+                continue;
 
             }
+
+            // =========================
+            // Không có thay đổi
+            // =========================
+
+            const changedFields =
+                compareMotor(exists, data);
+
+            if (changedFields.length === 0) {
+
+                skipped++;
+
+                continue;
+
+            }
+
+            // =========================
+            // Cập nhật
+            // =========================
+
+            await prisma.motor.update({
+
+                where: {
+
+                    id: exists.id
+
+                },
+
+                data
+
+            });
+
+            await writeHistory({
+
+                motorId: exists.id,
+
+                action: "IMPORT",
+
+                user:
+                    req.user?.username ||
+                    "System",
+
+                deviceId: data.deviceId,
+
+                name: data.name,
+
+                note:
+                    "Import cập nhật",
+
+                changes: {
+
+                    fields:
+                        changedFields
+
+                }
+
+            });
+
+            updated++;
 
         }
 
@@ -1209,9 +1187,11 @@ exports.importMotors = async (req, res) => {
 
         console.error(err);
 
+        console.error(err.stack);
+
         res.status(500).json({
 
-            message: "Không thể import dữ liệu."
+            message: err.message
 
         });
 
