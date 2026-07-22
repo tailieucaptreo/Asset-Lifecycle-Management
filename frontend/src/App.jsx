@@ -13,7 +13,6 @@ import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import AddDevice from "./pages/AddDevice";
 import DeviceList from "./pages/DeviceList";
-import ExpiredDevices from "./pages/ExpiredDevices";
 import MaintenanceSchedule from "./pages/MaintenanceSchedule";
 import WorkOrders from "./pages/WorkOrders";
 import Alerts from "./pages/Alerts";
@@ -187,11 +186,6 @@ function Layout() {
           <Route
             path="/devices"
             element={<DeviceList />}
-          />
-
-          <Route
-            path="/devices/expired"
-            element={<ExpiredDevices />}
           />
 
           <Route
