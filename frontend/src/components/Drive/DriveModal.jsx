@@ -296,7 +296,7 @@ export default function DriveModal({
                                     "Running",
                                     "Maintenance",
                                     "Fault",
-                                    "Spare"
+                                    "Offline"
                                 ]}
                                 onChange={v => change("status", v)}
                             />
