@@ -12,14 +12,14 @@ import MotorModal from "../components/Motor/MotorModal";
 import MotorImportModal from "../components/Motor/MotorImportModal";
 import MotorHistoryModal from "../components/Motor/MotorHistoryModal";
 
-function normalizeText(text = "") {
-
-    return String(text)
+function normalizeMotorName(name = "") {
+    return String(name)
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")
-        .replace(/[^a-zA-Z0-9]/g, "")
-        .toLowerCase();
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 }
 
 function detectMotorType(name = "") {
