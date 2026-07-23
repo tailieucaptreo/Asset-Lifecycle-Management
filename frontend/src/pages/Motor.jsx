@@ -19,21 +19,13 @@ function detectMotorType(name = "") {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 
-    if (
-        (
-            text.includes("chinh")
-        ) ||
-        text.includes("keo chinh") ||
-        text.includes("truyen dong chinh")
-    ) {
-        return "mainMotor";
-    }
-
-    if (text.includes("bom dau"))
-        return "oilPump";
+    // Ưu tiên nhận diện các nhóm cụ thể trước
 
     if (text.includes("lam mat"))
         return "cooling";
+
+    if (text.includes("bom dau"))
+        return "oilPump";
 
     if (text.includes("phanh"))
         return "brake";
@@ -41,11 +33,21 @@ function detectMotorType(name = "") {
     if (text.includes("nang ha"))
         return "lifting";
 
+    // Đóng mở ray không tính là động cơ chính
     if (text.includes("dong mo ray"))
-        return "door";
+        return "otherMotor";
 
     if (text.includes("thuy luc"))
-        return "hydraulic";
+        return "otherMotor";
+
+    // Chỉ các động cơ chính thực sự
+    if (
+        text === "dong co chinh" ||
+        text.startsWith("dong co chinh ") ||
+        text.startsWith("dong co chinh m")
+    ) {
+        return "mainMotor";
+    }
 
     return "otherMotor";
 }
