@@ -719,7 +719,7 @@ function detectMotorType(name = "") {
         .replace(/[\u0300-\u036f]/g, "");
 
     if (
-        text.includes("chinh") ||
+        text.includes("dong co chinh") ||
         text.includes("keo chinh") ||
         text.includes("truyen dong chinh") ||
         text.includes("main motor")
@@ -898,7 +898,7 @@ exports.getStatistics = async (req, res) => {
             
                 default:
             
-                    statistics.otherType++;
+                    statistics.otherMotor++;
             
             }
             
