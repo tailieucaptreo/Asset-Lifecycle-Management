@@ -24,7 +24,7 @@ function normalizeMotorName(name = "") {
 
 function detectMotorType(name = "") {
 
-    const text = normalizeText(name);
+    const text = normalizeMotorName(name);
 
     if (text.includes("dongcochinh"))
         return "mainMotor";
