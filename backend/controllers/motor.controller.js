@@ -724,7 +724,7 @@ function detectMotorType(name = "") {
         text.includes("truyen dong chinh") ||
         text.includes("main motor")
     ) {
-        return "main";
+        return "mainMotor";
     }
 
     if (text.includes("bom dau"))
@@ -745,7 +745,7 @@ function detectMotorType(name = "") {
     if (text.includes("thuy luc"))
         return "hydraulic";
 
-    return "other";
+    return "otherMotor";
 
 }
 
@@ -854,7 +854,7 @@ exports.getStatistics = async (req, res) => {
 
             switch (detectMotorType(motor.name)) {
 
-                case "main":
+                case "mainMotor":
             
                     statistics.mainMotor++;
             
@@ -1032,9 +1032,9 @@ exports.previewImport = async (req, res) => {
 
             motorMap.set(
 
-                getMotorKey(m),
+                getMotorKey(motor),
 
-                m
+                motor
 
             );
 
@@ -1295,8 +1295,9 @@ exports.importMotors = async (req, res) => {
 
             motorMap.set(
 
-                getMotorKey(data)
+                getMotorKey(motor),
 
+                motor
 
             );
 
