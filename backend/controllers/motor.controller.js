@@ -719,34 +719,37 @@ function detectMotorType(name = "") {
         .replace(/[\u0300-\u036f]/g, "")
         .trim();
 
-    console.log("TEXT =", text);
+    console.log("==============");
+    console.log("TEXT:", text);
 
     if (text.includes("dong co chinh")) {
-        console.log(">>> MAIN");
+        console.log("RETURN mainMotor");
         return "mainMotor";
     }
 
     if (text.includes("lam mat")) {
-        console.log(">>> COOLING");
+        console.log("RETURN cooling");
         return "cooling";
     }
 
     if (text.includes("bom dau")) {
-        console.log(">>> OIL");
+        console.log("RETURN oilPump");
         return "oilPump";
     }
 
     if (text.includes("phanh")) {
+        console.log("RETURN brake");
         return "brake";
     }
 
     if (text.includes("nang ha")) {
+        console.log("RETURN lifting");
         return "lifting";
     }
 
+    console.log("RETURN otherMotor");
     return "otherMotor";
 }
-
 /* =====================================================
    STATISTICS
 ===================================================== */
