@@ -723,7 +723,12 @@ function normalizeMotorName(name = "") {
 
 function classifyMotor(name = "") {
 
-    const text = normalizeText(name);
+    const text = normalizeMotorName(name);
+
+    console.log({
+        original: name,
+        normalized: text
+    });
 
     if (text.includes("dongcochinh"))
         return "mainMotor";
