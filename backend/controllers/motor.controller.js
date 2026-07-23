@@ -718,8 +718,14 @@ function detectMotorType(name = "") {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 
-    if (text.includes("dong co chinh"))
+    if (
+        text.includes("chinh") ||
+        text.includes("keo chinh") ||
+        text.includes("truyen dong chinh") ||
+        text.includes("main motor")
+    ) {
         return "main";
+    }
 
     if (text.includes("bom dau"))
         return "oilPump";
