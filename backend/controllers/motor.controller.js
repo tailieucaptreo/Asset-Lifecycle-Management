@@ -825,6 +825,12 @@ exports.getStatistics = async (req, res) => {
         
             // ===== Motor Type =====
             const motorType = detectMotorType(motor.name);
+            
+            if (motor.name.includes("Động cơ chính")) {
+                console.log(
+                    `[${motor.name}] => ${motorType}`
+                );
+            }
         
             switch (motorType) {
         
