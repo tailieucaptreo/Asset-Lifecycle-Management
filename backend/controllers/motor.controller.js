@@ -817,31 +817,30 @@ exports.getStatistics = async (req, res) => {
                 );
             }
         
-            switch (motorType) {
-        
-                case "mainMotor":
+           switch ((motor.type || "").trim()) {
+
+                case "Động cơ chính":
                     statistics.mainMotor++;
                     break;
-        
-                case "oilPump":
+            
+                case "Động cơ bơm dầu":
                     statistics.oilPump++;
                     break;
-        
-                case "cooling":
+            
+                case "Động cơ làm mát":
                     statistics.cooling++;
                     break;
-        
-                case "brake":
+            
+                case "Động cơ phanh":
                     statistics.brake++;
                     break;
-        
-                case "lifting":
+            
+                case "Động cơ nâng hạ":
                     statistics.lifting++;
                     break;
-        
+            
                 default:
                     statistics.otherMotor++;
-                    break;
             }
         
         }
