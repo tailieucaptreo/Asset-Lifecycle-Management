@@ -719,42 +719,37 @@ function detectMotorType(name = "") {
         .replace(/[\u0300-\u036f]/g, "")
         .trim();
 
-    // ===== Làm mát =====
+    console.log("RAW :", name);
+    console.log("TEXT:", JSON.stringify(text));
+
     if (text.includes("lam mat"))
         return "cooling";
 
-    // ===== Bơm dầu =====
     if (text.includes("bom dau"))
         return "oilPump";
 
-    // ===== Phanh =====
     if (text.includes("phanh"))
         return "brake";
 
-    // ===== Nâng hạ =====
     if (text.includes("nang ha"))
         return "lifting";
 
-    // ===== Đóng mở ray => Khác =====
     if (text.includes("dong mo ray"))
         return "otherMotor";
 
-    // ===== Thủy lực => Khác =====
     if (text.includes("thuy luc"))
         return "otherMotor";
 
-    // ===== Động cơ chính =====
     if (
-        text.includes("dong co chinh") &&
-        !text.includes("lam mat") &&
-        !text.includes("dong mo ray")
+        text === "dong co chinh" ||
+        text.startsWith("dong co chinh ") ||
+        text.startsWith("dong co chinh m")
     ) {
         return "mainMotor";
     }
 
     return "otherMotor";
 }
-
 /* =====================================================
    STATISTICS
 ===================================================== */
