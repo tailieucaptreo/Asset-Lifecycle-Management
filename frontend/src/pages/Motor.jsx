@@ -12,6 +12,44 @@ import MotorModal from "../components/Motor/MotorModal";
 import MotorImportModal from "../components/Motor/MotorImportModal";
 import MotorHistoryModal from "../components/Motor/MotorHistoryModal";
 
+function detectMotorType(name = "") {
+
+    const text = String(name)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    if (
+        text.includes("dong co chinh") ||
+        text.includes("truyen dong chinh") ||
+        (
+            text.includes("chinh")
+        )
+    ) {
+        return "mainMotor";
+    }
+
+    if (text.includes("bom dau"))
+        return "oilPump";
+
+    if (text.includes("lam mat"))
+        return "cooling";
+
+    if (text.includes("phanh"))
+        return "brake";
+
+    if (text.includes("nang ha"))
+        return "lifting";
+
+    if (text.includes("dong mo ray"))
+        return "door";
+
+    if (text.includes("thuy luc"))
+        return "hydraulic";
+
+    return "otherMotor";
+}
+
 export default function Motor() {
 
     const token = localStorage.getItem("token");
