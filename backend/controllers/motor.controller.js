@@ -717,50 +717,25 @@ function classifyMotor(name = "") {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .replace(/\s+/g, " ")
-        .trim();
+        .replace(/[^\w]/g, "");   // bỏ toàn bộ khoảng trắng, -, _, ký tự đặc biệt
 
-    // ===== Động cơ chính =====
-    if (
-        text.includes("dong co chinh") ||
-        text.includes("main motor")
-    ) {
+    if (text.includes("dongcochinh"))
         return "mainMotor";
-    }
 
-    // ===== Động cơ bơm dầu / thủy lực =====
     if (
-        text.includes("bom dau") ||
-        text.includes("bom thuy luc") ||
-        text.includes("hydraulic pump")
-    ) {
+        text.includes("bomdau") ||
+        text.includes("bomthuyluc")
+    )
         return "oilPump";
-    }
 
-    // ===== Động cơ làm mát =====
-    if (
-        text.includes("lam mat") ||
-        text.includes("cooling")
-    ) {
+    if (text.includes("lammat"))
         return "cooling";
-    }
 
-    // ===== Động cơ nâng hạ =====
-    if (
-        text.includes("nang ha") ||
-        text.includes("hoist") ||
-        text.includes("lifting")
-    ) {
+    if (text.includes("nangha"))
         return "lifting";
-    }
 
-    // ===== Động cơ phanh =====
-    if (
-        text.includes("phanh") ||
-        text.includes("brake")
-    ) {
+    if (text.includes("phanh"))
         return "brake";
-    }
 
     return "otherMotor";
 }
