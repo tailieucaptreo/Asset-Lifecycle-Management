@@ -711,14 +711,14 @@ function compareMotor(oldData, newData) {
 
 }
 
-function normalizeText(text = "") {
-
-    return String(text)
+function normalizeMotorName(name = "") {
+    return String(name)
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")      // bỏ dấu
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")// bỏ ký tự Unicode ẩn
-        .replace(/[^a-zA-Z0-9]/g, "")         // bỏ khoảng trắng và ký tự đặc biệt
-        .toLowerCase();
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
 }
 
 function classifyMotor(name = "") {
