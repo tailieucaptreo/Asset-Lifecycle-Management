@@ -352,7 +352,9 @@ export default function Motor() {
                         &&
 
                         (!filters.type ||
-                            motor.type === filters.type)
+
+                            detectMotorType(motor.name)
+                            === filters.type)
 
                         &&
 
@@ -428,51 +430,66 @@ export default function Motor() {
                         case "mainMotor":
 
                             matchCard =
-
-                                motor.type === "Động cơ chính";
-
+                                detectMotorType(motor.name)
+                                === "mainMotor";
+                        
                             break;
-
+                        
                         case "oilPump":
-
+                        
                             matchCard =
-
-                                motor.type === "Động cơ bơm dầu";
-
+                                detectMotorType(motor.name)
+                                === "oilPump";
+                        
                             break;
-
+                        
                         case "cooling":
-
+                        
                             matchCard =
-
-                                motor.type === "Động cơ làm mát";
-
+                                detectMotorType(motor.name)
+                                === "cooling";
+                        
                             break;
-
+                        
                         case "brake":
-
+                        
                             matchCard =
-
-                                motor.type === "Động cơ phanh";
-
+                                detectMotorType(motor.name)
+                                === "brake";
+                        
                             break;
-
+                        
                         case "lifting":
-
+                        
                             matchCard =
-
-                                motor.type === "Động cơ nâng hạ";
-
+                                detectMotorType(motor.name)
+                                === "lifting";
+                        
                             break;
-
-                        case "otherType":
-
+                        
+                        case "door":
+                        
                             matchCard =
-
-                                motor.type === "Khác";
-
+                                detectMotorType(motor.name)
+                                === "door";
+                        
                             break;
-
+                        
+                        case "hydraulic":
+                        
+                            matchCard =
+                                detectMotorType(motor.name)
+                                === "hydraulic";
+                        
+                            break;
+                        
+                        case "otherMotor":
+                        
+                            matchCard =
+                                detectMotorType(motor.name)
+                                === "otherMotor";
+                        
+                            break;
                         default:
 
                             matchCard = true;
