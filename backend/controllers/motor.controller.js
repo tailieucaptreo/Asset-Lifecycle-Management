@@ -712,21 +712,54 @@ function compareMotor(oldData, newData) {
 }
 
 function classifyMotor(name = "") {
+
     const text = String(name)
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
 
-    if (text.includes("dong co lam mat")) return "cooling";
-    if (text.includes("dong co bom dau")) return "oilPump";
-    if (text.includes("dong co phanh")) return "brake";
-    if (text.includes("dong co nang ha")) return "lifting";
-
+    // ===== Động cơ chính =====
     if (
-        text === "dong co chinh" ||
-        /^dong co chinh m\d+/.test(text)
+        text.includes("dong co chinh") ||
+        text.includes("main motor")
     ) {
         return "mainMotor";
+    }
+
+    // ===== Động cơ bơm dầu / thủy lực =====
+    if (
+        text.includes("bom dau") ||
+        text.includes("bom thuy luc") ||
+        text.includes("hydraulic pump")
+    ) {
+        return "oilPump";
+    }
+
+    // ===== Động cơ làm mát =====
+    if (
+        text.includes("lam mat") ||
+        text.includes("cooling")
+    ) {
+        return "cooling";
+    }
+
+    // ===== Động cơ nâng hạ =====
+    if (
+        text.includes("nang ha") ||
+        text.includes("hoist") ||
+        text.includes("lifting")
+    ) {
+        return "lifting";
+    }
+
+    // ===== Động cơ phanh =====
+    if (
+        text.includes("phanh") ||
+        text.includes("brake")
+    ) {
+        return "brake";
     }
 
     return "otherMotor";
@@ -801,7 +834,7 @@ exports.getStatistics = async (req, res) => {
             }
         
             // ===== Motor Type =====
-            const motorType = detectMotorType(motor.name);
+            const motorType = classifyMotor(motor.name);
             
             if (motor.name.includes("Động cơ chính")) {
                 console.log(
@@ -809,30 +842,31 @@ exports.getStatistics = async (req, res) => {
                 );
             }
         
-           switch ((motor.type || "").trim()) {
+           switch (motorType) {
 
-                case "Động cơ chính":
+                case "mainMotor":
                     statistics.mainMotor++;
                     break;
             
-                case "Động cơ bơm dầu":
+                case "oilPump":
                     statistics.oilPump++;
                     break;
             
-                case "Động cơ làm mát":
+                case "cooling":
                     statistics.cooling++;
                     break;
             
-                case "Động cơ phanh":
-                    statistics.brake++;
+                case "lifting":
+                    statistics.lifting++;
                     break;
             
-                case "Động cơ nâng hạ":
-                    statistics.lifting++;
+                case "brake":
+                    statistics.brake++;
                     break;
             
                 default:
                     statistics.otherMotor++;
+                    break;
             }
         
         }
