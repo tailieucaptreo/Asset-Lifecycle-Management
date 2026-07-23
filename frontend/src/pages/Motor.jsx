@@ -36,11 +36,11 @@ function detectMotorType(name = "") {
     if (text.includes("nang ha"))
         return "lifting";
 
-    // ===== Đóng mở ray =====
+    // ===== Đóng mở ray => Khác =====
     if (text.includes("dong mo ray"))
         return "otherMotor";
 
-    // ===== Thủy lực =====
+    // ===== Thủy lực => Khác =====
     if (text.includes("thuy luc"))
         return "otherMotor";
 
