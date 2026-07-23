@@ -711,33 +711,23 @@ function compareMotor(oldData, newData) {
 
 }
 
-function detectMotorType(name = "") {
-
+function classifyMotor(name = "") {
     const text = String(name)
-        .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
+        .toLowerCase();
 
-    console.log("TEXT =", text);
-    console.log("TEST =", /dong co chinh\b/.test(text));
-    console.log("TYPE =", typeof text);
+    if (text.includes("dong co lam mat")) return "cooling";
+    if (text.includes("dong co bom dau")) return "oilPump";
+    if (text.includes("dong co phanh")) return "brake";
+    if (text.includes("dong co nang ha")) return "lifting";
 
-    if (/dong co chinh\b/.test(text))
+    if (
+        text === "dong co chinh" ||
+        /^dong co chinh m\d+/.test(text)
+    ) {
         return "mainMotor";
-
-    if (/lam mat/.test(text))
-        return "cooling";
-
-    if (/bom dau/.test(text))
-        return "oilPump";
-
-    if (/phanh/.test(text))
-        return "brake";
-
-    if (/nang ha/.test(text))
-        return "lifting";
+    }
 
     return "otherMotor";
 }
