@@ -20,11 +20,11 @@ function detectMotorType(name = "") {
         .replace(/[\u0300-\u036f]/g, "");
 
     if (
-        text.includes("dong co chinh") ||
-        text.includes("truyen dong chinh") ||
         (
             text.includes("chinh")
-        )
+        ) ||
+        text.includes("keo chinh") ||
+        text.includes("truyen dong chinh")
     ) {
         return "mainMotor";
     }
