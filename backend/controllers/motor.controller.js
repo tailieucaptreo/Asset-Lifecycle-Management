@@ -711,6 +711,38 @@ function compareMotor(oldData, newData) {
 
 }
 
+function detectMotorType(name = "") {
+
+    const text = String(name)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    if (text.includes("dong co chinh"))
+        return "main";
+
+    if (text.includes("bom dau"))
+        return "oilPump";
+
+    if (text.includes("lam mat"))
+        return "cooling";
+
+    if (text.includes("phanh"))
+        return "brake";
+
+    if (text.includes("nang ha"))
+        return "lifting";
+
+    if (text.includes("dong mo ray"))
+        return "door";
+
+    if (text.includes("thuy luc"))
+        return "hydraulic";
+
+    return "other";
+
+}
+
 
 /* =====================================================
    STATISTICS
@@ -749,6 +781,10 @@ exports.getStatistics = async (req, res) => {
             brake: 0,
 
             lifting: 0,
+
+            door: 0,
+
+            hydraulic: 0,
 
             otherType: 0
 
@@ -810,44 +846,56 @@ exports.getStatistics = async (req, res) => {
 
             // Type
 
-            switch (motor.type) {
+            switch (detectMotorType(motor.name)) {
 
-                case "Động cơ chính":
-
+                case "main":
+            
                     statistics.mainMotor++;
-
+            
                     break;
-
-                case "Động cơ bơm dầu":
-
+            
+                case "oilPump":
+            
                     statistics.oilPump++;
-
+            
                     break;
-
-                case "Động cơ làm mát":
-
+            
+                case "cooling":
+            
                     statistics.cooling++;
-
+            
                     break;
-
-                case "Động cơ phanh":
-
+            
+                case "brake":
+            
                     statistics.brake++;
-
+            
                     break;
-
-                case "Động cơ nâng hạ":
-
+            
+                case "lifting":
+            
                     statistics.lifting++;
-
+            
                     break;
-
+            
+                case "door":
+            
+                    statistics.door++;
+            
+                    break;
+            
+                case "hydraulic":
+            
+                    statistics.hydraulic++;
+            
+                    break;
+            
                 default:
-
+            
                     statistics.otherType++;
-
+            
             }
-
+            
         });
 
         res.json(statistics);
