@@ -12,45 +12,37 @@ import MotorModal from "../components/Motor/MotorModal";
 import MotorImportModal from "../components/Motor/MotorImportModal";
 import MotorHistoryModal from "../components/Motor/MotorHistoryModal";
 
-function detectMotorType(name = "") {
+function normalizeText(text = "") {
 
-    const text = String(name)
+    return String(text)
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/\s+/g, " ")
-        .trim();
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toLowerCase();
+}
 
-    // Động cơ chính
-    if (
-        text.includes("dong co chinh") ||
-        text.includes("main motor")
-    ) {
+function detectMotorType(name = "") {
+
+    const text = normalizeText(name);
+
+    if (text.includes("dongcochinh"))
         return "mainMotor";
-    }
 
-    // Động cơ bơm dầu / thủy lực
     if (
-        text.includes("bom dau") ||
-        text.includes("bom thuy luc")
-    ) {
+        text.includes("bomdau") ||
+        text.includes("bomthuyluc")
+    )
         return "oilPump";
-    }
 
-    // Động cơ làm mát
-    if (text.includes("lam mat")) {
+    if (text.includes("lammat"))
         return "cooling";
-    }
 
-    // Động cơ nâng hạ
-    if (text.includes("nang ha")) {
+    if (text.includes("nangha"))
         return "lifting";
-    }
 
-    // Động cơ phanh
-    if (text.includes("phanh")) {
+    if (text.includes("phanh"))
         return "brake";
-    }
 
     return "otherMotor";
 }
