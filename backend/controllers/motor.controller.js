@@ -718,20 +718,12 @@ function detectMotorType(name = "") {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 
-    if (
-        text.includes("dong co chinh") ||
-        text.includes("keo chinh") ||
-        text.includes("truyen dong chinh") ||
-        text.includes("main motor")
-    ) {
-        return "mainMotor";
-    }
+    // làm mát ưu tiên trước
+    if (text.includes("lam mat"))
+        return "cooling";
 
     if (text.includes("bom dau"))
         return "oilPump";
-
-    if (text.includes("lam mat"))
-        return "cooling";
 
     if (text.includes("phanh"))
         return "brake";
@@ -739,16 +731,19 @@ function detectMotorType(name = "") {
     if (text.includes("nang ha"))
         return "lifting";
 
+    // đóng mở ray
     if (text.includes("dong mo ray"))
         return "door";
 
     if (text.includes("thuy luc"))
         return "hydraulic";
 
+    // cuối cùng mới kiểm tra "chính"
+    if (text.includes("chinh"))
+        return "mainMotor";
+
     return "otherMotor";
-
 }
-
 
 /* =====================================================
    STATISTICS
@@ -792,7 +787,7 @@ exports.getStatistics = async (req, res) => {
 
             hydraulic: 0,
 
-            otherType: 0
+            otherMotor: 0
 
         };
 
@@ -1441,19 +1436,20 @@ exports.importMotors = async (req, res) => {
 
             const changes = {};
 
+            const oldMotor = motorMap.get(
+                getMotorKey(item.data)
+            );
+
             item.changedFields.forEach(field => {
 
                 changes[field] = {
-
-                    old:
-                        motorMap
-                            .get(item.data.deviceId)?.[field] ?? null,
-
-                    new:
-                        item.data[field]
-
+            
+                    old: oldMotor?.[field] ?? null,
+            
+                    new: item.data[field]
+            
                 };
-
+            
             });
 
             await writeHistory({
