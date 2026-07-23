@@ -720,7 +720,9 @@ function detectMotorType(name = "") {
         .replace(/\s+/g, " ")
         .trim();
 
-    console.log(text);
+    console.log("TEXT =", text);
+    console.log("TEST =", /dong co chinh\b/.test(text));
+    console.log("TYPE =", typeof text);
 
     if (/dong co chinh\b/.test(text))
         return "mainMotor";
