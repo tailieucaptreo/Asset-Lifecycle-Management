@@ -17,34 +17,38 @@ function detectMotorType(name = "") {
     const text = String(name)
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
 
-    // Ưu tiên nhận diện các nhóm cụ thể trước
-
+    // ===== Làm mát =====
     if (text.includes("lam mat"))
         return "cooling";
 
+    // ===== Bơm dầu =====
     if (text.includes("bom dau"))
         return "oilPump";
 
+    // ===== Phanh =====
     if (text.includes("phanh"))
         return "brake";
 
+    // ===== Nâng hạ =====
     if (text.includes("nang ha"))
         return "lifting";
 
-    // Đóng mở ray không tính là động cơ chính
+    // ===== Đóng mở ray =====
     if (text.includes("dong mo ray"))
         return "otherMotor";
 
+    // ===== Thủy lực =====
     if (text.includes("thuy luc"))
         return "otherMotor";
 
-    // Chỉ các động cơ chính thực sự
+    // ===== Động cơ chính =====
     if (
-        text === "dong co chinh" ||
-        text.startsWith("dong co chinh ") ||
-        text.startsWith("dong co chinh m")
+        text.includes("dong co chinh") &&
+        !text.includes("lam mat") &&
+        !text.includes("dong mo ray")
     ) {
         return "mainMotor";
     }
