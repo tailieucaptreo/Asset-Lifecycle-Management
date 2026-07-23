@@ -717,39 +717,29 @@ function detectMotorType(name = "") {
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
         .trim();
 
-    console.log("==============");
-    console.log("TEXT:", text);
+    console.log(text);
 
-    if (text.includes("dong co chinh")) {
-        console.log("RETURN mainMotor");
+    if (/dong co chinh\b/.test(text))
         return "mainMotor";
-    }
 
-    if (text.includes("lam mat")) {
-        console.log("RETURN cooling");
+    if (/lam mat/.test(text))
         return "cooling";
-    }
 
-    if (text.includes("bom dau")) {
-        console.log("RETURN oilPump");
+    if (/bom dau/.test(text))
         return "oilPump";
-    }
 
-    if (text.includes("phanh")) {
-        console.log("RETURN brake");
+    if (/phanh/.test(text))
         return "brake";
-    }
 
-    if (text.includes("nang ha")) {
-        console.log("RETURN lifting");
+    if (/nang ha/.test(text))
         return "lifting";
-    }
 
-    console.log("RETURN otherMotor");
     return "otherMotor";
 }
+
 /* =====================================================
    STATISTICS
 ===================================================== */
