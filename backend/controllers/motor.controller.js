@@ -735,11 +735,11 @@ function detectMotorType(name = "") {
     if (text.includes("nang ha"))
         return "lifting";
 
-    // ===== Đóng mở ray =====
+    // ===== Đóng mở ray => Khác =====
     if (text.includes("dong mo ray"))
         return "otherMotor";
 
-    // ===== Thủy lực =====
+    // ===== Thủy lực => Khác =====
     if (text.includes("thuy luc"))
         return "otherMotor";
 
@@ -766,150 +766,96 @@ exports.getStatistics = async (req, res) => {
         const motors = await prisma.motor.findMany();
 
         const statistics = {
-
             total: motors.length,
-
+        
             abb: 0,
-
             siemens: 0,
-
             otherBrand: 0,
-
+        
             running: 0,
-
             maintenance: 0,
-
             replaced: 0,
-
-            original: 0,
-
+            notReplaced: 0,
+        
             mainMotor: 0,
-
             oilPump: 0,
-
             cooling: 0,
-
             brake: 0,
-
             lifting: 0,
-
-            door: 0,
-
-            hydraulic: 0,
-
             otherMotor: 0
-
         };
-
-        motors.forEach(motor => {
-
-            // Brand
-
-            switch (motor.brand) {
-
+        
+        for (const motor of motors) {
+        
+            // ===== Brand =====
+            switch ((motor.brand || "").toUpperCase()) {
+        
                 case "ABB":
-
                     statistics.abb++;
-
                     break;
-
-                case "Siemens":
-
+        
+                case "SIEMENS":
                     statistics.siemens++;
-
                     break;
-
+        
                 default:
-
                     statistics.otherBrand++;
-
+                    break;
             }
-
-            // Status
-
+        
+            // ===== Status =====
             switch (motor.status) {
-
-                case "Running":
-
+        
+                case "Đang hoạt động":
                     statistics.running++;
-
                     break;
-
-                case "Maintenance":
-
+        
+                case "Bảo trì":
                     statistics.maintenance++;
-
                     break;
-
-                case "Replaced":
-
+        
+                case "Đã thay":
                     statistics.replaced++;
-
                     break;
-
-                case "Original":
-
-                    statistics.original++;
-
-                    break;
-
-            }
-
-            // Type
-
-            switch (detectMotorType(motor.name)) {
-
-                case "mainMotor":
-            
-                    statistics.mainMotor++;
-            
-                    break;
-            
-                case "oilPump":
-            
-                    statistics.oilPump++;
-            
-                    break;
-            
-                case "cooling":
-            
-                    statistics.cooling++;
-            
-                    break;
-            
-                case "brake":
-            
-                    statistics.brake++;
-            
-                    break;
-            
-                case "lifting":
-            
-                    statistics.lifting++;
-            
-                    break;
-            
-                case "door":
-            
-                    statistics.door++;
-            
-                    break;
-            
-                case "hydraulic":
-            
-                    statistics.hydraulic++;
-            
-                    break;
-            
+        
                 default:
-            
-                    statistics.otherMotor++;
-            
+                    statistics.notReplaced++;
+                    break;
             }
-            
-        });
-
-        res.json(statistics);
+        
+            // ===== Motor Type =====
+            const motorType = detectMotorType(motor.name);
+        
+            switch (motorType) {
+        
+                case "mainMotor":
+                    statistics.mainMotor++;
+                    break;
+        
+                case "oilPump":
+                    statistics.oilPump++;
+                    break;
+        
+                case "cooling":
+                    statistics.cooling++;
+                    break;
+        
+                case "brake":
+                    statistics.brake++;
+                    break;
+        
+                case "lifting":
+                    statistics.lifting++;
+                    break;
+        
+                default:
+                    statistics.otherMotor++;
+                    break;
+            }
+        
+        }
+        
+        return res.json(statistics);
 
     }
 
