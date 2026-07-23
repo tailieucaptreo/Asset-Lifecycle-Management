@@ -15,42 +15,41 @@ import MotorHistoryModal from "../components/Motor/MotorHistoryModal";
 function detectMotorType(name = "") {
 
     const text = String(name)
-        .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
         .trim();
 
-    // ===== Làm mát =====
-    if (text.includes("lam mat"))
-        return "cooling";
-
-    // ===== Bơm dầu =====
-    if (text.includes("bom dau"))
-        return "oilPump";
-
-    // ===== Phanh =====
-    if (text.includes("phanh"))
-        return "brake";
-
-    // ===== Nâng hạ =====
-    if (text.includes("nang ha"))
-        return "lifting";
-
-    // ===== Đóng mở ray => Khác =====
-    if (text.includes("dong mo ray"))
-        return "otherMotor";
-
-    // ===== Thủy lực => Khác =====
-    if (text.includes("thuy luc"))
-        return "otherMotor";
-
-    // ===== Động cơ chính =====
+    // Động cơ chính
     if (
-        text.includes("dong co chinh") &&
-        !text.includes("lam mat") &&
-        !text.includes("dong mo ray")
+        text.includes("dong co chinh") ||
+        text.includes("main motor")
     ) {
         return "mainMotor";
+    }
+
+    // Động cơ bơm dầu / thủy lực
+    if (
+        text.includes("bom dau") ||
+        text.includes("bom thuy luc")
+    ) {
+        return "oilPump";
+    }
+
+    // Động cơ làm mát
+    if (text.includes("lam mat")) {
+        return "cooling";
+    }
+
+    // Động cơ nâng hạ
+    if (text.includes("nang ha")) {
+        return "lifting";
+    }
+
+    // Động cơ phanh
+    if (text.includes("phanh")) {
+        return "brake";
     }
 
     return "otherMotor";
@@ -508,22 +507,6 @@ export default function Motor() {
                             matchCard =
                                 detectMotorType(motor.name)
                                 === "lifting";
-                        
-                            break;
-                        
-                        case "door":
-                        
-                            matchCard =
-                                detectMotorType(motor.name)
-                                === "door";
-                        
-                            break;
-                        
-                        case "hydraulic":
-                        
-                            matchCard =
-                                detectMotorType(motor.name)
-                                === "hydraulic";
                         
                             break;
                         
