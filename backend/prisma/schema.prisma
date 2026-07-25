@@ -377,6 +377,14 @@ model Motor {
   histories         MotorHistory[]
   maintenances      MotorMaintenance[]
   faults            MotorFault[]
+
+  quantity            Int?
+
+  oldMotor            String?
+  
+  newMotor            String?
+  
+  maintenanceContent  String? @db.Text
 }
 
 model MotorHistory {
