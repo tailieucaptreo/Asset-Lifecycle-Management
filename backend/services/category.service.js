@@ -37,24 +37,17 @@ function tokenize(text = "") {
 // Apply Alias
 // =====================================
 
-function applyAlias(text = "") {
+function applyAlias(value) {
 
-    let result = normalize(text);
+    if (value == null) return "";
 
-    for (const [from, to] of Object.entries(ALIAS)) {
+    const text = String(value);
 
-        result = result.replaceAll(
-
-            normalize(from),
-
-            normalize(to)
-
-        );
-
-    }
-
-    return result;
-
+    return text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
 }
 
 // =====================================
