@@ -12,7 +12,7 @@ import {
   CartesianGrid,
   LineChart, 
   Line
-  label
+  Label
 } from "recharts";
 
 export default function Chart({ data = [] }) {
