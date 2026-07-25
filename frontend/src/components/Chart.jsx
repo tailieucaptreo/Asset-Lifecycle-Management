@@ -232,12 +232,48 @@ const COLORS = {
               labelLine={false}
               label={false}
             >
+            
+              <Label
+                position="center"
+                content={({ viewBox }) => {
+            
+                  const { cx, cy } = viewBox;
+            
+                  return (
+                    <g>
+                      <text
+                        x={cx}
+                        y={cy - 8}
+                        textAnchor="middle"
+                        fontSize="34"
+                        fontWeight="700"
+                        fill="#111827"
+                      >
+                        {total}
+                      </text>
+            
+                      <text
+                        x={cx}
+                        y={cy + 18}
+                        textAnchor="middle"
+                        fontSize="14"
+                        fill="#6b7280"
+                      >
+                        Thiết bị
+                      </text>
+                    </g>
+                  );
+            
+                }}
+              />
+            
               {pieData.map((entry, index) => (
                 <Cell
                   key={index}
                   fill={COLORS[entry.name]}
                 />
               ))}
+            
             </Pie>
           
             <Tooltip
