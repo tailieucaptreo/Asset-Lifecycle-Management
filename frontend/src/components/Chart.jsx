@@ -214,87 +214,111 @@ const COLORS = {
       </div>
 
       {/* 🎨 PIE */}
-      <div className="bg-white rounded-2xl shadow p-5 flex flex-col min-h-[360px]">
-        <h2 className="font-bold mb-2">Trạng thái</h2>
-
-        <div className="relative w-full h-full">
-
+      <div className="bg-white rounded-2xl shadow p-5 min-h-[360px]">
+      
+        <h2 className="font-bold mb-4">
+          Trạng thái
+        </h2>
+      
+        <div className="flex items-center h-[280px]">
+      
+          {/* Donut */}
+          <div className="relative w-1/2 h-full">
+      
             <ResponsiveContainer width="100%" height="100%">
-        
-                <PieChart>
-        
-                    <Pie
-                        data={pieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="40%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={85}
-                        paddingAngle={2}
-                        label={false}
-                        labelLine={false}
-                    >
-                        {pieData.map((entry, index) => (
-                            <Cell
-                                key={index}
-                                fill={COLORS[entry.name]}
-                            />
-                        ))}
-                    </Pie>
-        
-                    <Tooltip
-                        formatter={(value) => [
-                            value,
-                            "Thiết bị"
-                        ]}
+      
+              <PieChart>
+      
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={88}
+                  paddingAngle={2}
+                  label={false}
+                  labelLine={false}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      key={index}
+                      fill={COLORS[entry.name]}
                     />
-        
-                    <Legend
-                        layout="vertical"
-                        verticalAlign="middle"
-                        align="right"
-                        formatter={(value) => {
-                            const item =
-                                pieData.find(i => i.name === value);
-        
-                            const percent =
-                                total
-                                    ? (
-                                        item.value * 100 / total
-                                    ).toFixed(1)
-                                    : 0;
-        
-                            return `${value}: ${item.value} (${percent}%)`;
-                        }}
-                    />
-        
-                </PieChart>
-        
+                  ))}
+                </Pie>
+      
+                <Tooltip />
+      
+              </PieChart>
+      
             </ResponsiveContainer>
-        
-            {/* Tổng ở giữa */}
-            <div
-                className="
-                    absolute
-                    left-[40%]
-                    top-1/2
-                    -translate-x-1/2
-                    -translate-y-1/2
-                    pointer-events-none
-                    text-center
-                "
-            >
-                <div className="text-4xl font-bold text-slate-800">
-                    {total}
-                </div>
-        
-                <div className="text-sm text-slate-500">
-                    Thiết bị
-                </div>
+      
+            {/* Tổng */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+      
+              <div className="text-4xl font-bold text-slate-800">
+                {total}
+              </div>
+      
+              <div className="text-sm text-slate-500">
+                Thiết bị
+              </div>
+      
             </div>
-        
+      
+          </div>
+      
+          {/* Legend */}
+          <div className="w-1/2 space-y-3">
+      
+            {pieData.map(item => {
+      
+              const percent = total
+                ? (item.value * 100 / total).toFixed(1)
+                : 0;
+      
+              return (
+      
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between"
+                >
+      
+                  <div className="flex items-center gap-2">
+      
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        background: COLORS[item.name]
+                      }}
+                    />
+      
+                    <span>{item.name}</span>
+      
+                  </div>
+      
+                  <span className="font-semibold">
+      
+                    {item.value}
+      
+                    <span className="text-slate-500 ml-1">
+                      ({percent}%)
+                    </span>
+      
+                  </span>
+      
+                </div>
+      
+              );
+      
+            })}
+      
+          </div>
+      
         </div>
+      
       </div>
 
       {/* 📈 LINE */}
