@@ -1,4 +1,4 @@
-const normalize = require("../utils/normalize");
+const { normalize } = require("../utils/normalize");
 
 const MODELS = require("../data/models");
 const MANUFACTURERS = require("../data/manufacturers");
