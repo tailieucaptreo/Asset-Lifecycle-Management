@@ -574,13 +574,11 @@ exports.exportDevices = async (req, res) => {
 
                 "Phân loại":
 
-                    categoryInfo.category,
+                    device.category || "",
 
                 "Hãng":
 
-                    device.brand ||
-
-                    categoryInfo.brand,
+                    device.brand || "",
 
                 "Model":
 
