@@ -12,7 +12,6 @@ import {
   CartesianGrid,
   LineChart, 
   Line,
-  Label
 } from "recharts";
 
 export default function Chart({ data = [] }) {
@@ -218,97 +217,84 @@ const COLORS = {
       <div className="bg-white rounded-2xl shadow p-5 flex flex-col min-h-[360px]">
         <h2 className="font-bold mb-2">Trạng thái</h2>
 
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
+        <div className="relative w-full h-full">
 
-            <Pie
-              data={pieData}
-              dataKey="value"
-              nameKey="name"
-              cx="40%"
-              cy="50%"
-              innerRadius={55}
-              outerRadius={85}
-              paddingAngle={2}
-              labelLine={false}
-              label={false}
+            <ResponsiveContainer width="100%" height="100%">
+        
+                <PieChart>
+        
+                    <Pie
+                        data={pieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="40%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={85}
+                        paddingAngle={2}
+                        label={false}
+                        labelLine={false}
+                    >
+                        {pieData.map((entry, index) => (
+                            <Cell
+                                key={index}
+                                fill={COLORS[entry.name]}
+                            />
+                        ))}
+                    </Pie>
+        
+                    <Tooltip
+                        formatter={(value) => [
+                            value,
+                            "Thiết bị"
+                        ]}
+                    />
+        
+                    <Legend
+                        layout="vertical"
+                        verticalAlign="middle"
+                        align="right"
+                        formatter={(value) => {
+                            const item =
+                                pieData.find(i => i.name === value);
+        
+                            const percent =
+                                total
+                                    ? (
+                                        item.value * 100 / total
+                                    ).toFixed(1)
+                                    : 0;
+        
+                            return `${value}: ${item.value} (${percent}%)`;
+                        }}
+                    />
+        
+                </PieChart>
+        
+            </ResponsiveContainer>
+        
+            {/* Tổng ở giữa */}
+            <div
+                className="
+                    absolute
+                    left-[40%]
+                    top-1/2
+                    -translate-x-1/2
+                    -translate-y-1/2
+                    pointer-events-none
+                    text-center
+                "
             >
-            
-              <Label
-                position="center"
-                content={({ viewBox }) => {
-            
-                  const { cx, cy } = viewBox;
-            
-                  return (
-                    <g>
-                      <text
-                        x={cx}
-                        y={cy - 8}
-                        textAnchor="middle"
-                        fontSize="34"
-                        fontWeight="700"
-                        fill="#111827"
-                      >
-                        {total}
-                      </text>
-            
-                      <text
-                        x={cx}
-                        y={cy + 18}
-                        textAnchor="middle"
-                        fontSize="14"
-                        fill="#6b7280"
-                      >
-                        Thiết bị
-                      </text>
-                    </g>
-                  );
-            
-                }}
-              />
-            
-              {pieData.map((entry, index) => (
-                <Cell
-                  key={index}
-                  fill={COLORS[entry.name]}
-                />
-              ))}
-            
-            </Pie>
-          
-            <Tooltip
-              formatter={(value) => [
-                value,
-                "Thiết bị"
-              ]}
-            />
-          
-            <Legend
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-              formatter={(value) => {
-                const item =
-                  pieData.find(
-                    i => i.name === value
-                  );
-          
-                const percent =
-                  total
-                    ? (
-                        item.value *
-                        100 /
-                        total
-                      ).toFixed(1)
-                    : 0;
-          
-                return `${value}: ${item.value} (${percent}%)`;
-              }}
-            />
-          
-          </PieChart>
-        </ResponsiveContainer>
+                <div className="text-4xl font-bold text-slate-800">
+                    {total}
+                </div>
+        
+                <div className="text-sm text-slate-500">
+                    Thiết bị
+                </div>
+            </div>
+        
+        </div>
       </div>
 
       {/* 📈 LINE */}
