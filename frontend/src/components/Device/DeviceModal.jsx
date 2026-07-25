@@ -19,7 +19,7 @@ const defaultDevice = {
 
     deviceId: "",
 
-    status: "Đang hoạt động",
+    status: "",
 
     installDate: "",
 
@@ -263,9 +263,6 @@ export default function DeviceModal({
                 deviceId:
                     form.deviceId.trim(),
 
-                status:
-                    form.status,
-
                 installDate:
                     form.installDate || null,
 
@@ -483,49 +480,42 @@ export default function DeviceModal({
                             <div>
 
                                 <label className="block mb-1 font-medium">
-
+                            
                                     Trạng thái
-
+                            
                                 </label>
-
-                                <select
-
-                                    name="status"
-
-                                    value={form.status}
-
-                                    onChange={handleChange}
-
-                                    className="w-full border rounded-lg px-3 py-2"
-
-                                >
-
-                                    <option>
-
-                                        Đang hoạt động
-
-                                    </option>
-
-                                    <option>
-
-                                        Bảo trì
-
-                                    </option>
-
-                                    <option>
-
-                                        Hỏng
-
-                                    </option>
-
-                                    <option>
-
-                                        Dự phòng
-
-                                    </option>
-
-                                </select>
-
+                            
+                                <input
+                            
+                                    type="text"
+                            
+                                    value={
+                                        form.status === "Active"
+                                            ? "Đang hoạt động"
+                                            : form.status === "Maintenance"
+                                            ? "Bảo trì"
+                                            : form.status === "Expired"
+                                            ? "Quá tuổi thọ"
+                                            : form.status === "Inactive"
+                                            ? "Ngừng hoạt động"
+                                            : form.status || ""
+                                    }
+                            
+                                    readOnly
+                            
+                                    className="
+                                        w-full
+                                        border
+                                        rounded-lg
+                                        px-3
+                                        py-2
+                                        bg-slate-100
+                                        text-slate-700
+                                        cursor-not-allowed
+                                    "
+                            
+                                />
+                            
                             </div>
 
                             <div>
