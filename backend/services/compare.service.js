@@ -15,7 +15,6 @@ async function compareRows(prisma, rows) {
             station: true,
             code: true,
             area: true,
-            status: true,
             installDate: true,
             lifespan: true
 
@@ -107,14 +106,6 @@ async function compareRows(prisma, rows) {
                 )
             ),
 
-            status: normalize(
-                get(
-                    row,
-                    "Trạng thái",
-                    "Status"
-                )
-            ),
-
             installDate: parseDate(
                 get(
                     row,
@@ -192,9 +183,6 @@ async function compareRows(prisma, rows) {
 
         if (normalize(old.area) !== normalize(data.area))
             changedFields.push("Khu vực");
-
-        if (normalize(old.status) !== normalize(data.status))
-            changedFields.push("Trạng thái");
 
         if (!sameDate(old.installDate, data.installDate))
             changedFields.push("Ngày lắp");
