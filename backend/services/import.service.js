@@ -4,10 +4,6 @@ const {
 } = require("../utils/date");
 
 const {
-    normalizeStatus
-} = require("../utils/status");
-
-const {
     detectCategory
 } = require("./category.service");
 
@@ -51,9 +47,6 @@ async function importRows(prisma, rows) {
             area: d.area,
 
             deviceId: d.deviceId,
-
-            status:
-                normalizeStatus(d.status),
 
             installDate:
                 parseDate(d.installDate),
