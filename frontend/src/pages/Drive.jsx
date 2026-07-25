@@ -158,8 +158,16 @@ export default function Drive() {
                 d.station === station;
 
             const matchStatus =
-                status === "All" ||
-                d.status === status;
+
+                status === "All"
+            
+                    ? true
+            
+                    : Array.isArray(status)
+            
+                    ? status.includes(d.status)
+            
+                    : d.status === status;
 
             const matchModel =
                 model === "All" ||
@@ -226,11 +234,28 @@ export default function Drive() {
     }
 
     const handleCardClick = (value) => {
-        if (Array.isArray(value)) {
-            // lọc nhiều trạng thái
+
+        // value có thể là string hoặc array
+        const current =
+            Array.isArray(status)
+                ? JSON.stringify(status)
+                : status;
+    
+        const next =
+            Array.isArray(value)
+                ? JSON.stringify(value)
+                : value;
+    
+        if (current === next) {
+    
+            setStatus("All");
+    
         } else {
-            ...
+    
+            setStatus(value);
+    
         }
+    
     };
 
     const handleCreate = () => {
