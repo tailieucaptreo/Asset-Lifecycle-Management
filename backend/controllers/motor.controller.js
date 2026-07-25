@@ -609,22 +609,46 @@ function mapMotorRow(excelRow) {
         ),
 
         status: ImportHelper.text(
+
             excelRow["Trạng thái"] ??
             excelRow.status ??
-            "Running"
+            "Chưa thay"
+        
         ),
-
+        
+        installDate: ImportHelper.date(
+        
+            excelRow["Ngày lắp"] ??
+            excelRow.installDate
+        
+        ),
+        
         replacementDate: ImportHelper.date(
-            excelRow["Thời gian thay thế"]
+        
+            excelRow["Thời gian thay thế"] ??
+            excelRow.replacementDate
+        
         ),
-
+        
         maintenanceDate: ImportHelper.date(
-            excelRow["Ngày bảo trì"]
+        
+            excelRow["Ngày bảo trì"] ??
+            excelRow.maintenanceDate
+        
         ),
-
+        
+        image: ImportHelper.nullableText(
+        
+            excelRow["Hình ảnh"] ??
+            excelRow.image
+        
+        ),
+        
         note: ImportHelper.nullableText(
+        
             excelRow["Ghi chú"] ??
             excelRow.note
+        
         )
 
     };
@@ -642,69 +666,103 @@ function compareMotor(oldData, newData) {
     const fields = [
 
         "name",
-
+    
         "type",
-
+    
         "brand",
-
+    
         "model",
-
+    
         "serial",
-
+    
         "power",
-
+    
         "voltage",
-
+    
         "current",
-
+    
         "frequency",
-
+    
         "rpm",
-
+    
         "efficiency",
-
+    
         "pole",
-
+    
         "bearingCode",
-
+    
         "runningHours",
-
+    
         "line",
-
+    
         "station",
-
+    
         "location",
-
+    
         "warehouse",
-
+    
         "status",
-
+    
+        "installDate",
+    
         "replacementDate",
-
+    
         "maintenanceDate",
-
+    
+        "image",
+    
         "note"
-
+    
     ];
 
     for (const field of fields) {
 
+        if (
+    
+            field === "installDate" ||
+    
+            field === "replacementDate" ||
+    
+            field === "maintenanceDate"
+    
+        ) {
+    
+            const oldValue =
+                oldData[field]
+                    ? new Date(oldData[field]).toISOString().slice(0, 10)
+                    : "";
+    
+            const newValue =
+                newData[field]
+                    ? new Date(newData[field]).toISOString().slice(0, 10)
+                    : "";
+    
+            if (oldValue !== newValue) {
+    
+                changedFields.push(field);
+    
+            }
+    
+            continue;
+    
+        }
+    
         const oldValue =
             oldData[field] == null
                 ? ""
                 : String(oldData[field]).trim();
-
+    
         const newValue =
             newData[field] == null
                 ? ""
                 : String(newData[field]).trim();
-
+    
         if (oldValue !== newValue) {
-
+    
             changedFields.push(field);
-
+    
         }
-
+    
     }
 
     return changedFields;
@@ -1535,6 +1593,8 @@ exports.exportExcel = async (req, res) => {
             { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
 
             { header: "Trạng thái", key: "status", width: 18 },
+            
+            { header: "Ngày lắp", key: "installDate", width: 18 },
 
             { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
 
