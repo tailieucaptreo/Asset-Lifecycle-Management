@@ -475,7 +475,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Running";
+                                motor.status === "Đang hoạt động";
 
                             break;
 
@@ -483,7 +483,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Maintenance";
+                                motor.status === "Bảo trì";
 
                             break;
 
@@ -491,7 +491,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Replaced";
+                                motor.status === "Đã thay";
 
                             break;
 
@@ -499,7 +499,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Original";
+                                motor.status === "Chưa thay";
 
                             break;
 
