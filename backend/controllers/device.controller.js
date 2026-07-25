@@ -214,8 +214,6 @@ exports.createDevice = async (req, res) => {
 
             model: d.model,
 
-            brand: d.brand
-
         });
 
         const device = await prisma.device.create({
@@ -225,8 +223,6 @@ exports.createDevice = async (req, res) => {
                 ...d,
 
                 category: categoryInfo.category,
-
-                brand: categoryInfo.brand,
 
                 status: normalizeStatus(d.status),
 
@@ -278,8 +274,6 @@ exports.updateDevice = async (req, res) => {
 
             model: d.model,
 
-            brand: d.brand
-
         });
 
         const device = await prisma.device.update({
@@ -295,8 +289,6 @@ exports.updateDevice = async (req, res) => {
                 ...d,
 
                 category: categoryInfo.category,
-
-                brand: categoryInfo.brand,
 
                 status: normalizeStatus(d.status),
 
@@ -584,8 +576,6 @@ exports.exportDevices = async (req, res) => {
 
                 model: device.model,
 
-                brand: device.brand
-
             });
 
             return {
@@ -593,8 +583,6 @@ exports.exportDevices = async (req, res) => {
                 "Tên thiết bị": device.name,
 
                 "Phân loại":
-
-                    device.category ||
 
                     categoryInfo.category,
 
