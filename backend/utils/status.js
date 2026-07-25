@@ -86,74 +86,76 @@ function normalizeStatus(value = "") {
 
 function calcMaintenance(device) {
 
-    if (
-
-        !device.installDate ||
-
-        !device.lifespan
-
-    ) {
-
+    if (!device || !device.installDate) {
         return "Inactive";
-
     }
 
     const now = new Date();
 
-    const install = new Date(
+    // =======================================
+    // Ưu tiên dùng expiryDate
+    // =======================================
 
-        device.installDate
+    if (device.expiryDate) {
 
-    );
+        const install = new Date(device.installDate);
+        const expiry = new Date(device.expiryDate);
 
-    const totalDays =
+        if (isNaN(install) || isNaN(expiry)) {
+            return "Inactive";
+        }
 
-        Number(device.lifespan) * 365;
+        // Đã hết hạn
+        if (now >= expiry) {
+            return "Expired";
+        }
 
-    const usedDays =
+        // % tuổi thọ đã sử dụng
+        const total = expiry.getTime() - install.getTime();
+        const used = now.getTime() - install.getTime();
 
-        (now - install) /
+        if (total > 0) {
 
-        86400000;
+            const percent = used / total;
 
-    const percent =
+            if (percent >= 0.7) {
+                return "Maintenance";
+            }
 
-        usedDays /
+        }
 
-        totalDays;
-
-    // ===========================
-    // EXPIRED
-    // ===========================
-
-    if (
-
-        percent >= 1
-
-    ) {
-
-        return "Expired";
-
+        return "Active";
     }
 
-    // ===========================
-    // MAINTENANCE
-    // ===========================
+    // =======================================
+    // Fallback nếu chưa có expiryDate
+    // =======================================
 
-    if (
+    if (!device.lifespan) {
+        return "Inactive";
+    }
 
-        percent >= 0.7
+    const install = new Date(device.installDate);
 
-    ) {
+    if (isNaN(install)) {
+        return "Inactive";
+    }
 
+    const totalDays = Number(device.lifespan) * 365;
+    const usedDays = (now.getTime() - install.getTime()) / 86400000;
+
+    const percent = usedDays / totalDays;
+
+    if (percent >= 1) {
+        return "Expired";
+    }
+
+    if (percent >= 0.7) {
         return "Maintenance";
-
     }
 
     return "Active";
-
 }
-
 module.exports = {
 
     normalizeStatus,
