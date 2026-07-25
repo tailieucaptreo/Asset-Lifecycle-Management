@@ -619,7 +619,7 @@ export default function Motor() {
 
                         await axios.delete(
 
-                            `${API}/motors/${motor.id}`,
+                            `${API}/api/motors/${motor.id}`,
 
                             {
 
