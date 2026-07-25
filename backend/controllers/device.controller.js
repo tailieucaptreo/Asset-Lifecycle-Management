@@ -72,8 +72,6 @@ const {
 
 const {
 
-    normalizeStatus,
-
     calcMaintenance
 
 } = require("../utils/status");
@@ -121,15 +119,11 @@ exports.getDevices = async (req, res) => {
         const data = devices.map(device => ({
 
             ...device,
-
-            status:
-
-                device.status ||
-
-                calcMaintenance(device)
-
+        
+            status: calcMaintenance(device)
+        
         }));
-
+        
         res.json(data);
 
     }
@@ -224,8 +218,6 @@ exports.createDevice = async (req, res) => {
 
                 category: categoryInfo.category,
 
-                status: normalizeStatus(d.status),
-
                 installDate: parseDate(d.installDate),
 
                 lastMaintenance: parseDate(d.lastMaintenance),
@@ -289,8 +281,6 @@ exports.updateDevice = async (req, res) => {
                 ...d,
 
                 category: categoryInfo.category,
-
-                status: normalizeStatus(d.status),
 
                 installDate: parseDate(d.installDate),
 
