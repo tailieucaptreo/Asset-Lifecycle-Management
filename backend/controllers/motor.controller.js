@@ -1476,7 +1476,6 @@ exports.importMotors = async (req, res) => {
 /* =====================================================
    EXPORT EXCEL
 ===================================================== */
-
 exports.exportExcel = async (req, res) => {
 
     try {
@@ -1497,23 +1496,51 @@ exports.exportExcel = async (req, res) => {
 
         sheet.columns = [
 
-            { header: "Mã TB", key: "deviceId", width: 18 },
+            { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
 
             { header: "Tên động cơ", key: "name", width: 35 },
 
-            { header: "Loại", key: "type", width: 20 },
+            { header: "Loại", key: "type", width: 22 },
 
-            { header: "Hãng", key: "brand", width: 15 },
+            { header: "Hãng", key: "brand", width: 18 },
 
-            { header: "Model", key: "model", width: 20 },
+            { header: "Model", key: "model", width: 25 },
 
-            { header: "Công suất", key: "power", width: 15 },
+            { header: "Serial Number ID", key: "serial", width: 22 },
 
-            { header: "Tuyến", key: "line", width: 15 },
+            { header: "Công suất (kW)", key: "power", width: 16 },
 
-            { header: "Nhà ga", key: "station", width: 18 },
+            { header: "Điện áp", key: "voltage", width: 15 },
 
-            { header: "Trạng thái", key: "status", width: 18 }
+            { header: "Dòng điện", key: "current", width: 15 },
+
+            { header: "Tần số", key: "frequency", width: 15 },
+
+            { header: "RPM", key: "rpm", width: 12 },
+
+            { header: "Hiệu suất", key: "efficiency", width: 15 },
+
+            { header: "Pole", key: "pole", width: 10 },
+
+            { header: "Mã ổ bi", key: "bearingCode", width: 18 },
+
+            { header: "Số giờ vận hành", key: "runningHours", width: 18 },
+
+            { header: "Tuyến cáp", key: "line", width: 15 },
+
+            { header: "Nhà ga", key: "station", width: 15 },
+
+            { header: "Vị trí lắp đặt", key: "location", width: 25 },
+
+            { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
+
+            { header: "Trạng thái", key: "status", width: 18 },
+
+            { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
+
+            { header: "Ngày bảo trì", key: "maintenanceDate", width: 18 },
+
+            { header: "Ghi chú", key: "note", width: 35 }
 
         ];
 
@@ -1531,17 +1558,51 @@ exports.exportExcel = async (req, res) => {
 
                 model: motor.model,
 
+                serial: motor.serial,
+
                 power: motor.power,
+
+                voltage: motor.voltage,
+
+                current: motor.current,
+
+                frequency: motor.frequency,
+
+                rpm: motor.rpm,
+
+                efficiency: motor.efficiency,
+
+                pole: motor.pole,
+
+                bearingCode: motor.bearingCode,
+
+                runningHours: motor.runningHours,
 
                 line: motor.line,
 
                 station: motor.station,
 
-                status: motor.status
+                location: motor.location,
+
+                warehouse: motor.warehouse,
+
+                status: motor.status,
+
+                replacementDate: motor.replacementDate,
+
+                maintenanceDate: motor.maintenanceDate,
+
+                note: motor.note
 
             });
 
         });
+
+        sheet.getRow(1).font = {
+
+            bold: true
+
+        };
 
         res.setHeader(
 
@@ -1555,7 +1616,7 @@ exports.exportExcel = async (req, res) => {
 
             "Content-Disposition",
 
-            "attachment; filename=motors.xlsx"
+            "attachment; filename=Motors.xlsx"
 
         );
 
