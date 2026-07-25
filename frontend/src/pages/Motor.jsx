@@ -307,16 +307,53 @@ export default function Motor() {
 
                 onHistory={() => setOpenHistory(true)}
 
-                onExport={() => {
+                onExport={async () => {
 
-                    window.open(
-
-                        `${API}/motors/export`,
-
-                        "_blank"
-
-                    );
-
+                    try {
+                
+                        const response = await axios.get(
+                
+                            `${API}/api/motors/export`,
+                
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`
+                                },
+                                responseType: "blob"
+                            }
+                
+                        );
+                
+                        const blob = new Blob([response.data], {
+                            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        });
+                
+                        const url = window.URL.createObjectURL(blob);
+                
+                        const link = document.createElement("a");
+                
+                        link.href = url;
+                
+                        link.download = `Motor_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                
+                        document.body.appendChild(link);
+                
+                        link.click();
+                
+                        link.remove();
+                
+                        window.URL.revokeObjectURL(url);
+                
+                    }
+                
+                    catch (err) {
+                
+                        console.error(err);
+                
+                        alert("Xuất Excel thất bại.");
+                
+                    }
+                
                 }}
 
             />
