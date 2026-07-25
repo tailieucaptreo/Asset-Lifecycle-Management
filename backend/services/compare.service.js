@@ -192,6 +192,27 @@ async function compareRows(prisma, rows) {
 
         if (changedFields.length) {
 
+            console.log("================================");
+            console.log("KEY:", key);
+            console.log("Changed:", changedFields);
+        
+            console.log("OLD =", {
+                name: old.name,
+                category: old.category,
+                line: old.line,
+                station: old.station,
+                code: old.code,
+                area: old.area,
+                installDate: old.installDate,
+                lifespan: old.lifespan
+            });
+        
+            console.log("NEW =", data);
+        
+        }
+
+        if (changedFields.length) {
+
             updateCount++;
 
             result.push({
