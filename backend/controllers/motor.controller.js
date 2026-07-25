@@ -775,7 +775,7 @@ exports.getStatistics = async (req, res) => {
             running: 0,
             maintenance: 0,
             replaced: 0,
-            notReplaced: 0,
+            original: 0,
         
             mainMotor: 0,
             oilPump: 0,
@@ -819,7 +819,7 @@ exports.getStatistics = async (req, res) => {
                     break;
         
                 default:
-                    statistics.notReplaced++;
+                    statistics.original++;
                     break;
             }
         
