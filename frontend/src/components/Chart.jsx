@@ -1,7 +1,17 @@
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  LineChart, Line
+  PieChart, 
+  Pie, 
+  Cell, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend,
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid,
+  LineChart, 
+  Line
 } from "recharts";
 
 export default function Chart({ data = [] }) {
@@ -128,6 +138,11 @@ const pieData = [
 
 ];
 
+const total = pieData.reduce(
+  (sum, item) => sum + item.value,
+  0
+);
+
 const COLORS = {
 
   "Hoạt động":
@@ -204,12 +219,57 @@ const COLORS = {
 
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={pieData} dataKey="value" outerRadius={80} label>
+
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              cx="40%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={85}
+              paddingAngle={2}
+              labelLine={false}
+              label={false}
+            >
               {pieData.map((entry, index) => (
-                <Cell key={index} fill={COLORS[entry.name]} />
+                <Cell
+                  key={index}
+                  fill={COLORS[entry.name]}
+                />
               ))}
             </Pie>
-            <Tooltip />
+          
+            <Tooltip
+              formatter={(value) => [
+                value,
+                "Thiết bị"
+              ]}
+            />
+          
+            <Legend
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+              formatter={(value) => {
+                const item =
+                  pieData.find(
+                    i => i.name === value
+                  );
+          
+                const percent =
+                  total
+                    ? (
+                        item.value *
+                        100 /
+                        total
+                      ).toFixed(1)
+                    : 0;
+          
+                return `${value}: ${item.value} (${percent}%)`;
+              }}
+            />
+          
           </PieChart>
         </ResponsiveContainer>
       </div>
