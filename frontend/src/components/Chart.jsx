@@ -11,7 +11,7 @@ import {
   YAxis, 
   CartesianGrid,
   LineChart, 
-  Line
+  Line,
   Label
 } from "recharts";
 
