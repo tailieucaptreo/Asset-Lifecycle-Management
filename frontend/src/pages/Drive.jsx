@@ -225,6 +225,14 @@ export default function Drive() {
 
     }
 
+    const handleCardClick = (value) => {
+        if (Array.isArray(value)) {
+            // lọc nhiều trạng thái
+        } else {
+            ...
+        }
+    };
+
     const handleCreate = () => {
 
         setSelectedDrive(null);
@@ -492,6 +500,8 @@ export default function Drive() {
             <DriveCard
 
                 drives={filtered}
+                status={status}
+                onCardClick={handleCardClick}
 
             />
 
