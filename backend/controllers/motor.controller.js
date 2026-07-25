@@ -508,6 +508,17 @@ function mapMotorRow(excelRow) {
 
     return {
 
+        line: ImportHelper.text(
+            excelRow["Tuyến cáp"] ??
+            excelRow["Tuyến"] ??
+            excelRow.line
+        ),
+
+        station: ImportHelper.text(
+            excelRow["Nhà ga"] ??
+            excelRow.station
+        ),
+        
         deviceId: ImportHelper.text(
             excelRow["Mã Vật Tư/ID"] ??
             excelRow["Mã TB"] ??
@@ -526,14 +537,20 @@ function mapMotorRow(excelRow) {
             excelRow.type
         ),
 
+        quantity: ImportHelper.number(
+            excelRow["Số Lượng"]
+        ),
+
+        location: ImportHelper.text(
+            excelRow["Vị trí lắp đặt"]
+        ),
+
         brand: ImportHelper.text(
-            excelRow["Hãng"] ??
-            excelRow.brand
+            excelRow["Hãng"]
         ),
 
         model: ImportHelper.text(
-            excelRow["Model"] ??
-            excelRow.model
+            excelRow["Model"]
         ),
 
         serial: ImportHelper.nullableText(
@@ -547,37 +564,7 @@ function mapMotorRow(excelRow) {
             excelRow.power
         ),
 
-        voltage: ImportHelper.nullableText(
-            excelRow["Điện áp"] ??
-            excelRow.voltage
-        ),
-
-        current: ImportHelper.nullableText(
-            excelRow["Dòng điện"] ??
-            excelRow.current
-        ),
-
-        frequency: ImportHelper.nullableText(
-            excelRow["Tần số"] ??
-            excelRow.frequency
-        ),
-
-        rpm: ImportHelper.nullableText(
-            excelRow["RPM"] ??
-            excelRow.rpm
-        ),
-
-        efficiency: ImportHelper.nullableText(
-            excelRow["Hiệu suất"] ??
-            excelRow.efficiency
-        ),
-
-        pole: ImportHelper.nullableText(
-            excelRow["Pole"] ??
-            excelRow.pole
-        ),
-
-        bearingCode: ImportHelper.nullableText(
+        bearingCode: ImportHelper.text(
             excelRow["Mã ổ bi"] ??
             excelRow.bearingCode
         ),
@@ -587,32 +574,46 @@ function mapMotorRow(excelRow) {
             excelRow.runningHours
         ),
 
-        line: ImportHelper.text(
-            excelRow["Tuyến cáp"] ??
-            excelRow["Tuyến"] ??
-            excelRow.line
+        status: ImportHelper.text(
+
+            excelRow["Trạng thái"] ??
+            excelRow.status ??
+            "Chưa thay"
+        
         ),
 
-        station: ImportHelper.text(
-            excelRow["Nhà ga"] ??
-            excelRow.station
+        replacementDate: ImportHelper.date(
+        
+            excelRow["Thời gian thay thế"] ??
+            excelRow.replacementDate
+        
         ),
 
-        location: ImportHelper.nullableText(
-            excelRow["Vị trí lắp đặt"] ??
-            excelRow.location
+        oldMotor: ImportHelper.text(
+            excelRow["Cũ"] ??
+            excelRow.oldMotor
         ),
+
+        newMotor: ImportHelper.text(
+            excelRow["Mới"] ??
+            excelRow.newMotor
+        ),
+        
+        warehouse: ImportHelper.text(
+            excelRow["Vị trí lưu kho"] ??
+            excelRow.warehouse
+        ),
+
 
         warehouse: ImportHelper.nullableText(
             excelRow["Vị trí lưu kho"] ??
             excelRow.warehouse
         ),
 
-        status: ImportHelper.text(
-
-            excelRow["Trạng thái"] ??
-            excelRow.status ??
-            "Chưa thay"
+        maintenanceDate: ImportHelper.date(
+        
+            excelRow["Ngày bảo trì"] ??
+            excelRow.maintenanceDate
         
         ),
         
@@ -623,25 +624,8 @@ function mapMotorRow(excelRow) {
         
         ),
         
-        replacementDate: ImportHelper.date(
-        
-            excelRow["Thời gian thay thế"] ??
-            excelRow.replacementDate
-        
-        ),
-        
-        maintenanceDate: ImportHelper.date(
-        
-            excelRow["Ngày bảo trì"] ??
-            excelRow.maintenanceDate
-        
-        ),
-        
-        image: ImportHelper.nullableText(
-        
-            excelRow["Hình ảnh"] ??
-            excelRow.image
-        
+       maintenanceContent: ImportHelper.text(
+            excelRow["Nội dung thực hiện"]
         ),
         
         note: ImportHelper.nullableText(
@@ -665,52 +649,26 @@ function compareMotor(oldData, newData) {
 
     const fields = [
 
-        "name",
-    
-        "type",
-    
-        "brand",
-    
-        "model",
-    
-        "serial",
-    
-        "power",
-    
-        "voltage",
-    
-        "current",
-    
-        "frequency",
-    
-        "rpm",
-    
-        "efficiency",
-    
-        "pole",
-    
-        "bearingCode",
-    
-        "runningHours",
-    
         "line",
-    
         "station",
-    
+        "deviceId",
+        "name",
+        "type",
+        "quantity",
         "location",
-    
-        "warehouse",
-    
+        "brand",
+        "model",
+        "serial",
+        "power",
+        "bearingCode",
+        "runningHours",
         "status",
-    
-        "installDate",
-    
         "replacementDate",
-    
+        "oldMotor",
+        "newMotor",
+        "warehouse",
         "maintenanceDate",
-    
-        "image",
-    
+        "maintenanceContent",
         "note"
     
     ];
@@ -1554,108 +1512,98 @@ exports.exportExcel = async (req, res) => {
 
         sheet.columns = [
 
-            { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
-
-            { header: "Tên động cơ", key: "name", width: 35 },
-
-            { header: "Loại", key: "type", width: 22 },
-
-            { header: "Hãng", key: "brand", width: 18 },
-
-            { header: "Model", key: "model", width: 25 },
-
-            { header: "Serial Number ID", key: "serial", width: 22 },
-
-            { header: "Công suất (kW)", key: "power", width: 16 },
-
-            { header: "Điện áp", key: "voltage", width: 15 },
-
-            { header: "Dòng điện", key: "current", width: 15 },
-
-            { header: "Tần số", key: "frequency", width: 15 },
-
-            { header: "RPM", key: "rpm", width: 12 },
-
-            { header: "Hiệu suất", key: "efficiency", width: 15 },
-
-            { header: "Pole", key: "pole", width: 10 },
-
-            { header: "Mã ổ bi", key: "bearingCode", width: 18 },
-
-            { header: "Số giờ vận hành", key: "runningHours", width: 18 },
-
             { header: "Tuyến cáp", key: "line", width: 15 },
-
+        
             { header: "Nhà ga", key: "station", width: 15 },
-
+        
+            { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
+        
+            { header: "Tên thiết bị", key: "name", width: 35 },
+        
+            { header: "Loại thiết bị", key: "type", width: 20 },
+        
+            { header: "Số Lượng", key: "quantity", width: 12 },
+        
             { header: "Vị trí lắp đặt", key: "location", width: 25 },
-
-            { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
-
+        
+            { header: "Hãng", key: "brand", width: 18 },
+        
+            { header: "Model", key: "model", width: 22 },
+        
+            { header: "Serial Number ID", key: "serial", width: 22 },
+        
+            { header: "Công suất (kW)", key: "power", width: 15 },
+        
+            { header: "Mã ổ bi", key: "bearingCode", width: 18 },
+        
+            { header: "Số giờ vận hành", key: "runningHours", width: 18 },
+        
             { header: "Trạng thái", key: "status", width: 18 },
-            
-            { header: "Ngày lắp", key: "installDate", width: 18 },
-
+        
             { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
-
+        
+            { header: "Cũ", key: "oldMotor", width: 20 },
+        
+            { header: "Mới", key: "newMotor", width: 20 },
+        
+            { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
+        
             { header: "Ngày bảo trì", key: "maintenanceDate", width: 18 },
-
-            { header: "Ghi chú", key: "note", width: 35 }
-
+        
+            { header: "Nội dung thực hiện", key: "maintenanceContent", width: 35 },
+        
+            { header: "Ghi chú", key: "note", width: 40 }
+        
         ];
 
         motors.forEach(motor => {
 
             sheet.addRow({
-
-                deviceId: motor.deviceId,
-
-                name: motor.name,
-
-                type: motor.type,
-
-                brand: motor.brand,
-
-                model: motor.model,
-
-                serial: motor.serial,
-
-                power: motor.power,
-
-                voltage: motor.voltage,
-
-                current: motor.current,
-
-                frequency: motor.frequency,
-
-                rpm: motor.rpm,
-
-                efficiency: motor.efficiency,
-
-                pole: motor.pole,
-
-                bearingCode: motor.bearingCode,
-
-                runningHours: motor.runningHours,
-
+        
                 line: motor.line,
-
+        
                 station: motor.station,
-
+        
+                deviceId: motor.deviceId,
+        
+                name: motor.name,
+        
+                type: motor.type,
+        
+                quantity: motor.quantity,
+        
                 location: motor.location,
-
-                warehouse: motor.warehouse,
-
+        
+                brand: motor.brand,
+        
+                model: motor.model,
+        
+                serial: motor.serial,
+        
+                power: motor.power,
+        
+                bearingCode: motor.bearingCode,
+        
+                runningHours: motor.runningHours,
+        
                 status: motor.status,
-
+        
                 replacementDate: motor.replacementDate,
-
+        
+                oldMotor: motor.oldMotor,
+        
+                newMotor: motor.newMotor,
+        
+                warehouse: motor.warehouse,
+        
                 maintenanceDate: motor.maintenanceDate,
-
+        
+                maintenanceContent: motor.maintenanceContent,
+        
                 note: motor.note
-
+        
             });
-
+        
         });
 
         sheet.getRow(1).font = {
