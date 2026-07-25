@@ -1710,7 +1710,7 @@ exports.exportTemplate = async (req, res) => {
 
             warehouse: "",
 
-            status: "Running",
+            status: "Đang hoạt động",
 
             note: ""
 
