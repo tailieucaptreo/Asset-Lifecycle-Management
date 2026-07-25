@@ -71,7 +71,7 @@ export default function DriveCard({
         {
             title: "Dự phòng",
             value: standby,
-            statusValue: "Offline",
+            statusValue: ["Offline", "Standby"],
             color: "bg-blue-500",
             ring: "ring-blue-500",
             icon: Power
@@ -97,6 +97,15 @@ export default function DriveCard({
                 cards.map((card) => {
 
                     const Icon = card.icon;
+                    const selected =
+                
+                        Array.isArray(card.statusValue)
+                
+                            ? Array.isArray(status) &&
+                              card.statusValue.length === status.length &&
+                              card.statusValue.every(v => status.includes(v))
+                
+                            : status === card.statusValue;
 
                     return (
 
@@ -119,7 +128,7 @@ export default function DriveCard({
                                 hover:shadow-xl
                                 hover:-translate-y-1
                                 ${
-                                    status === card.statusValue
+                                    selected
                                         ? `ring-2 ${card.ring}`
                                         : ""
                                 }
