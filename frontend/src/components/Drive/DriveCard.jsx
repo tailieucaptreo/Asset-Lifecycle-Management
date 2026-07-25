@@ -9,7 +9,11 @@ import {
 
 export default function DriveCard({
 
-    drives = []
+    drives = [],
+    
+    status,
+
+    onCardClick
 
 }) {
 
@@ -40,31 +44,39 @@ export default function DriveCard({
         {
             title: "Đang chạy",
             value: running,
+            statusValue: "Running",
             color: "bg-green-500",
+            ring: "ring-green-500",
             icon: CheckCircle
         },
-
+    
         {
             title: "Bảo trì",
             value: maintenance,
+            statusValue: "Maintenance",
             color: "bg-yellow-500",
+            ring: "ring-yellow-500",
             icon: Wrench
         },
-
+    
         {
             title: "Lỗi",
             value: fault,
+            statusValue: "Fault",
             color: "bg-red-500",
+            ring: "ring-red-500",
             icon: AlertTriangle
         },
-
+    
         {
             title: "Dự phòng",
             value: standby,
+            statusValue: "Offline",
             color: "bg-blue-500",
+            ring: "ring-blue-500",
             icon: Power
-        },
-
+        }
+    
     ];
 
     return (
@@ -91,8 +103,10 @@ export default function DriveCard({
                         <div
 
                             key={card.title}
-
-                            className="
+                        
+                            onClick={() => onCardClick(card.statusValue)}
+                        
+                            className={`
                                 bg-white
                                 rounded-2xl
                                 shadow
@@ -100,10 +114,16 @@ export default function DriveCard({
                                 flex
                                 items-center
                                 justify-between
-                                hover:shadow-lg
+                                cursor-pointer
                                 transition
-                            "
-
+                                hover:shadow-xl
+                                hover:-translate-y-1
+                                ${
+                                    status === card.statusValue
+                                        ? `ring-2 ${card.ring}`
+                                        : ""
+                                }
+                            `}
                         >
 
                             <div>
