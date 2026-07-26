@@ -631,13 +631,6 @@ function mapMotorRow(excelRow) {
         
         ),
         
-        installDate: ImportHelper.date(
-        
-            excelRow["Ngày lắp"] ??
-            excelRow.installDate
-        
-        ),
-        
        maintenanceContent: ImportHelper.text(
             excelRow["Nội dung thực hiện"]
         ),
@@ -690,8 +683,6 @@ function compareMotor(oldData, newData) {
     for (const field of fields) {
 
         if (
-    
-            field === "installDate" ||
     
             field === "replacementDate" ||
     
@@ -999,23 +990,13 @@ exports.previewImport = async (req, res) => {
 
                     warehouse: true,
 
-                    status: true,
-                    
-                    quantity: true,
-                    
-                    oldMotor: true,
-                    
-                    newMotor: true,
-                    
-                    maintenanceContent: true,
+                    status: true,                   
 
                     replacementDate: true,
 
                     maintenanceDate: true,
 
                     quantity: true,
-
-                    installDate: true,
                     
                     oldMotor: true,
                     
@@ -1289,8 +1270,6 @@ exports.importMotors = async (req, res) => {
                     maintenanceDate: true,
 
                     quantity: true,
-
-                    installDate: true,
                     
                     oldMotor: true,
                     
@@ -1673,6 +1652,10 @@ exports.exportExcel = async (req, res) => {
             "attachment; filename=Motors.xlsx"
 
         );
+
+        sheet.getColumn("replacementDate").numFmt = "dd/mm/yyyy";
+
+        sheet.getColumn("maintenanceDate").numFmt = "dd/mm/yyyy";
 
         await workbook.xlsx.write(res);
 
