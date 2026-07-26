@@ -1080,6 +1080,36 @@ exports.previewImport = async (req, res) => {
             }
             
             const changedFields = compareMotor(exists, row);
+
+            // Log chi tiết các dòng UPDATE
+            if (changedFields.length > 0) {
+            
+                console.log("========================================");
+                console.log("Tên:", row.name);
+                console.log("Mã TB:", row.deviceId || "(không có)");
+                console.log("Tuyến:", row.line);
+                console.log("Ga:", row.station);
+            
+                changedFields.forEach(field => {
+            
+                    console.log(
+                        `Field: ${field}`
+                    );
+            
+                    console.log(
+                        "DB   :",
+                        JSON.stringify(exists[field])
+                    );
+            
+                    console.log(
+                        "Excel:",
+                        JSON.stringify(row[field])
+                    );
+            
+                    console.log("--------------------------------");
+                });
+            
+            }
             
             if (changedFields.length === 0) {
             
