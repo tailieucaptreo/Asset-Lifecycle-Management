@@ -1054,33 +1054,9 @@ exports.previewImport = async (req, res) => {
 
             const row = mapMotorRow(excelRow);
 
-            // Không có mã thiết bị
-
-            if (!row.deviceId) {
-
-                newCount++;
-
-                preview.push({
-
-                    action: "NEW",
-
-                    changedFields: [
-
-                        "Thiếu Mã Vật Tư/ID"
-
-                    ],
-
-                    row
-
-                });
-
-                continue;
-
-            }
-
             // Tra cứu trong Map
             const key = getMotorKey(row);
-
+            
             const exists = motorMap.get(key);
             
             if (!exists) {
@@ -1091,7 +1067,9 @@ exports.previewImport = async (req, res) => {
             
                     action: "NEW",
             
-                    changedFields: [],
+                    changedFields: row.deviceId
+                        ? []
+                        : ["Thiếu Mã Vật Tư/ID"],
             
                     row
             
@@ -1130,7 +1108,7 @@ exports.previewImport = async (req, res) => {
                     row
             
                 });
-                
+            
             }
             
         }
