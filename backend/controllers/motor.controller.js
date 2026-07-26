@@ -853,13 +853,13 @@ exports.getStatistics = async (req, res) => {
             // ===== Motor Type =====
             const motorType = classifyMotor(motor.name);
 
-            console.log(motor.name, "=>", motorType);
+            // console.log(motor.name, "=>", motorType);
             
-            if (motor.name.includes("Động cơ chính")) {
-                console.log(
-                    `[${motor.name}] => ${motorType}`
-                );
-            }
+            // if (motor.name.includes("Động cơ chính")) {
+             //   console.log(
+             //       `[${motor.name}] => ${motorType}`
+            //    );
+          //  }
         
            switch (motorType) {
 
