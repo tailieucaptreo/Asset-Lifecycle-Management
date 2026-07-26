@@ -539,11 +539,17 @@ function mapMotorRow(excelRow) {
             excelRow.station
         ),
         
-        deviceId: ImportHelper.text(
-            excelRow["Mã Vật Tư/ID"] ??
-            excelRow["Mã TB"] ??
-            excelRow.deviceId
-        ),
+        deviceId: (() => {
+
+            const id = ImportHelper.text(
+                excelRow["Mã Vật Tư/ID"] ??
+                excelRow["Mã TB"] ??
+                excelRow.deviceId
+            );
+        
+            return id === "-" ? "" : id;
+        
+        })(),
 
         name: ImportHelper.text(
             excelRow["Tên thiết bị"] ??
