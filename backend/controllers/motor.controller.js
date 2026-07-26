@@ -152,6 +152,16 @@ exports.createMotor = async (req, res) => {
 
                 type: data.type,
 
+                quantity: data.quantity
+                    ? Number(data.quantity)
+                    : null,
+                
+                oldMotor: data.oldMotor,
+                
+                newMotor: data.newMotor,
+                
+                maintenanceContent: data.maintenanceContent,
+
                 brand: data.brand,
 
                 model: data.model,
@@ -314,6 +324,16 @@ exports.updateMotor = async (req, res) => {
                 name: data.name,
 
                 type: data.type,
+
+                quantity: data.quantity
+                    ? Number(data.quantity)
+                    : null,
+                
+                oldMotor: data.oldMotor,
+                
+                newMotor: data.newMotor,
+                
+                maintenanceContent: data.maintenanceContent,
 
                 brand: data.brand,
 
@@ -599,12 +619,6 @@ function mapMotorRow(excelRow) {
             excelRow.newMotor
         ),
         
-        warehouse: ImportHelper.text(
-            excelRow["Vị trí lưu kho"] ??
-            excelRow.warehouse
-        ),
-
-
         warehouse: ImportHelper.nullableText(
             excelRow["Vị trí lưu kho"] ??
             excelRow.warehouse
@@ -999,6 +1013,18 @@ exports.previewImport = async (req, res) => {
 
                     maintenanceDate: true,
 
+                    quantity: true,
+
+                    installDate: true,
+                    
+                    oldMotor: true,
+                    
+                    newMotor: true,
+                    
+                    maintenanceContent: true,
+                    
+                    image: true,
+
                     note: true
 
                 }
@@ -1261,6 +1287,18 @@ exports.importMotors = async (req, res) => {
                     replacementDate: true,
 
                     maintenanceDate: true,
+
+                    quantity: true,
+
+                    installDate: true,
+                    
+                    oldMotor: true,
+                    
+                    newMotor: true,
+                    
+                    maintenanceContent: true,
+                    
+                    image: true,
 
                     note: true
 
@@ -1707,90 +1745,94 @@ exports.exportTemplate = async (req, res) => {
 
         sheet.columns = [
 
-            { header: "Mã TB", key: "deviceId", width: 18 },
-
-            { header: "Tên động cơ", key: "name", width: 30 },
-
-            { header: "Loại", key: "type", width: 20 },
-
-            { header: "Hãng", key: "brand", width: 15 },
-
-            { header: "Model", key: "model", width: 20 },
-
-            { header: "Serial", key: "serial", width: 20 },
-
-            { header: "Công suất", key: "power", width: 15 },
-
-            { header: "Điện áp", key: "voltage", width: 15 },
-
-            { header: "Dòng điện", key: "current", width: 15 },
-
-            { header: "Tần số", key: "frequency", width: 15 },
-
-            { header: "RPM", key: "rpm", width: 12 },
-
-            { header: "Hiệu suất", key: "efficiency", width: 15 },
-
-            { header: "Pole", key: "pole", width: 10 },
-
-            { header: "Bearing", key: "bearingCode", width: 18 },
-
-            { header: "Tuyến", key: "line", width: 15 },
-
+            { header: "Tuyến cáp", key: "line", width: 15 },
+        
             { header: "Nhà ga", key: "station", width: 15 },
-
-            { header: "Vị trí", key: "location", width: 20 },
-
-            { header: "Kho", key: "warehouse", width: 20 },
-
+        
+            { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
+        
+            { header: "Tên thiết bị", key: "name", width: 35 },
+        
+            { header: "Loại thiết bị", key: "type", width: 20 },
+        
+            { header: "Số Lượng", key: "quantity", width: 12 },
+        
+            { header: "Vị trí lắp đặt", key: "location", width: 25 },
+        
+            { header: "Hãng", key: "brand", width: 18 },
+        
+            { header: "Model", key: "model", width: 22 },
+        
+            { header: "Serial Number ID", key: "serial", width: 22 },
+        
+            { header: "Công suất (kW)", key: "power", width: 15 },
+        
+            { header: "Mã ổ bi", key: "bearingCode", width: 18 },
+        
+            { header: "Số giờ vận hành", key: "runningHours", width: 18 },
+        
             { header: "Trạng thái", key: "status", width: 18 },
-
-            { header: "Ghi chú", key: "note", width: 35 }
-
+        
+            { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
+        
+            { header: "Cũ", key: "oldMotor", width: 20 },
+        
+            { header: "Mới", key: "newMotor", width: 20 },
+        
+            { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
+        
+            { header: "Ngày bảo trì", key: "maintenanceDate", width: 18 },
+        
+            { header: "Nội dung thực hiện", key: "maintenanceContent", width: 35 },
+        
+            { header: "Ghi chú", key: "note", width: 40 }
+        
         ];
 
         sheet.addRow({
 
-            deviceId: "MTR001",
-
-            name: "Động cơ kéo chính",
-
-            type: "Động cơ chính",
-
-            brand: "ABB",
-
-            model: "M3BP",
-
-            serial: "",
-
-            power: "45 kW",
-
-            voltage: "380 V",
-
-            current: "82 A",
-
-            frequency: "50 Hz",
-
-            rpm: "1480",
-
-            efficiency: "IE3",
-
-            pole: "4",
-
-            bearingCode: "6316",
-
             line: "Tuyến 1",
-
+        
             station: "Ga đi",
-
+        
+            deviceId: "MTR001",
+        
+            name: "Động cơ chính",
+        
+            type: "Động cơ chính",
+        
+            quantity: 1,
+        
             location: "Phòng máy",
-
-            warehouse: "",
-
+        
+            brand: "ABB",
+        
+            model: "M3BP",
+        
+            serial: "SN001",
+        
+            power: "45",
+        
+            bearingCode: "6316",
+        
+            runningHours: 0,
+        
             status: "Đang hoạt động",
-
+        
+            replacementDate: "",
+        
+            oldMotor: "",
+        
+            newMotor: "",
+        
+            warehouse: "Kho A",
+        
+            maintenanceDate: "",
+        
+            maintenanceContent: "",
+        
             note: ""
-
+        
         });
 
         sheet.getRow(1).font = {
