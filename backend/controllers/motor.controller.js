@@ -1087,6 +1087,10 @@ exports.previewImport = async (req, res) => {
 
             if (!exists) {
 
+                console.log("========== NEW ==========");
+                console.log("KEY:", getMotorKey(row));
+                console.log(row);
+                
                 newCount++;
 
                 preview.push({
