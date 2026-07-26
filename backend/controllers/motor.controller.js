@@ -752,10 +752,10 @@ function classifyMotor(name = "") {
 
     const text = normalizeMotorName(name);
 
-    console.log({
-        original: name,
-        normalized: text
-    });
+    //console.log({
+    //    original: name,
+    //    normalized: text
+   // });
 
      // Làm mát
     if (text.includes("lammat"))
