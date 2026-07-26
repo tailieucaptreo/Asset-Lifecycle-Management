@@ -986,6 +986,14 @@ exports.previewImport = async (req, res) => {
                     warehouse: true,
 
                     status: true,
+                    
+                    quantity: true,
+                    
+                    oldMotor: true,
+                    
+                    newMotor: true,
+                    
+                    maintenanceContent: true,
 
                     replacementDate: true,
 
@@ -1130,7 +1138,7 @@ exports.previewImport = async (req, res) => {
 
             summary: {
 
-                total: rows.length,
+                total: preview.length,
 
                 new: newCount,
 
