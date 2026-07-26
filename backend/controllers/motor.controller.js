@@ -39,17 +39,20 @@ async function writeHistory({
 
 function getMotorKey(data) {
 
-    const line = String(data.line ?? "").trim();
-    const station = String(data.station ?? "").trim();
-    const location = String(data.location ?? "").trim();
+    return [
 
-    const deviceId = String(data.deviceId ?? "").trim();
+        String(data.deviceId ?? "").trim(),
 
-    if (deviceId) {
-        return `${deviceId}|${line}|${station}|${location}`;
-    }
+        String(data.line ?? "").trim(),
 
-    return `${normalizeMotorName(data.name)}|${line}|${station}|${location}`;
+        String(data.station ?? "").trim(),
+
+        String(data.location ?? "").trim(),
+
+        normalizeMotorName(data.name)
+
+    ].join("|");
+
 }
 
 /* =====================================================
@@ -1021,21 +1024,11 @@ exports.previewImport = async (req, res) => {
 
         for (const motor of motors) {
         
-            // Key theo ID
-            if (motor.deviceId) {
-                motorMap.set(
-                    `${String(motor.deviceId).trim()}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
-                    motor
-                );
-            }
+            motorMap.set(
+                getMotorKey(motor),
+                motor
+            );
         
-            // Nếu không có ID thì mới dùng tên
-            else {
-                motorMap.set(
-                    `${normalizeMotorName(motor.name)}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
-                    motor
-                );
-            }
         }
 
         // =========================
@@ -1295,21 +1288,11 @@ exports.importMotors = async (req, res) => {
 
         for (const motor of motors) {
         
-            // Key theo ID
-            if (motor.deviceId) {
-                motorMap.set(
-                    `${String(motor.deviceId).trim()}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
-                    motor
-                );
-            }
+            motorMap.set(
+                getMotorKey(motor),
+                motor
+            );
         
-            // Nếu không có ID thì mới dùng tên
-            else {
-                motorMap.set(
-                    `${normalizeMotorName(motor.name)}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
-                    motor
-                );
-            }
         }
 
         // =========================
