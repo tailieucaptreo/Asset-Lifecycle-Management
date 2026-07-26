@@ -39,21 +39,27 @@ async function writeHistory({
 
 function getMotorKey(data) {
 
+    const line = String(data.line ?? "").trim();
+    const station = String(data.station ?? "").trim();
+    const location = String(data.location ?? "").trim();
+
+    const deviceId = String(data.deviceId ?? "").trim();
+
+    if (deviceId) {
+        return [
+            deviceId,
+            line,
+            station,
+            location
+        ].join("|");
+    }
+
     return [
-
-        data.deviceId ?? "",
-
-        data.line ?? "",
-
-        data.station ?? "",
-
-        data.location ?? ""
-
-    ]
-
-    .map(v => String(v).trim())
-
-    .join("|");
+        normalizeMotorName(data.name),
+        line,
+        station,
+        location
+    ].join("|");
 
 }
 
@@ -752,10 +758,10 @@ function classifyMotor(name = "") {
 
     const text = normalizeMotorName(name);
 
-    //console.log({
-    //    original: name,
-    //    normalized: text
-   // });
+    console.log({
+        original: name,
+        normalized: text
+    });
 
      // Làm mát
     if (text.includes("lammat"))
@@ -853,13 +859,13 @@ exports.getStatistics = async (req, res) => {
             // ===== Motor Type =====
             const motorType = classifyMotor(motor.name);
 
-            // console.log(motor.name, "=>", motorType);
+            console.log(motor.name, "=>", motorType);
             
-            // if (motor.name.includes("Động cơ chính")) {
-             //   console.log(
-             //       `[${motor.name}] => ${motorType}`
-            //    );
-          //  }
+            if (motor.name.includes("Động cơ chính")) {
+                console.log(
+                   `[${motor.name}] => ${motorType}`
+                );
+            }
         
            switch (motorType) {
 
