@@ -1077,7 +1077,7 @@ exports.previewImport = async (req, res) => {
             }
 
             // Tra cứu trong Map
-
+            const key = getMotorKey(row);
             const exists =
                 motorMap.get(
                     getMotorKey(row)
@@ -1087,9 +1087,9 @@ exports.previewImport = async (req, res) => {
 
             if (!exists) {
 
-                console.log("========== NEW ==========");
-                console.log("KEY:", getMotorKey(row));
-                console.log(row);
+                console.log("========== NOT FOUND ==========");
+                console.log("KEY:", key);
+                console.log("EXCEL:", row);
                 
                 newCount++;
 
@@ -1106,6 +1106,10 @@ exports.previewImport = async (req, res) => {
                 continue;
 
             }
+
+            console.log("========== DB SAMPLE ==========");
+            console.log(motors[0]);
+            console.log("DB KEY:", getMotorKey(motors[0]));
 
             // So sánh
 
