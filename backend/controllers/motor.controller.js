@@ -1835,6 +1835,9 @@ exports.exportTemplate = async (req, res) => {
         
         });
 
+        sheet.getColumn("replacementDate").numFmt = "dd/mm/yyyy";
+        sheet.getColumn("maintenanceDate").numFmt = "dd/mm/yyyy";
+
         sheet.getRow(1).font = {
 
             bold: true
