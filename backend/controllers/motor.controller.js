@@ -1089,7 +1089,14 @@ exports.previewImport = async (req, res) => {
 
                 console.log("========== NOT FOUND ==========");
                 console.log("KEY:", key);
-                console.log("EXCEL:", row);
+            
+                console.log({
+                    deviceId: row.deviceId,
+                    line: row.line,
+                    station: row.station,
+                    location: row.location,
+                    name: row.name
+                });
                 
                 newCount++;
 
@@ -1106,10 +1113,6 @@ exports.previewImport = async (req, res) => {
                 continue;
 
             }
-
-            console.log("========== DB SAMPLE ==========");
-            console.log(motors[0]);
-            console.log("DB KEY:", getMotorKey(motors[0]));
 
             // So sánh
 
