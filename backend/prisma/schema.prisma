@@ -339,13 +339,18 @@ model Motor {
 
   id                Int       @id @default(autoincrement())
 
-  deviceId          String?   
+  // Thông tin thiết bị
+  deviceId          String?
   name              String
   type              String
+
+  quantity          Int?       // Số lượng
+
   brand             String
   model             String
   serial            String?
 
+  // Thông số kỹ thuật
   power             String?
   voltage           String?
   current           String?
@@ -355,36 +360,40 @@ model Motor {
   pole              String?
   bearingCode       String?
 
+  // Vị trí
   line              String?
   station           String?
   location          String?
   warehouse         String?
 
+  // Trạng thái
   status            String    @default("Running")
 
+  // Thời gian
   installDate       DateTime?
   maintenanceDate   DateTime?
   replacementDate   DateTime?
 
+  // Theo dõi thay thế
+  oldMotor          String?   @db.Text     // Cũ
+  newMotor          String?   @db.Text     // Mới
+
+  // Nội dung bảo trì
+  maintenanceContent String?  @db.Text
+
+  // Vận hành
   runningHours      Int?
 
+  // Khác
   image             String?
   note              String?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   histories         MotorHistory[]
   maintenances      MotorMaintenance[]
   faults            MotorFault[]
-
-  quantity            Int?
-
-  oldMotor            String?
-  
-  newMotor            String?
-  
-  maintenanceContent  String? @db.Text
 }
 
 model MotorHistory {
