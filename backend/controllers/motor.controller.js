@@ -1030,17 +1030,37 @@ exports.previewImport = async (req, res) => {
 
         const motorMap = new Map();
 
-        motors.forEach(motor => {
-
+        for (const motor of motors) {
+        
+            // Key theo deviceId
+            if (motor.deviceId) {
+        
+                motorMap.set(
+                    [
+                        "ID",
+                        String(motor.deviceId).trim(),
+                        String(motor.line ?? "").trim(),
+                        String(motor.station ?? "").trim(),
+                        String(motor.location ?? "").trim()
+                    ].join("|"),
+                    motor
+                );
+        
+            }
+        
+            // Key theo tên
             motorMap.set(
-
-                getMotorKey(motor),
-
+                [
+                    "NAME",
+                    normalizeMotorName(motor.name),
+                    String(motor.line ?? "").trim(),
+                    String(motor.station ?? "").trim(),
+                    String(motor.location ?? "").trim()
+                ].join("|"),
                 motor
-
             );
-
-        });
+        
+        }
 
         // =========================
         // Preview
@@ -1084,80 +1104,58 @@ exports.previewImport = async (req, res) => {
 
             // Tra cứu trong Map
             const key = getMotorKey(row);
-            const exists =
-                motorMap.get(
-                    getMotorKey(row)
-                );
 
-            // Chưa tồn tại
-
+            const exists = motorMap.get(key);
+            
             if (!exists) {
-
-                console.log("========== NOT FOUND ==========");
-                console.log("KEY:", key);
-            
-                console.log("ROW:", row);
-            
-                const sameDevice = motors.find(
-                    m => m.deviceId === row.deviceId
-                );
-            
-                console.log("DB SAME DEVICE:", sameDevice);
             
                 newCount++;
             
                 preview.push({
+            
                     action: "NEW",
+            
                     changedFields: [],
+            
                     row
+            
                 });
             
                 continue;
+            
             }
-
-            // So sánh
-
-            const changedFields =
-                compareMotor(
-                    exists,
-                    row
-                );
-
-            if (
-                changedFields.length === 0
-            ) {
-
+            
+            const changedFields = compareMotor(exists, row);
+            
+            if (changedFields.length === 0) {
+            
                 skipCount++;
-
+            
                 preview.push({
-
+            
                     action: "SKIP",
-
+            
                     changedFields: [],
-
+            
                     row
-
+            
                 });
-
-            }
-
-            else {
-
+            
+            } else {
+            
                 updateCount++;
-
+            
                 preview.push({
-
+            
                     action: "UPDATE",
-
+            
                     changedFields,
-
+            
                     row
-
+            
                 });
-
+            
             }
-
-        }
 
         return res.json({
 
@@ -1309,17 +1307,37 @@ exports.importMotors = async (req, res) => {
 
         const motorMap = new Map();
 
-        motors.forEach(motor => {
-
+        for (const motor of motors) {
+        
+            // Key theo deviceId
+            if (motor.deviceId) {
+        
+                motorMap.set(
+                    [
+                        "ID",
+                        String(motor.deviceId).trim(),
+                        String(motor.line ?? "").trim(),
+                        String(motor.station ?? "").trim(),
+                        String(motor.location ?? "").trim()
+                    ].join("|"),
+                    motor
+                );
+        
+            }
+        
+            // Key theo tên
             motorMap.set(
-
-                getMotorKey(motor),
-
+                [
+                    "NAME",
+                    normalizeMotorName(motor.name),
+                    String(motor.line ?? "").trim(),
+                    String(motor.station ?? "").trim(),
+                    String(motor.location ?? "").trim()
+                ].join("|"),
                 motor
-
             );
-
-        });
+        
+        }
 
         // =========================
         // Danh sách xử lý
@@ -1342,59 +1360,39 @@ exports.importMotors = async (req, res) => {
 
             // Thiếu mã TB
 
-            if (!data.deviceId) {
+            const key = getMotorKey(data);
 
-                createList.push(data);
+            const exists = motorMap.get(key);
             
-                continue;
-            
-            }
-
-            const exists =
-                motorMap.get(
-                    getMotorKey(data)
-                );
-
-            // Chưa tồn tại
-
             if (!exists) {
-
+            
                 createList.push(data);
-
+            
                 continue;
-
+            
             }
-
-            // So sánh
-
-            const changedFields =
-                compareMotor(
-                    exists,
-                    data
-                );
-
-            // Không thay đổi
-
-            if (
-                changedFields.length === 0
-            ) {
-
+            
+            const changedFields = compareMotor(
+                exists,
+                data
+            );
+            
+            if (changedFields.length === 0) {
+            
                 skipped++;
-
+            
                 continue;
-
+            
             }
-
-            // Chuẩn bị Update
-
+            
             updateList.push({
-
+            
                 id: exists.id,
-
+            
                 data,
-
+            
                 changedFields
-
+            
             });
 
         }
