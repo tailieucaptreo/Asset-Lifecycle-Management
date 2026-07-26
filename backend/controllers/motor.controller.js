@@ -46,21 +46,10 @@ function getMotorKey(data) {
     const deviceId = String(data.deviceId ?? "").trim();
 
     if (deviceId) {
-        return [
-            deviceId,
-            line,
-            station,
-            location
-        ].join("|");
+        return `${deviceId}|${line}|${station}|${location}`;
     }
 
-    return [
-        normalizeMotorName(data.name),
-        line,
-        station,
-        location
-    ].join("|");
-
+    return `${normalizeMotorName(data.name)}|${line}|${station}|${location}`;
 }
 
 /* =====================================================
@@ -1032,34 +1021,21 @@ exports.previewImport = async (req, res) => {
 
         for (const motor of motors) {
         
-            // Key theo deviceId
+            // Key theo ID
             if (motor.deviceId) {
-        
                 motorMap.set(
-                    [
-                        "ID",
-                        String(motor.deviceId).trim(),
-                        String(motor.line ?? "").trim(),
-                        String(motor.station ?? "").trim(),
-                        String(motor.location ?? "").trim()
-                    ].join("|"),
+                    `${String(motor.deviceId).trim()}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
                     motor
                 );
-        
             }
         
-            // Key theo tên
-            motorMap.set(
-                [
-                    "NAME",
-                    normalizeMotorName(motor.name),
-                    String(motor.line ?? "").trim(),
-                    String(motor.station ?? "").trim(),
-                    String(motor.location ?? "").trim()
-                ].join("|"),
-                motor
-            );
-        
+            // Nếu không có ID thì mới dùng tên
+            else {
+                motorMap.set(
+                    `${normalizeMotorName(motor.name)}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
+                    motor
+                );
+            }
         }
 
         // =========================
@@ -1307,38 +1283,25 @@ exports.importMotors = async (req, res) => {
         // Tạo Map
         // =========================
 
-        const motorMap = new Map();
+       const motorMap = new Map();
 
         for (const motor of motors) {
         
-            // Key theo deviceId
+            // Key theo ID
             if (motor.deviceId) {
-        
                 motorMap.set(
-                    [
-                        "ID",
-                        String(motor.deviceId).trim(),
-                        String(motor.line ?? "").trim(),
-                        String(motor.station ?? "").trim(),
-                        String(motor.location ?? "").trim()
-                    ].join("|"),
+                    `${String(motor.deviceId).trim()}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
                     motor
                 );
-        
             }
         
-            // Key theo tên
-            motorMap.set(
-                [
-                    "NAME",
-                    normalizeMotorName(motor.name),
-                    String(motor.line ?? "").trim(),
-                    String(motor.station ?? "").trim(),
-                    String(motor.location ?? "").trim()
-                ].join("|"),
-                motor
-            );
-        
+            // Nếu không có ID thì mới dùng tên
+            else {
+                motorMap.set(
+                    `${normalizeMotorName(motor.name)}|${String(motor.line ?? "").trim()}|${String(motor.station ?? "").trim()}|${String(motor.location ?? "").trim()}`,
+                    motor
+                );
+            }
         }
 
         // =========================
