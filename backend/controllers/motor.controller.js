@@ -1090,28 +1090,23 @@ exports.previewImport = async (req, res) => {
                 console.log("========== NOT FOUND ==========");
                 console.log("KEY:", key);
             
-                console.log({
-                    deviceId: row.deviceId,
-                    line: row.line,
-                    station: row.station,
-                    location: row.location,
-                    name: row.name
-                });
-                
+                console.log("ROW:", row);
+            
+                const sameDevice = motors.find(
+                    m => m.deviceId === row.deviceId
+                );
+            
+                console.log("DB SAME DEVICE:", sameDevice);
+            
                 newCount++;
-
+            
                 preview.push({
-
                     action: "NEW",
-
                     changedFields: [],
-
                     row
-
                 });
-
+            
                 continue;
-
             }
 
             // So sánh
