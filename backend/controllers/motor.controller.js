@@ -39,17 +39,24 @@ async function writeHistory({
 
 function getMotorKey(data) {
 
+    const serial = String(data.serial ?? "").trim();
+
+    // Ưu tiên Serial
+    if (serial) {
+        return `SERIAL|${serial}`;
+    }
+
     return [
 
         String(data.deviceId ?? "").trim(),
+
+        normalizeMotorName(data.name),
 
         String(data.line ?? "").trim(),
 
         String(data.station ?? "").trim(),
 
-        String(data.location ?? "").trim(),
-
-        normalizeMotorName(data.name)
+        String(data.location ?? "").trim()
 
     ].join("|");
 
@@ -1024,10 +1031,30 @@ exports.previewImport = async (req, res) => {
 
         for (const motor of motors) {
         
+            // Key chính
             motorMap.set(
                 getMotorKey(motor),
                 motor
             );
+        
+            // Backup key theo tên (cho trường hợp thiếu serial)
+            const backupKey = [
+        
+                String(motor.deviceId ?? "").trim(),
+        
+                normalizeMotorName(motor.name),
+        
+                String(motor.line ?? "").trim(),
+        
+                String(motor.station ?? "").trim(),
+        
+                String(motor.location ?? "").trim()
+        
+            ].join("|");
+        
+            if (!motorMap.has(backupKey)) {
+                motorMap.set(backupKey, motor);
+            }
         
         }
 
@@ -1049,8 +1076,28 @@ exports.previewImport = async (req, res) => {
 
             // Tra cứu trong Map
             const key = getMotorKey(row);
+
+            let exists = motorMap.get(key);
             
-            const exists = motorMap.get(key);
+            if (!exists) {
+            
+                const backupKey = [
+            
+                    String(row.deviceId ?? "").trim(),
+            
+                    normalizeMotorName(row.name),
+            
+                    String(row.line ?? "").trim(),
+            
+                    String(row.station ?? "").trim(),
+            
+                    String(row.location ?? "").trim()
+            
+                ].join("|");
+            
+                exists = motorMap.get(backupKey);
+            
+            }
             
             if (!exists) {
             
@@ -1288,10 +1335,30 @@ exports.importMotors = async (req, res) => {
 
         for (const motor of motors) {
         
+            // Key chính
             motorMap.set(
                 getMotorKey(motor),
                 motor
             );
+        
+            // Backup key theo tên (cho trường hợp thiếu serial)
+            const backupKey = [
+        
+                String(motor.deviceId ?? "").trim(),
+        
+                normalizeMotorName(motor.name),
+        
+                String(motor.line ?? "").trim(),
+        
+                String(motor.station ?? "").trim(),
+        
+                String(motor.location ?? "").trim()
+        
+            ].join("|");
+        
+            if (!motorMap.has(backupKey)) {
+                motorMap.set(backupKey, motor);
+            }
         
         }
 
@@ -1316,9 +1383,29 @@ exports.importMotors = async (req, res) => {
 
             // Thiếu mã TB
 
-            const key = getMotorKey(data);
+            const key = getMotorKey(row);
 
-            const exists = motorMap.get(key);
+            let exists = motorMap.get(key);
+            
+            if (!exists) {
+            
+                const backupKey = [
+            
+                    String(row.deviceId ?? "").trim(),
+            
+                    normalizeMotorName(row.name),
+            
+                    String(row.line ?? "").trim(),
+            
+                    String(row.station ?? "").trim(),
+            
+                    String(row.location ?? "").trim()
+            
+                ].join("|");
+            
+                exists = motorMap.get(backupKey);
+            
+            }
             
             if (!exists) {
             
