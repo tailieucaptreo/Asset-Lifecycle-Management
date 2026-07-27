@@ -394,6 +394,7 @@ model Motor {
   histories         MotorHistory[]
   maintenances      MotorMaintenance[]
   faults            MotorFault[]
+  @@unique([deviceId, name, line, station, location])
 }
 
 model MotorHistory {
