@@ -121,26 +121,23 @@ exports.createMotor = async (req, res) => {
 
         const data = req.body;
 
-        const exists =
-        await prisma.motor.findFirst({
+        const exists = findExistingMotor(
+
+            data,
         
-            where: {
+            await prisma.motor.findMany()
         
-                deviceId:
-                    data.deviceId,
+        );
         
-                line:
-                    data.line,
+        if (exists) {
         
-                station:
-                    data.station,
+            return res.status(400).json({
         
-                location:
-                    data.location
+                message:"Động cơ đã tồn tại."
         
-            }
+            });
         
-        });
+        }
 
         if (exists) {
             return res.status(400).json({
@@ -281,32 +278,30 @@ exports.updateMotor = async (req, res) => {
 
         }
 
+        const motors =
+        await prisma.motor.findMany();
+        
         const duplicate =
-        await prisma.motor.findFirst({
+        findExistingMotor(
+            data,
+            motors
+        );
         
-            where: {
+        if(
         
-                deviceId:
-                    data.deviceId,
+            duplicate &&
         
-                line:
-                    data.line,
+            duplicate.id!==id
         
-                station:
-                    data.station,
+        ){
         
-                location:
-                    data.location,
+            return res.status(400).json({
         
-                NOT: {
+                message:"Động cơ đã tồn tại."
         
-                    id
+            });
         
-                }
-        
-            }
-        
-        });
+        }
 
         if (duplicate) {
 
@@ -657,6 +652,54 @@ function mapMotorRow(excelRow) {
 
 }
 
+function normalizeCompare(value, field = "") {
+
+    if (value === undefined || value === null)
+        return "";
+
+    // Date
+    if (
+        field === "replacementDate" ||
+        field === "maintenanceDate"
+    ) {
+
+        try {
+
+            return new Date(value)
+                .toISOString()
+                .slice(0, 10);
+
+        }
+
+        catch {
+
+            return "";
+
+        }
+
+    }
+
+    // Number
+    if (
+        field === "quantity" ||
+        field === "runningHours"
+    ) {
+
+        return Number(value || 0);
+
+    }
+
+    // Text
+    return String(value)
+
+        .trim()
+
+        .replace(/\s+/g, " ")
+
+        .replace(/\s*-\s*/g, "-");
+
+}
+
 /* =====================================================
    COMPARE HELPER
 ===================================================== */
@@ -670,73 +713,61 @@ function compareMotor(oldData, newData) {
         "line",
         "station",
         "deviceId",
+
         "name",
         "type",
+
         "quantity",
+
         "location",
+
         "brand",
         "model",
         "serial",
+
         "power",
+
         "bearingCode",
+
         "runningHours",
+
         "status",
+
         "replacementDate",
+
         "oldMotor",
         "newMotor",
+
         "warehouse",
+
         "maintenanceDate",
+
         "maintenanceContent",
+
         "note"
-    
+
     ];
 
     for (const field of fields) {
 
-        if (
-    
-            field === "replacementDate" ||
-    
-            field === "maintenanceDate"
-    
-        ) {
-    
-            const oldValue =
-                oldData[field]
-                    ? new Date(oldData[field]).toISOString().slice(0, 10)
-                    : "";
-    
-            const newValue =
-                newData[field]
-                    ? new Date(newData[field]).toISOString().slice(0, 10)
-                    : "";
-    
-            if (oldValue !== newValue) {
-    
-                changedFields.push(field);
-    
-            }
-    
-            continue;
-    
-        }
-    
         const oldValue =
-            oldData[field] == null
-                ? ""
-                : String(oldData[field]).trim();
-    
+            normalizeCompare(
+                oldData[field],
+                field
+            );
+
         const newValue =
-            newData[field] == null
-                ? ""
-                : String(newData[field]).trim();
-    
+            normalizeCompare(
+                newData[field],
+                field
+            );
+
         if (oldValue !== newValue) {
-    
+
             changedFields.push(field);
-    
+
         }
-    
+
     }
 
     return changedFields;
@@ -913,6 +944,67 @@ exports.getStatistics = async (req, res) => {
 
 };
 
+function findExistingMotor(row, motors) {
+
+    const serial = String(row.serial ?? "").trim();
+
+    // Ưu tiên Serial Number
+    if (serial) {
+
+        const found = motors.find(m =>
+
+            String(m.serial ?? "").trim() === serial
+
+        );
+
+        if (found) return found;
+
+    }
+
+    // deviceId + name + line + station + location
+    const deviceId = String(row.deviceId ?? "").trim();
+
+    const line = String(row.line ?? "").trim();
+
+    const station = String(row.station ?? "").trim();
+
+    const location = String(row.location ?? "").trim();
+
+    const name = normalizeMotorName(row.name);
+
+    let found = motors.find(m =>
+
+        String(m.deviceId ?? "").trim() === deviceId &&
+
+        normalizeMotorName(m.name) === name &&
+
+        String(m.line ?? "").trim() === line &&
+
+        String(m.station ?? "").trim() === station &&
+
+        String(m.location ?? "").trim() === location
+
+    );
+
+    if (found) return found;
+
+    // Backup: chỉ theo tên + vị trí
+    found = motors.find(m =>
+
+        normalizeMotorName(m.name) === name &&
+
+        String(m.line ?? "").trim() === line &&
+
+        String(m.station ?? "").trim() === station &&
+
+        String(m.location ?? "").trim() === location
+
+    );
+
+    return found || null;
+
+}
+
 /* =====================================================
    PREVIEW IMPORT
 ===================================================== */
@@ -931,20 +1023,15 @@ exports.previewImport = async (req, res) => {
 
         }
 
-        // =========================
-        // Đọc Excel
-        // =========================
-
         const workbook = XLSX.read(req.file.buffer, {
 
             type: "buffer"
 
         });
 
-        const sheet =
-            workbook.Sheets[
-                workbook.SheetNames[0]
-            ];
+        const sheet = workbook.Sheets[
+            workbook.SheetNames[0]
+        ];
 
         const rows = XLSX.utils.sheet_to_json(sheet, {
 
@@ -952,115 +1039,7 @@ exports.previewImport = async (req, res) => {
 
         });
 
-        // =========================
-        // Load toàn bộ Motor 1 lần
-        // =========================
-
-        const motors =
-            await prisma.motor.findMany({
-
-                select: {
-
-                    id: true,
-
-                    deviceId: true,
-
-                    name: true,
-
-                    type: true,
-
-                    brand: true,
-
-                    model: true,
-
-                    serial: true,
-
-                    power: true,
-
-                    voltage: true,
-
-                    current: true,
-
-                    frequency: true,
-
-                    rpm: true,
-
-                    efficiency: true,
-
-                    pole: true,
-
-                    bearingCode: true,
-
-                    runningHours: true,
-
-                    line: true,
-
-                    station: true,
-
-                    location: true,
-
-                    warehouse: true,
-
-                    status: true,                   
-
-                    replacementDate: true,
-
-                    maintenanceDate: true,
-
-                    quantity: true,
-                    
-                    oldMotor: true,
-                    
-                    newMotor: true,
-                    
-                    maintenanceContent: true,
-                    
-                    image: true,
-
-                    note: true
-
-                }
-
-            });
-
-        // =========================
-        // Tạo Map
-        // =========================
-
-        const motorMap = new Map();
-
-        for (const motor of motors) {
-        
-            // Key chính
-            motorMap.set(
-                getMotorKey(motor),
-                motor
-            );
-        
-            // Backup key theo tên (cho trường hợp thiếu serial)
-            const backupKey = [
-        
-                String(motor.deviceId ?? "").trim(),
-        
-                normalizeMotorName(motor.name),
-        
-                String(motor.line ?? "").trim(),
-        
-                String(motor.station ?? "").trim(),
-        
-                String(motor.location ?? "").trim()
-        
-            ].join("|");
-        
-            if (!motorMap.has(backupKey)) {
-                motorMap.set(backupKey, motor);
-            }
-        
-        }
-
-        // =========================
-        // Preview
-        // =========================
+        const motors = await prisma.motor.findMany();
 
         const preview = [];
 
@@ -1074,113 +1053,70 @@ exports.previewImport = async (req, res) => {
 
             const row = mapMotorRow(excelRow);
 
-            // Tra cứu trong Map
-            const key = getMotorKey(row);
+            // Không có mã cũng vẫn cho import
+            const exists = findExistingMotor(
+                row,
+                motors
+            );
 
-            let exists = motorMap.get(key);
-            
             if (!exists) {
-            
-                const backupKey = [
-            
-                    String(row.deviceId ?? "").trim(),
-            
-                    normalizeMotorName(row.name),
-            
-                    String(row.line ?? "").trim(),
-            
-                    String(row.station ?? "").trim(),
-            
-                    String(row.location ?? "").trim()
-            
-                ].join("|");
-            
-                exists = motorMap.get(backupKey);
-            
-            }
-            
-            if (!exists) {
-            
+
                 newCount++;
-            
-                preview.push({
-            
-                    action: "NEW",
-            
-                    changedFields: row.deviceId
-                        ? []
-                        : ["Thiếu Mã Vật Tư/ID"],
-            
-                    row
-            
-                });
-            
-                continue;
-            
-            }
-            
-            const changedFields = compareMotor(exists, row);
 
-            // Log chi tiết các dòng UPDATE
-            if (changedFields.length > 0) {
-            
-                console.log("========================================");
-                console.log("Tên:", row.name);
-                console.log("Mã TB:", row.deviceId || "(không có)");
-                console.log("Tuyến:", row.line);
-                console.log("Ga:", row.station);
-            
-                changedFields.forEach(field => {
-            
-                    console.log(
-                        `Field: ${field}`
-                    );
-            
-                    console.log(
-                        "DB   :",
-                        JSON.stringify(exists[field])
-                    );
-            
-                    console.log(
-                        "Excel:",
-                        JSON.stringify(row[field])
-                    );
-            
-                    console.log("--------------------------------");
-                });
-            
-            }
-            
-            if (changedFields.length === 0) {
-            
-                skipCount++;
-            
                 preview.push({
-            
-                    action: "SKIP",
-            
+
+                    action: "NEW",
+
                     changedFields: [],
-            
+
                     row
-            
+
                 });
-            
-            } else {
-            
-                updateCount++;
-            
-                preview.push({
-            
-                    action: "UPDATE",
-            
-                    changedFields,
-            
-                    row
-            
-                });
-            
+
+                continue;
+
             }
-            
+
+            const changedFields = compareMotor(
+
+                exists,
+
+                row
+
+            );
+
+            if (changedFields.length === 0) {
+
+                skipCount++;
+
+                preview.push({
+
+                    action: "SKIP",
+
+                    changedFields: [],
+
+                    row
+
+                });
+
+            }
+
+            else {
+
+                updateCount++;
+
+                preview.push({
+
+                    action: "UPDATE",
+
+                    changedFields,
+
+                    row
+
+                });
+
+            }
+
         }
 
         return res.json({
@@ -1235,20 +1171,15 @@ exports.importMotors = async (req, res) => {
 
         }
 
-        // =========================
-        // Đọc Excel
-        // =========================
-
         const workbook = XLSX.read(req.file.buffer, {
 
             type: "buffer"
 
         });
 
-        const sheet =
-            workbook.Sheets[
-                workbook.SheetNames[0]
-            ];
+        const sheet = workbook.Sheets[
+            workbook.SheetNames[0]
+        ];
 
         const rows = XLSX.utils.sheet_to_json(sheet, {
 
@@ -1256,303 +1187,114 @@ exports.importMotors = async (req, res) => {
 
         });
 
-        // =========================
-        // Load toàn bộ Motor
-        // =========================
-
-        const motors =
-            await prisma.motor.findMany({
-
-                select: {
-
-                    id: true,
-
-                    deviceId: true,
-
-                    name: true,
-
-                    type: true,
-
-                    brand: true,
-
-                    model: true,
-
-                    serial: true,
-
-                    power: true,
-
-                    voltage: true,
-
-                    current: true,
-
-                    frequency: true,
-
-                    rpm: true,
-
-                    efficiency: true,
-
-                    pole: true,
-
-                    bearingCode: true,
-
-                    runningHours: true,
-
-                    line: true,
-
-                    station: true,
-
-                    location: true,
-
-                    warehouse: true,
-
-                    status: true,
-
-                    replacementDate: true,
-
-                    maintenanceDate: true,
-
-                    quantity: true,
-                    
-                    oldMotor: true,
-                    
-                    newMotor: true,
-                    
-                    maintenanceContent: true,
-                    
-                    image: true,
-
-                    note: true
-
-                }
-
-            });
-
-        // =========================
-        // Tạo Map
-        // =========================
-
-       const motorMap = new Map();
-
-        for (const motor of motors) {
-        
-            // Key chính
-            motorMap.set(
-                getMotorKey(motor),
-                motor
-            );
-        
-            // Backup key theo tên (cho trường hợp thiếu serial)
-            const backupKey = [
-        
-                String(motor.deviceId ?? "").trim(),
-        
-                normalizeMotorName(motor.name),
-        
-                String(motor.line ?? "").trim(),
-        
-                String(motor.station ?? "").trim(),
-        
-                String(motor.location ?? "").trim()
-        
-            ].join("|");
-        
-            if (!motorMap.has(backupKey)) {
-                motorMap.set(backupKey, motor);
-            }
-        
-        }
-
-        // =========================
-        // Danh sách xử lý
-        // =========================
-
-        const createList = [];
-
-        const updateList = [];
-
-        let skipped = 0;
-
-        // =========================
-        // Phân loại dữ liệu
-        // =========================
-
-        for (const excelRow of rows) {
-
-            const data =
-                mapMotorRow(excelRow);
-
-            // Thiếu mã TB
-
-            const key = getMotorKey(row);
-
-            let exists = motorMap.get(key);
-            
-            if (!exists) {
-            
-                const backupKey = [
-            
-                    String(row.deviceId ?? "").trim(),
-            
-                    normalizeMotorName(row.name),
-            
-                    String(row.line ?? "").trim(),
-            
-                    String(row.station ?? "").trim(),
-            
-                    String(row.location ?? "").trim()
-            
-                ].join("|");
-            
-                exists = motorMap.get(backupKey);
-            
-            }
-            
-            if (!exists) {
-            
-                createList.push(data);
-            
-                continue;
-            
-            }
-            
-            const changedFields = compareMotor(
-                exists,
-                data
-            );
-            
-            if (changedFields.length === 0) {
-            
-                skipped++;
-            
-                continue;
-            
-            }
-            
-            updateList.push({
-            
-                id: exists.id,
-            
-                data,
-            
-                changedFields
-            
-            });
-
-        }
-
-        // =========================
-        // Import thêm mới
-        // =========================
+        const motors = await prisma.motor.findMany();
 
         let created = 0;
 
-        for (const data of createList) {
+        let updated = 0;
 
-            const motor =
-                await prisma.motor.create({
+        let skipped = 0;
+
+        for (const excelRow of rows) {
+
+            const data = mapMotorRow(excelRow);
+
+            const exists = findExistingMotor(
+
+                data,
+
+                motors
+
+            );
+
+            // ==========================
+            // CREATE
+            // ==========================
+
+            if (!exists) {
+
+                const motor = await prisma.motor.create({
 
                     data
 
                 });
 
-            await writeHistory({
+                motors.push(motor);
 
-                motorId: motor.id,
+                created++;
 
-                action: "IMPORT",
+                continue;
 
-                user:
-                    req.user?.username ||
-                    "System",
+            }
 
-                deviceId: motor.deviceId,
+            // ==========================
+            // COMPARE
+            // ==========================
 
-                name: motor.name,
+            const changedFields = compareMotor(
 
-                note: "Import thêm mới"
+                exists,
 
-            });
+                data
 
-            created++;
-
-        }
-
-        // =========================
-        // Import cập nhật
-        // =========================
-
-        let updated = 0;
-
-        for (const item of updateList) {
-
-            const motor =
-                await prisma.motor.update({
-
-                    where: {
-
-                        id: item.id
-
-                    },
-
-                    data: item.data
-
-                });
-
-            const changes = {};
-
-            const oldMotor = motorMap.get(
-                getMotorKey(item.data)
             );
 
-            item.changedFields.forEach(field => {
+            if (changedFields.length === 0) {
 
-                changes[field] = {
-            
-                    old: oldMotor?.[field] ?? null,
-            
-                    new: item.data[field]
-            
-                };
-            
-            });
+                skipped++;
 
-            await writeHistory({
+                continue;
 
-                motorId: motor.id,
+            }
 
-                action: "IMPORT",
+            // ==========================
+            // UPDATE
+            // ==========================
 
-                user:
-                    req.user?.username ||
-                    "System",
+            const updatedMotor = await prisma.motor.update({
 
-                deviceId: motor.deviceId,
+                where: {
 
-                name: motor.name,
+                    id: exists.id
 
-                note: "Import cập nhật",
+                },
 
-                changes
+                data
 
             });
+
+            // cập nhật lại mảng trong RAM
+            const index = motors.findIndex(
+
+                m => m.id === exists.id
+
+            );
+
+            if (index >= 0) {
+
+                motors[index] = updatedMotor;
+
+            }
 
             updated++;
 
         }
 
-        // =========================
-        // Trả kết quả
-        // =========================
-
         return res.json({
 
-            message: "Import thành công.",
+            success: true,
 
-            created,
+            summary: {
 
-            updated,
+                total: rows.length,
 
-            skipped
+                created,
+
+                updated,
+
+                skipped
+
+            }
 
         });
 
@@ -1562,11 +1304,9 @@ exports.importMotors = async (req, res) => {
 
         console.error(err);
 
-        console.error(err.stack);
-
         return res.status(500).json({
 
-            message: err.message
+            message: "Không thể import dữ liệu."
 
         });
 
