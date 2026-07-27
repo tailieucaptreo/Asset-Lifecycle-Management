@@ -1085,6 +1085,25 @@ exports.previewImport = async (req, res) => {
 
             );
 
+            if (changedFields.length > 0) {
+
+                console.log("================================");
+                console.log("Tên:", row.name);
+                console.log("Device:", row.deviceId || "(trống)");
+            
+                for (const field of changedFields) {
+            
+                    console.log(
+                        field,
+                        "DB =",
+                        JSON.stringify(exists[field]),
+                        "| Excel =",
+                        JSON.stringify(row[field])
+                    );
+                }
+            
+            }
+
             if (changedFields.length === 0) {
 
                 skipCount++;
