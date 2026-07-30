@@ -37,31 +37,6 @@ async function writeHistory({
     }
 }
 
-function getMotorKey(data) {
-
-    const serial = String(data.serial ?? "").trim();
-
-    // Ưu tiên Serial
-    if (serial) {
-        return `SERIAL|${serial}`;
-    }
-
-    return [
-
-        String(data.deviceId ?? "").trim(),
-
-        normalizeMotorName(data.name),
-
-        String(data.line ?? "").trim(),
-
-        String(data.station ?? "").trim(),
-
-        String(data.location ?? "").trim()
-
-    ].join("|");
-
-}
-
 /* =====================================================
    GET ALL
 ===================================================== */
@@ -137,12 +112,6 @@ exports.createMotor = async (req, res) => {
         
             });
         
-        }
-
-        if (exists) {
-            return res.status(400).json({
-                message: "Mã thiết bị đã tồn tại."
-            });
         }
 
         const motor = await prisma.motor.create({
@@ -301,16 +270,6 @@ exports.updateMotor = async (req, res) => {
         
             });
         
-        }
-
-        if (duplicate) {
-
-            return res.status(400).json({
-
-                message: "Mã thiết bị đã tồn tại."
-
-            });
-
         }
 
         const updated = await prisma.motor.update({
