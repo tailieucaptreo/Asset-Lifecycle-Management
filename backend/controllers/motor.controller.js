@@ -781,7 +781,9 @@ function classifyMotor(name = "") {
         return "lifting";
     
     // Phanh
-    if (text.includes("bomthuylucphanh"))
+    if (text.includes("bomthuylucphanh"),
+        (text.includes("phanh")
+       )
         return "brake";
     
     // Chính
