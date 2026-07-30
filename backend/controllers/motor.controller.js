@@ -766,29 +766,30 @@ function classifyMotor(name = "") {
         normalized: text
     });
 
-    // Làm mát
+     // Làm mát
     if (text.includes("lammat"))
         return "cooling";
-
-    // Phanh
+    
+    // Bơm
     if (
-        text.includes("bomthuyluc") &&
-        !text.includes("bomthuylucphanh")
+        text.includes("bomdau")
     )
-        return "brake";
-
-    // Bơm dầu
-    if (text.includes("bomdau"))
         return "oilPump";
-
+    
     // Nâng hạ
     if (text.includes("nangha"))
         return "lifting";
-
+    
+    // Phanh
+    if (text.includes("bomthuylucphanh")&&
+        !text.includes("bomthuyluc")
+       )
+        return "brake";
+    
     // Chính
     if (text.includes("dongcochinh"))
         return "mainMotor";
-
+    
     return "otherMotor";
 }
 
