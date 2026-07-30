@@ -775,7 +775,7 @@ function classifyMotor(name = "") {
         text.includes("bomthuyluc") &&
         !text.includes("bomthuylucphanh")
     )
-        return "hydraulicPump";
+        return "brake";
 
     // Bơm dầu
     if (text.includes("bomdau"))
