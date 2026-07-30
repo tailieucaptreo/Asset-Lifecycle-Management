@@ -1009,31 +1009,48 @@ exports.previewImport = async (req, res) => {
 
             const row = mapMotorRow(excelRow);
 
-            // Không có mã cũng vẫn cho import
-
-            if (!exists) {
-
+            // Lần import đầu
+            if (isFirstImport) {
+            
                 newCount++;
-
+            
                 preview.push({
-
+            
                     action: "NEW",
-
+            
                     changedFields: [],
-
+            
                     row
-
+            
                 });
-
+            
                 continue;
-
+            
             }
             
+            // Các lần sau mới tìm
             const exists = findExistingMotor(
                 row,
                 motors
             );
-
+            
+            if (!exists) {
+            
+                newCount++;
+            
+                preview.push({
+            
+                    action: "NEW",
+            
+                    changedFields: [],
+            
+                    row
+            
+                });
+            
+                continue;
+            
+            }
             const changedFields = compareMotor(
 
                 exists,
@@ -1181,33 +1198,44 @@ exports.importMotors = async (req, res) => {
 
             const data = mapMotorRow(excelRow);
 
-            // ==========================
-            // CREATE
-            // ==========================
-
-            if (!exists) {
-
+            // ===== Import lần đầu =====
+            if (isFirstImport) {
+            
                 const motor = await prisma.motor.create({
-
+            
                     data
-
+            
                 });
-
+            
                 motors.push(motor);
-
+            
                 created++;
-
+            
                 continue;
-
+            
             }
-
-             const exists = findExistingMotor(
-
+            
+            // ===== Các lần sau =====
+            const exists = findExistingMotor(
                 data,
-
                 motors
-
             );
+            
+            if (!exists) {
+            
+                const motor = await prisma.motor.create({
+            
+                    data
+            
+                });
+            
+                motors.push(motor);
+            
+                created++;
+            
+                continue;
+            
+            }
 
             // ==========================
             // COMPARE
