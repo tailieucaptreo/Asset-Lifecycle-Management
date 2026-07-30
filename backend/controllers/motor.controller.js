@@ -1219,11 +1219,9 @@ exports.importMotors = async (req, res) => {
             // ==========================
             // UPDATE
             // ==========================
-
-            const updateData = {
-
-                ...data
             
+            const updateData = {
+                ...data
             };
             
             if (!data.oldMotor)
@@ -1235,30 +1233,29 @@ exports.importMotors = async (req, res) => {
             if (!data.warehouse)
                 delete updateData.warehouse;
             
-            await prisma.motor.update({
+            // Lưu kết quả update
+            const updatedMotor = await prisma.motor.update({
             
-                where:{ id: exists.id },
+                where: { id: exists.id },
             
                 data: updateData
             
             });
-
+            
             // cập nhật lại mảng trong RAM
             const index = motors.findIndex(
-
+            
                 m => m.id === exists.id
-
+            
             );
-
+            
             if (index >= 0) {
-
+            
                 motors[index] = updatedMotor;
-
+            
             }
-
+            
             updated++;
-
-        }
 
         return res.json({
 
