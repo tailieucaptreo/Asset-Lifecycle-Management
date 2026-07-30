@@ -1256,6 +1256,7 @@ exports.importMotors = async (req, res) => {
             }
             
             updated++;
+        }
 
         return res.json({
 
