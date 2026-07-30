@@ -55,7 +55,7 @@ export default function MotorHistoryModal({
             const res =
                 await axios.get(
 
-                    `${API}/motors/history`,
+                    `${API}/api/motors/history`,
 
                     {
 
@@ -312,7 +312,7 @@ export default function MotorHistoryModal({
                                 }
 
                                 placeholder="
-Tìm theo mã, tên hoặc người thao tác..."
+                                    Tìm theo mã, tên hoặc người thao tác..."
 
                                 className="
                                     w-full
