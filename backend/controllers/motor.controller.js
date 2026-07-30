@@ -776,9 +776,9 @@ function classifyMotor(name = "") {
     // ===== Động cơ bơm thủy lực =====
     if (hasKeyword(text, [
         "bomthuyluc",
-        "hydraulicpump"
+        "hydraulicpump",
         "phanh",
-        "brake",
+        "brake"
     ])) {
         return "hydraulicPump";
     }
