@@ -757,75 +757,37 @@ function normalizeMotorName(name = "") {
         .replace(/[^a-z0-9]/g, "");
 }
 
-function hasKeyword(text, keywords) {
-    return keywords.some(k => text.includes(k));
-}
-
 function classifyMotor(name = "") {
 
     const text = normalizeMotorName(name);
 
-    // ===== Động cơ chính =====
-    if (hasKeyword(text, [
-        "dongcochinh",
-        "mainmotor"
-    ])) {
-        return "mainMotor";
-    }
+    console.log({
+        original: name,
+        normalized: text
+    });
 
-    // ===== Động cơ bơm thủy lực =====
-    if (hasKeyword(text, [
-        "bomthuyluc",
-        "hydraulicpump",
-        "phanh",
-        "brake"
-    ])) {
-        return "hydraulicPump";
-    }
-
-    // ===== Động cơ bơm dầu =====
-    if (hasKeyword(text, [
-        "bomdau",
-        "oilpump"
-    ])) {
-        return "oilPump";
-    }
-
-    // ===== Động cơ làm mát =====
-    if (hasKeyword(text, [
-        "lammat",
-        "quatlammat",
-        "cooling"
-    ])) {
+    // Làm mát
+    if (text.includes("lammat"))
         return "cooling";
-    }
 
-    // ===== Động cơ nâng hạ =====
-    if (hasKeyword(text, [
-        "nangha",
-        "nanghasan",
-        "danlop",
-        "lifting"
-    ])) {
+    // Phanh
+    if (
+        text.includes("bomthuyluc") &&
+        !text.includes("bomthuylucphanh")
+    )
+        return "hydraulicPump";
+
+    // Bơm dầu
+    if (text.includes("bomdau"))
+        return "oilPump";
+
+    // Nâng hạ
+    if (text.includes("nangha"))
         return "lifting";
-    }
 
-    // ===== Động cơ phanh =====
-    if (hasKeyword(text, [
-        "dongmoray",
-        "raychinh",
-        "raytrongkho",
-
-        "dongmocuaray",
-        "cuacab",
-
-        "vongcung",
-        "chiakhoangcach",
-        "hotrovongcung",
-        "hotrochieura"
-    ])) {
-        return "brake";
-    }
+    // Chính
+    if (text.includes("dongcochinh"))
+        return "mainMotor";
 
     return "otherMotor";
 }
