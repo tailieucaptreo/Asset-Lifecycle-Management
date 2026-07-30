@@ -1180,6 +1180,7 @@ exports.previewImport = async (req, res) => {
 ===================================================== */
 
 exports.importMotors = async (req, res) => {
+    console.log("========== IMPORT START ==========");
 
     try {
 
@@ -1368,7 +1369,7 @@ exports.importMotors = async (req, res) => {
             
             updated++;
         }
-
+        console.log("========== IMPORT END ==========");
         console.log("IMPORT SUMMARY", {
             created,
             updated,
