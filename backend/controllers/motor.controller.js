@@ -1312,15 +1312,35 @@ exports.importMotors = async (req, res) => {
             if (!data.warehouse)
                 delete updateData.warehouse;
 
-            if (exists.name === "Động cơ nâng hạ dàn lớp") {
+            if (changedFields.includes("warehouse")) {
 
-                console.log("==================================");
+                console.log("================================");
                 console.log("ID:", exists.id);
-                console.log("Tên:", exists.name);
-                console.log("Warehouse DB:", exists.warehouse);
-                console.log("Warehouse Excel:", data.warehouse);
+                console.log("Name:", exists.name);
+                console.log("Line:", exists.line);
+                console.log("Station:", exists.station);
+                console.log("Location:", exists.location);
+            
+                console.log("DB warehouse:", exists.warehouse);
+                console.log("Excel warehouse:", data.warehouse);
+            
                 console.log("UpdateData:", updateData);
             
+                const updatedMotor = await prisma.motor.update({
+                    where: { id: exists.id },
+                    data: updateData
+                });
+            
+                console.log("Warehouse sau update:", updatedMotor.warehouse);
+            
+                // cập nhật lại mảng RAM
+                const index = motors.findIndex(m => m.id === exists.id);
+                if (index >= 0) {
+                    motors[index] = updatedMotor;
+                }
+            
+                updated++;
+                continue;
             }
             
             // Lưu kết quả update
@@ -1332,13 +1352,6 @@ exports.importMotors = async (req, res) => {
             
             });
 
-            if (updatedMotor.name === "Động cơ nâng hạ dàn lớp") {
-
-                console.log("Sau update:", {
-                    warehouse: updatedMotor.warehouse
-                });
-            
-            }
             
             // cập nhật lại mảng trong RAM
             const index = motors.findIndex(
