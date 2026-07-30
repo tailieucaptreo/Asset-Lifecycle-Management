@@ -1228,10 +1228,10 @@ exports.importMotors = async (req, res) => {
             const data = mapMotorRow(excelRow);
             
             if (
-                !row.deviceId &&
-                !row.name &&
-                !row.model &&
-                !row.serial
+                !data.deviceId &&
+                !data.name &&
+                !data.model &&
+                !data.serial
             ) {
                 continue;
             }
