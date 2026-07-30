@@ -222,7 +222,7 @@ export default function MotorModal({
 
                 await axios.post(
 
-                    `${API}/api/motors/${motor.id}`
+                    `${API}/api/motors`,
 
                     form,
 
@@ -243,7 +243,7 @@ export default function MotorModal({
 
                 await axios.put(
 
-                    `${API}/motors/${motor.id}`,
+                    `${API}/api/motors/${motor.id}`,
 
                     form,
 
