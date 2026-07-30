@@ -1117,6 +1117,18 @@ exports.previewImport = async (req, res) => {
 
             }
 
+            if (changedFields.length > 0) {
+
+                console.log("==========");
+            
+                console.log("Tên DB :", exists.name);
+            
+                console.log("Tên Excel :", row.name);
+            
+                console.log("Changed:", changedFields);
+            
+            }
+
             else {
 
                 updateCount++;
