@@ -862,7 +862,9 @@ exports.getStatistics = async (req, res) => {
             // ===== Motor Type =====
             const motorType = classifyMotor(motor.name);
 
-            console.log(motor.name, "=>", motorType);
+            if (motorType === "otherMotor") {
+                console.log("OTHER =>", motor.name);
+            }
             
             if (motor.name.includes("Động cơ chính")) {
                 console.log(
