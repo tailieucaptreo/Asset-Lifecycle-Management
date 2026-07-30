@@ -650,11 +650,11 @@ function normalizeCompare(value, field = "") {
 
     // Text
     return String(value)
-
+        .replace(/\u00A0/g, " ")      // NBSP
+        .replace(/\r/g, "")
+        .replace(/\n/g, "")
         .trim()
-
         .replace(/\s+/g, " ")
-
         .replace(/\s*-\s*/g, "-");
 
 }
@@ -1085,14 +1085,6 @@ exports.previewImport = async (req, res) => {
             );
 
             if (changedFields.length > 0) {
-
-                console.log("==========");
-
-                console.log("Tên DB :", exists.name);
-            
-                console.log("Tên Excel :", row.name);
-            
-                console.log("Changed:", changedFields);
             
                 for (const field of changedFields) {
             
@@ -1180,8 +1172,7 @@ exports.previewImport = async (req, res) => {
 ===================================================== */
 
 exports.importMotors = async (req, res) => {
-    console.log("========== IMPORT START ==========");
-
+    
     try {
 
         if (!req.file) {
@@ -1312,37 +1303,6 @@ exports.importMotors = async (req, res) => {
             
             if (!data.warehouse)
                 delete updateData.warehouse;
-
-            if (changedFields.includes("warehouse")) {
-
-                console.log("================================");
-                console.log("ID:", exists.id);
-                console.log("Name:", exists.name);
-                console.log("Line:", exists.line);
-                console.log("Station:", exists.station);
-                console.log("Location:", exists.location);
-            
-                console.log("DB warehouse:", exists.warehouse);
-                console.log("Excel warehouse:", data.warehouse);
-            
-                console.log("UpdateData:", updateData);
-            
-                const updatedMotor = await prisma.motor.update({
-                    where: { id: exists.id },
-                    data: updateData
-                });
-            
-                console.log("Warehouse sau update:", updatedMotor.warehouse);
-            
-                // cập nhật lại mảng RAM
-                const index = motors.findIndex(m => m.id === exists.id);
-                if (index >= 0) {
-                    motors[index] = updatedMotor;
-                }
-            
-                updated++;
-                continue;
-            }
             
             // Lưu kết quả update
             const updatedMotor = await prisma.motor.update({
