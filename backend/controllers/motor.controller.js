@@ -709,17 +709,31 @@ function compareMotor(oldData, newData) {
 
     for (const field of fields) {
 
-        const oldValue =
-            normalizeCompare(
-                oldData[field],
-                field
-            );
+        // Các trường này nếu Excel để trống thì bỏ qua
+        if (
+            ["oldMotor", "newMotor", "warehouse"].includes(field)
+        ) {
 
-        const newValue =
-            normalizeCompare(
+            const excelValue = normalizeCompare(
                 newData[field],
                 field
             );
+
+            if (excelValue === "") {
+                continue;
+            }
+
+        }
+
+        const oldValue = normalizeCompare(
+            oldData[field],
+            field
+        );
+
+        const newValue = normalizeCompare(
+            newData[field],
+            field
+        );
 
         if (oldValue !== newValue) {
 
@@ -1008,6 +1022,15 @@ exports.previewImport = async (req, res) => {
         for (const excelRow of rows) {
 
             const row = mapMotorRow(excelRow);
+            
+            if (
+                !row.deviceId &&
+                !row.name &&
+                !row.model &&
+                !row.serial
+            ) {
+                continue;
+            }
 
             // Lần import đầu
             if (isFirstImport) {
@@ -1197,6 +1220,15 @@ exports.importMotors = async (req, res) => {
         for (const excelRow of rows) {
 
             const data = mapMotorRow(excelRow);
+            
+            if (
+                !row.deviceId &&
+                !row.name &&
+                !row.model &&
+                !row.serial
+            ) {
+                continue;
+            }
 
             // ===== Import lần đầu =====
             if (isFirstImport) {
