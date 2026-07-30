@@ -1314,9 +1314,11 @@ exports.importMotors = async (req, res) => {
 
             if (exists.name === "Động cơ nâng hạ dàn lớp") {
 
-                console.log("=================================");
-                console.log("UPDATE ID:", exists.id);
+                console.log("==================================");
+                console.log("ID:", exists.id);
                 console.log("Tên:", exists.name);
+                console.log("Warehouse DB:", exists.warehouse);
+                console.log("Warehouse Excel:", data.warehouse);
                 console.log("UpdateData:", updateData);
             
             }
