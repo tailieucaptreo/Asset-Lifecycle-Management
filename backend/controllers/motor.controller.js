@@ -1261,16 +1261,27 @@ exports.importMotors = async (req, res) => {
             // UPDATE
             // ==========================
 
-            const updatedMotor = await prisma.motor.update({
+            const updateData = {
 
-                where: {
-
-                    id: exists.id
-
-                },
-
-                data
-
+                ...data
+            
+            };
+            
+            if (!data.oldMotor)
+                delete updateData.oldMotor;
+            
+            if (!data.newMotor)
+                delete updateData.newMotor;
+            
+            if (!data.warehouse)
+                delete updateData.warehouse;
+            
+            await prisma.motor.update({
+            
+                where:{ id: exists.id },
+            
+                data: updateData
+            
             });
 
             // cập nhật lại mảng trong RAM
