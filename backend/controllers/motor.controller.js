@@ -1311,6 +1311,15 @@ exports.importMotors = async (req, res) => {
             
             if (!data.warehouse)
                 delete updateData.warehouse;
+
+            if (exists.name === "Động cơ nâng hạ dàn lớp") {
+
+                console.log("=================================");
+                console.log("UPDATE ID:", exists.id);
+                console.log("Tên:", exists.name);
+                console.log("UpdateData:", updateData);
+            
+            }
             
             // Lưu kết quả update
             const updatedMotor = await prisma.motor.update({
@@ -1320,6 +1329,14 @@ exports.importMotors = async (req, res) => {
                 data: updateData
             
             });
+
+            if (updatedMotor.name === "Động cơ nâng hạ dàn lớp") {
+
+                console.log("Sau update:", {
+                    warehouse: updatedMotor.warehouse
+                });
+            
+            }
             
             // cập nhật lại mảng trong RAM
             const index = motors.findIndex(
