@@ -948,20 +948,6 @@ function findExistingMotor(row, motors) {
 
     const serial = String(row.serial ?? "").trim();
 
-    // Ưu tiên Serial Number
-    if (serial) {
-
-        const found = motors.find(m =>
-
-            String(m.serial ?? "").trim() === serial
-
-        );
-
-        if (found) return found;
-
-    }
-
-    // deviceId + name + line + station + location
     const deviceId = String(row.deviceId ?? "").trim();
 
     const line = String(row.line ?? "").trim();
@@ -972,24 +958,29 @@ function findExistingMotor(row, motors) {
 
     const name = normalizeMotorName(row.name);
 
-    let found = motors.find(m =>
+    // 1. Nếu có serial thì phải khớp cả vị trí
+    if (serial) {
+
+        const found = motors.find(m =>
+
+            String(m.serial ?? "").trim() === serial &&
+
+            String(m.line ?? "").trim() === line &&
+
+            String(m.station ?? "").trim() === station &&
+
+            String(m.location ?? "").trim() === location
+
+        );
+
+        if (found) return found;
+
+    }
+
+    // 2. Device + Name + vị trí
+    const found = motors.find(m =>
 
         String(m.deviceId ?? "").trim() === deviceId &&
-
-        normalizeMotorName(m.name) === name &&
-
-        String(m.line ?? "").trim() === line &&
-
-        String(m.station ?? "").trim() === station &&
-
-        String(m.location ?? "").trim() === location
-
-    );
-
-    if (found) return found;
-
-    // Backup: chỉ theo tên + vị trí
-    found = motors.find(m =>
 
         normalizeMotorName(m.name) === name &&
 
