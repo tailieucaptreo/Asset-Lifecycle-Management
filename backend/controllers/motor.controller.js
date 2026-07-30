@@ -1077,14 +1077,16 @@ exports.previewImport = async (req, res) => {
             
             }
             const changedFields = compareMotor(
-
                 exists,
-
                 row
-
             );
-
+            
             if (changedFields.length > 0) {
+            
+                console.log("========== UPDATE ==========");
+                console.log("ID:", exists.id);
+                console.log("Tên:", exists.name);
+                console.log("Changed:", changedFields);
             
                 for (const field of changedFields) {
             
@@ -1095,10 +1097,27 @@ exports.previewImport = async (req, res) => {
                         "| Excel =",
                         JSON.stringify(row[field])
                     );
-                }
             
+                    // Debug riêng warehouse
+                    if (field === "warehouse") {
+            
+                        console.log("DB length:", (exists.warehouse || "").length);
+                        console.log("Excel length:", (row.warehouse || "").length);
+            
+                        console.log(
+                            "DB charCodes:",
+                            [...(exists.warehouse || "")]
+                                .map(c => c.charCodeAt(0))
+                        );
+            
+                        console.log(
+                            "Excel charCodes:",
+                            [...(row.warehouse || "")]
+                                .map(c => c.charCodeAt(0))
+                        );
+                    }
+                }
             }
-
             if (changedFields.length === 0) {
 
                 skipCount++;
