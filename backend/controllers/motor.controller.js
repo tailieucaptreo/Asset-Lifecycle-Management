@@ -938,10 +938,12 @@ function findExistingMotor(row, motors) {
 
             String(m.serial ?? "").trim() === serial &&
 
+            normalizeMotorName(m.name) === name &&
+    
             String(m.line ?? "").trim() === line &&
-
+    
             String(m.station ?? "").trim() === station &&
-
+    
             String(m.location ?? "").trim() === location
 
         );
