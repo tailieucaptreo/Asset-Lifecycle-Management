@@ -989,8 +989,14 @@ exports.previewImport = async (req, res) => {
 
         });
 
-        const motors = await prisma.motor.findMany();
+        const totalMotor = await prisma.motor.count();
 
+        const isFirstImport = totalMotor === 0;
+        
+        const motors = isFirstImport
+            ? []
+            : await prisma.motor.findMany();
+        
         const preview = [];
 
         let newCount = 0;
@@ -1004,10 +1010,6 @@ exports.previewImport = async (req, res) => {
             const row = mapMotorRow(excelRow);
 
             // Không có mã cũng vẫn cho import
-            const exists = findExistingMotor(
-                row,
-                motors
-            );
 
             if (!exists) {
 
@@ -1026,6 +1028,11 @@ exports.previewImport = async (req, res) => {
                 continue;
 
             }
+            
+            const exists = findExistingMotor(
+                row,
+                motors
+            );
 
             const changedFields = compareMotor(
 
@@ -1156,7 +1163,13 @@ exports.importMotors = async (req, res) => {
 
         });
 
-        const motors = await prisma.motor.findMany();
+        const totalMotor = await prisma.motor.count();
+
+        const isFirstImport = totalMotor === 0;
+        
+        const motors = isFirstImport
+            ? []
+            : await prisma.motor.findMany();
 
         let created = 0;
 
@@ -1167,14 +1180,6 @@ exports.importMotors = async (req, res) => {
         for (const excelRow of rows) {
 
             const data = mapMotorRow(excelRow);
-
-            const exists = findExistingMotor(
-
-                data,
-
-                motors
-
-            );
 
             // ==========================
             // CREATE
@@ -1195,6 +1200,14 @@ exports.importMotors = async (req, res) => {
                 continue;
 
             }
+
+             const exists = findExistingMotor(
+
+                data,
+
+                motors
+
+            );
 
             // ==========================
             // COMPARE
