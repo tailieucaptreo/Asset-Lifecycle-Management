@@ -1356,6 +1356,12 @@ exports.importMotors = async (req, res) => {
             updated++;
         }
 
+        console.log("IMPORT SUMMARY", {
+            created,
+            updated,
+            skipped
+        });
+
         return res.json({
 
             success: true,
