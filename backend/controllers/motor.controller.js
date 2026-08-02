@@ -381,18 +381,31 @@ exports.updateMotor = async (req, res) => {
 
         Object.keys(data).forEach(key => {
 
-            const oldValue = oldMotor[key];
-
-            const newValue = updated[key];
-
             let oldValue = oldMotor[key];
             let newValue = updated[key];
 
+            // Chuẩn hóa trạng thái trước khi so sánh
             if (key === "status") {
 
                 oldValue = normalizeStatus(oldValue);
-
                 newValue = normalizeStatus(newValue);
+
+            }
+
+            // Chuẩn hóa ngày tháng
+            if (
+                key === "installDate" ||
+                key === "maintenanceDate" ||
+                key === "replacementDate"
+            ) {
+
+                oldValue = oldValue
+                    ? new Date(oldValue).toISOString().slice(0, 10)
+                    : "";
+
+                newValue = newValue
+                    ? new Date(newValue).toISOString().slice(0, 10)
+                    : "";
 
             }
 
