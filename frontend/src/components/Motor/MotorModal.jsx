@@ -21,10 +21,22 @@ const brands = [
 ];
 
 const statuses = [
-    "Running",
-    "Maintenance",
-    "Replaced",
-    "Original"
+    {
+        value: "Running",
+        label: "Đang hoạt động"
+    },
+    {
+        value: "Maintenance",
+        label: "Bảo trì"
+    },
+    {
+        value: "Replaced",
+        label: "Đã thay"
+    },
+    {
+        value: "Original",
+        label: "Chưa thay"
+    }
 ];
 
 const motorTypes = [
@@ -1090,7 +1102,7 @@ function Select({
 
                         >
 
-                            {option}
+                            {option.label}
 
                         </option>
 

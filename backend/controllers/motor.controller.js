@@ -4,6 +4,25 @@ const XLSX = require("xlsx");
 
 const prisma = new PrismaClient();
 
+const STATUS_MAP = {
+    "Đang hoạt động": "Running",
+    "Bảo trì": "Maintenance",
+    "Đã thay": "Replaced",
+    "Chưa thay": "Original",
+
+    "Running": "Running",
+    "Maintenance": "Maintenance",
+    "Replaced": "Replaced",
+    "Original": "Original",
+};
+
+const STATUS_LABEL = {
+    Running: "Đang hoạt động",
+    Maintenance: "Bảo trì",
+    Replaced: "Đã thay",
+    Original: "Chưa thay",
+};
+
 const ImportHelper =
     require("../utils/importHelper");
 
@@ -99,19 +118,19 @@ exports.createMotor = async (req, res) => {
         const exists = findExistingMotor(
 
             data,
-        
+
             await prisma.motor.findMany()
-        
+
         );
-        
+
         if (exists) {
-        
+
             return res.status(400).json({
-        
-                message:"Động cơ đã tồn tại."
-        
+
+                message: "Động cơ đã tồn tại."
+
             });
-        
+
         }
 
         const motor = await prisma.motor.create({
@@ -126,11 +145,11 @@ exports.createMotor = async (req, res) => {
                 quantity: data.quantity
                     ? Number(data.quantity)
                     : null,
-                
+
                 oldMotor: data.oldMotor,
-                
+
                 newMotor: data.newMotor,
-                
+
                 maintenanceContent: data.maintenanceContent,
 
                 brand: data.brand,
@@ -163,7 +182,7 @@ exports.createMotor = async (req, res) => {
 
                 warehouse: data.warehouse,
 
-                status: data.status,
+                status: STATUS_MAP[data.status] || data.status,
 
                 installDate: data.installDate
                     ? new Date(data.installDate)
@@ -248,28 +267,28 @@ exports.updateMotor = async (req, res) => {
         }
 
         const motors =
-        await prisma.motor.findMany();
-        
+            await prisma.motor.findMany();
+
         const duplicate =
-        findExistingMotor(
-            data,
-            motors
-        );
-        
-        if(
-        
+            findExistingMotor(
+                data,
+                motors
+            );
+
+        if (
+
             duplicate &&
-        
-            duplicate.id!==id
-        
-        ){
-        
+
+            duplicate.id !== id
+
+        ) {
+
             return res.status(400).json({
-        
-                message:"Động cơ đã tồn tại."
-        
+
+                message: "Động cơ đã tồn tại."
+
             });
-        
+
         }
 
         const updated = await prisma.motor.update({
@@ -287,11 +306,11 @@ exports.updateMotor = async (req, res) => {
                 quantity: data.quantity
                     ? Number(data.quantity)
                     : null,
-                
+
                 oldMotor: data.oldMotor,
-                
+
                 newMotor: data.newMotor,
-                
+
                 maintenanceContent: data.maintenanceContent,
 
                 brand: data.brand,
@@ -324,7 +343,7 @@ exports.updateMotor = async (req, res) => {
 
                 warehouse: data.warehouse,
 
-                status: data.status,
+                status: STATUS_MAP[data.status] || data.status,
 
                 installDate: data.installDate
                     ? new Date(data.installDate)
@@ -497,7 +516,7 @@ function mapMotorRow(excelRow) {
             excelRow["Nhà ga"] ??
             excelRow.station
         ),
-        
+
         deviceId: (() => {
 
             const id = ImportHelper.text(
@@ -505,9 +524,9 @@ function mapMotorRow(excelRow) {
                 excelRow["Mã TB"] ??
                 excelRow.deviceId
             );
-        
+
             return id === "-" ? "" : id;
-        
+
         })(),
 
         name: ImportHelper.text(
@@ -559,19 +578,19 @@ function mapMotorRow(excelRow) {
             excelRow.runningHours
         ),
 
-        status: ImportHelper.text(
-
-            excelRow["Trạng thái"] ??
-            excelRow.status ??
-            "Chưa thay"
-        
-        ),
+        status:
+            STATUS_MAP[
+            ImportHelper.text(
+                excelRow["Trạng thái"] ??
+                excelRow.status
+            )
+            ] || "Original",
 
         replacementDate: ImportHelper.date(
-        
+
             excelRow["Thời gian thay thế"] ??
             excelRow.replacementDate
-        
+
         ),
 
         oldMotor: ImportHelper.text(
@@ -583,28 +602,28 @@ function mapMotorRow(excelRow) {
             excelRow["Mới"] ??
             excelRow.newMotor
         ),
-        
+
         warehouse: ImportHelper.nullableText(
             excelRow["Vị trí lưu kho"] ??
             excelRow.warehouse
         ),
 
         maintenanceDate: ImportHelper.date(
-        
+
             excelRow["Ngày bảo trì"] ??
             excelRow.maintenanceDate
-        
+
         ),
-        
-       maintenanceContent: ImportHelper.text(
+
+        maintenanceContent: ImportHelper.text(
             excelRow["Nội dung thực hiện"]
         ),
-        
+
         note: ImportHelper.nullableText(
-        
+
             excelRow["Ghi chú"] ??
             excelRow.note
-        
+
         )
 
     };
@@ -804,16 +823,16 @@ exports.getStatistics = async (req, res) => {
 
         const statistics = {
             total: motors.length,
-        
+
             abb: 0,
             siemens: 0,
             otherBrand: 0,
-        
+
             running: 0,
             maintenance: 0,
             replaced: 0,
             original: 0,
-        
+
             mainMotor: 0,
             oilPump: 0,
             cooling: 0,
@@ -821,87 +840,88 @@ exports.getStatistics = async (req, res) => {
             lifting: 0,
             otherMotor: 0
         };
-        
+
         for (const motor of motors) {
-        
+
             // ===== Brand =====
             switch ((motor.brand || "").toUpperCase()) {
-        
+
                 case "ABB":
                     statistics.abb++;
                     break;
-        
+
                 case "SIEMENS":
                     statistics.siemens++;
                     break;
-        
+
                 default:
                     statistics.otherBrand++;
                     break;
             }
-        
+
             // ===== Status =====
             switch (motor.status) {
-        
-                case "Đang hoạt động":
+
+                case "Running":
                     statistics.running++;
                     break;
-        
-                case "Bảo trì":
+
+                case "Maintenance":
                     statistics.maintenance++;
                     break;
-        
-                case "Đã thay":
+
+                case "Replaced":
                     statistics.replaced++;
                     break;
-        
+
+                case "Original":
                 default:
                     statistics.original++;
                     break;
             }
-        
+
             // ===== Motor Type =====
             const motorType = classifyMotor(motor.name);
 
             if (motorType === "otherMotor") {
                 console.log("OTHER =>", motor.name);
             }
-            
+
             if (motor.name.includes("Động cơ chính")) {
                 console.log(
-                   `[${motor.name}] => ${motorType}`
+                    `[${motor.name}] => ${motorType}`
                 );
             }
-        
-           switch (motorType) {
+
+            switch (motorType) {
 
                 case "mainMotor":
                     statistics.mainMotor++;
                     break;
-            
+
                 case "oilPump":
                     statistics.oilPump++;
                     break;
-            
+
                 case "cooling":
                     statistics.cooling++;
                     break;
-            
+
                 case "lifting":
                     statistics.lifting++;
                     break;
-            
+
                 case "brake":
                     statistics.brake++;
                     break;
-            
+
                 default:
                     statistics.otherMotor++;
                     break;
             }
-        
+
         }
-        
+
         return res.json(statistics);
 
     }
@@ -942,11 +962,11 @@ function findExistingMotor(row, motors) {
             String(m.serial ?? "").trim() === serial &&
 
             normalizeMotorName(m.name) === name &&
-    
+
             String(m.line ?? "").trim() === line &&
-    
+
             String(m.station ?? "").trim() === station &&
-    
+
             String(m.location ?? "").trim() === location
 
         );
@@ -1011,11 +1031,11 @@ exports.previewImport = async (req, res) => {
         const totalMotor = await prisma.motor.count();
 
         const isFirstImport = totalMotor === 0;
-        
+
         const motors = isFirstImport
             ? []
             : await prisma.motor.findMany();
-        
+
         const preview = [];
 
         let newCount = 0;
@@ -1027,7 +1047,7 @@ exports.previewImport = async (req, res) => {
         for (const excelRow of rows) {
 
             const row = mapMotorRow(excelRow);
-            
+
             if (
                 !row.deviceId &&
                 !row.name &&
@@ -1039,60 +1059,60 @@ exports.previewImport = async (req, res) => {
 
             // Lần import đầu
             if (isFirstImport) {
-            
+
                 newCount++;
-            
+
                 preview.push({
-            
+
                     action: "NEW",
-            
+
                     changedFields: [],
-            
+
                     row
-            
+
                 });
-            
+
                 continue;
-            
+
             }
-            
+
             // Các lần sau mới tìm
             const exists = findExistingMotor(
                 row,
                 motors
             );
-            
+
             if (!exists) {
-            
+
                 newCount++;
-            
+
                 preview.push({
-            
+
                     action: "NEW",
-            
+
                     changedFields: [],
-            
+
                     row
-            
+
                 });
-            
+
                 continue;
-            
+
             }
             const changedFields = compareMotor(
                 exists,
                 row
             );
-            
+
             if (changedFields.length > 0) {
-            
+
                 console.log("========== UPDATE ==========");
                 console.log("ID:", exists.id);
                 console.log("Tên:", exists.name);
                 console.log("Changed:", changedFields);
-            
+
                 for (const field of changedFields) {
-            
+
                     console.log(
                         field,
                         "DB =",
@@ -1100,19 +1120,19 @@ exports.previewImport = async (req, res) => {
                         "| Excel =",
                         JSON.stringify(row[field])
                     );
-            
+
                     // Debug riêng warehouse
                     if (field === "warehouse") {
-            
+
                         console.log("DB length:", (exists.warehouse || "").length);
                         console.log("Excel length:", (row.warehouse || "").length);
-            
+
                         console.log(
                             "DB charCodes:",
                             [...(exists.warehouse || "")]
                                 .map(c => c.charCodeAt(0))
                         );
-            
+
                         console.log(
                             "Excel charCodes:",
                             [...(row.warehouse || "")]
@@ -1194,7 +1214,7 @@ exports.previewImport = async (req, res) => {
 ===================================================== */
 
 exports.importMotors = async (req, res) => {
-    
+
     try {
 
         if (!req.file) {
@@ -1226,7 +1246,7 @@ exports.importMotors = async (req, res) => {
         const totalMotor = await prisma.motor.count();
 
         const isFirstImport = totalMotor === 0;
-        
+
         const motors = isFirstImport
             ? []
             : await prisma.motor.findMany();
@@ -1240,7 +1260,7 @@ exports.importMotors = async (req, res) => {
         for (const excelRow of rows) {
 
             const data = mapMotorRow(excelRow);
-            
+
             if (
                 !data.deviceId &&
                 !data.name &&
@@ -1252,41 +1272,41 @@ exports.importMotors = async (req, res) => {
 
             // ===== Import lần đầu =====
             if (isFirstImport) {
-            
+
                 const motor = await prisma.motor.create({
-            
+
                     data
-            
+
                 });
-            
+
                 motors.push(motor);
-            
+
                 created++;
-            
+
                 continue;
-            
+
             }
-            
+
             // ===== Các lần sau =====
             const exists = findExistingMotor(
                 data,
                 motors
             );
-            
+
             if (!exists) {
-            
+
                 const motor = await prisma.motor.create({
-            
+
                     data
-            
+
                 });
-            
+
                 motors.push(motor);
-            
+
                 created++;
-            
+
                 continue;
-            
+
             }
 
             // ==========================
@@ -1312,43 +1332,43 @@ exports.importMotors = async (req, res) => {
             // ==========================
             // UPDATE
             // ==========================
-            
+
             const updateData = {
                 ...data
             };
-            
+
             if (!data.oldMotor)
                 delete updateData.oldMotor;
-            
+
             if (!data.newMotor)
                 delete updateData.newMotor;
-            
+
             if (!data.warehouse)
                 delete updateData.warehouse;
-            
+
             // Lưu kết quả update
             const updatedMotor = await prisma.motor.update({
-            
+
                 where: { id: exists.id },
-            
+
                 data: updateData
-            
+
             });
 
-            
+
             // cập nhật lại mảng trong RAM
             const index = motors.findIndex(
-            
+
                 m => m.id === exists.id
-            
+
             );
-            
+
             if (index >= 0) {
-            
+
                 motors[index] = updatedMotor;
-            
+
             }
-            
+
             updated++;
         }
         console.log("========== IMPORT END ==========");
@@ -1415,97 +1435,97 @@ exports.exportExcel = async (req, res) => {
         sheet.columns = [
 
             { header: "Tuyến cáp", key: "line", width: 15 },
-        
+
             { header: "Nhà ga", key: "station", width: 15 },
-        
+
             { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
-        
+
             { header: "Tên thiết bị", key: "name", width: 35 },
-        
+
             { header: "Loại thiết bị", key: "type", width: 20 },
-        
+
             { header: "Số Lượng", key: "quantity", width: 12 },
-        
+
             { header: "Vị trí lắp đặt", key: "location", width: 25 },
-        
+
             { header: "Hãng", key: "brand", width: 18 },
-        
+
             { header: "Model", key: "model", width: 22 },
-        
+
             { header: "Serial Number ID", key: "serial", width: 22 },
-        
+
             { header: "Công suất (kW)", key: "power", width: 15 },
-        
+
             { header: "Mã ổ bi", key: "bearingCode", width: 18 },
-        
+
             { header: "Số giờ vận hành", key: "runningHours", width: 18 },
-        
+
             { header: "Trạng thái", key: "status", width: 18 },
-        
+
             { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
-        
+
             { header: "Cũ", key: "oldMotor", width: 20 },
-        
+
             { header: "Mới", key: "newMotor", width: 20 },
-        
+
             { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
-        
+
             { header: "Ngày bảo trì", key: "maintenanceDate", width: 18 },
-        
+
             { header: "Nội dung thực hiện", key: "maintenanceContent", width: 35 },
-        
+
             { header: "Ghi chú", key: "note", width: 40 }
-        
+
         ];
 
         motors.forEach(motor => {
 
             sheet.addRow({
-        
+
                 line: motor.line,
-        
+
                 station: motor.station,
-        
+
                 deviceId: motor.deviceId,
-        
+
                 name: motor.name,
-        
+
                 type: motor.type,
-        
+
                 quantity: motor.quantity,
-        
+
                 location: motor.location,
-        
+
                 brand: motor.brand,
-        
+
                 model: motor.model,
-        
+
                 serial: motor.serial,
-        
+
                 power: motor.power,
-        
+
                 bearingCode: motor.bearingCode,
-        
+
                 runningHours: motor.runningHours,
-        
-                status: motor.status,
-        
+
+                status: STATUS_LABEL[motor.status] || motor.status,
+
                 replacementDate: motor.replacementDate,
-        
+
                 oldMotor: motor.oldMotor,
-        
+
                 newMotor: motor.newMotor,
-        
+
                 warehouse: motor.warehouse,
-        
+
                 maintenanceDate: motor.maintenanceDate,
-        
+
                 maintenanceContent: motor.maintenanceContent,
-        
+
                 note: motor.note
-        
+
             });
-        
+
         });
 
         sheet.getRow(1).font = {
@@ -1606,93 +1626,93 @@ exports.exportTemplate = async (req, res) => {
         sheet.columns = [
 
             { header: "Tuyến cáp", key: "line", width: 15 },
-        
+
             { header: "Nhà ga", key: "station", width: 15 },
-        
+
             { header: "Mã Vật Tư/ID", key: "deviceId", width: 18 },
-        
+
             { header: "Tên thiết bị", key: "name", width: 35 },
-        
+
             { header: "Loại thiết bị", key: "type", width: 20 },
-        
+
             { header: "Số Lượng", key: "quantity", width: 12 },
-        
+
             { header: "Vị trí lắp đặt", key: "location", width: 25 },
-        
+
             { header: "Hãng", key: "brand", width: 18 },
-        
+
             { header: "Model", key: "model", width: 22 },
-        
+
             { header: "Serial Number ID", key: "serial", width: 22 },
-        
+
             { header: "Công suất (kW)", key: "power", width: 15 },
-        
+
             { header: "Mã ổ bi", key: "bearingCode", width: 18 },
-        
+
             { header: "Số giờ vận hành", key: "runningHours", width: 18 },
-        
+
             { header: "Trạng thái", key: "status", width: 18 },
-        
+
             { header: "Thời gian thay thế", key: "replacementDate", width: 18 },
-        
+
             { header: "Cũ", key: "oldMotor", width: 20 },
-        
+
             { header: "Mới", key: "newMotor", width: 20 },
-        
+
             { header: "Vị trí lưu kho", key: "warehouse", width: 25 },
-        
+
             { header: "Ngày bảo trì", key: "maintenanceDate", width: 18 },
-        
+
             { header: "Nội dung thực hiện", key: "maintenanceContent", width: 35 },
-        
+
             { header: "Ghi chú", key: "note", width: 40 }
-        
+
         ];
 
         sheet.addRow({
 
             line: "Tuyến 1",
-        
+
             station: "Ga đi",
-        
+
             deviceId: "MTR001",
-        
+
             name: "Động cơ chính",
-        
+
             type: "Động cơ chính",
-        
+
             quantity: 1,
-        
+
             location: "Phòng máy",
-        
+
             brand: "ABB",
-        
+
             model: "M3BP",
-        
+
             serial: "SN001",
-        
+
             power: "45",
-        
+
             bearingCode: "6316",
-        
+
             runningHours: 0,
-        
+
             status: "Đang hoạt động",
-        
+
             replacementDate: "",
-        
+
             oldMotor: "",
-        
+
             newMotor: "",
-        
+
             warehouse: "Kho A",
-        
+
             maintenanceDate: "",
-        
+
             maintenanceContent: "",
-        
+
             note: ""
-        
+
         });
 
         sheet.getColumn("replacementDate").numFmt = "dd/mm/yyyy";
