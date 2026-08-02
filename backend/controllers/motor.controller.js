@@ -16,6 +16,14 @@ const STATUS_MAP = {
     "Original": "Original",
 };
 
+function normalizeStatus(status = "") {
+
+    return STATUS_MAP[
+        ImportHelper.text(status)
+    ] || status;
+
+}
+
 const STATUS_LABEL = {
     Running: "Đang hoạt động",
     Maintenance: "Bảo trì",
@@ -182,7 +190,7 @@ exports.createMotor = async (req, res) => {
 
                 warehouse: data.warehouse,
 
-                status: STATUS_MAP[data.status] || data.status,
+                status: normalizeStatus(data.status),
 
                 installDate: data.installDate
                     ? new Date(data.installDate)
@@ -343,7 +351,7 @@ exports.updateMotor = async (req, res) => {
 
                 warehouse: data.warehouse,
 
-                status: STATUS_MAP[data.status] || data.status,
+                status: normalizeStatus(data.status),
 
                 installDate: data.installDate
                     ? new Date(data.installDate)
@@ -377,14 +385,22 @@ exports.updateMotor = async (req, res) => {
 
             const newValue = updated[key];
 
+            let oldValue = oldMotor[key];
+            let newValue = updated[key];
+
+            if (key === "status") {
+
+                oldValue = normalizeStatus(oldValue);
+
+                newValue = normalizeStatus(newValue);
+
+            }
+
             if (String(oldValue ?? "") !== String(newValue ?? "")) {
 
                 changes[key] = {
-
-                    old: oldValue,
-
-                    new: newValue
-
+                    old: oldMotor[key],
+                    new: updated[key]
                 };
 
             }
@@ -664,6 +680,13 @@ function normalizeCompare(value, field = "") {
     ) {
 
         return Number(value || 0);
+
+    }
+
+    // Status
+    if (field === "status") {
+
+        return normalizeStatus(value);
 
     }
 
