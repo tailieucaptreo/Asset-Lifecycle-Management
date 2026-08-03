@@ -664,11 +664,23 @@ function normalizeCompare(value, field = "") {
     if (value === undefined || value === null)
         return "";
 
+    // Status
+    if (field === "status") {
+
+        return normalizeStatus(
+            ImportHelper.text(value)
+        );
+
+    }
+
     // Date
     if (
         field === "replacementDate" ||
-        field === "maintenanceDate"
+        field === "maintenanceDate" ||
+        field === "installDate"
     ) {
+
+        if (!value) return "";
 
         try {
 
@@ -677,7 +689,6 @@ function normalizeCompare(value, field = "") {
                 .slice(0, 10);
 
         }
-
         catch {
 
             return "";
@@ -696,18 +707,12 @@ function normalizeCompare(value, field = "") {
 
     }
 
-    // Status
-    if (field === "status") {
-
-        return normalizeStatus(value);
-
-    }
-
     // Text
     return String(value)
-        .replace(/\u00A0/g, " ")      // NBSP
+        .replace(/\u00A0/g, " ")
         .replace(/\r/g, "")
         .replace(/\n/g, "")
+        .replace(/\t/g, " ")
         .trim()
         .replace(/\s+/g, " ")
         .replace(/\s*-\s*/g, "-");
@@ -720,28 +725,32 @@ function normalizeCompare(value, field = "") {
 
 function compareMotor(oldData, newData) {
 
-    const changedFields = [];
+    const changed = [];
 
     const fields = [
 
         "line",
         "station",
+
         "deviceId",
 
         "name",
-        "type",
 
-        "quantity",
+        "type",
 
         "location",
 
         "brand",
+
         "model",
+
         "serial",
 
         "power",
 
         "bearingCode",
+
+        "quantity",
 
         "runningHours",
 
@@ -750,6 +759,35 @@ function compareMotor(oldData, newData) {
         "replacementDate",
 
         "oldMotor",
+
+        "newMotor",
+
+        "warehouse",
+
+        "maintenanceDate",
+
+        "maintenanceContent",
+
+        "note"
+
+    ];
+
+    const optionalFields = [
+
+        "serial",
+
+        "power",
+
+        "bearingCode",
+
+        "quantity",
+
+        "runningHours",
+
+        "replacementDate",
+
+        "oldMotor",
+
         "newMotor",
 
         "warehouse",
@@ -764,41 +802,44 @@ function compareMotor(oldData, newData) {
 
     for (const field of fields) {
 
-        // Các trường này nếu Excel để trống thì bỏ qua
+        const excelValue = normalizeCompare(
+
+            newData[field],
+
+            field
+
+        );
+
+        // Excel bỏ trống thì không cập nhật
         if (
-            ["oldMotor", "newMotor", "warehouse"].includes(field)
+
+            optionalFields.includes(field) &&
+
+            excelValue === ""
+
         ) {
 
-            const excelValue = normalizeCompare(
-                newData[field],
-                field
-            );
-
-            if (excelValue === "") {
-                continue;
-            }
+            continue;
 
         }
 
-        const oldValue = normalizeCompare(
+        const dbValue = normalizeCompare(
+
             oldData[field],
+
             field
+
         );
 
-        const newValue = normalizeCompare(
-            newData[field],
-            field
-        );
+        if (dbValue !== excelValue) {
 
-        if (oldValue !== newValue) {
-
-            changedFields.push(field);
+            changed.push(field);
 
         }
 
     }
 
-    return changedFields;
+    return changed;
 
 }
 
@@ -978,32 +1019,35 @@ exports.getStatistics = async (req, res) => {
 
 function findExistingMotor(row, motors) {
 
-    const serial = String(row.serial ?? "").trim();
+    const serial = normalizeCompare(row.serial);
 
-    const deviceId = String(row.deviceId ?? "").trim();
+    const deviceId = normalizeCompare(row.deviceId);
 
-    const line = String(row.line ?? "").trim();
+    const line = normalizeCompare(row.line);
 
-    const station = String(row.station ?? "").trim();
+    const station = normalizeCompare(row.station);
 
-    const location = String(row.location ?? "").trim();
+    const location = normalizeCompare(row.location);
 
     const name = normalizeMotorName(row.name);
 
-    // 1. Nếu có serial thì phải khớp cả vị trí
+    // ===========================================
+    // 1. Có Serial -> ưu tiên Serial
+    // ===========================================
+
     if (serial) {
 
         const found = motors.find(m =>
 
-            String(m.serial ?? "").trim() === serial &&
+            normalizeCompare(m.serial) === serial &&
 
             normalizeMotorName(m.name) === name &&
 
-            String(m.line ?? "").trim() === line &&
+            normalizeCompare(m.line) === line &&
 
-            String(m.station ?? "").trim() === station &&
+            normalizeCompare(m.station) === station &&
 
-            String(m.location ?? "").trim() === location
+            normalizeCompare(m.location) === location
 
         );
 
@@ -1011,18 +1055,43 @@ function findExistingMotor(row, motors) {
 
     }
 
-    // 2. Device + Name + vị trí
-    const found = motors.find(m =>
+    // ===========================================
+    // 2. DeviceId
+    // ===========================================
 
-        String(m.deviceId ?? "").trim() === deviceId &&
+    if (deviceId) {
+
+        const found = motors.find(m =>
+
+            normalizeCompare(m.deviceId) === deviceId &&
+
+            normalizeMotorName(m.name) === name &&
+
+            normalizeCompare(m.line) === line &&
+
+            normalizeCompare(m.station) === station &&
+
+            normalizeCompare(m.location) === location
+
+        );
+
+        if (found) return found;
+
+    }
+
+    // ===========================================
+    // 3. Không có Serial và DeviceId
+    // ===========================================
+
+    const found = motors.find(m =>
 
         normalizeMotorName(m.name) === name &&
 
-        String(m.line ?? "").trim() === line &&
+        normalizeCompare(m.line) === line &&
 
-        String(m.station ?? "").trim() === station &&
+        normalizeCompare(m.station) === station &&
 
-        String(m.location ?? "").trim() === location
+        normalizeCompare(m.location) === location
 
     );
 
