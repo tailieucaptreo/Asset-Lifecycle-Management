@@ -34,7 +34,7 @@ const statuses = [
         label: "Đã thay"
     },
     {
-        value: "Original",
+        value: "Normal",
         label: "Chưa thay"
     }
 ];
@@ -567,7 +567,7 @@ export default function MotorModal({
                         </div>
 
                     </div>
-                  
+
                     {/* ===========================
                         VỊ TRÍ & BẢO TRÌ
                     ============================ */}
@@ -1091,23 +1091,28 @@ function Select({
                 </option>
 
                 {
+                    options.map(option => {
 
-                    options.map(option => (
+                        const value =
+                            typeof option === "object"
+                                ? option.value
+                                : option;
 
-                        <option
+                        const label =
+                            typeof option === "object"
+                                ? option.label
+                                : option;
 
-                            key={option}
+                        return (
+                            <option
+                                key={value}
+                                value={value}
+                            >
+                                {label}
+                            </option>
+                        );
 
-                            value={option}
-
-                        >
-
-                            {option.label}
-
-                        </option>
-
-                    ))
-
+                    })
                 }
 
             </select>
