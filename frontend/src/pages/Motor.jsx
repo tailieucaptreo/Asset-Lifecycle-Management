@@ -51,6 +51,32 @@ function detectMotorType(name = "") {
     return "otherMotor";
 }
 
+function normalizeStatus(status = "") {
+
+    switch (String(status).trim().toLowerCase()) {
+
+        case "đang hoạt động":
+        case "running":
+            return "Running";
+
+        case "bảo trì":
+        case "maintenance":
+            return "Maintenance";
+
+        case "đã thay":
+        case "replaced":
+            return "Replaced";
+
+        case "chưa thay":
+        case "normal":
+            return "Normal";
+
+        default:
+            return status;
+    }
+
+}
+
 export default function Motor() {
 
     const token = localStorage.getItem("token");
@@ -435,7 +461,7 @@ export default function Motor() {
                         &&
 
                         (!filters.status ||
-                            motor.status === filters.status);
+                            normalizeStatus(motor.status) === normalizeStatus(filters.status));
 
                     // Card filter
 
@@ -475,7 +501,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Đang hoạt động";
+                                motor.status === "Running";
 
                             break;
 
@@ -483,7 +509,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Bảo trì";
+                                motor.status === "maintenance";
 
                             break;
 
@@ -491,7 +517,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Đã thay";
+                                motor.status === "Replaced";
 
                             break;
 
@@ -499,7 +525,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "Chưa thay";
+                                motor.status === "Normal";
 
                             break;
 
