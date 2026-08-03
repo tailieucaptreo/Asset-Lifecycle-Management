@@ -23,8 +23,8 @@ const cardConfig = {
         icon: Factory,
     },
 
-    siemens: {
-        title: "Siemens",
+    nord: {
+        title: "Nord",
         icon: Factory,
     },
 
@@ -191,8 +191,8 @@ export default function MotorCard({
                 value: statistics.abb
             },
             {
-                key: "siemens",
-                value: statistics.siemens
+                key: "nord",
+                value: statistics.nord
             },
             {
                 key: "otherBrand",

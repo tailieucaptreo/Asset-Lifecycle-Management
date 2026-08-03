@@ -93,7 +93,7 @@ export default function Motor() {
 
         abb: 0,
 
-        siemens: 0,
+        nord: 0,
 
         otherBrand: 0,
 
