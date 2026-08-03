@@ -6,6 +6,55 @@ import {
 
 import MobileMotorCard from "./MobileMotorCard";
 
+function normalizeStatus(status = "") {
+
+    switch (String(status).trim()) {
+
+        case "Đang hoạt động":
+        case "Running":
+            return "Running";
+
+        case "Bảo trì":
+        case "Maintenance":
+            return "Maintenance";
+
+        case "Đã thay":
+        case "Replaced":
+            return "Replaced";
+
+        case "Chưa thay":
+        case "Normal":
+        case "Original":
+            return "Normal";
+
+        default:
+            return status;
+    }
+
+}
+
+function displayStatus(status = "") {
+
+    switch (normalizeStatus(status)) {
+
+        case "Running":
+            return "Đang hoạt động";
+
+        case "Maintenance":
+            return "Bảo trì";
+
+        case "Replaced":
+            return "Đã thay";
+
+        case "Normal":
+            return "Chưa thay";
+
+        default:
+            return status;
+    }
+
+}
+
 export default function MotorTable({
 
     role,
@@ -35,7 +84,7 @@ export default function MotorTable({
             case "Replaced":
                 return "bg-blue-100 text-blue-700";
 
-            case "Original":
+            case "Normal":
                 return "bg-slate-100 text-slate-700";
 
             default:
@@ -263,28 +312,7 @@ export default function MotorTable({
                                                     `}
 
                                                 >
-
-                                                    {
-
-                                                        motor.status === "Running"
-
-                                                            ? "Đang hoạt động"
-
-                                                            : motor.status === "Maintenance"
-
-                                                                ? "Bảo trì"
-
-                                                                : motor.status === "Replaced"
-
-                                                                    ? "Đã thay"
-
-                                                                    : motor.status === "Original"
-
-                                                                        ? "Chưa thay"
-
-                                                                        : motor.status
-
-                                                    }
+                                                    {displayStatus(motor.status)}
 
                                                 </span>
 
