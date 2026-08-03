@@ -1,5 +1,4 @@
 import {
-    Search,
     RotateCcw
 } from "lucide-react";
 
@@ -72,62 +71,10 @@ export default function MotorFilter({
                     grid
                     grid-cols-1
                     md:grid-cols-2
-                    xl:grid-cols-6
+                    xl:grid-cols-5
                     gap-4
                 "
             >
-
-                {/* SEARCH */}
-
-                <div className="relative xl:col-span-2">
-
-                    <Search
-                        size={18}
-                        className="
-                            absolute
-                            left-3
-                            top-1/2
-                            -translate-y-1/2
-                            text-slate-400
-                        "
-                    />
-
-                    <input
-
-                        type="text"
-
-                        value={filters.search || ""}
-
-                        placeholder="Tên, Model, Serial..."
-
-                        onChange={(e) =>
-
-                            setFilters({
-
-                                ...filters,
-
-                                search: e.target.value
-
-                            })
-
-                        }
-
-                        className="
-                            w-full
-                            border
-                            rounded-xl
-                            pl-10
-                            pr-4
-                            py-2.5
-                            focus:ring-2
-                            focus:ring-blue-500
-                            outline-none
-                        "
-
-                    />
-
-                </div>
-
                 {/* LINE */}
 
                 <select
@@ -395,8 +342,6 @@ export default function MotorFilter({
                     onClick={() =>
 
                         setFilters({
-
-                            search: "",
 
                             line: "",
 
