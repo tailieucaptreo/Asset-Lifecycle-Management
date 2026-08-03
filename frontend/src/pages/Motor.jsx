@@ -477,12 +477,11 @@ export default function Motor() {
 
                             break;
 
-                        case "siemens":
+                        case "nord":
 
                             matchCard =
 
-                                motor.brand === "Siemens";
-
+                                motor.brand === "Nord";
                             break;
 
                         case "otherBrand":
@@ -493,7 +492,7 @@ export default function Motor() {
 
                                 &&
 
-                                motor.brand !== "Siemens";
+                                motor.brand !== "Nord";
 
                             break;
 

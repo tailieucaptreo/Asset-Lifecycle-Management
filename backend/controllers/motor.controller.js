@@ -902,7 +902,7 @@ exports.getStatistics = async (req, res) => {
             total: motors.length,
 
             abb: 0,
-            siemens: 0,
+            nord: 0,
             otherBrand: 0,
 
             running: 0,
@@ -927,8 +927,8 @@ exports.getStatistics = async (req, res) => {
                     statistics.abb++;
                     break;
 
-                case "SIEMENS":
-                    statistics.siemens++;
+                case "NORD":
+                    statistics.nord++;
                     break;
 
                 default:
