@@ -509,7 +509,7 @@ export default function Motor() {
 
                             matchCard =
 
-                                motor.status === "maintenance";
+                                motor.status === "Maintenance";
 
                             break;
 
