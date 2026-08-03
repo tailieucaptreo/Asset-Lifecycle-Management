@@ -165,7 +165,7 @@ export default function MotorImportModal({
         updateCount
 
     ]);
-        const handleImport = async () => {
+    const handleImport = async () => {
 
         if (!file) return;
 
@@ -182,7 +182,7 @@ export default function MotorImportModal({
             const headers = {
                 Authorization: `Bearer ${token}`
             };
-            
+
             console.log(headers);
 
             await axios.post(
@@ -252,9 +252,16 @@ export default function MotorImportModal({
                 className="
                     w-full
                     max-w-7xl
+
+                    h-[92vh]
+
                     bg-white
                     rounded-3xl
                     shadow-2xl
+
+                    flex
+                    flex-col
+
                     overflow-hidden
                 "
             >
@@ -346,7 +353,7 @@ export default function MotorImportModal({
                     SUMMARY
                 =========================== */}
 
-                <div className="p-6">
+                <div className=" flex-1 flex flex-col p-6 overflow-hidden">
 
                     <div
                         className="
@@ -446,6 +453,7 @@ export default function MotorImportModal({
                     <div
                         className="
                             mt-6
+                            flex-1
                             border
                             rounded-2xl
                             overflow-hidden
@@ -454,8 +462,8 @@ export default function MotorImportModal({
 
                         <div
                             className="
+                                h-full
                                 overflow-auto
-                                max-h-[500px]
                             "
                         >
 
@@ -665,14 +673,23 @@ export default function MotorImportModal({
 
                     <div
                         className="
-                            mt-6
+                            mt-4
+
                             border-t
+
+                            bg-white
+
                             pt-5
+
                             flex
                             items-center
                             justify-between
+
                             flex-wrap
+
                             gap-4
+
+                            shrink-0
                         "
                     >
 
@@ -779,7 +796,7 @@ export default function MotorImportModal({
 
                 </div>
 
-             </div>
+            </div>
 
         </div>
 
