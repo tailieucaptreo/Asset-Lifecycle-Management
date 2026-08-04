@@ -66,6 +66,26 @@ model WorkOrder {
   device Device @relation(fields: [deviceId], references: [id])
 }
 
+model DeviceHistory {
+  id        Int      @id @default(autoincrement())
+
+  deviceId  Int?
+
+  action    String
+
+  user      String
+
+  code      String?
+
+  name      String
+
+  note      String?
+
+  changes   Json?
+
+  createdAt DateTime @default(now())
+}
+
 model SpareDevice {
 
   id               Int       @id @default(autoincrement())
