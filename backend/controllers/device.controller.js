@@ -306,6 +306,8 @@ exports.createDevice = async (req, res) => {
 
                 lastMaintenance: parseDate(d.lastMaintenance),
 
+                replacementDate: parseDate(d.replacementDate),
+
                 expiryDate: parseDate(d.expiryDate)
 
             }
@@ -404,6 +406,8 @@ exports.updateDevice = async (req, res) => {
                 installDate: parseDate(d.installDate),
 
                 lastMaintenance: parseDate(d.lastMaintenance),
+
+                replacementDate: parseDate(d.replacementDate),
 
                 expiryDate: parseDate(d.expiryDate)
 
