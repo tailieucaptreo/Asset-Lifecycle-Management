@@ -921,19 +921,22 @@ exports.getStatistics = async (req, res) => {
         for (const motor of motors) {
 
             // ===== Brand =====
-            switch ((motor.brand || "").toUpperCase()) {
+            const brand = (motor.brand || "").trim().toUpperCase();
 
-                case "ABB":
-                    statistics.abb++;
-                    break;
-
-                case "NORD":
-                    statistics.nord++;
-                    break;
-
-                default:
-                    statistics.otherBrand++;
-                    break;
+            if (brand === "ABB") {
+            
+                statistics.abb++;
+            
+            }
+            else if (brand.includes("NORD")) {
+            
+                statistics.nord++;
+            
+            }
+            else {
+            
+                statistics.otherBrand++;
+            
             }
 
             // ===== Status =====
