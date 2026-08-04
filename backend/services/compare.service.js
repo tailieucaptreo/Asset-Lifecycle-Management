@@ -43,9 +43,10 @@ async function compareRows(prisma, rows) {
 
     const result = [];
 
-    console.log(Object.keys(row));
-
     for (const row of rows) {
+
+        console.log("COLUMN NAMES:");
+        console.log(Object.keys(row));
 
         const rawInstallDate = get(
             row,
