@@ -713,13 +713,20 @@ exports.confirmImport = async (req, res) => {
 
         }
 
+        console.log("========== IMPORT START ==========");
+        console.log("Session ID:", sessionId);
+        console.log("Rows:", session.rows.length);
+         
         const result = await importRows(
-
-            prisma,
-
-            session.rows
-
+         
+             prisma,
+         
+             session.rows
+         
         );
+         
+        console.log("========== IMPORT RESULT ==========");
+        console.log(result);
 
         deleteImportSession(sessionId);
 
