@@ -50,8 +50,9 @@ async function importRows(prisma, rows) {
 
             status: d.status || "Running",
 
-            installDate:
-                parseDate(d.installDate),
+            originalInstallDate: installDate,
+
+            installDate: installDate,
 
             lastMaintenance:
                 parseDate(d.lastMaintenance),
