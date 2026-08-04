@@ -391,30 +391,31 @@ async function compareRows(rows) {
         const oldHistory =
             historyMap.get(historyKey);
         
-        let status = "UPDATE";
+        let status = "SKIP";
+
+        // Có thay đổi thông tin thiết bị
+        if (Object.keys(updateData).length > 0) {
+            status = "UPDATE";
+        }
         
-        if (oldHistory) {
+        // Kiểm tra lịch sử
+        if (!oldHistory) {
         
-            const same =
+            status = "UPDATE";
         
+        } else {
+        
+            const sameHistory =
                 String(oldHistory.powerUnitDate || "") === String(powerUnitDate || "") &&
-        
                 String(oldHistory.faultHistory || "") === String(faultHistory || "") &&
-        
                 String(oldHistory.description || "") === String(description || "") &&
-        
                 String(oldHistory.possibleCause || "") === String(possibleCause || "") &&
-        
                 String(oldHistory.correctiveActions || "") === String(correctiveActions || "") &&
-        
                 String(oldHistory.note || "") === String(note || "");
         
-            if (same) {
-        
-                status = "SKIP";
-        
+            if (!sameHistory) {
+                status = "UPDATE";
             }
-        
         }
         
         result.push({
