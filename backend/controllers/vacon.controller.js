@@ -252,12 +252,13 @@ async function compareRows(rows) {
 
             );
 
-        const powerUnitDate =
+        const powerUnitDate = String(
             get(
                 row,
                 "Power Unit Date",
                 "Power unit date"
-            );
+            ) || ""
+        ).trim();
 
         const faultHistory =
             get(
@@ -1440,7 +1441,11 @@ exports.importExcel = async (req, res) => {
 
                         operationHours: item.operationHours,
 
-                        powerUnitDate: item.powerUnitDate,
+                        powerUnitDate:
+                            item.powerUnitDate == null ||
+                            item.powerUnitDate === ""
+                                ? null
+                                : String(item.powerUnitDate),
 
                         faultHistory: item.faultHistory,
 
@@ -1496,7 +1501,11 @@ exports.importExcel = async (req, res) => {
 
                         operationHours: item.operationHours,
 
-                        powerUnitDate: item.powerUnitDate,
+                        powerUnitDate:
+                            item.powerUnitDate == null ||
+                            item.powerUnitDate === ""
+                                ? null
+                                : String(item.powerUnitDate),
 
                         faultHistory: item.faultHistory,
 
