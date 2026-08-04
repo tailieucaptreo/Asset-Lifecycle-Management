@@ -106,7 +106,6 @@ async function compareRows(prisma, rows) {
                 )
             ),
 
-            console.log("====================================");
             console.log("RAW ROW =", row);
             
             const rawInstallDate = get(
