@@ -121,15 +121,7 @@ async function compareRows(prisma, rows) {
                 )
             ),
 
-            installDate: parseDate(
-                get(
-                    row,
-                    "Ngày lắp",
-                    "Ngày lắp đặt",
-                    "Ngày lắp đặt lần đầu",
-                    "Install Date"
-                )
-            ),
+            
 
             lifespan: Number(
                 get(
