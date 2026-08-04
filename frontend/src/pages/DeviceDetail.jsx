@@ -3,8 +3,6 @@ import { useParams } from "react-router-dom";
 import API from "../config";
 import { ArrowLeft, Pencil, Save, X} from "lucide-react";
 import DeviceStatus from "../components/Device/DeviceStatus";
-import { formatDate } from "../utils/date";
-
 
 function formatDate(value) {
 
