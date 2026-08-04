@@ -62,7 +62,7 @@ router.get(
 router.get(
     "/history",
     auth,
-    deviceController.getHistory
+    controller.getHistory
 );
 
 // ====================
