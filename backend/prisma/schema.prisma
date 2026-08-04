@@ -43,7 +43,8 @@ model Device {
 
   status          String
 
-  installDate     DateTime?
+  originalInstallDate DateTime?   // Ngày lắp lần đầu
+  installDate         DateTime?   // Ngày lắp hiện tại
   lastMaintenance DateTime?
   replacementDate DateTime?
 
