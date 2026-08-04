@@ -629,6 +629,9 @@ exports.previewImport = async (req, res) => {
 
             );
 
+        console.log("FIRST ROW:");
+        console.dir(excelRows[0], { depth: null });
+
         const result = await compareRows(
 
             prisma,
