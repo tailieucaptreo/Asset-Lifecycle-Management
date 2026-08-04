@@ -9,6 +9,7 @@ import DeviceFilter from "../components/Device/DeviceFilter";
 import DeviceTable from "../components/Device/DeviceTable";
 import DeviceModal from "../components/Device/DeviceModal";
 import DeviceImportModal from "../components/Device/DeviceImportModal";
+import DeviceHistoryModal from "../components/Device/DeviceHistoryModal";
 
 export default function DeviceList() {
 
@@ -55,6 +56,9 @@ export default function DeviceList() {
 
   const fileInputRef =
     useRef(null);
+
+  const [openHistory, setOpenHistory] =
+    useState(false);
 
   // =========================
   // ROLE
@@ -656,6 +660,10 @@ export default function DeviceList() {
 
         onExport={handleExport}
 
+        onHistory={() =>
+            setOpenHistory(true)
+        }
+
         onImport={() =>
 
           fileInputRef.current?.click()
@@ -797,6 +805,17 @@ export default function DeviceList() {
 
         onConfirm={confirmImport}
 
+      />
+
+      {/* ================= HISTORY MODAL ================= */}
+      <DeviceHistoryModal
+
+          open={openHistory}
+      
+          onClose={() =>
+              setOpenHistory(false)
+          }
+      
       />
 
     </div>
