@@ -5,6 +5,14 @@ import { ArrowLeft, Pencil, Save, X} from "lucide-react";
 import DeviceStatus from "../components/Device/DeviceStatus";
 import { formatDate } from "../utils/date";
 
+
+function formatDate(value) {
+
+    if (!value) return "-";
+
+    return new Date(value).toLocaleDateString("vi-VN");
+}
+
 export default function DeviceDetail() {
 
   const { id } = useParams();
