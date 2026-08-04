@@ -45,6 +45,7 @@ model Device {
 
   installDate     DateTime?
   lastMaintenance DateTime?
+  replacementDate DateTime?
 
   lifespan        Int?
   expiryDate      DateTime?
