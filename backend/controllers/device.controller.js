@@ -313,6 +313,15 @@ exports.createDevice = async (req, res) => {
 // =====================================================
 // UPDATE DEVICE
 // =====================================================
+function normalizeCompare(value) {
+
+    if (value === null || value === undefined)
+
+        return "";
+
+    return String(value);
+
+}
 
 exports.updateDevice = async (req, res) => {
 
@@ -342,7 +351,7 @@ exports.updateDevice = async (req, res) => {
         
         });
 
-        const device = await prisma.device.update({
+        const update = await prisma.device.update({
 
             where: {
 
@@ -368,12 +377,13 @@ exports.updateDevice = async (req, res) => {
 
         const changes = {};
 
-        Object.keys(req.body).forEach(key => {
+        Object.keys(d).forEach(key => {
         
             if (
         
-                String(oldDevice[key] ?? "") !==
-                String(updated[key] ?? "")
+                normalizeCompare(oldDevice[key]) !==
+
+                normalizeCompare(updated[key])
         
             ) {
         
@@ -407,7 +417,7 @@ exports.updateDevice = async (req, res) => {
         
         });
 
-        res.json(device);
+        res.json(update);
 
     }
 
@@ -435,7 +445,7 @@ exports.deleteDevice = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        await prisma.device.delete.findUnique({
+        await prisma.device.findUnique({
 
             where: {
 
@@ -459,13 +469,25 @@ exports.deleteDevice = async (req, res) => {
         
         });
 
-        res.json({
+        if (!device) {
 
-            success: true,
+             return res.status(404).json({
+         
+                 message: "Không tìm thấy thiết bị."
+         
+             });
+         
+         }
 
-            message: "Xóa thiết bị thành công."
+       await prisma.device.delete({
 
-        });
+          where: {
+      
+              id
+      
+          }
+      
+      });
 
     }
 
