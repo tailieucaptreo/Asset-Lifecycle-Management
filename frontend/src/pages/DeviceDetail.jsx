@@ -416,6 +416,18 @@ export default function DeviceDetail() {
                     edit={edit}
                     onChange={handleChange}
                   />
+
+                  <Field
+
+                      label="Ngày lắp lần đầu"
+                  
+                      name="originalInstallDate"
+                  
+                      value={device.originalInstallDate}
+                  
+                      edit={false}
+                  
+                  />
     
                   <Field
                       label="Ngày lắp đặt"
