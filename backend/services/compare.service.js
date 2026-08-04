@@ -106,15 +106,14 @@ async function compareRows(prisma, rows) {
                 )
             ),
 
-            console.log("RAW ROW =", row);
-            
             const rawInstallDate = get(
                 row,
                 "Ngày lắp",
                 "Ngày lắp đặt",
                 "Install Date"
             );
-            
+            console.log("====================================");
+            console.log("RAW ROW =", row);
             console.log("RAW INSTALL DATE =", rawInstallDate);
             console.log("TYPE =", typeof rawInstallDate);
             console.log("PARSED =", parseDate(rawInstallDate));
