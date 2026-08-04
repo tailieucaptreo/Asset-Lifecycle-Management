@@ -48,6 +48,8 @@ async function importRows(prisma, rows) {
 
             deviceId: d.deviceId,
 
+            status: d.status || "Running",
+
             installDate:
                 parseDate(d.installDate),
 
