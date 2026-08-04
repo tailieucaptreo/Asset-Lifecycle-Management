@@ -26,17 +26,25 @@ async function importRows(prisma, rows) {
 
         const d = item.row;
 
+        const installDate = parseDate(d.installDate);
+
+        const categoryInfo = detectCategory({
+
+            name: d.name,
+        
+            code: d.code,
+        
+            model: d.model
+        
+        });
+
         const data = {
 
             name: d.name,
 
             category:
                 d.category ||
-                detectCategory(
-                    d.name,
-                    d.code,
-                    d.model
-                ),
+                categoryInfo.category,
 
             line: d.line,
 
@@ -65,7 +73,8 @@ async function importRows(prisma, rows) {
                 parseDate(d.expiryDate) ||
 
                 calculateExpiryDate(
-                    d.installDate,
+                    installDate,
+
                     d.lifespan
                 )
 
@@ -129,21 +138,15 @@ async function importRows(prisma, rows) {
 
     return {
 
-        summary: {
+         inserted: created,
 
-            total: rows.length,
-
-            created,
-
-            updated,
-
-            skipped,
-
-            failed: failed.length
-
-        },
-
-        failed
+         updated,
+    
+         skipped,
+    
+         total: rows.length,
+    
+         errors: failed
 
     };
 
