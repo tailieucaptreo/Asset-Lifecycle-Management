@@ -123,6 +123,7 @@ async function compareRows(prisma, rows) {
                     row,
                     "Ngày lắp",
                     "Ngày lắp đặt",
+                    "Ngày lắp đặt lần đầu",
                     "Install Date"
                 )
             ),
