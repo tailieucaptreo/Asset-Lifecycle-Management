@@ -1260,7 +1260,13 @@ exports.previewImport = async (req, res) => {
 
                 newCount: summary.newCount,
 
-                updateCount: summary.updateCount,
+                updateCount:
+
+                    summary.deviceUpdateCount +
+                
+                    summary.historyUpdateCount +
+                
+                    summary.bothUpdateCount,
 
                 skipCount: summary.skipCount,
 
@@ -1436,60 +1442,66 @@ exports.importExcel = async (req, res) => {
                 
                 }
 
-                const existed =
-                    await prisma.vaconHistory.findFirst({
+                const existed = await prisma.vaconHistory.findFirst({
+
+                    where: {
                 
-                        where: {
+                        deviceId: device.id,
+                
+                        recordDate: item.recordDate,
+                
+                        operationHours: item.operationHours,
+                
+                        powerUnitDate:
+                            item.powerUnitDate == null
+                                ? null
+                                : String(item.powerUnitDate),
+                
+                        faultHistory: item.faultHistory
+                
+                    }
+                
+                });
+                
+                if (!existed) {
+                
+                    await prisma.vaconHistory.create({
+                
+                        data: {
                 
                             deviceId: device.id,
                 
                             recordDate: item.recordDate,
                 
-                            operationHours: item.operationHours
+                            operationHours: item.operationHours,
+                
+                            powerUnitDate:
+                                item.powerUnitDate == null
+                                    ? null
+                                    : String(item.powerUnitDate),
+                
+                            faultHistory: item.faultHistory,
+                
+                            description: item.description,
+                
+                            possibleCause: item.possibleCause,
+                
+                            correctiveActions: item.correctiveActions,
+                
+                            note: item.note
                 
                         }
                 
                     });
                 
-                if (existed) {
+                    histories++;
+                
+                }
+                else {
                 
                     skipped++;
                 
-                    continue;
-                
                 }
-
-                await prisma.vaconHistory.create({
-
-                    data: {
-
-                        deviceId: device.id,
-
-                        recordDate: item.recordDate,
-
-                        operationHours: item.operationHours,
-
-                        powerUnitDate:
-                            item.powerUnitDate == null ||
-                            item.powerUnitDate === ""
-                                ? null
-                                : String(item.powerUnitDate),
-
-                        faultHistory: item.faultHistory,
-
-                        description: item.description,
-
-                        possibleCause: item.possibleCause,
-
-                        correctiveActions: item.correctiveActions,
-
-                        note: item.note
-
-                    }
-
-                });
-
-                histories++;
 
                 continue;
 
@@ -1515,87 +1527,131 @@ exports.importExcel = async (req, res) => {
 
             if (item.status === "UPDATE_HISTORY") {
 
-                await prisma.vaconHistory.create({
-            
-                    data: {
-            
+                const existed = await prisma.vaconHistory.findFirst({
+
+                    where: {
+                
                         deviceId: item.deviceId,
-            
+                
                         recordDate: item.recordDate,
-            
+                
                         operationHours: item.operationHours,
-            
+                
                         powerUnitDate:
-                            item.powerUnitDate
-                                ? String(item.powerUnitDate)
-                                : null,
-            
-                        faultHistory: item.faultHistory,
-            
-                        description: item.description,
-            
-                        possibleCause: item.possibleCause,
-            
-                        correctiveActions: item.correctiveActions,
-            
-                        note: item.note
-            
+                            item.powerUnitDate == null
+                                ? null
+                                : String(item.powerUnitDate),
+                
+                        faultHistory: item.faultHistory
+                
                     }
-            
+                
                 });
-            
-                histories++;
-            
+                
+                if (!existed) {
+                
+                    await prisma.vaconHistory.create({
+                
+                        data: {
+                
+                            deviceId: item.deviceId,
+                
+                            recordDate: item.recordDate,
+                
+                            operationHours: item.operationHours,
+                
+                            powerUnitDate:
+                                item.powerUnitDate == null
+                                    ? null
+                                    : String(item.powerUnitDate),
+                
+                            faultHistory: item.faultHistory,
+                
+                            description: item.description,
+                
+                            possibleCause: item.possibleCause,
+                
+                            correctiveActions: item.correctiveActions,
+                
+                            note: item.note
+                
+                        }
+                
+                    });
+                
+                    histories++;
+                
+                }
+                else {
+                
+                    skipped++;
+                
+                }
+                
                 continue;
             
             }
 
             if (item.status === "UPDATE_BOTH") {
 
-                await prisma.vaconDevice.update({
-            
+                const existed = await prisma.vaconHistory.findFirst({
+
                     where: {
-            
-                        id: item.deviceId
-            
-                    },
-            
-                    data: item.updateData
-            
-                });
-            
-                await prisma.vaconHistory.create({
-            
-                    data: {
-            
+                
                         deviceId: item.deviceId,
-            
+                
                         recordDate: item.recordDate,
-            
+                
                         operationHours: item.operationHours,
-            
+                
                         powerUnitDate:
-                            item.powerUnitDate
-                                ? String(item.powerUnitDate)
-                                : null,
-            
-                        faultHistory: item.faultHistory,
-            
-                        description: item.description,
-            
-                        possibleCause: item.possibleCause,
-            
-                        correctiveActions: item.correctiveActions,
-            
-                        note: item.note
-            
+                            item.powerUnitDate == null
+                                ? null
+                                : String(item.powerUnitDate),
+                
+                        faultHistory: item.faultHistory
+                
                     }
-            
+                
                 });
-            
+                
+                if (!existed) {
+                
+                    await prisma.vaconHistory.create({
+                
+                        data: {
+                
+                            deviceId: item.deviceId,
+                
+                            recordDate: item.recordDate,
+                
+                            operationHours: item.operationHours,
+                
+                            powerUnitDate:
+                                item.powerUnitDate == null
+                                    ? null
+                                    : String(item.powerUnitDate),
+                
+                            faultHistory: item.faultHistory,
+                
+                            description: item.description,
+                
+                            possibleCause: item.possibleCause,
+                
+                            correctiveActions: item.correctiveActions,
+                
+                            note: item.note
+                
+                        }
+                
+                    });
+                
+                    histories++;
+                
+                }
+                
                 updated++;
-                histories++;
-            
+                
                 continue;
             
             }
