@@ -146,6 +146,42 @@ const {
 
 } = require("../services/import.service");
 
+/* =====================================================
+   GET HISTORY
+===================================================== */
+
+exports.getHistory = async (req, res) => {
+
+    try {
+
+        const histories = await prisma.deviceHistory.findMany({
+
+            orderBy: {
+
+                createdAt: "desc"
+
+            }
+
+        });
+
+        res.json(histories);
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            message: "Không thể lấy lịch sử thiết bị."
+
+        });
+
+    }
+
+};
+
 // =====================================================
 // GET ALL DEVICES
 // =====================================================
