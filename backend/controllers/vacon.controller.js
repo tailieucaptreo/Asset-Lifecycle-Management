@@ -125,17 +125,29 @@ async function compareRows(rows) {
 
     const histories =
         await prisma.vaconHistory.findMany({
-
+    
             select: {
-
+    
                 deviceId: true,
-
+    
                 recordDate: true,
-
-                operationHours: true
-
+    
+                operationHours: true,
+    
+                powerUnitDate: true,
+    
+                faultHistory: true,
+    
+                description: true,
+    
+                possibleCause: true,
+    
+                correctiveActions: true,
+    
+                note: true
+    
             }
-
+    
         });
 
     // ===================================
@@ -161,19 +173,20 @@ async function compareRows(rows) {
     // History Map
     // ===================================
 
-    const historyMap = new Set();
+    const historyMap = new Map();
 
     histories.forEach(h => {
-
+    
         const date =
             new Date(h.recordDate)
                 .toISOString()
-                .slice(0, 10);
-
-        historyMap.add(
-            `${h.deviceId}|${date}|${h.operationHours}`
-        );
-
+                .slice(0,10);
+    
+        const key =
+            `${h.deviceId}|${date}|${h.operationHours}`;
+    
+        historyMap.set(key, h);
+    
     });
 
     // ===================================
@@ -374,48 +387,70 @@ async function compareRows(rows) {
         const historyKey =
             `${device.id}|${date}|${operationHours}`;
 
-        const existed =
-            historyMap.has(historyKey);
-
+        const oldHistory =
+            historyMap.get(historyKey);
+        
+        let status = "UPDATE";
+        
+        if (oldHistory) {
+        
+            const same =
+        
+                String(oldHistory.powerUnitDate || "") === String(powerUnitDate || "") &&
+        
+                String(oldHistory.faultHistory || "") === String(faultHistory || "") &&
+        
+                String(oldHistory.description || "") === String(description || "") &&
+        
+                String(oldHistory.possibleCause || "") === String(possibleCause || "") &&
+        
+                String(oldHistory.correctiveActions || "") === String(correctiveActions || "") &&
+        
+                String(oldHistory.note || "") === String(note || "");
+        
+            if (same) {
+        
+                status = "SKIP";
+        
+            }
+        
+        }
+        
         result.push({
-
-            status:
-                existed
-                    ? "SKIP"
-                    : "UPDATE",
-
+        
+            status,
+        
             deviceId: device.id,
-
+        
             updateData,
-
+        
             deviceName,
-
+        
             serialNumber,
-
+        
             station,
-
+        
             tandem,
-
+        
             application,
-
+        
             recordDate: currentRecordDate,
-
+        
             operationHours,
-
+        
             powerUnitDate,
-
+        
             faultHistory,
-
+        
             description,
-
+        
             possibleCause,
-
+        
             correctiveActions,
-
+        
             note
-
+        
         });
-
     }
 
     return result;
@@ -1330,25 +1365,70 @@ exports.importExcel = async (req, res) => {
 
             if (item.status === "NEW") {
 
-                const device = await prisma.vaconDevice.create({
+                const device = await prisma.vaconDevice.upsert({
 
-                    data: {
-
+                    where: {
+                
+                        serialNumber: item.serialNumber
+                
+                    },
+                
+                    update: {
+                
                         deviceName: item.deviceName,
-
-                        serialNumber: item.serialNumber,
-
+                
                         station: item.station,
-
+                
                         tandem: item.tandem,
-
+                
                         application: item.application
-
+                
+                    },
+                
+                    create: {
+                
+                        deviceName: item.deviceName,
+                
+                        serialNumber: item.serialNumber,
+                
+                        station: item.station,
+                
+                        tandem: item.tandem,
+                
+                        application: item.application
+                
                     }
-
+                
                 });
 
-                created++;
+                if (item.status === "NEW") {
+
+                    created++;
+                
+                }
+
+                const existed =
+                    await prisma.vaconHistory.findFirst({
+                
+                        where: {
+                
+                            deviceId: device.id,
+                
+                            recordDate: item.recordDate,
+                
+                            operationHours: item.operationHours
+                
+                        }
+                
+                    });
+                
+                if (existed) {
+                
+                    skipped++;
+                
+                    continue;
+                
+                }
 
                 await prisma.vaconHistory.create({
 
