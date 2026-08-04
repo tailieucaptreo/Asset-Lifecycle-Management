@@ -629,12 +629,6 @@ exports.previewImport = async (req, res) => {
 
             );
 
-        console.log("========== FIRST ROW ==========");
-        console.dir(excelRows[0], { depth: null });
-         
-        console.log("Ngày lắp đặt:", excelRows[0]["Ngày lắp đặt"]);
-        console.log("Ngày lắp:", excelRows[0]["Ngày lắp"]);
-        console.log("Ngày lắp lần đầu:", excelRows[0]["Ngày lắp lần đầu"]);
         const result = await compareRows(
 
             prisma,
@@ -719,7 +713,7 @@ exports.confirmImport = async (req, res) => {
 
         }
 
-        console.dir(session.data.rows[0], { depth: null });
+        console.dir(session.rows[0], { depth: null });
          
         const result = await importRows(
          
@@ -838,6 +832,12 @@ exports.exportDevices = async (req, res) => {
                 "Ngày lắp":
 
                     formatDate(device.installDate),
+
+               "Ngày lắp lần đầu":
+                   formatDate(device.originalInstallDate),
+               
+               "Ngày thay thế":
+                   formatDate(device.replacementDate),
 
                 "Bảo dưỡng gần nhất":
 
