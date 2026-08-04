@@ -480,21 +480,22 @@ export default function Motor() {
                         case "nord":
 
                             matchCard =
-
-                                motor.brand === "Nord";
+                                (motor.brand || "")
+                                    .toUpperCase()
+                                    .includes("NORD");
+                        
                             break;
 
-                        case "otherBrand":
+                        case "otherBrand": {
 
+                            const brand = (motor.brand || "").toUpperCase();
+                        
                             matchCard =
-
-                                motor.brand !== "ABB"
-
-                                &&
-
-                                motor.brand !== "Nord";
-
+                                brand !== "ABB" &&
+                                !brand.includes("NORD");
+                        
                             break;
+                        }
 
                         case "running":
 
