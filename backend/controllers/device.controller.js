@@ -294,24 +294,28 @@ exports.createDevice = async (req, res) => {
 
         });
 
+        const installDate = parseDate(d.installDate);
+
         const device = await prisma.device.create({
-
-            data: {
-
-                ...d,
-
-                category: categoryInfo.category,
-
-                installDate: parseDate(d.installDate),
-
-                lastMaintenance: parseDate(d.lastMaintenance),
-
-                replacementDate: parseDate(d.replacementDate),
-
-                expiryDate: parseDate(d.expiryDate)
-
-            }
-
+         
+             data: {
+         
+                 ...d,
+         
+                 category: categoryInfo.category,
+         
+                 originalInstallDate: installDate,
+         
+                 installDate: installDate,
+         
+                 lastMaintenance: parseDate(d.lastMaintenance),
+         
+                 replacementDate: parseDate(d.replacementDate),
+         
+                 expiryDate: parseDate(d.expiryDate)
+         
+             }
+         
         });
 
         await writeHistory({
@@ -389,30 +393,54 @@ exports.updateDevice = async (req, res) => {
         
         });
 
+        const data = {
+
+             ...d,
+         
+             category: categoryInfo.category,
+         
+             installDate: parseDate(d.installDate),
+         
+             lastMaintenance: parseDate(d.lastMaintenance),
+         
+             replacementDate: parseDate(d.replacementDate),
+         
+             expiryDate: parseDate(d.expiryDate)
+         
+        };
+
+        if (
+
+             d.replacementDate &&
+         
+             (!oldDevice.replacementDate ||
+         
+              String(oldDevice.replacementDate).slice(0,10)
+         
+              !==
+         
+              String(d.replacementDate).slice(0,10))
+         
+         ) {
+         
+             data.installDate = parseDate(
+         
+                 d.replacementDate
+         
+             );
+         
+         }
+
         const updated = await prisma.device.update({
 
-            where: {
-
-                id
-
-            },
-
-            data: {
-
-                ...d,
-
-                category: categoryInfo.category,
-
-                installDate: parseDate(d.installDate),
-
-                lastMaintenance: parseDate(d.lastMaintenance),
-
-                replacementDate: parseDate(d.replacementDate),
-
-                expiryDate: parseDate(d.expiryDate)
-
-            }
-
+             where: {
+         
+                 id
+         
+             },
+         
+             data
+         
         });
 
         const changes = {};
