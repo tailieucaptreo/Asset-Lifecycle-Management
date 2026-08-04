@@ -5,7 +5,6 @@ import API from "../config";
 import MotorHeader from "../components/Motor/MotorHeader";
 import MotorToolbar from "../components/Motor/MotorToolbar";
 import MotorCard from "../components/Motor/MotorCard";
-import MotorFilter from "../components/Motor/MotorFilter";
 import MotorTable from "../components/Motor/MotorTable";
 
 import MotorModal from "../components/Motor/MotorModal";
@@ -120,20 +119,6 @@ export default function Motor() {
     });
 
     const [search, setSearch] = useState("");
-
-    const [filters, setFilters] = useState({
-
-        line: "",
-
-        station: "",
-
-        brand: "",
-
-        type: "",
-
-        status: ""
-
-    });
 
     const [activeCard, setActiveCard] = useState("");
 
@@ -398,16 +383,6 @@ export default function Motor() {
             
             />
 
-            <MotorFilter
-
-                filters={filters}
-
-                setFilters={setFilters}
-
-                data={motors}
-
-            />
-
             {(() => {
 
                 const filteredMotors = motors.filter((motor) => {
@@ -433,35 +408,6 @@ export default function Motor() {
                         motor.station?.toLowerCase().includes(keyword) ||
 
                         motor.type?.toLowerCase().includes(keyword);
-
-                    // Filter
-
-                    const matchFilter =
-
-                        (!filters.line ||
-                            motor.line === filters.line)
-
-                        &&
-
-                        (!filters.station ||
-                            motor.station === filters.station)
-
-                        &&
-
-                        (!filters.brand ||
-                            motor.brand === filters.brand)
-
-                        &&
-
-                        (!filters.type ||
-
-                            detectMotorType(motor.name)
-                            === filters.type)
-
-                        &&
-
-                        (!filters.status ||
-                            normalizeStatus(motor.status) === normalizeStatus(filters.status));
 
                     // Card filter
 
