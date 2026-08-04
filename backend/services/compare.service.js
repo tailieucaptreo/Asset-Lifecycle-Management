@@ -45,6 +45,17 @@ async function compareRows(prisma, rows) {
 
     for (const row of rows) {
 
+        const rawInstallDate = get(
+            row,
+            "Ngày lắp",
+            "Ngày lắp đặt",
+            "Install Date"
+        );
+        
+        console.log("RAW INSTALL DATE =", rawInstallDate);
+        console.log("PARSED =", parseDate(rawInstallDate));
+
+
         const data = {
 
             deviceId: normalize(
@@ -106,17 +117,14 @@ async function compareRows(prisma, rows) {
                 )
             ),
 
-            const rawInstallDate = get(
-                row,
-                "Ngày lắp",
-                "Ngày lắp đặt",
-                "Install Date"
-            );
-            console.log("====================================");
-            console.log("RAW ROW =", row);
-            console.log("RAW INSTALL DATE =", rawInstallDate);
-            console.log("TYPE =", typeof rawInstallDate);
-            console.log("PARSED =", parseDate(rawInstallDate));
+            installDate: parseDate(
+                get(
+                    row,
+                    "Ngày lắp",
+                    "Ngày lắp đặt",
+                    "Install Date"
+                )
+            ),
 
             lifespan: Number(
                 get(
