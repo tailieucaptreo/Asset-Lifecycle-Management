@@ -351,7 +351,7 @@ exports.updateDevice = async (req, res) => {
         
         });
 
-        const update = await prisma.device.update({
+        const updated = await prisma.device.update({
 
             where: {
 
@@ -417,7 +417,7 @@ exports.updateDevice = async (req, res) => {
         
         });
 
-        res.json(update);
+        res.json(updated);
 
     }
 
@@ -445,7 +445,7 @@ exports.deleteDevice = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        await prisma.device.findUnique({
+        const device = await prisma.device.findUnique({
 
             where: {
 
@@ -455,21 +455,7 @@ exports.deleteDevice = async (req, res) => {
 
         });
 
-        await writeHistory({
-
-            action: "DELETE",
-        
-            user: req.user?.username || "System",
-        
-            code: device.deviceId,
-        
-            name: device.name,
-        
-            note: "Xóa thiết bị"
-        
-        });
-
-        if (!device) {
+       if (!device) {
 
              return res.status(404).json({
          
@@ -488,6 +474,20 @@ exports.deleteDevice = async (req, res) => {
           }
       
       });
+
+        await writeHistory({
+
+            action: "DELETE",
+        
+            user: req.user?.username || "System",
+        
+            code: device.deviceId,
+        
+            name: device.name,
+        
+            note: "Xóa thiết bị"
+        
+        });
 
     }
 
