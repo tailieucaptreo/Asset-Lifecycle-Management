@@ -56,6 +56,16 @@ router.get(
 );
 
 // ====================
+// HISTORY
+// ====================
+
+router.get(
+    "/history",
+    auth,
+    deviceController.getHistory
+);
+
+// ====================
 // CHI TIẾT THIẾT BỊ
 // THÊM ĐOẠN NÀY
 // ====================
