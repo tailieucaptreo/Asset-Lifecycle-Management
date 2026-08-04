@@ -183,7 +183,7 @@ async function compareRows(rows) {
                 .slice(0,10);
     
         const key =
-            `${h.deviceId}|${date}|${h.operationHours}`;
+            `${h.deviceId}|${date}|${h.operationHours}|${String(h.powerUnitDate || "")}|${String(h.faultHistory || "")}`;
     
         historyMap.set(key, h);
     
@@ -386,7 +386,7 @@ async function compareRows(rows) {
                 : "";
 
         const historyKey =
-            `${device.id}|${date}|${operationHours}`;
+            `${device.id}|${date}|${operationHours}|${powerUnitDate}|${faultHistory}`;
 
         const oldHistory =
             historyMap.get(historyKey);
@@ -1592,66 +1592,79 @@ exports.importExcel = async (req, res) => {
             
             }
 
-            if (item.status === "UPDATE_BOTH") {
+           if (item.status === "UPDATE_BOTH") {
 
-                const existed = await prisma.vaconHistory.findFirst({
-
+                // 1. cập nhật thiết bị
+                await prisma.vaconDevice.update({
+            
                     where: {
-                
+                        id: item.deviceId
+                    },
+            
+                    data: item.updateData
+            
+                });
+            
+                // 2. kiểm tra lịch sử
+                const existed = await prisma.vaconHistory.findFirst({
+            
+                    where: {
+            
                         deviceId: item.deviceId,
-                
+            
                         recordDate: item.recordDate,
-                
+            
                         operationHours: item.operationHours,
-                
+            
                         powerUnitDate:
                             item.powerUnitDate == null
                                 ? null
                                 : String(item.powerUnitDate),
-                
+            
                         faultHistory: item.faultHistory
-                
+            
                     }
-                
+            
                 });
-                
+            
+                // 3. nếu chưa có thì thêm
                 if (!existed) {
-                
+            
                     await prisma.vaconHistory.create({
-                
+            
                         data: {
-                
+            
                             deviceId: item.deviceId,
-                
+            
                             recordDate: item.recordDate,
-                
+            
                             operationHours: item.operationHours,
-                
+            
                             powerUnitDate:
                                 item.powerUnitDate == null
                                     ? null
                                     : String(item.powerUnitDate),
-                
+            
                             faultHistory: item.faultHistory,
-                
+            
                             description: item.description,
-                
+            
                             possibleCause: item.possibleCause,
-                
+            
                             correctiveActions: item.correctiveActions,
-                
+            
                             note: item.note
-                
+            
                         }
-                
+            
                     });
-                
+            
                     histories++;
-                
+            
                 }
-                
+            
                 updated++;
-                
+            
                 continue;
             
             }
