@@ -403,30 +403,29 @@ exports.updateDevice = async (req, res) => {
          
              lastMaintenance: parseDate(d.lastMaintenance),
          
-             replacementDate: parseDate(d.replacementDate),
+             replacementDate: parseDate(d.replacementDate)
          
-             expiryDate: parseDate(d.expiryDate)
+         };
          
-        };
+         data.expiryDate = calculateExpiryDate(
+             data.installDate,
+             d.lifespan
+         );
 
         if (
-
              d.replacementDate &&
-         
-             (!oldDevice.replacementDate ||
-         
-              String(oldDevice.replacementDate).slice(0,10)
-         
-              !==
-         
-              String(d.replacementDate).slice(0,10))
-         
+             (
+                 !oldDevice.replacementDate ||
+                 String(oldDevice.replacementDate).slice(0,10) !==
+                 String(d.replacementDate).slice(0,10)
+             )
          ) {
          
-             data.installDate = parseDate(
+             data.installDate = parseDate(d.replacementDate);
          
-                 d.replacementDate
-         
+             data.expiryDate = calculateExpiryDate(
+                 data.installDate,
+                 d.lifespan
              );
          
          }
