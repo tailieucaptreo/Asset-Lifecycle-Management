@@ -418,30 +418,30 @@ export default function DeviceDetail() {
                   />
     
                   <Field
-                    label="Ngày lắp đặt"
-                    name="installDate"
-                    value={device.installDate?.slice(0, 10)}
-                    edit={edit}
-                    type="date"
-                    onChange={handleChange}
+                      label="Ngày lắp đặt"
+                      name="installDate"
+                      value={device.installDate}
+                      edit={edit}
+                      type="date"
+                      onChange={handleChange}
                   />
     
                   <Field
-                    label="Ngày bảo trì"
-                    name="lastMaintenance"
-                    value={device.lastMaintenance?.slice(0, 10)}
-                    edit={edit}
-                    type="date"
-                    onChange={handleChange}
+                      label="Ngày bảo trì"
+                      name="lastMaintenance"
+                      value={device.lastMaintenance}
+                      edit={edit}
+                      type="date"
+                      onChange={handleChange}
                   />
-    
+                  
                   <Field
-                    label="Ngày thay thế"
-                    name="replacementDate"
-                    value={device.replacementDate}
-                    edit={edit}
-                    type="date"
-                    onChange={handleChange}
+                      label="Ngày thay thế"
+                      name="replacementDate"
+                      value={device.replacementDate}
+                      edit={edit}
+                      type="date"
+                      onChange={handleChange}
                   />
             
                 </div>
@@ -617,6 +617,33 @@ export default function DeviceDetail() {
   );
 }
 
+function formatDisplayValue(name, value) {
+
+    if (!value) return "-";
+
+    const dateFields = [
+
+        "installDate",
+
+        "lastMaintenance",
+
+        "replacementDate",
+
+        "expiryDate"
+
+    ];
+
+    if (dateFields.includes(name)) {
+
+        return new Date(value)
+            .toLocaleDateString("vi-VN");
+
+    }
+
+    return value;
+
+}
+
 // ================= FIELD COMPONENT =================
 function Field({
   label,
@@ -640,7 +667,11 @@ function Field({
         <input
           type={type}
           name={name}
-          value={value || ""}
+          value={
+              type === "date"
+                  ? (value ? String(value).slice(0, 10) : "")
+                  : (value || "")
+          }
           onChange={onChange}
           className="mt-1 w-full border p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
@@ -648,7 +679,7 @@ function Field({
       ) : (
 
         <div className="mt-1 bg-gray-50 border rounded-xl px-4 py-3 text-gray-800 font-medium min-h-[52px] flex items-center">
-          {value || "-"}
+          {formatDisplayValue(name, value)}
         </div>
 
       )}
