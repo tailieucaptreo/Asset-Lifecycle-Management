@@ -719,9 +719,7 @@ exports.confirmImport = async (req, res) => {
 
         }
 
-        console.log("========== IMPORT START ==========");
-        console.log("Session ID:", sessionId);
-        console.log("Rows:", session.rows.length);
+        console.dir(session.data.rows[0], { depth: null });
          
         const result = await importRows(
          
@@ -730,9 +728,6 @@ exports.confirmImport = async (req, res) => {
              session.rows
          
         );
-         
-        console.log("========== IMPORT RESULT ==========");
-        console.log(result);
 
         deleteImportSession(sessionId);
 
