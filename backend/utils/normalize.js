@@ -34,19 +34,38 @@ function normalize(value, defaultValue = "") {
 
 function get(row, ...keys) {
 
+    // Chuẩn hóa tên cột trong Excel
+    const normalizedRow = {};
+
+    for (const key of Object.keys(row)) {
+
+        normalizedRow[
+            normalize(key)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+        ] = row[key];
+
+    }
+
+    // Tìm theo tên chuẩn hóa
     for (const key of keys) {
+
+        const searchKey =
+            normalize(key)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
 
         if (
 
-            row[key] !== undefined &&
-
-            row[key] !== null &&
-
-            row[key] !== ""
+            normalizedRow[searchKey] !== undefined &&
+            normalizedRow[searchKey] !== null &&
+            normalizedRow[searchKey] !== ""
 
         ) {
 
-            return row[key];
+            return normalizedRow[searchKey];
 
         }
 
