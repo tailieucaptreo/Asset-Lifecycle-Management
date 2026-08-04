@@ -1,6 +1,54 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+/* =====================================================
+   HISTORY
+===================================================== */
+
+async function writeHistory({
+    deviceId = null,
+    action,
+    user,
+    code,
+    name,
+    note = "",
+    changes = null
+}) {
+
+    try {
+
+        await prisma.deviceHistory.create({
+
+            data: {
+
+                deviceId,
+
+                action,
+
+                user,
+
+                code,
+
+                name,
+
+                note,
+
+                changes
+
+            }
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error("DeviceHistory:", err.message);
+
+    }
+
+}
+
 const XLSX = require("xlsx");
 const crypto = require("crypto");
 
@@ -228,6 +276,22 @@ exports.createDevice = async (req, res) => {
 
         });
 
+        await writeHistory({
+
+            deviceId: device.id,
+        
+            action: "CREATE",
+        
+            user: req.user?.username || "System",
+        
+            code: device.deviceId,
+        
+            name: device.name,
+        
+            note: "Thêm mới thiết bị"
+        
+        });
+
         res.json(device);
 
     }
@@ -268,6 +332,16 @@ exports.updateDevice = async (req, res) => {
 
         });
 
+        const oldDevice = await prisma.device.findUnique({
+
+            where: {
+        
+                id
+        
+            }
+        
+        });
+
         const device = await prisma.device.update({
 
             where: {
@@ -290,6 +364,47 @@ exports.updateDevice = async (req, res) => {
 
             }
 
+        });
+
+        const changes = {};
+
+        Object.keys(req.body).forEach(key => {
+        
+            if (
+        
+                String(oldDevice[key] ?? "") !==
+                String(updated[key] ?? "")
+        
+            ) {
+        
+                changes[key] = {
+        
+                    old: oldDevice[key],
+        
+                    new: updated[key]
+        
+                };
+        
+            }
+        
+        });
+
+        await writeHistory({
+
+            deviceId: updated.id,
+        
+            action: "UPDATE",
+        
+            user: req.user?.username || "System",
+        
+            code: updated.deviceId,
+        
+            name: updated.name,
+        
+            note: "Cập nhật thiết bị",
+        
+            changes
+        
         });
 
         res.json(device);
@@ -320,7 +435,7 @@ exports.deleteDevice = async (req, res) => {
 
         const id = Number(req.params.id);
 
-        await prisma.device.delete({
+        await prisma.device.delete.findUnique({
 
             where: {
 
@@ -328,6 +443,20 @@ exports.deleteDevice = async (req, res) => {
 
             }
 
+        });
+
+        await writeHistory({
+
+            action: "DELETE",
+        
+            user: req.user?.username || "System",
+        
+            code: device.deviceId,
+        
+            name: device.name,
+        
+            note: "Xóa thiết bị"
+        
         });
 
         res.json({
