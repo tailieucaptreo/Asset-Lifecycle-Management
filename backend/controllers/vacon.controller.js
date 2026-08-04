@@ -391,31 +391,49 @@ async function compareRows(rows) {
         const oldHistory =
             historyMap.get(historyKey);
         
-        let status = "SKIP";
-
-        // Có thay đổi thông tin thiết bị
-        if (Object.keys(updateData).length > 0) {
-            status = "UPDATE";
-        }
+        const deviceChanged =
+            Object.keys(updateData).length > 0;
         
-        // Kiểm tra lịch sử
+        let historyChanged = false;
+        
         if (!oldHistory) {
         
-            status = "UPDATE";
+            historyChanged = true;
         
         } else {
         
-            const sameHistory =
+            historyChanged = !(
                 String(oldHistory.powerUnitDate || "") === String(powerUnitDate || "") &&
                 String(oldHistory.faultHistory || "") === String(faultHistory || "") &&
                 String(oldHistory.description || "") === String(description || "") &&
                 String(oldHistory.possibleCause || "") === String(possibleCause || "") &&
                 String(oldHistory.correctiveActions || "") === String(correctiveActions || "") &&
-                String(oldHistory.note || "") === String(note || "");
+                String(oldHistory.note || "") === String(note || "")
+            );
         
-            if (!sameHistory) {
-                status = "UPDATE";
-            }
+        }
+        
+        let status = "SKIP";
+        
+        if (!deviceChanged && !historyChanged) {
+        
+            status = "SKIP";
+        
+        }
+        else if (deviceChanged && historyChanged) {
+        
+            status = "UPDATE_BOTH";
+        
+        }
+        else if (deviceChanged) {
+        
+            status = "UPDATE_DEVICE";
+        
+        }
+        else if (historyChanged) {
+        
+            status = "UPDATE_HISTORY";
+        
         }
         
         result.push({
@@ -1191,14 +1209,23 @@ exports.previewImport = async (req, res) => {
         
         // Thống kê
         const summary = {
-        
+
             total: compare.length,
         
-            newCount: compare.filter(x => x.status === "NEW").length,
+            newCount:
+                compare.filter(x => x.status === "NEW").length,
         
-            updateCount: compare.filter(x => x.status === "UPDATE").length,
+            deviceUpdateCount:
+                compare.filter(x => x.status === "UPDATE_DEVICE").length,
         
-            skipCount: compare.filter(x => x.status === "SKIP").length
+            historyUpdateCount:
+                compare.filter(x => x.status === "UPDATE_HISTORY").length,
+        
+            bothUpdateCount:
+                compare.filter(x => x.status === "UPDATE_BOTH").length,
+        
+            skipCount:
+                compare.filter(x => x.status === "SKIP").length
         
         };
         
@@ -1468,65 +1495,109 @@ exports.importExcel = async (req, res) => {
 
             }
 
-            if (item.status === "UPDATE") {
+            if (item.status === "UPDATE_DEVICE") {
 
-                if (
+                await prisma.vaconDevice.update({
+            
+                    where: {
+                        id: item.deviceId
+                    },
+            
+                    data: item.updateData
+            
+                });
+            
+                updated++;
+            
+                continue;
+            
+            }
 
-                    item.updateData &&
-
-                    Object.keys(item.updateData).length
-
-                ) {
-
-                    await prisma.vaconDevice.update({
-
-                        where: {
-
-                            id: item.deviceId
-
-                        },
-
-                        data: item.updateData
-
-                    });
-
-                }
+            if (item.status === "UPDATE_HISTORY") {
 
                 await prisma.vaconHistory.create({
-
+            
                     data: {
-
+            
                         deviceId: item.deviceId,
-
+            
                         recordDate: item.recordDate,
-
+            
                         operationHours: item.operationHours,
-
+            
                         powerUnitDate:
-                            item.powerUnitDate == null ||
-                            item.powerUnitDate === ""
-                                ? null
-                                : String(item.powerUnitDate),
-
+                            item.powerUnitDate
+                                ? String(item.powerUnitDate)
+                                : null,
+            
                         faultHistory: item.faultHistory,
-
+            
                         description: item.description,
-
+            
                         possibleCause: item.possibleCause,
-
+            
                         correctiveActions: item.correctiveActions,
-
+            
                         note: item.note
-
+            
                     }
-
+            
                 });
+            
+                histories++;
+            
+                continue;
+            
+            }
 
+            if (item.status === "UPDATE_BOTH") {
+
+                await prisma.vaconDevice.update({
+            
+                    where: {
+            
+                        id: item.deviceId
+            
+                    },
+            
+                    data: item.updateData
+            
+                });
+            
+                await prisma.vaconHistory.create({
+            
+                    data: {
+            
+                        deviceId: item.deviceId,
+            
+                        recordDate: item.recordDate,
+            
+                        operationHours: item.operationHours,
+            
+                        powerUnitDate:
+                            item.powerUnitDate
+                                ? String(item.powerUnitDate)
+                                : null,
+            
+                        faultHistory: item.faultHistory,
+            
+                        description: item.description,
+            
+                        possibleCause: item.possibleCause,
+            
+                        correctiveActions: item.correctiveActions,
+            
+                        note: item.note
+            
+                    }
+            
+                });
+            
                 updated++;
                 histories++;
-
+            
                 continue;
-
+            
             }
 
             skipped++;
