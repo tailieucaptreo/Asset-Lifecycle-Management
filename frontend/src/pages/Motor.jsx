@@ -534,10 +534,6 @@ export default function Motor() {
 
                         &&
 
-                        matchFilter
-
-                        &&
-
                         matchCard
 
                     );
