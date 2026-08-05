@@ -151,10 +151,6 @@ async function compareRows(rows) {
 
         const old = driveMap.get(key);
 
-        const key = normalize(deviceId);
-
-        const old = driveMap.get(key);
-
         if (!old) {
 
             newCount++;
@@ -744,27 +740,17 @@ exports.importExcel = async (req, res) => {
 
         drives.forEach(d => {
 
-            if (d.deviceId) {
+            const key = normalize(
 
-                const key = normalize(
+                d.serialNumber ||
 
-                    d.serialNumber ||
+                d.deviceId
 
-                    d.deviceId
+            );
 
-                );
+            if (key) {
 
-                if (key) {
-
-                    driveMap.set(
-
-                        key,
-
-                        d
-
-                    );
-
-                }
+                driveMap.set(key, d);
 
             }
 
@@ -865,12 +851,6 @@ exports.importExcel = async (req, res) => {
                 ),
 
                 serialNumber: serial || null,
-
-                serialNumber: get(
-                    row,
-                    "Serial Number",
-                    "Serial"
-                ),
 
                 firmware: get(
                     row,
