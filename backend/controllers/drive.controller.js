@@ -79,27 +79,23 @@ async function compareRows(rows) {
 
     const compareFields = [
 
-        ["name", "Tên biến tần"],
+        ["name", "Thiết bị"],
+
+        ["deviceId", "Mã TB"],
+
+        ["serialNumber", "Serial number"],
 
         ["brand", "Hãng"],
 
         ["model", "Model"],
 
-        ["serialNumber", "Serial Number"],
-
         ["line", "Tuyến"],
 
         ["station", "Nhà ga"],
 
-        ["location", "Vị trí"],
-
-        ["ipAddress", "IP Address"],
-
-        ["firmware", "Firmware"],
+        ["ipAddress", "IP"],
 
         ["power", "Công suất"],
-
-        ["voltage", "Điện áp"],
 
         ["status", "Trạng thái"],
 
@@ -117,6 +113,7 @@ async function compareRows(rows) {
 
         const serial = get(
             row,
+            "Serial number",
             "Serial Number",
             "Serial",
             "serialNumber"
@@ -124,6 +121,7 @@ async function compareRows(rows) {
 
         const deviceId = get(
             row,
+            "Mã TB",
             "Mã thiết bị",
             "Device ID",
             "deviceId"
@@ -832,6 +830,7 @@ exports.importExcel = async (req, res) => {
 
                 name: get(
                     row,
+                    "Thiết bị",
                     "Tên biến tần",
                     "Device Name",
                     "Name"
@@ -859,7 +858,7 @@ exports.importExcel = async (req, res) => {
 
                 ipAddress: get(
                     row,
-                    "IP Address"
+                    "IP"
                 ),
 
                 power: get(
