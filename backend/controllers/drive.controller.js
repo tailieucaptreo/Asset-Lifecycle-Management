@@ -231,26 +231,6 @@ async function compareRows(rows) {
 
         }
 
-        const statusMap = {
-
-            "Đang chạy": "Running",
-
-            "Bảo trì": "Maintenance",
-
-            "Lỗi": "Fault",
-
-            "Dự phòng": "Offline",
-
-            "Running": "Running",
-
-            "Maintenance": "Maintenance",
-
-            "Fault": "Fault",
-
-            "Offline": "Offline"
-
-        };
-
         const changedFields = [];
 
         for (const [dbField] of compareFields) {
@@ -267,12 +247,12 @@ async function compareRows(rows) {
 
         }
 
-        if (!sameDate(old.installDate, get(row, "Ngày lắp đặt"))) {
+        if (!sameDate(old.installDate, data.installDate)) {
 
-            changedFields.push("Ngày lắp đặt");
+            changedFields.push("installDate");
 
         }
-
+        
         if (changedFields.length > 0) {
 
             updateCount++;
