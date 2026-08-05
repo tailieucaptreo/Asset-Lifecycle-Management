@@ -129,6 +129,72 @@ async function compareRows(rows) {
 
         const key = normalize(serial || deviceId);
 
+        const statusMap = {
+            "Đang chạy": "Running",
+            "Bảo trì": "Maintenance",
+            "Lỗi": "Fault",
+            "Dự phòng": "Offline",
+
+            "Running": "Running",
+            "Maintenance": "Maintenance",
+            "Fault": "Fault",
+            "Offline": "Offline"
+        };
+
+        const data = {
+
+            name: get(
+                row,
+                "Thiết bị",
+                "Tên biến tần",
+                "Device Name",
+                "Name"
+            ),
+
+            deviceId: deviceId || null,
+
+            serialNumber: serial || null,
+
+            brand: get(row, "Hãng", "Brand"),
+
+            model: get(row, "Model"),
+
+            line: get(row, "Tuyến", "Line"),
+
+            station: get(row, "Nhà ga", "Station"),
+
+            location: get(row, "Vị trí", "Location"),
+
+            ipAddress: get(row, "IP"),
+
+            firmware: get(row, "Firmware"),
+
+            power: get(row, "Công suất", "Power"),
+
+            voltage: get(row, "Điện áp", "Voltage"),
+
+            current: get(row, "Dòng điện", "Current"),
+
+            status:
+                statusMap[
+                get(row, "Trạng thái", "Status")
+                ] || "Running",
+
+            installDate: excelDate(
+                get(
+                    row,
+                    "Ngày lắp đặt",
+                    "Install Date"
+                )
+            ),
+
+            note: get(
+                row,
+                "Ghi chú",
+                "Note"
+            )
+        };
+
         if (!key) {
 
             skipCount++;
@@ -141,7 +207,7 @@ async function compareRows(rows) {
 
                 changedFields: [],
 
-                row
+                row: data
 
             };
 
@@ -159,7 +225,7 @@ async function compareRows(rows) {
 
                 changedFields: [],
 
-                row
+                row: data
 
             };
 
@@ -187,24 +253,15 @@ async function compareRows(rows) {
 
         const changedFields = [];
 
-        for (const [dbField, excelField] of compareFields) {
-
-            let newValue = get(row, excelField);
-
-            // Chỉ chuyển đổi trạng thái
-            if (dbField === "status") {
-
-                newValue = statusMap[newValue] || newValue;
-
-            }
+        for (const [dbField] of compareFields) {
 
             const oldValue = normalize(old[dbField]);
 
-            newValue = normalize(newValue);
+            const newValue = normalize(data[dbField]);
 
             if (oldValue !== newValue) {
 
-                changedFields.push(excelField);
+                changedFields.push(dbField);
 
             }
 
@@ -226,7 +283,7 @@ async function compareRows(rows) {
 
                 changedFields,
 
-                row
+                row: data
 
             };
 
@@ -240,7 +297,7 @@ async function compareRows(rows) {
 
             changedFields: [],
 
-            row
+            row: data
 
         };
 
@@ -730,8 +787,7 @@ exports.importExcel = async (req, res) => {
 
         const rows = session.data || [];
 
-        // Load toàn bộ Drive chỉ 1 lần
-
+        // Load toàn bộ Drive một lần
         const drives = await prisma.drive.findMany();
 
         const driveMap = new Map();
@@ -755,163 +811,73 @@ exports.importExcel = async (req, res) => {
         });
 
         let created = 0;
-
         let updated = 0;
+        let skipped = 0;
 
         for (const item of rows) {
 
-            if (item.action === "SKIP") continue;
+            if (item.action === "SKIP") {
 
-            const row = item.row;
-
-            const serial = get(
-
-                row,
-
-                "Serial Number",
-
-                "Serial",
-
-                "serialNumber"
-
-            );
-
-            const deviceId = get(
-
-                row,
-
-                "Mã thiết bị",
-
-                "Device ID",
-
-                "deviceId"
-
-            );
-
-            const key = normalize(serial || deviceId);
-
-            if (!key) {
-
+                skipped++;
                 continue;
 
             }
 
-            const statusMap = {
+            const row = item.row;
 
-                "Đang chạy": "Running",
+            const key = normalize(
 
-                "Bảo trì": "Maintenance",
+                row.serialNumber ||
 
-                "Lỗi": "Fault",
+                row.deviceId
 
-                "Dự phòng": "Offline",
+            );
 
-                "Running": "Running",
+            if (!key) {
 
-                "Maintenance": "Maintenance",
+                skipped++;
+                continue;
 
-                "Fault": "Fault",
-
-                "Offline": "Offline"
-
-            };
-
-            const status =
-
-                statusMap[
-
-                get(row, "Trạng thái", "Status")
-
-                ] ||
-
-                "Running";
+            }
 
             const data = {
 
-                name: get(
-                    row,
-                    "Thiết bị",
-                    "Tên biến tần",
-                    "Device Name",
-                    "Name"
-                ),
+                name: row.name || "",
 
-                deviceId: deviceId || null,
+                deviceId: row.deviceId || null,
 
-                brand: get(
-                    row,
-                    "Hãng",
-                    "Brand"
-                ),
+                brand: row.brand || "",
 
-                model: get(
-                    row,
-                    "Model"
-                ),
+                model: row.model || "",
 
-                serialNumber: serial || null,
+                serialNumber: row.serialNumber || null,
 
-                firmware: get(
-                    row,
-                    "Firmware"
-                ),
+                firmware: row.firmware || null,
 
-                ipAddress: get(
-                    row,
-                    "IP"
-                ),
+                ipAddress: row.ipAddress || null,
 
-                power: get(
-                    row,
-                    "Công suất",
-                    "Power"
-                ),
+                power: row.power || null,
 
-                voltage: get(
-                    row,
-                    "Điện áp",
-                    "Voltage"
-                ),
+                voltage: row.voltage || null,
 
-                line: get(
-                    row,
-                    "Tuyến",
-                    "Line"
-                ),
+                current: row.current || null,
 
-                station: get(
-                    row,
-                    "Nhà ga",
-                    "Station"
-                ),
+                line: row.line || null,
 
-                location: get(
-                    row,
-                    "Vị trí",
-                    "Location"
-                ),
+                station: row.station || null,
 
-                status: status,
+                location: row.location || null,
 
-                installDate: excelDate(
+                status: row.status || "Running",
 
-                    get(
-                        row,
-                        "Ngày lắp đặt",
-                        "Install Date"
-                    )
+                installDate:
+                    row.installDate
+                        ? new Date(row.installDate)
+                        : null,
 
-                ),
-
-                note: get(
-                    row,
-                    "Ghi chú",
-                    "Note"
-                )
+                note: row.note || null
 
             };
-
-            // CREATE
 
             if (!driveMap.has(key)) {
 
@@ -927,19 +893,27 @@ exports.importExcel = async (req, res) => {
 
             }
 
-            // UPDATE
-
             else {
+
+                const old = driveMap.get(key);
 
                 await prisma.drive.update({
 
                     where: {
 
-                        id: driveMap.get(key).id
+                        id: old.id
 
                     },
 
                     data
+
+                });
+
+                driveMap.set(key, {
+
+                    ...old,
+
+                    ...data
 
                 });
 
@@ -963,13 +937,17 @@ exports.importExcel = async (req, res) => {
 
             success: true,
 
-            created,
+            summary: {
 
-            updated,
+                total: rows.length,
 
-            skipped: session.skipCount,
+                created,
 
-            total: session.total
+                updated,
+
+                skipped
+
+            }
 
         });
 
