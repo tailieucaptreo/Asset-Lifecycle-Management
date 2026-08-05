@@ -98,7 +98,15 @@ export default function DriveModal({
 
     const validate = () => {
 
-        if (!form.name.trim()) {
+        const name = (form.name ?? "").trim();
+
+        const deviceId = (form.deviceId ?? "").trim();
+
+        const brand = (form.brand ?? "").trim();
+
+        const model = (form.model ?? "").trim();
+
+        if (!name) {
 
             alert("Chưa nhập tên biến tần");
 
@@ -106,15 +114,18 @@ export default function DriveModal({
 
         }
 
-        if (!form.deviceId.trim()) {
-
+        // Nếu Mã TB không bắt buộc thì bỏ đoạn này
+        /*
+        if (!deviceId) {
+    
             alert("Chưa nhập mã thiết bị");
-
+    
             return false;
-
+    
         }
+        */
 
-        if (!form.brand.trim()) {
+        if (!brand) {
 
             alert("Chưa chọn hãng");
 
@@ -122,7 +133,7 @@ export default function DriveModal({
 
         }
 
-        if (!form.model.trim()) {
+        if (!model) {
 
             alert("Chưa nhập model");
 
@@ -138,7 +149,39 @@ export default function DriveModal({
 
         if (!validate()) return;
 
-        onSave(form);
+        onSave({
+
+            ...form,
+
+            name: (form.name ?? "").trim(),
+
+            deviceId: (form.deviceId ?? "").trim() || null,
+
+            serialNumber: (form.serialNumber ?? "").trim() || null,
+
+            brand: (form.brand ?? "").trim(),
+
+            model: (form.model ?? "").trim(),
+
+            firmware: (form.firmware ?? "").trim() || null,
+
+            ipAddress: (form.ipAddress ?? "").trim() || null,
+
+            power: (form.power ?? "").trim() || null,
+
+            voltage: (form.voltage ?? "").trim() || null,
+
+            current: (form.current ?? "").trim() || null,
+
+            line: (form.line ?? "").trim() || null,
+
+            station: (form.station ?? "").trim() || null,
+
+            location: (form.location ?? "").trim() || null,
+
+            note: (form.note ?? "").trim() || null
+
+        });
 
     };
 
