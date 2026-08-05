@@ -153,7 +153,10 @@ async function compareRows(rows) {
 
             deviceId: deviceId || null,
 
-            serialNumber: serial || null,
+            serialNumber:
+                serial == null || serial === ""
+                    ? null
+                    : String(serial),
 
             brand: get(row, "Hãng", "Brand"),
 
@@ -252,7 +255,7 @@ async function compareRows(rows) {
             changedFields.push("installDate");
 
         }
-        
+
         if (changedFields.length > 0) {
 
             updateCount++;
@@ -807,9 +810,9 @@ exports.importExcel = async (req, res) => {
 
             const key = normalize(
 
-                row.serialNumber ||
-
-                row.deviceId
+                row.serialNumber
+                    ? String(row.serialNumber)
+                    : row.deviceId
 
             );
 
@@ -830,7 +833,12 @@ exports.importExcel = async (req, res) => {
 
                 model: row.model || "",
 
-                serialNumber: row.serialNumber || null,
+                serialNumber:
+                    row.serialNumber === null ||
+                        row.serialNumber === undefined ||
+                        row.serialNumber === ""
+                        ? null
+                        : String(row.serialNumber),
 
                 firmware: row.firmware || null,
 
