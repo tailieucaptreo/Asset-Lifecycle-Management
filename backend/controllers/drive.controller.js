@@ -59,15 +59,19 @@ async function compareRows(rows) {
 
     drives.forEach(drive => {
 
-        if (drive.deviceId) {
+        const key =
 
-            driveMap.set(
+            normalize(
 
-                normalize(drive.deviceId),
+                drive.serialNumber ||
 
-                drive
+                drive.deviceId
 
             );
+
+        if (key) {
+
+            driveMap.set(key, drive);
 
         }
 
@@ -111,19 +115,23 @@ async function compareRows(rows) {
 
     const result = rows.map(row => {
 
-        const deviceId = get(
-
+        const serial = get(
             row,
-
-            "Mã thiết bị",
-
-            "Device ID",
-
-            "deviceId"
-
+            "Serial Number",
+            "Serial",
+            "serialNumber"
         );
 
-        if (!deviceId) {
+        const deviceId = get(
+            row,
+            "Mã thiết bị",
+            "Device ID",
+            "deviceId"
+        );
+
+        const key = normalize(serial || deviceId);
+
+        if (!key) {
 
             skipCount++;
 
@@ -131,7 +139,7 @@ async function compareRows(rows) {
 
                 action: "SKIP",
 
-                reason: "Thiếu Device ID",
+                reason: "Thiếu Serial Number hoặc Device ID",
 
                 changedFields: [],
 
@@ -140,6 +148,8 @@ async function compareRows(rows) {
             };
 
         }
+
+        const old = driveMap.get(key);
 
         const key = normalize(deviceId);
 
@@ -161,13 +171,42 @@ async function compareRows(rows) {
 
         }
 
+        const statusMap = {
+
+            "Đang chạy": "Running",
+
+            "Bảo trì": "Maintenance",
+
+            "Lỗi": "Fault",
+
+            "Dự phòng": "Offline",
+
+            "Running": "Running",
+
+            "Maintenance": "Maintenance",
+
+            "Fault": "Fault",
+
+            "Offline": "Offline"
+
+        };
+
         const changedFields = [];
 
         for (const [dbField, excelField] of compareFields) {
 
+            let newValue = get(row, excelField);
+
+            // Chỉ chuyển đổi trạng thái
+            if (dbField === "status") {
+
+                newValue = statusMap[newValue] || newValue;
+
+            }
+
             const oldValue = normalize(old[dbField]);
 
-            const newValue = normalize(get(row, excelField));
+            newValue = normalize(newValue);
 
             if (oldValue !== newValue) {
 
@@ -707,13 +746,25 @@ exports.importExcel = async (req, res) => {
 
             if (d.deviceId) {
 
-                driveMap.set(
+                const key = normalize(
 
-                    d.deviceId.trim().toUpperCase(),
+                    d.serialNumber ||
 
-                    d
+                    d.deviceId
 
                 );
+
+                if (key) {
+
+                    driveMap.set(
+
+                        key,
+
+                        d
+
+                    );
+
+                }
 
             }
 
@@ -729,6 +780,18 @@ exports.importExcel = async (req, res) => {
 
             const row = item.row;
 
+            const serial = get(
+
+                row,
+
+                "Serial Number",
+
+                "Serial",
+
+                "serialNumber"
+
+            );
+
             const deviceId = get(
 
                 row,
@@ -741,9 +804,43 @@ exports.importExcel = async (req, res) => {
 
             );
 
-            if (!deviceId) continue;
+            const key = normalize(serial || deviceId);
 
-            const key = deviceId.trim().toUpperCase();
+            if (!key) {
+
+                continue;
+
+            }
+
+            const statusMap = {
+
+                "Đang chạy": "Running",
+
+                "Bảo trì": "Maintenance",
+
+                "Lỗi": "Fault",
+
+                "Dự phòng": "Offline",
+
+                "Running": "Running",
+
+                "Maintenance": "Maintenance",
+
+                "Fault": "Fault",
+
+                "Offline": "Offline"
+
+            };
+
+            const status =
+
+                statusMap[
+
+                get(row, "Trạng thái", "Status")
+
+                ] ||
+
+                "Running";
 
             const data = {
 
@@ -754,7 +851,7 @@ exports.importExcel = async (req, res) => {
                     "Name"
                 ),
 
-                deviceId,
+                deviceId: deviceId || null,
 
                 brand: get(
                     row,
@@ -766,6 +863,8 @@ exports.importExcel = async (req, res) => {
                     row,
                     "Model"
                 ),
+
+                serialNumber: serial || null,
 
                 serialNumber: get(
                     row,
@@ -813,11 +912,7 @@ exports.importExcel = async (req, res) => {
                     "Location"
                 ),
 
-                status: get(
-                    row,
-                    "Trạng thái",
-                    "Status"
-                ) || "Running",
+                status: status,
 
                 installDate: excelDate(
 
