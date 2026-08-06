@@ -420,17 +420,15 @@ exports.create = async (req, res) => {
 
       data: {
 
-        action: "Thêm thiết bị",
+        action: "CREATE",
 
         deviceName: data.name,
 
         quantity: data.initialQuantity,
 
-        editedBy:
-          req.body.editedBy || "",
+        editedBy: req.user?.username || "System",
 
-        note:
-          req.body.note || ""
+        note: "Thêm thiết bị",
 
       }
 
@@ -609,17 +607,14 @@ exports.update = async (req, res) => {
     // ======================
 
     let action =
-      "Cập nhật thiết bị";
+      "UPDATE";
 
-    let historyQty =
-      0;
-
+    let historyQty = current.quantity;
 
     // nhập thêm
     if (importQty > 0) {
 
-      action =
-        "Nhập thiết bị";
+      action = "IMPORT";
 
       historyQty =
         importQty;
@@ -630,7 +625,7 @@ exports.update = async (req, res) => {
     if (exportQty > 0) {
 
       action =
-        "Xuất thiết bị";
+        "EXPORT";
 
       historyQty =
         exportQty;
@@ -648,10 +643,14 @@ exports.update = async (req, res) => {
 
         quantity: historyQty,
 
-        editedBy: req.body.editedBy || "",
+        editedBy: req.user?.username || "System",
 
-        note: req.body.note || "",
-
+        note:
+          action === "UPDATE"
+            ? "Cập nhật thông tin"
+            : action === "IMPORT"
+              ? "Nhập kho"
+              : "Xuất kho",
       }
 
     });
@@ -713,7 +712,7 @@ exports.remove = async (req, res) => {
 
       data: {
 
-        action: "Xóa thiết bị",
+        action: "DELETE",
 
         deviceName:
           device?.name || "",
@@ -722,10 +721,9 @@ exports.remove = async (req, res) => {
           device?.quantity || 0,
 
         editedBy:
-          req.body.editedBy || "",
+          req.user?.username || "System",
 
-        note:
-          req.body.note || "",
+        note: "Xóa thiết bị",
       }
     });
 
@@ -1221,7 +1219,7 @@ exports.confirmImport = async (req, res) => {
 
           data: {
 
-            action: "Import Excel (New)",
+            action: "CREATE",
 
             deviceName:
               row.name,
@@ -1232,9 +1230,7 @@ exports.confirmImport = async (req, res) => {
             editedBy:
               req.user?.username || "",
 
-            note:
-              "Import Excel"
-
+            note: "Import tạo mới",
           }
 
         });
@@ -1322,7 +1318,7 @@ exports.confirmImport = async (req, res) => {
 
           data: {
 
-            action: "Import Excel (Update)",
+            action: "UPDATE",
 
             deviceName:
               row.name,
