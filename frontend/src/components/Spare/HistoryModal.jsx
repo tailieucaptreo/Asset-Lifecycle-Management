@@ -184,25 +184,43 @@ export default function HistoryModal({
 
                                         </td>
 
-                                        <span
-                                            className={`
-                                                px-2 py-1 rounded-full text-xs font-semibold
-                                                ${item.action === "CREATE"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : item.action === "UPDATE"
-                                                        ? "bg-yellow-100 text-yellow-700"
-                                                        : item.action === "IMPORT"
-                                                            ? "bg-blue-100 text-blue-700"
-                                                            : item.action === "EXPORT"
-                                                                ? "bg-orange-100 text-orange-700"
-                                                                : item.action === "DELETE"
-                                                                    ? "bg-red-100 text-red-700"
-                                                                    : "bg-gray-100 text-gray-700"
-                                                }
-                                            `}
-                                        >
-                                            {actionMap[item.action] || item.action}
-                                        </span>
+                                        <td className="px-4 py-3">
+                                            <div className="flex justify-center">
+                                                <span
+                                                    className={`
+                                                        inline-flex
+                                                        items-center
+                                                        justify-center
+                                                        min-w-[90px]
+                                                        px-3
+                                                        py-1
+                                                        rounded-full
+                                                        text-xs
+                                                        font-semibold
+                                                        ${item.action === "CREATE"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : item.action === "UPDATE"
+                                                                ? "bg-yellow-100 text-yellow-700"
+                                                                : item.action === "IMPORT"
+                                                                    ? "bg-blue-100 text-blue-700"
+                                                                    : item.action === "EXPORT"
+                                                                        ? "bg-orange-100 text-orange-700"
+                                                                        : item.action === "DELETE"
+                                                                            ? "bg-red-100 text-red-700"
+                                                                            : item.action === "Nhập thiết bị"
+                                                                                ? "bg-blue-100 text-blue-700"
+                                                                                : item.action === "Xuất thiết bị"
+                                                                                    ? "bg-orange-100 text-orange-700"
+                                                                                    : item.action === "Xóa thiết bị"
+                                                                                        ? "bg-red-100 text-red-700"
+                                                                                        : "bg-gray-100 text-gray-700"
+                                                        }
+                                                    `}
+                                                >
+                                                    {actionMap[item.action] || item.action}
+                                                </span>
+                                            </div>
+                                        </td>
 
                                         <td className="px-4 py-3 text-center">
 
@@ -218,7 +236,7 @@ export default function HistoryModal({
 
                                         <td className="px-4 py-3">
 
-                                           {item.note ?? "-"}
+                                            {item.note ?? "-"}
 
                                         </td>
 
