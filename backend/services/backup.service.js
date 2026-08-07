@@ -6,152 +6,130 @@ const {
 } = require("../utils/excel.helper");
 
 // =======================================
-// Backup System
+// Danh sách Sheet Backup
+// =======================================
+
+const SHEETS = [
+
+    {
+        title: "01_Thiết bị",
+        model: prisma.device
+    },
+
+    {
+        title: "02_Động cơ",
+        model: prisma.motor
+    },
+
+    {
+        title: "03_Biến tần",
+        model: prisma.drive
+    },
+
+    {
+        title: "04_Thiết bị dự phòng",
+        model: prisma.spareDevice
+    },
+
+    {
+        title: "05_Lỗi Biến tần",
+        model: prisma.driveFault
+    },
+
+    {
+        title: "06_Lỗi Động cơ",
+        model: prisma.motorFault
+    },
+
+    {
+        title: "07_Lỗi ABB",
+        model: prisma.abbFaultRecord
+    },
+
+    {
+        title: "08_Lịch sử Thiết bị",
+        model: prisma.deviceHistory
+    },
+
+    {
+        title: "09_Lịch sử Động cơ",
+        model: prisma.motorHistory
+    },
+
+    {
+        title: "10_Bảo trì Động cơ",
+        model: prisma.motorMaintenance
+    },
+
+    {
+        title: "11_Lịch sử Kho",
+        model: prisma.spareHistory
+    },
+
+    {
+        title: "12_VACON History",
+        model: prisma.vaconHistory
+    }
+
+];
+
+// =======================================
+// Build Backup Workbook
 // =======================================
 
 async function createBackupWorkbook() {
 
     const workbook = createWorkbook();
 
-    //--------------------------------------------------
-    // Lấy dữ liệu song song
-    //--------------------------------------------------
+    for (const sheet of SHEETS) {
 
-    const [
+        try {
 
-        devices,
+            const rows = await sheet.model.findMany({
 
-        motors,
+                orderBy: {
 
-        drives,
+                    id: "asc"
 
-        spares,
+                }
 
-        faults
+            });
 
-    ] = await Promise.all([
+            addSheet(
 
-        prisma.device.findMany({
+                workbook,
 
-            orderBy: {
+                sheet.title,
 
-                id: "asc"
+                rows
 
-            }
+            );
 
-        }),
+        }
 
-        prisma.motor.findMany({
+        catch (err) {
 
-            orderBy: {
+            console.error(
 
-                id: "asc"
+                `Backup Sheet "${sheet.title}" Error:`,
 
-            }
+                err.message
 
-        }),
+            );
 
-        prisma.drive.findMany({
+            addSheet(
 
-            orderBy: {
+                workbook,
 
-                id: "asc"
+                sheet.title,
 
-            }
+                []
 
-        }),
+            );
 
-        prisma.spareDevice.findMany({
+        }
 
-            orderBy: {
-
-                id: "asc"
-
-            }
-
-        }),
-
-        prisma.driveFault.findMany({
-
-            orderBy: {
-
-                id: "asc"
-
-            }
-
-        })
-
-    ]);
-
-    //--------------------------------------------------
-    // Sheet Thiết bị
-    //--------------------------------------------------
-
-    addSheet(
-
-        workbook,
-
-        "Thiết bị",
-
-        devices
-
-    );
-
-    //--------------------------------------------------
-    // Sheet Động cơ
-    //--------------------------------------------------
-
-    addSheet(
-
-        workbook,
-
-        "Động cơ",
-
-        motors
-
-    );
-
-    //--------------------------------------------------
-    // Sheet Biến tần
-    //--------------------------------------------------
-
-    addSheet(
-
-        workbook,
-
-        "Biến tần",
-
-        drives
-
-    );
-
-    //--------------------------------------------------
-    // Sheet Thiết bị dự phòng
-    //--------------------------------------------------
-
-    addSheet(
-
-        workbook,
-
-        "Thiết bị dự phòng",
-
-        spares
-
-    );
-
-    //--------------------------------------------------
-    // Sheet Lịch sử lỗi
-    //--------------------------------------------------
-
-    addSheet(
-
-        workbook,
-
-        "Lịch sử lỗi",
-
-        faults
-
-    );
+    }
 
     return workbook;
 
