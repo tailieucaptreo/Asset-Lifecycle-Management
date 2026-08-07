@@ -282,6 +282,43 @@ async function downloadWorkbook(
 
 }
 
+// =======================================
+// Format Value
+// =======================================
+
+function formatValue(value) {
+
+    if (value === null || value === undefined) {
+
+        return "";
+
+    }
+
+    // Date
+    if (value instanceof Date && !isNaN(value)) {
+
+        return value.toLocaleDateString("vi-VN");
+
+    }
+
+    // Boolean
+    if (typeof value === "boolean") {
+
+        return value ? "Có" : "Không";
+
+    }
+
+    // Object / JSON
+    if (typeof value === "object") {
+
+        return JSON.stringify(value);
+
+    }
+
+    return value;
+
+}
+
 module.exports = {
 
     createWorkbook,
@@ -290,6 +327,8 @@ module.exports = {
 
     autoWidth,
 
-    downloadWorkbook
+    downloadWorkbook,
+
+    formatValue
 
 };
