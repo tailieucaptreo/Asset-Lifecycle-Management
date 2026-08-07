@@ -1,4 +1,4 @@
-const prisma = require("../config/prisma");
+const { PrismaClient } = require("@prisma/client");
 
 const {
     createWorkbook,
