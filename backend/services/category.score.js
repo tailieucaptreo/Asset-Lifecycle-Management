@@ -4,7 +4,13 @@ const RULES = require("../data/category.rules");
 const normalize = require("../utils/normalize");
 
 // ======================================
-// Init Score
+// Constant Score
+// ======================================
+
+const BRAND_SCORE = 20;
+
+// ======================================
+// Init Score Board
 // ======================================
 
 function createScoreBoard() {
@@ -29,11 +35,15 @@ function scoreModels(text, board) {
 
     for (const item of MODELS) {
 
-        if (item.regex.test(text)) {
+        if (!item.regex.test(text)) continue;
 
-            board[item.category] += item.score;
+        if (board[item.category] === undefined) {
+
+            board[item.category] = 0;
 
         }
+
+        board[item.category] += item.score;
 
     }
 
@@ -49,17 +59,25 @@ function scoreManufacturers(text, board) {
 
     for (const brand of MANUFACTURERS) {
 
-        for (const alias of brand.aliases) {
+        const hit = brand.aliases.some(alias =>
 
-            if (text.includes(normalize(alias))) {
+            text.includes(normalize(alias))
 
-                detectedBrand = brand.name;
+        );
 
-                board[brand.category] += brand.score;
+        if (!hit) continue;
 
-                break;
+        detectedBrand = brand.name;
+
+        if (brand.defaultCategory) {
+
+            if (board[brand.defaultCategory] === undefined) {
+
+                board[brand.defaultCategory] = 0;
 
             }
+
+            board[brand.defaultCategory] += BRAND_SCORE;
 
         }
 
@@ -79,9 +97,25 @@ function scoreKeywords(text, board) {
 
         for (const keyword of rule.keywords) {
 
-            if (text.includes(normalize(keyword))) {
+            // keyword = { text, weight }
 
-                board[rule.category] += rule.priority;
+            if (
+
+                text.includes(
+
+                    normalize(keyword.text)
+
+                )
+
+            ) {
+
+                if (board[rule.category] === undefined) {
+
+                    board[rule.category] = 0;
+
+                }
+
+                board[rule.category] += keyword.weight;
 
             }
 
@@ -92,7 +126,7 @@ function scoreKeywords(text, board) {
 }
 
 // ======================================
-// Best Category
+// Get Best Category
 // ======================================
 
 function getBest(board) {
@@ -131,9 +165,7 @@ function getBest(board) {
 
             : Math.round(
 
-                bestScore *
-
-                100 /
+                (bestScore * 100) /
 
                 (bestScore + secondScore)
 
@@ -177,33 +209,21 @@ function scoreCategory({
 
         brand
 
-    ]
-
-        .join(" ");
+    ].join(" ");
 
     text = normalize(text);
 
-    const board =
+    const board = createScoreBoard();
 
-        createScoreBoard();
+    scoreModels(text, board);
 
-    scoreModels(
+    const detectedBrand = scoreManufacturers(
 
         text,
 
         board
 
     );
-
-    const detectedBrand =
-
-        scoreManufacturers(
-
-            text,
-
-            board
-
-        );
 
     scoreKeywords(
 
@@ -213,23 +233,15 @@ function scoreCategory({
 
     );
 
-    const best =
-
-        getBest(board);
+    const best = getBest(board);
 
     return {
 
-        category:
+        category: best.category,
 
-            best.category,
+        score: best.score,
 
-        score:
-
-            best.score,
-
-        confidence:
-
-            best.confidence,
+        confidence: best.confidence,
 
         brand:
 
