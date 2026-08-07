@@ -1,11 +1,14 @@
 const MODELS = require("../data/models");
 const MANUFACTURERS = require("../data/manufacturers");
 const RULES = require("../data/category.rules");
-const normalize = require("../utils/normalize");
+const ALIAS = require("../data/category.alias");
 
-// =====================================
-// Normalize Text
-// =====================================
+const normalize = require("../utils/normalize");
+const tokenize = require("../utils/tokenizer");
+
+// =======================================
+// Build Search Text
+// =======================================
 
 function buildText({
 
@@ -37,144 +40,48 @@ function buildText({
 
 }
 
-// =====================================
-// Match Models
-// =====================================
+// =======================================
+// Apply Alias
+// =======================================
 
-function matchModels(text) {
+function applyAlias(text) {
 
-    const matches = [];
+    let output = text;
 
-    for (const item of MODELS) {
+    for (const [key, value] of Object.entries(ALIAS)) {
 
-        if (item.regex.test(text)) {
+        output = output.replaceAll(
 
-            matches.push(item);
+            normalize(key),
 
-        }
+            normalize(value)
 
-    }
-
-    return matches;
-
-}
-
-// =====================================
-// Match Manufacturers
-// =====================================
-
-function matchManufacturers(text) {
-
-    const matches = [];
-
-    for (const brand of MANUFACTURERS) {
-
-        const hit =
-
-            brand.aliases.some(alias =>
-
-                text.includes(normalize(alias))
-
-            );
-
-        if (hit) {
-
-            matches.push(brand);
-
-        }
+        );
 
     }
 
-    return matches;
+    return output;
 
 }
 
-// =====================================
-// Match Keywords
-// =====================================
+// =======================================
+// Prepare Text
+// =======================================
 
-function matchKeywords(text) {
+function prepare(data) {
 
-    const matches = [];
+    let text = buildText(data);
 
-    for (const rule of RULES) {
+    text = applyAlias(text);
 
-        for (const keyword of rule.keywords) {
-
-            if (
-
-                text.includes(
-
-                    normalize(keyword.text)
-
-                )
-
-            ) {
-
-                matches.push({
-
-                    category:
-
-                        rule.category,
-
-                    priority:
-
-                        rule.priority,
-
-                    ...keyword
-
-                });
-
-            }
-
-        }
-
-    }
-
-    return matches;
-
-}
-
-// =====================================
-// Match All
-// =====================================
-
-function match(data) {
-
-    const text =
-
-        buildText(data);
+    const tokens = tokenize(text);
 
     return {
 
         text,
 
-        models:
-
-            matchModels(text),
-
-        manufacturers:
-
-            matchManufacturers(text),
-
-        keywords:
-
-            matchKeywords(text)
+        tokens
 
     };
 
 }
-
-module.exports = {
-
-    buildText,
-
-    matchModels,
-
-    matchManufacturers,
-
-    matchKeywords,
-
-    match
-
-};
