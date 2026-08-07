@@ -1,8 +1,6 @@
 const ExcelJS = require("exceljs");
 const HEADERS = require("../data/excel.headers");
 
-const ExcelJS = require("exceljs");
-
 // =======================================
 // Create Workbook
 // =======================================
