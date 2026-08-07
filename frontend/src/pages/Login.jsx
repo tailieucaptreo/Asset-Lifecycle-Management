@@ -1,7 +1,7 @@
 import axios from "axios";
 import API from "../config";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Login() {
 
@@ -10,6 +10,90 @@ export default function Login() {
 
     const [password, setPassword] =
         useState("");
+
+    useEffect(() => {
+
+        const timer = setTimeout(() => {
+    
+            autoBackup();
+    
+        }, 500);
+    
+        return () => clearTimeout(timer);
+    
+    }, []);
+
+    const autoBackup = async () => {
+
+        try {
+    
+            const today = new Date()
+                .toISOString()
+                .slice(0, 10);
+    
+            const lastBackup =
+                localStorage.getItem("lastBackup");
+    
+            if (lastBackup === today) {
+    
+                return;
+    
+            }
+    
+            const response = await axios.get(
+    
+                `${API}/api/backup/system`,
+    
+                {
+    
+                    responseType: "blob"
+    
+                }
+    
+            );
+    
+            const blob = new Blob([response.data]);
+    
+            const url = window.URL.createObjectURL(blob);
+    
+            const link = document.createElement("a");
+    
+            link.href = url;
+    
+            link.download =
+                `AssetLifecycleBackup_${today}.xlsx`;
+    
+            document.body.appendChild(link);
+    
+            link.click();
+    
+            link.remove();
+    
+            window.URL.revokeObjectURL(url);
+    
+            localStorage.setItem(
+    
+                "lastBackup",
+    
+                today
+    
+            );
+    
+        }
+    
+        catch (err) {
+    
+            console.error(
+    
+                "Auto Backup Error:",
+    
+                err
+    
+            );
+    
+        }
+    
+    };
 
     const handleLogin = async (e) => {
 
