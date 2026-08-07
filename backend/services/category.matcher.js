@@ -85,3 +85,152 @@ function prepare(data) {
     };
 
 }
+// =======================================
+// Match Models
+// =======================================
+
+function matchModels(text) {
+
+    const matches = [];
+
+    for (const model of MODELS) {
+
+        if (model.regex.test(text)) {
+
+            matches.push({
+
+                category: model.category,
+
+                score: model.score,
+
+                regex: model.regex.toString()
+
+            });
+
+        }
+
+    }
+
+    return matches;
+
+}
+
+// =======================================
+// Match Manufacturers
+// =======================================
+
+function matchManufacturers(tokens) {
+
+    const matches = [];
+
+    for (const brand of MANUFACTURERS) {
+
+        const hit = brand.aliases.some(alias => {
+
+            return tokens.includes(normalize(alias));
+
+        });
+
+        if (hit) {
+
+            matches.push({
+
+                name: brand.name,
+
+                defaultCategory: brand.defaultCategory
+
+            });
+
+        }
+
+    }
+
+    return matches;
+
+}
+
+// =======================================
+// Match Keywords
+// =======================================
+
+function matchKeywords(text) {
+
+    const matches = [];
+
+    for (const rule of RULES) {
+
+        for (const keyword of rule.keywords) {
+
+            if (
+
+                text.includes(
+
+                    normalize(keyword.text)
+
+                )
+
+            ) {
+
+                matches.push({
+
+                    category: rule.category,
+
+                    keyword: keyword.text,
+
+                    weight: keyword.weight,
+
+                    priority: rule.priority
+
+                });
+
+            }
+
+        }
+
+    }
+
+    return matches;
+
+}
+
+// =======================================
+// Match All
+// =======================================
+
+function match(data) {
+
+    const prepared = prepare(data);
+
+    return {
+
+        text: prepared.text,
+
+        tokens: prepared.tokens,
+
+        models:
+
+            matchModels(
+
+                prepared.text
+
+            ),
+
+        manufacturers:
+
+            matchManufacturers(
+
+                prepared.tokens
+
+            ),
+
+        keywords:
+
+            matchKeywords(
+
+                prepared.text
+
+            )
+
+    };
+
+}
