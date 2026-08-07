@@ -2,6 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+const HEADERS = require("../data/excel.headers");
+
 const {
     createWorkbook,
     addSheet
@@ -97,14 +99,28 @@ async function createBackupWorkbook() {
 
             });
 
+            const key = {
+
+                "01_Thiết bị": "Device",
+            
+                "02_Động cơ": "Motor",
+            
+                "03_Biến tần": "Drive",
+            
+                "04_Thiết bị dự phòng": "SpareDevice"
+            
+            }[sheet.title];
+            
             addSheet(
-
+            
                 workbook,
-
+            
                 sheet.title,
-
-                rows
-
+            
+                rows,
+            
+                HEADERS[key]
+            
             );
 
         }
