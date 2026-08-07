@@ -112,23 +112,13 @@ async function createBackupWorkbook() {
         catch (err) {
 
             console.error(
-
+        
                 `Backup Sheet "${sheet.title}" Error:`,
-
+        
                 err.message
-
+        
             );
-
-            addSheet(
-
-                workbook,
-
-                sheet.title,
-
-                []
-
-            );
-
+        
         }
 
     }
