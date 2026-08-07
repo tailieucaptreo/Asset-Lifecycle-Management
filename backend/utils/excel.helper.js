@@ -1,4 +1,7 @@
 const ExcelJS = require("exceljs");
+const HEADERS = require("../data/excel.headers");
+
+const ExcelJS = require("exceljs");
 
 // =======================================
 // Create Workbook
@@ -22,7 +25,7 @@ function createWorkbook() {
 // rows = Array<Object>
 // =======================================
 
-function addSheet(workbook, sheetName, rows = []) {
+function addSheet(workbook, sheetName, rows = [], headerMap = null) {
 
     const sheet = workbook.addWorksheet(sheetName);
 
@@ -48,15 +51,17 @@ function addSheet(workbook, sheetName, rows = []) {
         return sheet;
     
     }
-
+    
     sheet.columns = headers.map(key => ({
-
-        header: key,
+    
+        header: headerMap?.[key] || key,
+    
         key,
+    
         width: 20
-
+    
     }));
-
+    
     //------------------------------------
     // Data
     //------------------------------------
