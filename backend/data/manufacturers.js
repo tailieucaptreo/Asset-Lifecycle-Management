@@ -1,33 +1,30 @@
 // =======================================
 // Manufacturers Library
+// Chỉ lưu thông tin hãng sản xuất.
+// Không chứa logic tính điểm.
+// Không quyết định category cuối cùng.
 // =======================================
 
 module.exports = [
 
-    // =============================
-    // ABB
-    // =============================
+    // =====================================================
+    // DRIVE / INVERTER
+    // =====================================================
 
     {
         name: "ABB",
         aliases: [
             "abb"
         ],
-        category: "Biến tần",
-        score: 20
+        defaultCategory: "Biến tần"
     },
-
-    // =============================
-    // VACON
-    // =============================
 
     {
         name: "VACON",
         aliases: [
             "vacon"
         ],
-        category: "Biến tần",
-        score: 30
+        defaultCategory: "Biến tần"
     },
 
     {
@@ -35,21 +32,19 @@ module.exports = [
         aliases: [
             "danfoss"
         ],
-        category: "Biến tần",
-        score: 25
+        defaultCategory: "Biến tần"
     },
 
-    // =============================
-    // PLC
-    // =============================
+    // =====================================================
+    // PLC / AUTOMATION
+    // =====================================================
 
     {
         name: "PILZ",
         aliases: [
             "pilz"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
@@ -58,8 +53,7 @@ module.exports = [
             "siemens",
             "simatic"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
@@ -67,8 +61,7 @@ module.exports = [
         aliases: [
             "mitsubishi"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
@@ -76,8 +69,7 @@ module.exports = [
         aliases: [
             "omron"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
@@ -86,18 +78,15 @@ module.exports = [
             "schneider",
             "telemecanique"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
         name: "ALLEN BRADLEY",
         aliases: [
-            "allen bradley",
-            "ab"
+            "allen bradley"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
 
     {
@@ -105,30 +94,27 @@ module.exports = [
         aliases: [
             "rockwell"
         ],
-        category: "PLC",
-        score: 20
+        defaultCategory: "PLC"
     },
-
-    // =============================
-    // BECKHOFF
-    // =============================
 
     {
         name: "BECKHOFF",
         aliases: [
             "beckhoff"
         ],
-        category: "BECKHOFF",
-        score: 40
+        defaultCategory: "PLC"
     },
+
+    // =====================================================
+    // CONTROL ELECTRICAL
+    // =====================================================
 
     {
         name: "WAGO",
         aliases: [
             "wago"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -137,8 +123,7 @@ module.exports = [
             "phoenix",
             "phoenix contact"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -146,148 +131,15 @@ module.exports = [
         aliases: [
             "weidmuller"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
-
-    // =============================
-    // SENSOR
-    // =============================
-
-    {
-        name: "SICK",
-        aliases: [
-            "sick"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "IFM",
-        aliases: [
-            "ifm"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "BALLUFF",
-        aliases: [
-            "balluff"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "TURCK",
-        aliases: [
-            "turck"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "PEPPERL+FUCHS",
-        aliases: [
-            "pepperl",
-            "pepperl+fuchs"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "BANNER",
-        aliases: [
-            "banner"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "LEUZE",
-        aliases: [
-            "leuze"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    {
-        name: "KEYENCE",
-        aliases: [
-            "keyence"
-        ],
-        category: "Cảm biến",
-        score: 30
-    },
-
-    // =============================
-    // MOTOR
-    // =============================
-
-    {
-        name: "SEW",
-        aliases: [
-            "sew"
-        ],
-        category: "Động cơ",
-        score: 20
-    },
-
-    {
-        name: "NORD",
-        aliases: [
-            "nord"
-        ],
-        category: "Động cơ",
-        score: 20
-    },
-
-    {
-        name: "LENZE",
-        aliases: [
-            "lenze"
-        ],
-        category: "Động cơ",
-        score: 20
-    },
-
-    {
-        name: "YASKAWA",
-        aliases: [
-            "yaskawa"
-        ],
-        category: "Động cơ",
-        score: 20
-    },
-
-    {
-        name: "BOSCH REXROTH",
-        aliases: [
-            "bosch rexroth",
-            "rexroth"
-        ],
-        category: "Động cơ",
-        score: 20
-    },
-
-    // =============================
-    // ELECTRIC
-    // =============================
 
     {
         name: "EATON",
         aliases: [
             "eaton"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -295,8 +147,7 @@ module.exports = [
         aliases: [
             "fuji"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -304,8 +155,7 @@ module.exports = [
         aliases: [
             "delta"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -313,8 +163,7 @@ module.exports = [
         aliases: [
             "ls"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -323,8 +172,7 @@ module.exports = [
             "general electric",
             "ge"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -332,8 +180,7 @@ module.exports = [
         aliases: [
             "carlo gavazzi"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -341,8 +188,7 @@ module.exports = [
         aliases: [
             "finder"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -350,8 +196,7 @@ module.exports = [
         aliases: [
             "rittal"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -359,8 +204,7 @@ module.exports = [
         aliases: [
             "moeller"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -368,8 +212,7 @@ module.exports = [
         aliases: [
             "hager"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
     },
 
     {
@@ -377,8 +220,121 @@ module.exports = [
         aliases: [
             "chint"
         ],
-        category: "Điện điều khiển",
-        score: 20
+        defaultCategory: "Điện điều khiển"
+    },
+
+    // =====================================================
+    // SENSOR
+    // =====================================================
+
+    {
+        name: "SICK",
+        aliases: [
+            "sick"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "IFM",
+        aliases: [
+            "ifm"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "BALLUFF",
+        aliases: [
+            "balluff"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "TURCK",
+        aliases: [
+            "turck"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "PEPPERL+FUCHS",
+        aliases: [
+            "pepperl",
+            "pepperl+fuchs"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "BANNER",
+        aliases: [
+            "banner"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "LEUZE",
+        aliases: [
+            "leuze"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    {
+        name: "KEYENCE",
+        aliases: [
+            "keyence"
+        ],
+        defaultCategory: "Cảm biến"
+    },
+
+    // =====================================================
+    // MOTOR / GEAR MOTOR
+    // =====================================================
+
+    {
+        name: "SEW",
+        aliases: [
+            "sew"
+        ],
+        defaultCategory: "Động cơ"
+    },
+
+    {
+        name: "NORD",
+        aliases: [
+            "nord"
+        ],
+        defaultCategory: "Động cơ"
+    },
+
+    {
+        name: "LENZE",
+        aliases: [
+            "lenze"
+        ],
+        defaultCategory: "Động cơ"
+    },
+
+    {
+        name: "YASKAWA",
+        aliases: [
+            "yaskawa"
+        ],
+        defaultCategory: "Động cơ"
+    },
+
+    {
+        name: "BOSCH REXROTH",
+        aliases: [
+            "bosch rexroth",
+            "rexroth"
+        ],
+        defaultCategory: "Động cơ"
     }
 
 ];
