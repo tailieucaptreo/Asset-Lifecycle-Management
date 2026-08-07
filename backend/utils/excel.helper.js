@@ -39,7 +39,15 @@ function addSheet(workbook, sheetName, rows = []) {
     // Header
     //------------------------------------
 
-    const headers = Object.keys(rows[0]);
+    const headers = Object.keys(rows[0] || {});
+
+    if (!headers.length) {
+    
+        sheet.addRow(["Không có dữ liệu"]);
+    
+        return sheet;
+    
+    }
 
     sheet.columns = headers.map(key => ({
 
@@ -55,8 +63,50 @@ function addSheet(workbook, sheetName, rows = []) {
 
     rows.forEach(row => {
 
-        sheet.addRow(row);
-
+        const data = {};
+    
+        headers.forEach(key => {
+    
+            const value = row[key];
+    
+            if (value instanceof Date) {
+    
+                data[key] = value.toLocaleString("vi-VN");
+    
+            }
+    
+            else if (
+    
+                value === null ||
+    
+                value === undefined
+    
+            ) {
+    
+                data[key] = "";
+    
+            }
+    
+            else if (
+    
+                typeof value === "object"
+    
+            ) {
+    
+                data[key] = JSON.stringify(value);
+    
+            }
+    
+            else {
+    
+                data[key] = value;
+    
+            }
+    
+        });
+    
+        sheet.addRow(data);
+    
     });
 
     //------------------------------------
@@ -118,13 +168,25 @@ function addSheet(workbook, sheetName, rows = []) {
     // Auto Filter
     //------------------------------------
 
-    sheet.autoFilter = {
+    const headerRow = sheet.getRow(1);
 
-        from: "A1",
-
-        to: sheet.getRow(1).lastCell.address
-
-    };
+    if (headerRow.cellCount > 0) {
+    
+        sheet.autoFilter = {
+    
+            from: {
+                row: 1,
+                column: 1
+            },
+    
+            to: {
+                row: 1,
+                column: headerRow.cellCount
+            }
+    
+        };
+    
+    }
 
     //------------------------------------
     // Freeze Header
