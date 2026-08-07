@@ -33,6 +33,8 @@ const abbRoutes =
 
 const motorRoutes = require("./routes/motor.routes");
 
+const backupRoutes = require("./routes/backup.routes");
+
 // ===== CORS =====
 
 app.use(
@@ -99,6 +101,8 @@ app.use(
 );
 
 app.use("/api/motors", motorRoutes);
+
+app.use("/api/backup", backupRoutes);
 
 // ===== TEST =====
 
