@@ -67,41 +67,7 @@ function addSheet(workbook, sheetName, rows = []) {
     
         headers.forEach(key => {
     
-            const value = row[key];
-    
-            if (value instanceof Date) {
-    
-                data[key] = value.toLocaleString("vi-VN");
-    
-            }
-    
-            else if (
-    
-                value === null ||
-    
-                value === undefined
-    
-            ) {
-    
-                data[key] = "";
-    
-            }
-    
-            else if (
-    
-                typeof value === "object"
-    
-            ) {
-    
-                data[key] = JSON.stringify(value);
-    
-            }
-    
-            else {
-    
-                data[key] = value;
-    
-            }
+            data[key] = formatValue(row[key]);
     
         });
     
@@ -286,6 +252,10 @@ async function downloadWorkbook(
 // Format Value
 // =======================================
 
+// =======================================
+// Format Value
+// =======================================
+
 function formatValue(value) {
 
     if (value === null || value === undefined) {
@@ -294,21 +264,82 @@ function formatValue(value) {
 
     }
 
+    //----------------------------------
     // Date
+    //----------------------------------
+
     if (value instanceof Date && !isNaN(value)) {
 
         return value.toLocaleDateString("vi-VN");
 
     }
 
+    //----------------------------------
     // Boolean
+    //----------------------------------
+
     if (typeof value === "boolean") {
 
         return value ? "Có" : "Không";
 
     }
 
+    //----------------------------------
+    // Status
+    //----------------------------------
+
+    const STATUS = {
+
+        Running: "Đang hoạt động",
+
+        Maintenance: "Đang bảo trì",
+
+        Fault: "Đang lỗi",
+
+        Offline: "Ngừng hoạt động",
+
+        Resolved: "Đã xử lý",
+
+        Pending: "Chờ xử lý",
+
+        Installed: "Đã lắp đặt",
+
+        Removed: "Đã tháo",
+
+        Active: "Hoạt động",
+
+        Inactive: "Không hoạt động",
+
+        New: "Mới",
+
+        Used: "Đã sử dụng",
+
+        Repair: "Đang sửa chữa",
+
+        Broken: "Hỏng",
+
+        Available: "Sẵn sàng",
+
+        Unavailable: "Không sẵn sàng"
+
+    };
+
+    if (
+
+        typeof value === "string" &&
+
+        STATUS[value]
+
+    ) {
+
+        return STATUS[value];
+
+    }
+
+    //----------------------------------
     // Object / JSON
+    //----------------------------------
+
     if (typeof value === "object") {
 
         return JSON.stringify(value);
@@ -318,7 +349,6 @@ function formatValue(value) {
     return value;
 
 }
-
 module.exports = {
 
     createWorkbook,
