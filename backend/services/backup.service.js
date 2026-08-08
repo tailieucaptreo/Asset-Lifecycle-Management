@@ -80,9 +80,6 @@ const SHEETS = [
 // =======================================
 // Build Backup Workbook
 // =======================================
-// =======================================
-// Build Backup Workbook
-// =======================================
 
 async function createBackupWorkbook() {
 
