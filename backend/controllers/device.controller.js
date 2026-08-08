@@ -203,11 +203,11 @@ exports.getDevices = async (req, res) => {
         const data = devices.map(device => ({
 
             ...device,
-        
+
             status: calcMaintenance(device)
-        
+
         }));
-        
+
         res.json(data);
 
     }
@@ -297,41 +297,41 @@ exports.createDevice = async (req, res) => {
         const installDate = parseDate(d.installDate);
 
         const device = await prisma.device.create({
-         
-             data: {
-         
-                 ...d,
-         
-                 category: categoryInfo.category,
-         
-                 originalInstallDate: installDate,
-         
-                 installDate: installDate,
-         
-                 lastMaintenance: parseDate(d.lastMaintenance),
-         
-                 replacementDate: parseDate(d.replacementDate),
-         
-                 expiryDate: parseDate(d.expiryDate)
-         
-             }
-         
+
+            data: {
+
+                ...d,
+
+                category: categoryInfo.category,
+
+                originalInstallDate: installDate,
+
+                installDate: installDate,
+
+                lastMaintenance: parseDate(d.lastMaintenance),
+
+                replacementDate: parseDate(d.replacementDate),
+
+                expiryDate: parseDate(d.expiryDate)
+
+            }
+
         });
 
         await writeHistory({
 
             deviceId: device.id,
-        
+
             action: "CREATE",
-        
+
             user: req.user?.username || "System",
-        
+
             code: device.deviceId,
-        
+
             name: device.name,
-        
+
             note: "Thêm mới thiết bị"
-        
+
         });
 
         res.json(device);
@@ -386,102 +386,102 @@ exports.updateDevice = async (req, res) => {
         const oldDevice = await prisma.device.findUnique({
 
             where: {
-        
+
                 id
-        
+
             }
-        
+
         });
 
         const data = {
 
-             ...d,
-         
-             category: categoryInfo.category,
-         
-             installDate: parseDate(d.installDate),
-         
-             lastMaintenance: parseDate(d.lastMaintenance),
-         
-             replacementDate: parseDate(d.replacementDate)
-         
-         };
-         
-         data.expiryDate = calculateExpiryDate(
-             data.installDate,
-             d.lifespan
-         );
+            ...d,
+
+            category: categoryInfo.category,
+
+            installDate: parseDate(d.installDate),
+
+            lastMaintenance: parseDate(d.lastMaintenance),
+
+            replacementDate: parseDate(d.replacementDate)
+
+        };
+
+        data.expiryDate = calculateExpiryDate(
+            data.installDate,
+            d.lifespan
+        );
 
         if (
-             d.replacementDate &&
-             (
-                 !oldDevice.replacementDate ||
-                 String(oldDevice.replacementDate).slice(0,10) !==
-                 String(d.replacementDate).slice(0,10)
-             )
-         ) {
-         
-             data.installDate = parseDate(d.replacementDate);
-         
-             data.expiryDate = calculateExpiryDate(
-                 data.installDate,
-                 d.lifespan
-             );
-         
-         }
+            d.replacementDate &&
+            (
+                !oldDevice.replacementDate ||
+                String(oldDevice.replacementDate).slice(0, 10) !==
+                String(d.replacementDate).slice(0, 10)
+            )
+        ) {
+
+            data.installDate = parseDate(d.replacementDate);
+
+            data.expiryDate = calculateExpiryDate(
+                data.installDate,
+                d.lifespan
+            );
+
+        }
 
         const updated = await prisma.device.update({
 
-             where: {
-         
-                 id
-         
-             },
-         
-             data
-         
+            where: {
+
+                id
+
+            },
+
+            data
+
         });
 
         const changes = {};
 
         Object.keys(d).forEach(key => {
-        
+
             if (
-        
+
                 normalizeCompare(oldDevice[key]) !==
 
                 normalizeCompare(updated[key])
-        
+
             ) {
-        
+
                 changes[key] = {
-        
+
                     old: oldDevice[key],
-        
+
                     new: updated[key]
-        
+
                 };
-        
+
             }
-        
+
         });
 
         await writeHistory({
 
             deviceId: updated.id,
-        
+
             action: "UPDATE",
-        
+
             user: req.user?.username || "System",
-        
+
             code: updated.deviceId,
-        
+
             name: updated.name,
-        
+
             note: "Cập nhật thiết bị",
-        
+
             changes
-        
+
         });
 
         res.json(updated);
@@ -522,38 +522,38 @@ exports.deleteDevice = async (req, res) => {
 
         });
 
-       if (!device) {
+        if (!device) {
 
-             return res.status(404).json({
-         
-                 message: "Không tìm thấy thiết bị."
-         
-             });
-         
-         }
+            return res.status(404).json({
 
-       await prisma.device.delete({
+                message: "Không tìm thấy thiết bị."
 
-          where: {
-      
-              id
-      
-          }
-      
-      });
+            });
+
+        }
+
+        await prisma.device.delete({
+
+            where: {
+
+                id
+
+            }
+
+        });
 
         await writeHistory({
 
             action: "DELETE",
-        
+
             user: req.user?.username || "System",
-        
+
             code: device.deviceId,
-        
+
             name: device.name,
-        
+
             note: "Xóa thiết bị"
-        
+
         });
 
     }
@@ -608,7 +608,7 @@ exports.previewImport = async (req, res) => {
 
             workbook.Sheets[
 
-                workbook.SheetNames[0]
+            workbook.SheetNames[0]
 
             ];
 
@@ -713,13 +713,13 @@ exports.confirmImport = async (req, res) => {
         }
 
         console.dir(session.rows[0], { depth: null });
-         
+
         const result = await importRows(
-         
-             prisma,
-         
-             session.rows
-         
+
+            prisma,
+
+            session.rows
+
         );
 
         deleteImportSession(sessionId);
@@ -832,11 +832,11 @@ exports.exportDevices = async (req, res) => {
 
                     formatDate(device.installDate),
 
-               "Ngày lắp lần đầu":
-                   formatDate(device.originalInstallDate),
-               
-               "Ngày thay thế":
-                   formatDate(device.replacementDate),
+                "Ngày lắp lần đầu":
+                    formatDate(device.originalInstallDate),
+
+                "Ngày thay thế":
+                    formatDate(device.replacementDate),
 
                 "Bảo dưỡng gần nhất":
 
@@ -997,9 +997,7 @@ exports.updateCategories = async (req, res) => {
         const devices = await prisma.device.findMany({
 
             orderBy: {
-
                 id: "asc"
-
             }
 
         });
@@ -1014,9 +1012,11 @@ exports.updateCategories = async (req, res) => {
 
                 code: device.code,
 
-                model: device.model,
+                // Device không có model
+                model: "",
 
-                brand: device.brand
+                // Device không có brand
+                brand: ""
 
             });
 
@@ -1030,25 +1030,20 @@ exports.updateCategories = async (req, res) => {
 
                 result.category,
 
-                `(${result.score} điểm)`,
-
-                result.brand
+                `(${result.score} điểm)`
 
             );
 
             await prisma.device.update({
 
                 where: {
-
                     id: device.id
-
                 },
 
                 data: {
 
-                    category: result.category,
-
-                    brand: result.brand
+                    category:
+                        result.category
 
                 }
 
@@ -1072,7 +1067,10 @@ exports.updateCategories = async (req, res) => {
 
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "UPDATE CATEGORIES ERROR:",
+            err
+        );
 
         res.status(500).json({
 
