@@ -22,6 +22,10 @@ function createWorkbook() {
 // Format Value
 // =======================================
 
+// =======================================
+// Format Value
+// =======================================
+
 function formatValue(value) {
 
     if (value === null || value === undefined) {
@@ -51,38 +55,48 @@ function formatValue(value) {
     }
 
     // ===================================
-    // Status
+    // Chuẩn hóa trạng thái
     // ===================================
 
     const STATUS = {
 
         Running: "Đang hoạt động",
 
-        Maintenance: "Đang bảo trì",
+        Maintenance: "Bảo trì",
 
         Fault: "Đang lỗi",
 
         Offline: "Dự phòng",
 
-        Resolved: "Đã xử lý",
+        Expired: "Quá tuổi thọ",
 
-        Pending: "Chờ xử lý",
+        Original: "Chưa thay",
 
-        Installed: "Đã lắp đặt",
-
-        Removed: "Đã tháo",
+        Replaced: "Đã thay thế",
 
         Active: "Hoạt động",
 
         Inactive: "Không hoạt động",
 
+        Installed: "Đã lắp đặt",
+
+        Removed: "Đã tháo",
+
+        Resolved: "Đã xử lý",
+
+        Pending: "Chờ xử lý",
+
+        Open: "Đang xử lý",
+
+        Closed: "Đã đóng",
+
         New: "Mới",
 
         Used: "Đã sử dụng",
 
-        Repair: "Đang sửa chữa",
-
         Broken: "Hỏng",
+
+        Repair: "Đang sửa chữa",
 
         Available: "Sẵn sàng",
 
@@ -90,12 +104,25 @@ function formatValue(value) {
 
     };
 
-    if (
-        typeof value === "string" &&
-        STATUS[value]
-    ) {
+    // ===================================
+    // String
+    // ===================================
 
-        return STATUS[value];
+    if (typeof value === "string") {
+
+        return STATUS[value] || value;
+
+    }
+
+    // ===================================
+    // Array
+    // ===================================
+
+    if (Array.isArray(value)) {
+
+        return value
+            .map(item => formatValue(item))
+            .join(", ");
 
     }
 
@@ -107,7 +134,15 @@ function formatValue(value) {
 
         try {
 
-            return JSON.stringify(value);
+            const formatted = {};
+
+            for (const [key, item] of Object.entries(value)) {
+
+                formatted[key] = formatValue(item);
+
+            }
+
+            return JSON.stringify(formatted);
 
         }
 
