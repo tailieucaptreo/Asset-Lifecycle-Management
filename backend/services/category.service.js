@@ -5,27 +5,127 @@ const MANUFACTURERS = require("../data/manufacturers");
 const RULES = require("../data/category.rules");
 const ALIAS = require("../data/category.alias");
 
-// =====================================
+// =======================================
+// CONFIG
+// =======================================
+
+const OTHER_CATEGORY = "Khác";
+
+// Điểm cho manufacturer.
+// Model cụ thể vẫn có ưu tiên cao hơn.
+const BRAND_SCORE = 45;
+
+// Model có score từ mức này trở lên
+// được xem là nhận diện chắc chắn.
+const MODEL_CONFIDENCE_THRESHOLD = 90;
+
+
+// =======================================
+// Normalize Text
+// =======================================
+
+function normalizeText(value = "") {
+
+    return normalize(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
+
+
+// =======================================
+// Escape RegExp
+// =======================================
+
+function escapeRegExp(value = "") {
+
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+}
+
+
+// =======================================
+// Match Phrase
+// =======================================
+
+function hasPhrase(text, phrase) {
+
+    const normalizedText =
+        normalizeText(text);
+
+    const normalizedPhrase =
+        normalizeText(phrase);
+
+    if (
+        !normalizedText ||
+        !normalizedPhrase
+    ) {
+
+        return false;
+
+    }
+
+    const pattern = new RegExp(
+
+        `(?:^|[^a-z0-9])` +
+        `${escapeRegExp(normalizedPhrase)}` +
+        `(?:$|[^a-z0-9])`,
+
+        "i"
+
+    );
+
+    return pattern.test(normalizedText);
+
+}
+
+
+// =======================================
 // Tokenize
-// =====================================
+// =======================================
 
 function tokenize(text = "") {
 
-    const normalized = normalize(text);
+    const normalized =
+        normalizeText(text);
 
-    const tokens = new Set();
+    const tokens =
+        new Set();
 
     normalized
-        .split(/[\s,;:/()]+/)
+
+        .split(/[\s,;:/()[\]{}]+/)
+
         .filter(Boolean)
+
         .forEach(token => {
+
+            // Giữ nguyên mã:
+            // ACS580
+            // S7-1200
+            // PNOZ
+            // EK1100
 
             tokens.add(token);
 
+            // Đồng thời tách thêm:
+            // S7-1200 -> S7 + 1200
+            // ACS-580 -> ACS + 580
+
             token
+
                 .split(/[-_.]+/)
+
                 .filter(Boolean)
-                .forEach(part => tokens.add(part));
+
+                .forEach(part => {
+
+                    tokens.add(part);
+
+                });
 
         });
 
@@ -33,181 +133,452 @@ function tokenize(text = "") {
 
 }
 
-// =====================================
+
+// =======================================
 // Apply Alias
-// =====================================
+//
+// Alias chỉ dùng cho keyword.
+// Không dùng alias để match model.
+// =======================================
 
-function applyAlias(value) {
+function applyAlias(text = "") {
 
-    if (value == null) return "";
+    let output =
+        normalizeText(text);
 
-    const text = String(value);
+    const aliases =
+        Object.entries(ALIAS)
 
-    return text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim();
-}
+            // Alias dài xử lý trước
+            .sort(
+                (a, b) =>
+                    b[0].length -
+                    a[0].length
+            );
 
-// =====================================
-// Detect Manufacturer
-// =====================================
+    for (const [from, to] of aliases) {
 
-function detectBrand(text) {
+        const source =
+            normalizeText(from);
 
-    const normalized = normalize(text);
+        const target =
+            normalizeText(to);
 
-    for (const brand of MANUFACTURERS) {
+        if (
+            !source ||
+            !target
+        ) {
 
-        for (const alias of brand.aliases) {
-
-            if (
-
-                normalized.includes(
-
-                    normalize(alias)
-
-                )
-
-            ) {
-
-                return brand;
-
-            }
+            continue;
 
         }
 
+        const pattern =
+            new RegExp(
+
+                `(?:^|[^a-z0-9])` +
+                `${escapeRegExp(source)}` +
+                `(?=$|[^a-z0-9])`,
+
+                "gi"
+
+            );
+
+        output =
+            output.replace(
+                pattern,
+                match => {
+
+                    const leading =
+                        /^[^a-z0-9]/i.test(match)
+                            ? match[0]
+                            : "";
+
+                    return (
+                        leading +
+                        target
+                    );
+
+                }
+            );
+
     }
 
-    return null;
+    return output
+
+        .replace(/\s+/g, " ")
+
+        .trim();
 
 }
 
-// =====================================
+
+// =======================================
+// Build Text
+// =======================================
+
+function buildText({
+
+    name = "",
+    code = "",
+    model = "",
+    brand = ""
+
+} = {}) {
+
+    return normalizeText(
+
+        [
+
+            name,
+            code,
+            model,
+            brand
+
+        ]
+
+            .filter(Boolean)
+
+            .join(" ")
+
+    );
+
+}
+
+
+// =======================================
+// Detect Manufacturers
+// =======================================
+
+function detectBrands(text) {
+
+    const matches = [];
+
+    for (
+        const brand
+        of MANUFACTURERS
+    ) {
+
+        const aliases =
+            Array.isArray(
+                brand.aliases
+            )
+                ? brand.aliases
+                : [];
+
+        const sortedAliases =
+            aliases.slice().sort(
+
+                (a, b) =>
+                    String(b).length -
+                    String(a).length
+
+            );
+
+        const matchedAlias =
+            sortedAliases.find(
+
+                alias =>
+                    hasPhrase(
+                        text,
+                        alias
+                    )
+
+            );
+
+        if (!matchedAlias) {
+
+            continue;
+
+        }
+
+        let category =
+            brand.defaultCategory ||
+            "";
+
+        // BECKHOFF là category riêng
+        // dù manufacturers.js hiện đặt
+        // defaultCategory = PLC
+
+        if (
+            normalizeText(
+                brand.name
+            ) === "beckhoff"
+        ) {
+
+            category = "BECKHOFF";
+
+        }
+
+        matches.push({
+
+            name:
+                brand.name,
+
+            defaultCategory:
+                category,
+
+            alias:
+                matchedAlias
+
+        });
+
+    }
+
+    return matches;
+
+}
+
+
+// =======================================
 // Create Score Board
-// =====================================
+// =======================================
 
 function createBoard() {
 
     const board = {};
 
-    for (const rule of RULES) {
+    for (
+        const rule
+        of RULES
+    ) {
 
-        board[rule.category] = 0;
+        if (
+            !(rule.category in board)
+        ) {
+
+            board[rule.category] = 0;
+
+        }
 
     }
 
-    board["Khác"] = 0;
+    board[OTHER_CATEGORY] = 0;
 
     return board;
 
 }
 
-// =====================================
-// Score Models (Ưu tiên cao nhất)
-// =====================================
 
-function scoreModels(text, board) {
+// =======================================
+// Match Models
+// =======================================
 
-    const tokens = tokenize(text);
+function matchModels(text) {
 
-    for (const token of tokens) {
+    const tokens =
+        tokenize(text);
 
-        for (const model of MODELS) {
+    const matches = [];
 
-            model.regex.lastIndex = 0;
+    for (
+        const model
+        of MODELS
+    ) {
 
-            if (model.regex.test(token)) {
+        if (
+            !model ||
+            !model.regex
+        ) {
 
-                board[model.category] =
-                    (board[model.category] || 0) +
-                    model.score;
-
-            }
+            continue;
 
         }
 
-    }
+        let matched = false;
 
-}
+        let matchedToken = "";
 
-// =====================================
-// Score Manufacturers
-// =====================================
+        for (
+            const token
+            of tokens
+        ) {
 
-function scoreManufacturers(text, board) {
-
-    const detectedBrand = detectBrand(text);
-
-    if (!detectedBrand) {
-
-        return null;
-
-    }
-
-    board[detectedBrand.category] =
-        (board[detectedBrand.category] || 0) +
-        detectedBrand.score;
-
-    return detectedBrand;
-
-}
-
-// =====================================
-// Score Keywords
-// =====================================
-
-function scoreKeywords(text, board) {
-
-    const normalizedText = normalize(text);
-
-    const tokens = tokenize(normalizedText);
-
-    for (const rule of RULES) {
-
-        for (const keyword of rule.keywords) {
-
-            const keywordText =
-                normalize(keyword.text);
-
-            let matched = false;
-
-            // 1. Match cả chuỗi
             if (
+                model.regex.global ||
+                model.regex.sticky
+            ) {
 
-                normalizedText.includes(
+                model.regex.lastIndex = 0;
 
-                    keywordText
+            }
 
-                )
-
+            if (
+                model.regex.test(token)
             ) {
 
                 matched = true;
 
+                matchedToken =
+                    token;
+
+                break;
+
             }
 
-            // 2. Match từng token
-            else {
+        }
 
-                matched = tokens.some(token =>
+        if (matched) {
 
-                    token === keywordText ||
+            matches.push({
 
-                    token.startsWith(keywordText) ||
+                category:
+                    model.category,
 
-                    keywordText.startsWith(token)
+                score:
+                    Number(model.score) || 0,
 
+                token:
+                    matchedToken,
+
+                regex:
+                    model.regex.toString()
+
+            });
+
+        }
+
+    }
+
+    return matches.sort(
+
+        (a, b) =>
+            b.score -
+            a.score
+
+    );
+
+}
+
+
+// =======================================
+// Score Models
+// =======================================
+
+function scoreModels(
+    matches,
+    board
+) {
+
+    for (
+        const match
+        of matches
+    ) {
+
+        board[match.category] =
+
+            (board[match.category] || 0) +
+
+            match.score;
+
+    }
+
+}
+
+
+// =======================================
+// Score Manufacturers
+// =======================================
+
+function scoreManufacturers(
+    matches,
+    board
+) {
+
+    for (
+        const brand
+        of matches
+    ) {
+
+        if (
+            !brand.defaultCategory
+        ) {
+
+            continue;
+
+        }
+
+        board[
+            brand.defaultCategory
+        ] =
+
+            (
+                board[
+                    brand.defaultCategory
+                ] || 0
+            ) +
+
+            BRAND_SCORE;
+
+    }
+
+}
+
+
+// =======================================
+// Match Keywords
+// =======================================
+
+function matchKeywords(text) {
+
+    const normalized =
+        normalizeText(text);
+
+    // Áp dụng category.alias.js
+    const aliased =
+        applyAlias(normalized);
+
+    const matches = [];
+
+    for (
+        const rule
+        of RULES
+    ) {
+
+        for (
+            const keyword
+            of (
+                rule.keywords || []
+            )
+        ) {
+
+            const keywordText =
+                normalizeText(
+                    keyword.text
                 );
 
+            if (!keywordText) {
+
+                continue;
+
             }
 
-            if (matched) {
+            if (
+                hasPhrase(
+                    aliased,
+                    keywordText
+                )
+            ) {
 
-                board[rule.category] =
-                    (board[rule.category] || 0) +
-                    keyword.weight;
+                matches.push({
+
+                    category:
+                        rule.category,
+
+                    keyword:
+                        keyword.text,
+
+                    weight:
+                        Number(
+                            keyword.weight
+                        ) || 0,
+
+                    priority:
+                        Number(
+                            rule.priority
+                        ) || 0
+
+                });
 
             }
 
@@ -215,31 +586,73 @@ function scoreKeywords(text, board) {
 
     }
 
+    return matches;
+
 }
 
-// =====================================
+
+// =======================================
+// Score Keywords
+// =======================================
+
+function scoreKeywords(
+    matches,
+    board
+) {
+
+    for (
+        const match
+        of matches
+    ) {
+
+        board[match.category] =
+
+            (
+                board[match.category] || 0
+            ) +
+
+            match.weight;
+
+    }
+
+}
+
+
+// =======================================
 // Get Best Category
-// =====================================
+// =======================================
 
-function getBest(board) {
+function getBest(
+    board,
+    modelMatches = []
+) {
 
-    const ranking = Object.entries(board)
+    const ranking =
 
-        .sort((a, b) => b[1] - a[1]);
+        Object.entries(board)
 
-    const [bestCategory, bestScore] =
+            .filter(
+                ([category]) =>
+                    category !==
+                    OTHER_CATEGORY
+            )
 
-        ranking[0] || ["Khác", 0];
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            );
 
-    const secondScore =
 
-        ranking[1]?.[1] || 0;
-
-    if (bestScore <= 0) {
+    // Không có bằng chứng
+    if (
+        !ranking.length ||
+        ranking[0][1] <= 0
+    ) {
 
         return {
 
-            category: "Khác",
+            category:
+                OTHER_CATEGORY,
 
             score: 0,
 
@@ -249,27 +662,90 @@ function getBest(board) {
 
     }
 
-    const confidence = Math.min(
 
-        100,
+    const [
+        bestCategory,
+        bestScore
+    ] = ranking[0];
 
-        Math.round(
 
-            bestScore *
+    const secondScore =
+        ranking[1]?.[1] || 0;
 
-            100 /
 
-            (bestScore + secondScore)
+    // ===================================
+    // MODEL ƯU TIÊN CAO NHẤT
+    // ===================================
 
-        )
+    if (
+        modelMatches.length > 0
+    ) {
 
-    );
+        const bestModel =
+            modelMatches[0];
+
+        if (
+            bestModel.score >=
+            MODEL_CONFIDENCE_THRESHOLD
+        ) {
+
+            return {
+
+                category:
+                    bestModel.category,
+
+                score:
+                    board[
+                        bestModel.category
+                    ] ||
+                    bestModel.score,
+
+                confidence:
+                    100
+
+            };
+
+        }
+
+    }
+
+
+    // ===================================
+    // Confidence
+    // ===================================
+
+    const confidence =
+
+        bestScore === 0
+
+            ? 0
+
+            : Math.min(
+
+                100,
+
+                Math.round(
+
+                    bestScore *
+                    100 /
+
+                    (
+                        bestScore +
+                        secondScore
+                    )
+
+                )
+
+            );
+
 
     return {
 
-        category: bestCategory,
+        category:
+            bestCategory,
 
-        score: bestScore,
+        score:
+            bestScore,
 
         confidence
 
@@ -277,305 +753,211 @@ function getBest(board) {
 
 }
 
-// =====================================
+
+// =======================================
 // Detect Category
-// =====================================
+// =======================================
 
 function detectCategory({
 
     name = "",
-
     code = "",
-
     model = "",
-
     brand = ""
 
 } = {}) {
 
-    const originalText = [
+    // -----------------------------------
+    // Text gốc đã normalize
+    // -----------------------------------
 
-        name,
+    const text =
+        buildText({
 
-        code,
+            name,
+            code,
+            model,
+            brand
 
-        model,
+        });
 
-        brand
 
-    ]
+    // -----------------------------------
+    // Score Board
+    // -----------------------------------
 
-        .filter(Boolean)
+    const board =
+        createBoard();
 
-        .join(" ");
 
-    const text = applyAlias(originalText);
+    // -----------------------------------
+    // 1. MODEL
+    // -----------------------------------
 
-    const board = createBoard();
+    const modelMatches =
+        matchModels(text);
 
-    // 1. Model (ưu tiên cao nhất)
     scoreModels(
-
-        text,
-
+        modelMatches,
         board
-
     );
 
-    // 2. Manufacturer
-    const detectedBrand =
 
-        scoreManufacturers(
+    // -----------------------------------
+    // 2. MANUFACTURER
+    // -----------------------------------
 
-            text,
+    const manufacturerMatches =
+        detectBrands(text);
 
-            board
+    scoreManufacturers(
+        manufacturerMatches,
+        board
+    );
+
+
+    // -----------------------------------
+    // 3. KEYWORD + ALIAS
+    // -----------------------------------
+
+    const keywordMatches =
+        matchKeywords(text);
+
+    scoreKeywords(
+        keywordMatches,
+        board
+    );
+
+
+    // -----------------------------------
+    // BEST CATEGORY
+    // -----------------------------------
+
+    const best =
+        getBest(
+
+            board,
+
+            modelMatches
 
         );
 
-    // 3. Keyword
-    scoreKeywords(
 
-        text,
+    // -----------------------------------
+    // BRAND
+    // -----------------------------------
 
-        board
+    const detectedBrand =
 
-    );
+        manufacturerMatches[0]?.name ||
+        "";
 
-    let result = getBest(board);
 
-    // Áp dụng luật ưu tiên tuyệt đối
-    result = overrideRules(
-    
-        result,
-    
-        text
-    
-    );
-    
+    // -----------------------------------
+    // RESULT
+    // -----------------------------------
+
     return {
-    
-        category: result.category,
-    
+
+        category:
+            best.category,
+
         brand:
-    
+
             brand ||
-    
-            detectedBrand?.name ||
-    
+            detectedBrand ||
             "",
-    
-        score: result.score,
-    
-        confidence: result.confidence,
-    
+
+        score:
+            best.score,
+
+        confidence:
+            best.confidence,
+
         board,
-    
+
+        matched: {
+
+            models:
+                modelMatches,
+
+            manufacturers:
+                manufacturerMatches,
+
+            keywords:
+                keywordMatches
+
+        },
+
         debug: {
-    
+
             text,
-    
-            tokens: tokenize(text)
-    
+
+            aliasText:
+                applyAlias(text),
+
+            tokens:
+                tokenize(text)
+
         }
-    
+
     };
 
 }
 
-// =====================================
-// Override Rules
-// Ưu tiên tuyệt đối theo Model
-// =====================================
 
-function overrideRules(result, text) {
-
-    const tokens = tokenize(text);
-
-    // ========= BIẾN TẦN =========
-
-    if (
-
-        tokens.some(token =>
-
-            /^ACS/i.test(token) ||
-
-            /^ACH/i.test(token) ||
-
-            /^ACQ/i.test(token) ||
-
-            /^DCS/i.test(token) ||
-
-            /^NXA/i.test(token) ||
-
-            /^NXB/i.test(token) ||
-
-            /^NXI/i.test(token) ||
-
-            /^NXS/i.test(token) ||
-
-            /^NXP/i.test(token) ||
-
-            /^VACON/i.test(token) ||
-
-            /^FC51/i.test(token) ||
-
-            /^FC102/i.test(token) ||
-
-            /^FC202/i.test(token) ||
-
-            /^FC302/i.test(token) ||
-
-            /^ATV/i.test(token) ||
-
-            /^MOVIDRIVE/i.test(token) ||
-
-            /^MOVITRAC/i.test(token)
-
-        )
-
-    ) {
-
-        result.category = "Biến tần";
-
-        result.confidence = 100;
-
-    }
-
-    // ========= PLC =========
-
-    if (
-
-        tokens.some(token =>
-
-            /^PSS/i.test(token) ||
-
-            /^PSSU/i.test(token) ||
-
-            /^TM221/i.test(token) ||
-
-            /^TM241/i.test(token) ||
-
-            /^CPU/i.test(token) ||
-
-            /^S7/i.test(token)
-
-        )
-
-    ) {
-
-        result.category = "PLC";
-
-        result.confidence = 100;
-
-    }
-
-    // ========= SAFETY =========
-
-    if (
-
-        tokens.some(token =>
-
-            /^PNOZ/i.test(token) ||
-
-            /^PSEN/i.test(token)
-
-        )
-
-    ) {
-
-        result.category = "An toàn";
-
-        result.confidence = 100;
-
-    }
-
-    // ========= BECKHOFF =========
-
-    if (
-
-        tokens.some(token =>
-
-            /^EL\d+/i.test(token) ||
-
-            /^EK\d+/i.test(token) ||
-
-            /^BK\d+/i.test(token) ||
-
-            /^KL\d+/i.test(token) ||
-
-            /^CX\d+/i.test(token)
-
-        )
-
-    ) {
-
-        result.category = "BECKHOFF";
-
-        result.confidence = 100;
-
-    }
-
-    // ========= NGUỒN =========
-
-    if (
-
-        tokens.some(token =>
-
-            /^QUINT/i.test(token) ||
-
-            /^UNO/i.test(token) ||
-
-            /^TRIO/i.test(token)
-
-        )
-
-    ) {
-
-        result.category = "Nguồn";
-
-        result.confidence = 100;
-
-    }
-
-    return result;
-
-}
-
-// =====================================
+// =======================================
 // Detect Many
-// =====================================
+// =======================================
 
-function detectMany(rows = []) {
+function detectMany(
+    rows = []
+) {
 
     return rows.map(row => ({
 
         ...row,
 
-        categoryInfo: detectCategory({
+        categoryInfo:
+            detectCategory({
 
-            name: row.name,
+                name:
+                    row.name,
 
-            code: row.code,
+                code:
+                    row.code,
 
-            model: row.model,
+                model:
+                    row.model,
 
-            brand: row.brand
+                brand:
+                    row.brand
 
-        })
+            })
 
     }));
 
 }
 
-// =====================================
-// Export
-// =====================================
+
+// =======================================
+// EXPORT
+// =======================================
 
 module.exports = {
 
     detectCategory,
 
-    detectMany
+    detectMany,
+
+    tokenize,
+
+    applyAlias,
+
+    matchModels,
+
+    detectBrands,
+
+    matchKeywords
 
 };
