@@ -1,476 +1,794 @@
-// =======================================
-// Category Rules
-// Keyword dùng để chấm điểm phân loại
-// =======================================
+// ============================================================
+// CATEGORY RULES
+// Asset Lifecycle Management
+// ============================================================
+//
+// Cấu trúc:
+//
+// {
+//     category: "Tên phân loại",
+//     priority: 100,
+//     keywords: ["từ khóa 1", "từ khóa 2"]
+// }
+//
+// priority càng cao => ưu tiên phân loại càng lớn.
+//
+// Thứ tự hiện tại:
+// 1. Biến tần
+// 2. PLC
+// 3. BECKHOFF
+// 4. An toàn
+// 5. Điện điều khiển
+// 6. Cảm biến
+// 7. Động cơ
+// 8. Nguồn
+// 9. Truyền thông
+// 10. Chống sét
+// 11. Khác
+//
+// ============================================================
+
 
 module.exports = [
 
-    // =====================================================
-    // BIẾN TẦN
-    // =====================================================
+    // ========================================================
+    // 1. BIẾN TẦN
+    // ========================================================
 
     {
         category: "Biến tần",
+
         priority: 100,
 
         keywords: [
 
-            { text: "drive", weight: 30 },
-            { text: "vfd", weight: 55 },
-            { text: "inverter", weight: 55 },
-            { text: "frequency converter", weight: 60 },
-            { text: "frequency drive", weight: 55 },
+            "biến tần",
+            "bien tan",
+            "vfd",
+            "frequency drive",
+            "frequency inverter",
+            "inverter drive",
+            "inverter",
 
-            { text: "acs", weight: 45 },
-            { text: "vacon", weight: 55 },
-            { text: "danfoss", weight: 45 },
+            // ABB
+            "abb drive",
+            "acs",
+            "acs580",
+            "acs880",
+            "acs800",
+            "acs550",
+            "acx",
 
-            { text: "sinamics", weight: 55 },
-            { text: "atv", weight: 50 },
+            // VACON
+            "vacon",
+            "vacon nx",
+            "vacon nxi",
+            "vacon nxs",
+            "vacon 100",
+            "vacon 20",
 
-            { text: "movidrive", weight: 55 },
-            { text: "movitrac", weight: 55 },
+            // Danfoss
+            "danfoss drive",
+            "vlt",
+            "fc 302",
+            "fc302",
+            "fc 102",
+            "fc102",
+            "fc 51",
+            "fc51",
 
-            { text: "biến tần", weight: 70 },
-            { text: "bien tan", weight: 70 }
+            // Schneider
+            "altivar",
+            "atv",
+
+            // Siemens
+            "sinamics",
+            "micromaster",
+
+            // Yaskawa
+            "yaskawa drive",
+            "ga500",
+            "ga700",
+
+            // Mitsubishi
+            "mitsubishi inverter",
+            "fr-d",
+            "fr-e",
+            "fr-a",
+
+            // Lenze
+            "lenze inverter",
+            "lenze drive"
         ]
     },
 
 
-    // =====================================================
-    // PLC
-    // =====================================================
+    // ========================================================
+    // 2. PLC
+    // ========================================================
 
     {
         category: "PLC",
-        priority: 98,
 
-        keywords: [
-
-            { text: "plc", weight: 70 },
-            { text: "programmable logic controller", weight: 70 },
-
-            { text: "simatic", weight: 60 },
-            { text: "s7", weight: 60 },
-
-            { text: "pilz", weight: 55 },
-            { text: "pss", weight: 65 },
-            { text: "pssu", weight: 65 },
-
-            { text: "mitsubishi", weight: 45 },
-            { text: "schneider", weight: 40 },
-            { text: "modicon", weight: 55 },
-
-            { text: "allen bradley", weight: 50 },
-            { text: "rockwell", weight: 45 },
-
-            { text: "controller", weight: 40 },
-            { text: "logic controller", weight: 60 },
-
-            { text: "p10 aio", weight: 80 },
-            { text: "p10 di", weight: 80 },
-            { text: "p10 dio", weight: 80 },
-            { text: "p10 do", weight: 80 },
-            { text: "p10 epb", weight: 80 },
-            { text: "p10 epe", weight: 80 }
-        ]
-    },
-
-
-    // =====================================================
-    // BECKHOFF
-    // =====================================================
-
-    {
-        category: "BECKHOFF",
-        priority: 96,
-
-        keywords: [
-
-            { text: "beckhoff", weight: 80 },
-            { text: "beckhoff ethercat", weight: 80 },
-
-            { text: "ethercat", weight: 45 },
-
-            { text: "ek", weight: 25 },
-            { text: "el", weight: 25 },
-            { text: "kl", weight: 25 },
-            { text: "bk", weight: 25 },
-            { text: "cx", weight: 30 }
-        ]
-    },
-
-
-    // =====================================================
-    // AN TOÀN
-    // =====================================================
-
-    {
-        category: "An toàn",
-        priority: 97,
-
-        keywords: [
-
-            { text: "safety", weight: 60 },
-
-            { text: "emergency stop", weight: 80 },
-            { text: "emergency", weight: 45 },
-
-            { text: "estop", weight: 80 },
-            { text: "e-stop", weight: 80 },
-
-            { text: "nút dừng khẩn", weight: 80 },
-            { text: "dừng khẩn", weight: 75 },
-
-            { text: "nút dừng stop", weight: 70 },
-
-            { text: "safety relay", weight: 70 },
-            { text: "safety controller", weight: 70 },
-
-            { text: "light curtain", weight: 65 },
-            { text: "guard switch", weight: 60 },
-            { text: "rope switch", weight: 65 },
-
-            { text: "speed monitor", weight: 65 },
-            { text: "overspeed", weight: 75 },
-
-            { text: "quá tốc", weight: 80 },
-            { text: "quá tốc độ", weight: 80 },
-
-            { text: "anti collision", weight: 70 },
-            { text: "anti-collision", weight: 70 },
-
-            { text: "chống va đập", weight: 75 },
-
-            { text: "khóa an toàn", weight: 70 },
-            { text: "chìa khóa an toàn", weight: 75 },
-
-            { text: "giám sát kẹp cáp", weight: 75 },
-            { text: "bỏ qua giám sát", weight: 65 },
-
-            { text: "bỏ qua quá tốc", weight: 85 },
-            { text: "bỏ qua nút stop", weight: 85 },
-            { text: "bỏ qua thay đổi lực căng", weight: 85 },
-            { text: "bỏ qua vị trí dây cáp", weight: 85 },
-
-            { text: "lực căng cáp", weight: 70 },
-            { text: "vị trí dây cáp", weight: 70 },
-
-            { text: "interlock", weight: 65 }
-        ]
-    },
-
-
-    // =====================================================
-    // CẢM BIẾN
-    // =====================================================
-
-    {
-        category: "Cảm biến",
-        priority: 90,
-
-        keywords: [
-
-            { text: "sensor", weight: 65 },
-            { text: "cảm biến", weight: 75 },
-
-            { text: "encoder", weight: 65 },
-            { text: "resolver", weight: 65 },
-
-            { text: "photoelectric", weight: 60 },
-            { text: "photo sensor", weight: 60 },
-            { text: "cảm biến quang", weight: 65 },
-
-            { text: "laser sensor", weight: 60 },
-
-            { text: "proximity", weight: 60 },
-            { text: "proximity sensor", weight: 65 },
-            { text: "cảm biến tiệm cận", weight: 70 },
-
-            { text: "inductive sensor", weight: 60 },
-
-            { text: "limit switch", weight: 60 },
-            { text: "công tắc hành trình", weight: 70 },
-
-            { text: "reed switch", weight: 55 },
-
-            { text: "temperature sensor", weight: 60 },
-            { text: "cảm biến nhiệt", weight: 70 },
-
-            { text: "pressure sensor", weight: 60 },
-            { text: "cảm biến áp suất", weight: 70 },
-
-            { text: "load cell", weight: 60 },
-            { text: "cảm biến lực", weight: 70 }
-        ]
-    },
-
-
-    // =====================================================
-    // ĐỘNG CƠ
-    // =====================================================
-
-    {
-        category: "Động cơ",
-        priority: 90,
-
-        keywords: [
-
-            { text: "motor", weight: 70 },
-            { text: "động cơ", weight: 80 },
-
-            { text: "servo motor", weight: 75 },
-            { text: "servo", weight: 65 },
-
-            { text: "gear motor", weight: 75 },
-            { text: "gearbox", weight: 45 },
-
-            { text: "hộp số", weight: 45 },
-
-            { text: "brake motor", weight: 70 },
-            { text: "động cơ phanh", weight: 80 },
-
-            { text: "fan motor", weight: 60 },
-            { text: "quạt", weight: 45 },
-            { text: "blower", weight: 45 }
-        ]
-    },
-
-
-    // =====================================================
-    // NGUỒN
-    // =====================================================
-
-    {
-        category: "Nguồn",
-        priority: 88,
-
-        keywords: [
-
-            { text: "battery", weight: 60 },
-            { text: "ắc quy", weight: 70 },
-            { text: "ac quy", weight: 70 },
-
-            { text: "charger", weight: 60 },
-            { text: "battery charger", weight: 70 },
-
-            { text: "bộ sạc", weight: 75 },
-            { text: "victron", weight: 75 },
-
-            { text: "rectifier", weight: 65 },
-            { text: "bộ chỉnh lưu", weight: 75 },
-
-            { text: "transformer", weight: 60 },
-            { text: "máy biến áp", weight: 70 },
-
-            { text: "power module", weight: 60 },
-            { text: "power supply", weight: 60 },
-
-            { text: "bộ nguồn", weight: 70 },
-            { text: "bộ chuyển nguồn", weight: 80 },
-
-            { text: "nguồn", weight: 35 },
-
-            { text: "24 volt", weight: 35 },
-            { text: "24v", weight: 30 },
-            { text: "24vdc", weight: 45 },
-
-            { text: "48 volt", weight: 35 },
-            { text: "48v", weight: 30 },
-            { text: "48vdc", weight: 45 }
-        ]
-    },
-
-
-    // =====================================================
-    // TRUYỀN THÔNG
-    // =====================================================
-
-    {
-        category: "Truyền thông",
-        priority: 87,
-
-        keywords: [
-
-            { text: "ethernet", weight: 55 },
-            { text: "profinet", weight: 65 },
-            { text: "profibus", weight: 65 },
-            { text: "modbus", weight: 65 },
-            { text: "canopen", weight: 65 },
-
-            { text: "gateway", weight: 60 },
-
-            { text: "network switch", weight: 70 },
-            { text: "industrial switch", weight: 70 },
-
-            { text: "fiber converter", weight: 70 },
-            { text: "media converter", weight: 65 },
-
-            { text: "modem", weight: 50 },
-            { text: "communication", weight: 55 },
-
-            { text: "truyền thông", weight: 70 },
-            { text: "mạng", weight: 35 },
-            { text: "switch mạng", weight: 65 },
-
-            { text: "hub", weight: 55 },
-            { text: "network hub", weight: 70 },
-
-            { text: "phonix contact hub", weight: 85 }
-        ]
-    },
-
-
-    // =====================================================
-    // CHỐNG SÉT
-    // =====================================================
-
-    {
-        category: "Chống sét",
         priority: 95,
 
         keywords: [
 
-            { text: "surge protector", weight: 80 },
-            { text: "surge protection", weight: 80 },
-            { text: "surge arrester", weight: 80 },
+            "plc",
+            "p l c",
+            "programmable logic controller",
 
-            { text: "lightning protection", weight: 80 },
-            { text: "lightning arrester", weight: 80 },
+            // Pilz
+            "pilz",
+            "pnoz",
+            "pss",
+            "p10",
+            "p10 aio",
+            "p10 di",
+            "p10 dio",
+            "p10 do",
+            "p10 epb",
+            "p10 epe",
 
-            { text: "chống sét", weight: 90 },
-            { text: "thiết bị chống sét", weight: 90 },
-            { text: "bộ chống sét", weight: 90 },
-            { text: "bảo vệ chống sét", weight: 85 }
+            "pss ai",
+            "pss di",
+            "pss dif",
+            "pss di20",
+            "pss ps",
+            "pss sb",
+            "pss cpu",
+            "pss ps 24v",
+
+            // PLC modules
+            "cpu module",
+            "digital input",
+            "digital output",
+            "analog input",
+            "analog output",
+            "dio",
+            "ai module",
+            "ao module",
+            "di module",
+            "do module",
+
+            // Siemens PLC
+            "simatic",
+            "s7-1200",
+            "s7-1500",
+            "s7-300",
+            "s7-400",
+            "s7-1200",
+
+            // Allen Bradley
+            "allen bradley",
+            "compactlogix",
+            "controllogix",
+            "micrologix",
+
+            // Schneider PLC
+            "modicon",
+            "m340",
+            "m580",
+            "twido",
+
+            // Omron PLC
+            "omron plc",
+            "cj1",
+            "cj2",
+            "nx plc",
+            "cp1",
+
+            // Phoenix PLC
+            "phoenix contact plc",
+            "axioline",
+
+            // PLC Modem
+            "plc modem",
+            "plc - modem"
         ]
     },
 
 
-    // =====================================================
-    // ĐIỆN ĐIỀU KHIỂN
-    // =====================================================
+    // ========================================================
+    // 3. BECKHOFF
+    // ========================================================
 
     {
-        category: "Điện điều khiển",
-        priority: 86,
+        category: "BECKHOFF",
+
+        priority: 90,
 
         keywords: [
 
-            // Relay
-            { text: "relay", weight: 60 },
-            { text: "rơ le", weight: 65 },
-            { text: "role", weight: 60 },
+            "beckhoff",
 
-            { text: "interface relay", weight: 70 },
-            { text: "time relay", weight: 70 },
-            { text: "solid state relay", weight: 70 },
+            "cx",
+            "cx9020",
+            "cx5120",
+            "cx5140",
 
-            // Contactor
-            { text: "contactor", weight: 65 },
-            { text: "khởi động từ", weight: 65 },
+            "ethercat",
+            "ek",
+            "el",
+            "ep",
 
-            // Breaker
-            { text: "breaker", weight: 45 },
-            { text: "circuit breaker", weight: 55 },
+            "ethercat coupler",
+            "ethercat module",
+            "ethercat terminal",
 
-            { text: "mcb", weight: 55 },
-            { text: "mccb", weight: 55 },
-            { text: "rcbo", weight: 55 },
-            { text: "rccb", weight: 65 },
-
-            // Fuse
-            { text: "fuse", weight: 60 },
-            { text: "cầu chì", weight: 70 },
-
-            // Terminal
-            { text: "terminal", weight: 45 },
-            { text: "terminal block", weight: 60 },
-            { text: "cầu đấu", weight: 65 },
-
-            // Selector
-            { text: "selector", weight: 55 },
-            { text: "selector switch", weight: 65 },
-
-            { text: "công tắc", weight: 50 },
-            { text: "công tắc chọn", weight: 65 },
-
-            // Push button
-            { text: "push button", weight: 65 },
-            { text: "pushbutton", weight: 65 },
-
-            { text: "nút nhấn", weight: 65 },
-            { text: "nút ấn", weight: 65 },
-
-            // Pilot lamp
-            { text: "pilot lamp", weight: 55 },
-            { text: "indicator lamp", weight: 55 },
-            { text: "đèn báo", weight: 60 },
-            { text: "đèn cảnh báo", weight: 60 },
-
-            // Buzzer
-            { text: "buzzer", weight: 50 },
-            { text: "horn", weight: 50 },
-            { text: "còi", weight: 50 },
-
-            // Chiết áp
-            { text: "potentiometer", weight: 70 },
-            { text: "chiết áp", weight: 80 },
-            { text: "biến trở", weight: 80 },
-
-            { text: "hiệu chỉnh tốc độ", weight: 60 },
-            { text: "điều chỉnh tốc độ", weight: 60 },
-
-            // Điều khiển
-            { text: "bộ điều khiển", weight: 55 },
-            { text: "điều khiển", weight: 35 },
-
-            // MCR
-            { text: "mcr", weight: 55 },
-
-            // Lọc nhiễu
-            { text: "lọc nhiễu", weight: 65 },
-            { text: "noise filter", weight: 65 },
-            { text: "rcprb", weight: 70 },
-
-            // Optocoupler
-            { text: "optocoupler", weight: 75 },
-
-            // PT100 trong module MCR
-            { text: "pt100", weight: 55 },
-
-            // Công tắc / SW
-            { text: "sw ", weight: 40 },
-
-            { text: "bước tốc độ", weight: 65 },
-            { text: "chọn chế độ", weight: 60 },
-            { text: "chế độ truyền động", weight: 65 },
-            { text: "hướng truyền động", weight: 65 },
-
-            { text: "bơm phanh", weight: 65 },
-            { text: "làm nóng nước làm mát", weight: 65 },
-            { text: "đèn chiếu sáng", weight: 55 },
-
-            // Điện trở
-            { text: "điện trở", weight: 65 },
-            { text: "resistor", weight: 60 },
-
-            // Đồng hồ
-            { text: "đồng hồ", weight: 60 },
-            { text: "ammeter", weight: 60 },
-            { text: "voltmeter", weight: 60 },
-
-            { text: "armature current", weight: 70 },
-            { text: "line current", weight: 65 },
-            { text: "tower fault", weight: 55 },
-
-            // Light / Test / Trip
-            { text: "light test", weight: 55 },
-            { text: "total trip", weight: 50 },
-
-            // Ổ cắm
-            { text: "ổ cắm", weight: 45 },
-            { text: "socket", weight: 45 }
+            "beckhoff plc",
+            "beckhoff cpu",
+            "beckhoff module"
         ]
-    }
+    },
 
+
+    // ========================================================
+    // 4. AN TOÀN
+    // ========================================================
+
+    {
+        category: "An toàn",
+
+        priority: 88,
+
+        keywords: [
+
+            "an toàn",
+            "an toan",
+            "safety",
+
+            "emergency stop",
+            "emergency-stop",
+            "emerg stop",
+            "e-stop",
+            "estop",
+
+            "nút emergency",
+            "nút dừng khẩn cấp",
+            "dừng khẩn cấp",
+
+            "safety relay",
+            "relay safety",
+            "safety controller",
+            "safety plc",
+
+            "safety circuit",
+            "safety switch",
+            "safety sensor",
+
+            "pnoz",
+            "pnoz x",
+            "pnozmulti",
+
+            "s1um",
+
+            "light curtain",
+            "safety light",
+
+            "overspeed",
+            "quá tốc",
+            "qua toc",
+
+            "overspeed switch",
+            "emergency switch"
+        ]
+    },
+
+
+    // ========================================================
+    // 5. ĐIỆN ĐIỀU KHIỂN
+    // ========================================================
+
+    {
+        category: "Điện điều khiển",
+
+        priority: 85,
+
+        keywords: [
+
+            // ------------------------------------------------
+            // Công tắc
+            // ------------------------------------------------
+
+            "công tắc",
+            "cong tac",
+
+            "switch",
+            "sw ",
+
+            "selector switch",
+            "control switch",
+
+            "sw bước tốc độ",
+            "sw bật/tắt bơm phanh",
+            "sw chọn scr truyền động",
+            "sw chọn chế độ truyền động",
+            "sw hướng truyền động",
+            "sw kiểm tra điện áp",
+            "sw làm nóng nước làm mát",
+            "sw phóng cabin",
+            "sw đèn chiếu sáng tuyến",
+
+            // ------------------------------------------------
+            // Chìa khóa điều khiển
+            // ------------------------------------------------
+
+            "chìa khóa",
+            "chia khoa",
+
+            "key switch",
+            "key selector",
+
+            "chìa khóa chọn chế độ vận hành",
+
+            "chìa khóa hệ thống phụ trợ sẵn sàng",
+            "auxiliary ready",
+            "auxilary ready",
+
+            "chìa khóa test mode",
+            "test mode",
+
+            "chìa khóa bỏ qua",
+            "bỏ qua nút stop",
+            "bỏ qua quá tốc",
+            "bỏ qua thay đổi lực căng",
+            "bỏ qua vị trí dây cáp",
+
+            // ------------------------------------------------
+            // Nút nhấn
+            // ------------------------------------------------
+
+            "nút nhấn",
+            "nut nhan",
+
+            "nút bắt đầu",
+            "nút bắt đầu chạy",
+
+            "nút dừng",
+            "nút dừng stop",
+
+            "nút kiểm tra",
+            "nút kiểm tra đèn",
+
+            "push button",
+            "pushbutton",
+            "start button",
+            "stop button",
+
+            // ------------------------------------------------
+            // Relay
+            // ------------------------------------------------
+
+            "relay",
+            "rơ le",
+            "ro le",
+
+            "relay omron",
+            "omron relay",
+
+            "relay plc",
+            "plc-bsc",
+
+            "relay bảo vệ",
+            "relay bảo vệ cao thấp áp",
+
+            // ------------------------------------------------
+            // Optocoupler
+            // ------------------------------------------------
+
+            "optocoupler",
+            "opto coupler",
+            "opto-coupler",
+            "optoisolator",
+
+            // ------------------------------------------------
+            // Điện trở
+            // ------------------------------------------------
+
+            "điện trở",
+            "dien tro",
+            "resistor",
+
+            "fp1",
+            "wid 10",
+            "widwind",
+
+            // ------------------------------------------------
+            // Cầu chì
+            // ------------------------------------------------
+
+            "cầu chì",
+            "cau chi",
+            "fuse",
+
+            "liner 4863",
+            "4863.063",
+
+            // ------------------------------------------------
+            // RCCB / CB
+            // ------------------------------------------------
+
+            "rccb",
+            "rcbo",
+            "mccb",
+            "circuit breaker",
+            "breaker",
+
+            // ------------------------------------------------
+            // Đồng hồ đo
+            // ------------------------------------------------
+
+            "đồng hồ",
+            "dong ho",
+
+            "ammeter",
+            "voltmeter",
+            "current meter",
+            "voltage meter",
+
+            "armature current",
+            "line current",
+            "tower fault",
+
+            "đồng hồ điện áp",
+            "đồng hồ điện áp 3 pha",
+            "đồng hồ điện áp acquy",
+
+            // ------------------------------------------------
+            // Đèn / chỉ thị
+            // ------------------------------------------------
+
+            "đèn cảnh báo",
+            "den canh bao",
+
+            "đèn điện thoại",
+            "den dien thoai",
+
+            "light test",
+            "telephone lamp",
+            "phone lamp",
+
+            // ------------------------------------------------
+            // Total trip / điều khiển
+            // ------------------------------------------------
+
+            "total trip",
+
+            // ------------------------------------------------
+            // Thiết bị đóng cắt / đầu nối
+            // ------------------------------------------------
+
+            "ổ cắm",
+            "o cam",
+
+            "terminal",
+            "terminal block",
+            "connector",
+
+            "contact",
+            "contactor",
+
+            // ------------------------------------------------
+            // Thiết bị tín hiệu
+            // ------------------------------------------------
+
+            "signals",
+            "signal",
+            "fs-signals",
+            "fs signals",
+            "signals dst",
+
+            // ------------------------------------------------
+            // DDW nếu không match truyền thông
+            // KHÔNG thêm ddw-100 ở đây
+            // ------------------------------------------------
+        ]
+    },
+
+
+    // ========================================================
+    // 6. CẢM BIẾN
+    // ========================================================
+
+    {
+        category: "Cảm biến",
+
+        priority: 80,
+
+        keywords: [
+
+            "cảm biến",
+            "cam bien",
+            "sensor",
+
+            "proximity sensor",
+            "proximity",
+
+            "photoelectric",
+            "photo sensor",
+
+            "limit switch",
+            "limit sensor",
+
+            "pressure sensor",
+            "pressure switch",
+
+            "temperature sensor",
+            "temperature switch",
+
+            "pt100",
+            "pt-100",
+
+            "thermocouple",
+
+            "encoder",
+            "resolver",
+
+            "speed sensor",
+            "speed switch",
+
+            "position sensor",
+            "position switch",
+
+            "level sensor",
+            "level switch",
+
+            "flow sensor",
+            "flow switch",
+
+            "current sensor",
+            "voltage sensor",
+
+            "load cell",
+
+            "tension sensor",
+            "cable tension sensor",
+
+            "mcr-t/ui-e pt100",
+            "mcr-c-ui/ui450dci",
+            "mcr-s-10/50-ui-sw"
+        ]
+    },
+
+
+    // ========================================================
+    // 7. ĐỘNG CƠ
+    // ========================================================
+
+    {
+        category: "Động cơ",
+
+        priority: 75,
+
+        keywords: [
+
+            "động cơ",
+            "dong co",
+            "motor",
+
+            "electric motor",
+            "motor drive",
+
+            "brake motor",
+            "brake motor",
+
+            "gear motor",
+            "gearmotor",
+
+            "servo motor",
+            "servo",
+
+            "induction motor",
+
+            "ac motor",
+            "dc motor",
+
+            "motor cooling",
+            "cooling motor",
+
+            "fan motor",
+
+            "main motor",
+            "động cơ chính",
+
+            "động cơ phanh",
+            "động cơ làm mát",
+
+            "m1",
+            "m2"
+        ]
+    },
+
+
+    // ========================================================
+    // 8. NGUỒN
+    // ========================================================
+
+    {
+        category: "Nguồn",
+
+        priority: 70,
+
+        keywords: [
+
+            "nguồn",
+            "nguon",
+
+            "power supply",
+            "power supply unit",
+            "power unit",
+
+            "psu",
+
+            "24v",
+            "24 v",
+            "24vdc",
+            "24 vdc",
+
+            "230vac",
+            "230 vac",
+
+            "110vac",
+            "110 vac",
+
+            "400vac",
+            "400 vac",
+
+            "converter",
+            "bộ chuyển nguồn",
+            "bộ chuyển đổi nguồn",
+
+            "power converter",
+
+            "battery",
+            "acquy",
+            "ắc quy",
+
+            "charger",
+            "battery charger",
+            "bộ sạc",
+
+            "victron",
+
+            "pss ps 24v"
+        ]
+    },
+
+
+    // ========================================================
+    // 9. TRUYỀN THÔNG
+    // ========================================================
+
+    {
+        category: "Truyền thông",
+
+        priority: 65,
+
+        keywords: [
+
+            "truyền thông",
+            "truyen thong",
+
+            "communication",
+
+            "communications",
+
+            "network",
+
+            "networking",
+
+            "ethernet",
+
+            "ethernet switch",
+            "ethernet hub",
+
+            "industrial ethernet",
+
+            "switch network",
+            "network switch",
+
+            "hub",
+
+            "phoenix contact hub",
+            "phoenix contact",
+
+            "hub 8",
+
+            // DDW-100
+            "ddw-100",
+            "ddw100",
+            "ddw",
+
+            "shdsl",
+            "ethernet extender",
+            "ethernet bridge",
+
+            "modem",
+            "communication modem",
+
+            "plc modem",
+
+            "profibus",
+            "profinet",
+            "modbus",
+            "modbus tcp",
+            "modbus rtu",
+
+            "can bus",
+            "canbus",
+
+            "rs232",
+            "rs485",
+
+            "fiber optic",
+            "optical fiber",
+
+            "switch công nghiệp",
+            "switch cong nghiep"
+        ]
+    },
+
+
+    // ========================================================
+    // 10. CHỐNG SÉT
+    // ========================================================
+
+    {
+        category: "Chống sét",
+
+        priority: 92,
+
+        keywords: [
+
+            "chống sét",
+            "chong set",
+
+            "surge protection",
+            "surge protector",
+            "surge arrester",
+            "surge arrestor",
+
+            "lightning protection",
+            "lightning arrester",
+
+            "spd",
+
+            "thiết bị chống sét",
+            "bo chống sét",
+            "bộ chống sét",
+
+            "bls",
+            "blscha",
+            "blschas2",
+
+            "bls-chas2",
+
+            "overvoltage protection",
+            "transient protection"
+        ]
+    },
+
+
+    // ========================================================
+    // 11. KHÁC
+    // ========================================================
+    //
+    // KHÔNG dùng keyword ở đây.
+    //
+    // Nếu thiết bị không match bất kỳ rule nào,
+    // classifier sẽ tự đưa về "Khác".
+    //
+    // Không nên thêm:
+    //
+    // {
+    //     category: "Khác",
+    //     priority: 1,
+    //     keywords: ["..."]
+    // }
+    //
+    // vì sẽ làm rule "Khác" bắt thiết bị trước khi
+    // các rule chuyên ngành xử lý.
+    //
+    // ========================================================
 ];
