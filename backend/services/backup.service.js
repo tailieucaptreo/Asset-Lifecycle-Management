@@ -80,62 +80,96 @@ const SHEETS = [
 // =======================================
 // Build Backup Workbook
 // =======================================
+// =======================================
+// Build Backup Workbook
+// =======================================
 
 async function createBackupWorkbook() {
 
     const workbook = createWorkbook();
 
-    for (const sheet of SHEETS) {
+    // ===================================
+    // Lấy dữ liệu tất cả bảng song song
+    // ===================================
 
-        try {
+    const results = await Promise.all(
 
-            const rows = await sheet.model.findMany({
+        SHEETS.map(async (sheet) => {
 
-                orderBy: {
+            try {
 
-                    id: "asc"
+                const rows =
+                    await sheet.model.findMany({
 
-                }
+                        orderBy: {
+                            id: "asc"
+                        }
 
-            });
+                    });
 
-            const key = {
+                return {
 
-                "01_Thiết bị": "Device",
-            
-                "02_Động cơ": "Motor",
-            
-                "03_Biến tần": "Drive",
-            
-                "04_Thiết bị dự phòng": "SpareDevice"
-            
-            }[sheet.title];
-            
-            addSheet(
-            
-                workbook,
-            
-                sheet.title,
-            
-                rows,
-            
-                HEADERS[key]
-            
-            );
+                    title: sheet.title,
 
-        }
+                    rows
 
-        catch (err) {
+                };
 
-            console.error(
-        
-                `Backup Sheet "${sheet.title}" Error:`,
-        
-                err.message
-        
-            );
-        
-        }
+            }
+
+            catch (err) {
+
+                console.error(
+
+                    `Backup Sheet "${sheet.title}" Error:`,
+
+                    err.message
+
+                );
+
+                return {
+
+                    title: sheet.title,
+
+                    rows: []
+
+                };
+
+            }
+
+        })
+
+    );
+
+    // ===================================
+    // Tạo các Sheet Excel
+    // ===================================
+
+    for (const result of results) {
+
+        const key = {
+
+            "01_Thiết bị": "Device",
+
+            "02_Động cơ": "Motor",
+
+            "03_Biến tần": "Drive",
+
+            "04_Thiết bị dự phòng": "SpareDevice"
+
+        }[result.title];
+
+        addSheet(
+
+            workbook,
+
+            result.title,
+
+            result.rows,
+
+            HEADERS[key]
+
+        );
 
     }
 
