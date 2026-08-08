@@ -155,7 +155,21 @@ async function createBackupWorkbook() {
 
             "03_Biến tần": "Drive",
 
-            "04_Thiết bị dự phòng": "SpareDevice"
+            "04_Thiết bị dự phòng": "SpareDevice",
+
+            "05_Lỗi Biến tần": "DriveFault",
+
+            "06_Lỗi Động cơ": "MotorFault",
+
+            "07_Lỗi ABB": "AbbFaultRecord",
+
+            "08_Lịch sử Thiết bị": "DeviceHistory",
+
+            "09_Lịch sử Động cơ": "MotorHistory",
+
+            "10_Bảo trì Động cơ": "MotorMaintenance",
+
+            "11_Lịch sử Kho": "SpareHistory"
 
         }[result.title];
 
