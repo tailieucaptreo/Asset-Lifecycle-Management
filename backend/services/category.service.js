@@ -5,28 +5,32 @@ const MANUFACTURERS = require("../data/manufacturers");
 const RULES = require("../data/category.rules");
 const ALIAS = require("../data/category.alias");
 
-// =======================================
+// ============================================================
 // CONFIG
-// =======================================
+// ============================================================
 
 const OTHER_CATEGORY = "Khác";
 
-// Điểm cho manufacturer.
-// Model cụ thể vẫn có ưu tiên cao hơn.
+// Điểm manufacturer
 const BRAND_SCORE = 45;
 
-// Model có score từ mức này trở lên
-// được xem là nhận diện chắc chắn.
+// Model từ mức này trở lên được xem là nhận diện chắc chắn
 const MODEL_CONFIDENCE_THRESHOLD = 90;
 
+// Keyword mặc định nếu category.rules.js dùng string
+const DEFAULT_KEYWORD_WEIGHT = 50;
 
-// =======================================
+// Điểm priority được cộng thêm
+const PRIORITY_MULTIPLIER = 0.5;
+
+
+// ============================================================
 // Normalize Text
-// =======================================
+// ============================================================
 
 function normalizeText(value = "") {
 
-    return normalize(value)
+    return normalize(String(value))
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
@@ -36,20 +40,21 @@ function normalizeText(value = "") {
 }
 
 
-// =======================================
+// ============================================================
 // Escape RegExp
-// =======================================
+// ============================================================
 
 function escapeRegExp(value = "") {
 
-    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return String(value)
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 }
 
 
-// =======================================
+// ============================================================
 // Match Phrase
-// =======================================
+// ============================================================
 
 function hasPhrase(text, phrase) {
 
@@ -68,6 +73,31 @@ function hasPhrase(text, phrase) {
 
     }
 
+    /*
+     * Với cụm từ có ký tự đặc biệt như:
+     *
+     * P10 EPE
+     * PSS DI2
+     * DDW-100
+     * MCR-T/UI-E PT100
+     *
+     * không dùng boundary quá chặt.
+     */
+
+    if (
+        normalizedText.includes(
+            normalizedPhrase
+        )
+    ) {
+
+        return true;
+
+    }
+
+    /*
+     * Fallback regex cho từ/cụm từ
+     */
+
     const pattern = new RegExp(
 
         `(?:^|[^a-z0-9])` +
@@ -78,14 +108,16 @@ function hasPhrase(text, phrase) {
 
     );
 
-    return pattern.test(normalizedText);
+    return pattern.test(
+        normalizedText
+    );
 
 }
 
 
-// =======================================
+// ============================================================
 // Tokenize
-// =======================================
+// ============================================================
 
 function tokenize(text = "") {
 
@@ -103,17 +135,7 @@ function tokenize(text = "") {
 
         .forEach(token => {
 
-            // Giữ nguyên mã:
-            // ACS580
-            // S7-1200
-            // PNOZ
-            // EK1100
-
             tokens.add(token);
-
-            // Đồng thời tách thêm:
-            // S7-1200 -> S7 + 1200
-            // ACS-580 -> ACS + 580
 
             token
 
@@ -134,12 +156,9 @@ function tokenize(text = "") {
 }
 
 
-// =======================================
+// ============================================================
 // Apply Alias
-//
-// Alias chỉ dùng cho keyword.
-// Không dùng alias để match model.
-// =======================================
+// ============================================================
 
 function applyAlias(text = "") {
 
@@ -147,16 +166,17 @@ function applyAlias(text = "") {
         normalizeText(text);
 
     const aliases =
-        Object.entries(ALIAS)
-
-            // Alias dài xử lý trước
+        Object.entries(ALIAS || {})
             .sort(
                 (a, b) =>
-                    b[0].length -
-                    a[0].length
+                    String(b[0]).length -
+                    String(a[0]).length
             );
 
-    for (const [from, to] of aliases) {
+    for (
+        const [from, to]
+        of aliases
+    ) {
 
         const source =
             normalizeText(from);
@@ -173,49 +193,36 @@ function applyAlias(text = "") {
 
         }
 
-        const pattern =
-            new RegExp(
+        if (
+            output.includes(source)
+        ) {
 
-                `(?:^|[^a-z0-9])` +
-                `${escapeRegExp(source)}` +
-                `(?=$|[^a-z0-9])`,
+            const pattern =
+                new RegExp(
+                    escapeRegExp(source),
+                    "gi"
+                );
 
-                "gi"
+            output =
+                output.replace(
+                    pattern,
+                    target
+                );
 
-            );
-
-        output =
-            output.replace(
-                pattern,
-                match => {
-
-                    const leading =
-                        /^[^a-z0-9]/i.test(match)
-                            ? match[0]
-                            : "";
-
-                    return (
-                        leading +
-                        target
-                    );
-
-                }
-            );
+        }
 
     }
 
     return output
-
         .replace(/\s+/g, " ")
-
         .trim();
 
 }
 
 
-// =======================================
+// ============================================================
 // Build Text
-// =======================================
+// ============================================================
 
 function buildText({
 
@@ -229,12 +236,10 @@ function buildText({
     return normalizeText(
 
         [
-
             name,
             code,
             model,
             brand
-
         ]
 
             .filter(Boolean)
@@ -246,18 +251,24 @@ function buildText({
 }
 
 
-// =======================================
+// ============================================================
 // Detect Manufacturers
-// =======================================
+// ============================================================
 
-function detectBrands(text) {
+function detectBrands(text = "") {
 
     const matches = [];
 
     for (
         const brand
-        of MANUFACTURERS
+        of MANUFACTURERS || []
     ) {
+
+        if (!brand) {
+
+            continue;
+
+        }
 
         const aliases =
             Array.isArray(
@@ -267,23 +278,21 @@ function detectBrands(text) {
                 : [];
 
         const sortedAliases =
-            aliases.slice().sort(
-
-                (a, b) =>
-                    String(b).length -
-                    String(a).length
-
-            );
+            aliases
+                .slice()
+                .sort(
+                    (a, b) =>
+                        String(b).length -
+                        String(a).length
+                );
 
         const matchedAlias =
             sortedAliases.find(
-
                 alias =>
                     hasPhrase(
                         text,
                         alias
                     )
-
             );
 
         if (!matchedAlias) {
@@ -296,9 +305,9 @@ function detectBrands(text) {
             brand.defaultCategory ||
             "";
 
-        // BECKHOFF là category riêng
-        // dù manufacturers.js hiện đặt
-        // defaultCategory = PLC
+        /*
+         * BECKHOFF là category riêng.
+         */
 
         if (
             normalizeText(
@@ -306,7 +315,8 @@ function detectBrands(text) {
             ) === "beckhoff"
         ) {
 
-            category = "BECKHOFF";
+            category =
+                "BECKHOFF";
 
         }
 
@@ -330,9 +340,9 @@ function detectBrands(text) {
 }
 
 
-// =======================================
+// ============================================================
 // Create Score Board
-// =======================================
+// ============================================================
 
 function createBoard() {
 
@@ -340,8 +350,17 @@ function createBoard() {
 
     for (
         const rule
-        of RULES
+        of RULES || []
     ) {
+
+        if (
+            !rule ||
+            !rule.category
+        ) {
+
+            continue;
+
+        }
 
         if (
             !(rule.category in board)
@@ -360,20 +379,23 @@ function createBoard() {
 }
 
 
-// =======================================
+// ============================================================
 // Match Models
-// =======================================
+// ============================================================
 
 function matchModels(text) {
 
     const tokens =
         tokenize(text);
 
+    const normalizedText =
+        normalizeText(text);
+
     const matches = [];
 
     for (
         const model
-        of MODELS
+        of MODELS || []
     ) {
 
         if (
@@ -389,10 +411,11 @@ function matchModels(text) {
 
         let matchedToken = "";
 
-        for (
-            const token
-            of tokens
-        ) {
+        /*
+         * Ưu tiên kiểm tra toàn bộ text.
+         */
+
+        try {
 
             if (
                 model.regex.global ||
@@ -404,19 +427,76 @@ function matchModels(text) {
             }
 
             if (
-                model.regex.test(token)
+                model.regex.test(
+                    normalizedText
+                )
             ) {
 
                 matched = true;
 
                 matchedToken =
-                    token;
-
-                break;
+                    normalizedText;
 
             }
 
         }
+
+        catch {
+
+            // bỏ qua regex lỗi
+        }
+
+
+        /*
+         * Nếu chưa match toàn text,
+         * kiểm tra từng token.
+         */
+
+        if (!matched) {
+
+            for (
+                const token
+                of tokens
+            ) {
+
+                try {
+
+                    if (
+                        model.regex.global ||
+                        model.regex.sticky
+                    ) {
+
+                        model.regex.lastIndex = 0;
+
+                    }
+
+                    if (
+                        model.regex.test(
+                            token
+                        )
+                    ) {
+
+                        matched = true;
+
+                        matchedToken =
+                            token;
+
+                        break;
+
+                    }
+
+                }
+
+                catch {
+
+                    continue;
+
+                }
+
+            }
+
+        }
+
 
         if (matched) {
 
@@ -426,7 +506,9 @@ function matchModels(text) {
                     model.category,
 
                 score:
-                    Number(model.score) || 0,
+                    Number(
+                        model.score
+                    ) || 0,
 
                 token:
                     matchedToken,
@@ -451,9 +533,9 @@ function matchModels(text) {
 }
 
 
-// =======================================
+// ============================================================
 // Score Models
-// =======================================
+// ============================================================
 
 function scoreModels(
     matches,
@@ -465,20 +547,35 @@ function scoreModels(
         of matches
     ) {
 
+        if (
+            !match.category
+        ) {
+
+            continue;
+
+        }
+
         board[match.category] =
 
-            (board[match.category] || 0) +
+            (
+                board[match.category] ||
+                0
+            ) +
 
-            match.score;
+            (
+                Number(
+                    match.score
+                ) || 0
+            );
 
     }
 
 }
 
 
-// =======================================
+// ============================================================
 // Score Manufacturers
-// =======================================
+// ============================================================
 
 function scoreManufacturers(
     matches,
@@ -515,16 +612,92 @@ function scoreManufacturers(
 }
 
 
-// =======================================
+// ============================================================
+// Normalize Keyword Definition
+//
+// Hỗ trợ:
+//
+// "plc"
+//
+// hoặc:
+//
+// {
+//     text: "plc",
+//     weight: 80
+// }
+//
+// ============================================================
+
+function normalizeKeyword(keyword) {
+
+    // -------------------------------
+    // String
+    // -------------------------------
+
+    if (
+        typeof keyword === "string"
+    ) {
+
+        return {
+
+            text:
+                keyword,
+
+            weight:
+                DEFAULT_KEYWORD_WEIGHT
+
+        };
+
+    }
+
+
+    // -------------------------------
+    // Object
+    // -------------------------------
+
+    if (
+        keyword &&
+        typeof keyword === "object"
+    ) {
+
+        return {
+
+            text:
+                keyword.text ||
+                keyword.keyword ||
+                "",
+
+            weight:
+                Number(
+                    keyword.weight
+                ) ||
+                DEFAULT_KEYWORD_WEIGHT
+
+        };
+
+    }
+
+
+    return {
+
+        text: "",
+
+        weight: 0
+
+    };
+
+}
+
+
+// ============================================================
 // Match Keywords
-// =======================================
+// ============================================================
 
 function matchKeywords(text) {
 
     const normalized =
         normalizeText(text);
 
-    // Áp dụng category.alias.js
     const aliased =
         applyAlias(normalized);
 
@@ -532,15 +705,35 @@ function matchKeywords(text) {
 
     for (
         const rule
-        of RULES
+        of RULES || []
     ) {
 
+        if (
+            !rule ||
+            !rule.category
+        ) {
+
+            continue;
+
+        }
+
+        const priority =
+            Number(
+                rule.priority
+            ) || 0;
+
+
         for (
-            const keyword
+            const rawKeyword
             of (
                 rule.keywords || []
             )
         ) {
+
+            const keyword =
+                normalizeKeyword(
+                    rawKeyword
+                );
 
             const keywordText =
                 normalizeText(
@@ -553,12 +746,33 @@ function matchKeywords(text) {
 
             }
 
+
             if (
                 hasPhrase(
                     aliased,
                     keywordText
                 )
             ) {
+
+                /*
+                 * Score thực tế:
+                 *
+                 * weight
+                 * +
+                 * priority
+                 *
+                 * Keyword cụ thể được ưu tiên.
+                 */
+
+                const score =
+
+                    keyword.weight +
+
+                    (
+                        priority *
+                        PRIORITY_MULTIPLIER
+                    );
+
 
                 matches.push({
 
@@ -569,14 +783,11 @@ function matchKeywords(text) {
                         keyword.text,
 
                     weight:
-                        Number(
-                            keyword.weight
-                        ) || 0,
+                        keyword.weight,
 
-                    priority:
-                        Number(
-                            rule.priority
-                        ) || 0
+                    priority,
+
+                    score
 
                 });
 
@@ -586,14 +797,20 @@ function matchKeywords(text) {
 
     }
 
-    return matches;
+    return matches.sort(
+
+        (a, b) =>
+            b.score -
+            a.score
+
+    );
 
 }
 
 
-// =======================================
+// ============================================================
 // Score Keywords
-// =======================================
+// ============================================================
 
 function scoreKeywords(
     matches,
@@ -605,22 +822,36 @@ function scoreKeywords(
         of matches
     ) {
 
+        if (
+            !match.category
+        ) {
+
+            continue;
+
+        }
+
         board[match.category] =
 
             (
-                board[match.category] || 0
+                board[
+                    match.category
+                ] || 0
             ) +
 
-            match.weight;
+            (
+                Number(
+                    match.score
+                ) || 0
+            );
 
     }
 
 }
 
 
-// =======================================
+// ============================================================
 // Get Best Category
-// =======================================
+// ============================================================
 
 function getBest(
     board,
@@ -632,9 +863,12 @@ function getBest(
         Object.entries(board)
 
             .filter(
-                ([category]) =>
+                ([category, score]) =>
+
                     category !==
-                    OTHER_CATEGORY
+                    OTHER_CATEGORY &&
+
+                    Number(score) > 0
             )
 
             .sort(
@@ -643,10 +877,12 @@ function getBest(
             );
 
 
+    // -----------------------------------
     // Không có bằng chứng
+    // -----------------------------------
+
     if (
-        !ranking.length ||
-        ranking[0][1] <= 0
+        !ranking.length
     ) {
 
         return {
@@ -674,7 +910,7 @@ function getBest(
 
 
     // ===================================
-    // MODEL ƯU TIÊN CAO NHẤT
+    // MODEL ƯU TIÊN
     // ===================================
 
     if (
@@ -685,7 +921,9 @@ function getBest(
             modelMatches[0];
 
         if (
-            bestModel.score >=
+            Number(
+                bestModel.score
+            ) >=
             MODEL_CONFIDENCE_THRESHOLD
         ) {
 
@@ -714,13 +952,14 @@ function getBest(
     // Confidence
     // ===================================
 
-    const confidence =
+    let confidence = 0;
 
-        bestScore === 0
+    if (
+        bestScore > 0
+    ) {
 
-            ? 0
-
-            : Math.min(
+        confidence =
+            Math.min(
 
                 100,
 
@@ -738,6 +977,8 @@ function getBest(
 
             );
 
+    }
+
 
     return {
 
@@ -754,9 +995,9 @@ function getBest(
 }
 
 
-// =======================================
+// ============================================================
 // Detect Category
-// =======================================
+// ============================================================
 
 function detectCategory({
 
@@ -768,7 +1009,7 @@ function detectCategory({
 } = {}) {
 
     // -----------------------------------
-    // Text gốc đã normalize
+    // Build text
     // -----------------------------------
 
     const text =
@@ -783,7 +1024,7 @@ function detectCategory({
 
 
     // -----------------------------------
-    // Score Board
+    // Score board
     // -----------------------------------
 
     const board =
@@ -817,7 +1058,7 @@ function detectCategory({
 
 
     // -----------------------------------
-    // 3. KEYWORD + ALIAS
+    // 3. KEYWORD
     // -----------------------------------
 
     const keywordMatches =
@@ -830,7 +1071,7 @@ function detectCategory({
 
 
     // -----------------------------------
-    // BEST CATEGORY
+    // 4. BEST CATEGORY
     // -----------------------------------
 
     const best =
@@ -844,7 +1085,7 @@ function detectCategory({
 
 
     // -----------------------------------
-    // BRAND
+    // Detected brand
     // -----------------------------------
 
     const detectedBrand =
@@ -854,7 +1095,7 @@ function detectCategory({
 
 
     // -----------------------------------
-    // RESULT
+    // Result
     // -----------------------------------
 
     return {
@@ -906,19 +1147,17 @@ function detectCategory({
 }
 
 
-// =======================================
+// ============================================================
 // Detect Many
-// =======================================
+// ============================================================
 
 function detectMany(
     rows = []
 ) {
 
-    return rows.map(row => ({
+    return rows.map(row => {
 
-        ...row,
-
-        categoryInfo:
+        const categoryInfo =
             detectCategory({
 
                 name:
@@ -933,16 +1172,24 @@ function detectMany(
                 brand:
                     row.brand
 
-            })
+            });
 
-    }));
+        return {
+
+            ...row,
+
+            categoryInfo
+
+        };
+
+    });
 
 }
 
 
-// =======================================
+// ============================================================
 // EXPORT
-// =======================================
+// ============================================================
 
 module.exports = {
 
