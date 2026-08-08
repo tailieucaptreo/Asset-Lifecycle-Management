@@ -270,23 +270,7 @@ module.exports = [
 
             "psu",
 
-            // Điện áp nguồn
-            "24v",
-            "24 v",
-            "24vdc",
-            "24 vdc",
-
-            "230vac",
-            "230 vac",
-
-            "110vac",
-            "110 vac",
-
-            "400vac",
-            "400 vac",
-
             // Bộ chuyển nguồn
-            "converter",
             "bộ chuyển nguồn",
             "bo chuyen nguon",
 
@@ -295,10 +279,9 @@ module.exports = [
 
             "power converter",
 
-            // Acquy
-            "battery",
-            "acquy",
-            "ắc quy",
+            // Mã thiết bị nguồn thực tế
+            "vtm23wc24",
+            "vtm23wc24",
 
             // Bộ sạc
             "charger",
@@ -306,14 +289,17 @@ module.exports = [
             "bộ sạc",
             "bo sac",
 
+            // Acquy
+            "battery",
+            "acquy",
+            "ắc quy",
+
+            // Victron
             "victron",
 
-            // Pilz Power Supply
-            "pss ps 24v",
+            // Pilz power supply
+            "pss ps 24v"
 
-            // Mã nguồn
-            "vtm23wc24",
-            "24vdc vtm23wc24"
         ]
     },
 
@@ -425,11 +411,10 @@ module.exports = [
             "pss di",
             "pss dif",
             "pss di20",
-            "pss ps",
             "pss sb",
             "pss cpu",
 
-            // PLC module
+            // PLC modules
             "cpu module",
 
             "digital input",
@@ -645,6 +630,15 @@ module.exports = [
             "bỏ qua vị trí dây cáp",
             "bo qua vi tri day cap",
 
+            "chìa khóa bật tắt nguồn",
+            "chia khoa bat tat nguon",
+
+            "nút nhấn ngắt nguồn",
+            "nut nhan ngat nguon",
+
+            "ngắt nguồn máy cắt",
+            "ngat nguon may cat",
+
             // ------------------------------------------------
             // Nút nhấn
             // ------------------------------------------------
@@ -708,6 +702,15 @@ module.exports = [
 
             "3rv",
             "3rv1021",
+
+            "relay omron",
+            "omron relay",
+
+            "relay plc",
+            "plc-bsc",
+
+            "rơ le plc",
+            "ro le plc",
 
             // ------------------------------------------------
             // Optocoupler
@@ -838,6 +841,7 @@ module.exports = [
             "fs-signals",
             "fs signals",
             "signals dst"
+  
         ]
     },
 
