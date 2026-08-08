@@ -62,7 +62,7 @@ function formatValue(value) {
 
         Fault: "Đang lỗi",
 
-        Offline: "Ngừng hoạt động",
+        Offline: "Dự phòng",
 
         Resolved: "Đã xử lý",
 
