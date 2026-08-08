@@ -15,27 +15,24 @@ module.exports = [
 
         keywords: [
 
-            { text: "drive", weight: 25 },
-            { text: "vfd", weight: 45 },
-            { text: "inverter", weight: 45 },
-            { text: "frequency converter", weight: 50 },
+            { text: "drive", weight: 30 },
+            { text: "vfd", weight: 55 },
+            { text: "inverter", weight: 55 },
+            { text: "frequency converter", weight: 60 },
+            { text: "frequency drive", weight: 55 },
 
-            { text: "frequency drive", weight: 45 },
+            { text: "acs", weight: 45 },
+            { text: "vacon", weight: 55 },
+            { text: "danfoss", weight: 45 },
 
-            { text: "acs", weight: 35 },
-            { text: "vacon", weight: 45 },
-            { text: "danfoss", weight: 35 },
+            { text: "sinamics", weight: 55 },
+            { text: "atv", weight: 50 },
 
-            { text: "sinamics", weight: 45 },
-            { text: "atv", weight: 40 },
+            { text: "movidrive", weight: 55 },
+            { text: "movitrac", weight: 55 },
 
-            { text: "movidrive", weight: 45 },
-            { text: "movitrac", weight: 45 },
-
-            { text: "biến tần", weight: 55 },
-
-            { text: "bien tan", weight: 55 }
-
+            { text: "biến tần", weight: 70 },
+            { text: "bien tan", weight: 70 }
         ]
     },
 
@@ -46,41 +43,36 @@ module.exports = [
 
     {
         category: "PLC",
-        priority: 95,
+        priority: 98,
 
         keywords: [
 
-            { text: "plc", weight: 60 },
+            { text: "plc", weight: 70 },
+            { text: "programmable logic controller", weight: 70 },
 
-            { text: "programmable logic controller", weight: 60 },
+            { text: "simatic", weight: 60 },
+            { text: "s7", weight: 60 },
 
-            { text: "simatic", weight: 50 },
+            { text: "pilz", weight: 55 },
+            { text: "pss", weight: 65 },
+            { text: "pssu", weight: 65 },
 
-            { text: "s7", weight: 50 },
+            { text: "mitsubishi", weight: 45 },
+            { text: "schneider", weight: 40 },
+            { text: "modicon", weight: 55 },
 
-            { text: "pilz", weight: 40 },
+            { text: "allen bradley", weight: 50 },
+            { text: "rockwell", weight: 45 },
 
-            { text: "pss", weight: 50 },
+            { text: "controller", weight: 40 },
+            { text: "logic controller", weight: 60 },
 
-            { text: "pssu", weight: 50 },
-
-            { text: "mitsubishi", weight: 35 },
-
-            // Không dùng OMRON ở đây.
-            // OMRON có thể là PLC, relay, sensor...
-
-            { text: "schneider", weight: 30 },
-
-            { text: "modicon", weight: 45 },
-
-            { text: "allen bradley", weight: 40 },
-
-            { text: "rockwell", weight: 35 },
-
-            { text: "controller", weight: 30 },
-
-            { text: "logic controller", weight: 50 }
-
+            { text: "p10 aio", weight: 80 },
+            { text: "p10 di", weight: 80 },
+            { text: "p10 dio", weight: 80 },
+            { text: "p10 do", weight: 80 },
+            { text: "p10 epb", weight: 80 },
+            { text: "p10 epe", weight: 80 }
         ]
     },
 
@@ -91,22 +83,20 @@ module.exports = [
 
     {
         category: "BECKHOFF",
-        priority: 90,
+        priority: 96,
 
         keywords: [
 
-            { text: "beckhoff", weight: 70 },
+            { text: "beckhoff", weight: 80 },
+            { text: "beckhoff ethercat", weight: 80 },
 
-            { text: "ethercat", weight: 30 },
+            { text: "ethercat", weight: 45 },
 
-            { text: "ek", weight: 20 },
-            { text: "el", weight: 20 },
-            { text: "kl", weight: 20 },
-            { text: "bk", weight: 20 },
-            { text: "cx", weight: 25 },
-
-            { text: "beckhoff ethercat", weight: 60 }
-
+            { text: "ek", weight: 25 },
+            { text: "el", weight: 25 },
+            { text: "kl", weight: 25 },
+            { text: "bk", weight: 25 },
+            { text: "cx", weight: 30 }
         ]
     },
 
@@ -117,155 +107,56 @@ module.exports = [
 
     {
         category: "An toàn",
-        priority: 90,
+        priority: 97,
 
         keywords: [
 
-            { text: "safety", weight: 45 },
+            { text: "safety", weight: 60 },
 
-            { text: "emergency stop", weight: 60 },
-            { text: "emergency", weight: 35 },
+            { text: "emergency stop", weight: 80 },
+            { text: "emergency", weight: 45 },
 
-            { text: "estop", weight: 60 },
+            { text: "estop", weight: 80 },
+            { text: "e-stop", weight: 80 },
 
-            { text: "e-stop", weight: 60 },
+            { text: "nút dừng khẩn", weight: 80 },
+            { text: "dừng khẩn", weight: 75 },
 
-            { text: "nút dừng khẩn", weight: 60 },
-            { text: "dừng khẩn", weight: 55 },
+            { text: "nút dừng stop", weight: 70 },
 
-            { text: "safety relay", weight: 55 },
+            { text: "safety relay", weight: 70 },
+            { text: "safety controller", weight: 70 },
 
-            { text: "safety controller", weight: 55 },
+            { text: "light curtain", weight: 65 },
+            { text: "guard switch", weight: 60 },
+            { text: "rope switch", weight: 65 },
 
-            { text: "light curtain", weight: 50 },
+            { text: "speed monitor", weight: 65 },
+            { text: "overspeed", weight: 75 },
 
-            { text: "guard switch", weight: 45 },
+            { text: "quá tốc", weight: 80 },
+            { text: "quá tốc độ", weight: 80 },
 
-            { text: "rope switch", weight: 50 },
+            { text: "anti collision", weight: 70 },
+            { text: "anti-collision", weight: 70 },
 
-            { text: "speed monitor", weight: 45 },
+            { text: "chống va đập", weight: 75 },
 
-            { text: "overspeed", weight: 45 },
+            { text: "khóa an toàn", weight: 70 },
+            { text: "chìa khóa an toàn", weight: 75 },
 
-            { text: "anti collision", weight: 50 },
+            { text: "giám sát kẹp cáp", weight: 75 },
+            { text: "bỏ qua giám sát", weight: 65 },
 
-            { text: "anti-collision", weight: 50 },
+            { text: "bỏ qua quá tốc", weight: 85 },
+            { text: "bỏ qua nút stop", weight: 85 },
+            { text: "bỏ qua thay đổi lực căng", weight: 85 },
+            { text: "bỏ qua vị trí dây cáp", weight: 85 },
 
-            { text: "chống va đập", weight: 55 },
+            { text: "lực căng cáp", weight: 70 },
+            { text: "vị trí dây cáp", weight: 70 },
 
-            { text: "khóa an toàn", weight: 50 },
-
-            { text: "chìa khóa an toàn", weight: 50 },
-
-            { text: "giám sát kẹp cáp", weight: 55 },
-
-            { text: "bỏ qua giám sát", weight: 45 },
-
-            { text: "interlock", weight: 45 }
-
-        ]
-    },
-
-
-    // =====================================================
-    // ĐIỆN ĐIỀU KHIỂN
-    // =====================================================
-
-    {
-        category: "Điện điều khiển",
-        priority: 80,
-
-        keywords: [
-
-            // Relay
-            { text: "relay", weight: 40 },
-            { text: "rơ le", weight: 45 },
-            { text: "role", weight: 40 },
-
-            { text: "interface relay", weight: 50 },
-
-            { text: "time relay", weight: 50 },
-
-            { text: "solid state relay", weight: 50 },
-
-            // Contactor
-            { text: "contactor", weight: 45 },
-
-            { text: "khởi động từ", weight: 45 },
-
-            // Breaker
-            { text: "breaker", weight: 30 },
-
-            { text: "circuit breaker", weight: 35 },
-
-            { text: "mcb", weight: 35 },
-            { text: "mccb", weight: 35 },
-            { text: "rcbo", weight: 35 },
-
-            // Terminal
-            { text: "terminal", weight: 30 },
-
-            { text: "terminal block", weight: 40 },
-
-            { text: "cầu đấu", weight: 40 },
-
-            // Selector
-            { text: "selector", weight: 35 },
-
-            { text: "selector switch", weight: 40 },
-
-            { text: "công tắc", weight: 30 },
-
-            { text: "công tắc chọn", weight: 40 },
-
-            // Push button
-            { text: "push button", weight: 40 },
-
-            { text: "pushbutton", weight: 40 },
-
-            { text: "nút nhấn", weight: 40 },
-
-            { text: "nút ấn", weight: 40 },
-
-            // Pilot lamp
-            { text: "pilot lamp", weight: 35 },
-
-            { text: "indicator lamp", weight: 35 },
-
-            { text: "đèn báo", weight: 35 },
-
-            // Buzzer
-            { text: "buzzer", weight: 30 },
-
-            { text: "horn", weight: 30 },
-
-            { text: "còi", weight: 30 },
-
-            // Chiết áp / biến trở
-            { text: "potentiometer", weight: 50 },
-
-            { text: "chiết áp", weight: 55 },
-
-            { text: "biến trở", weight: 55 },
-
-            { text: "hiệu chỉnh tốc độ", weight: 40 },
-
-            { text: "điều chỉnh tốc độ", weight: 40 },
-
-            // Bộ điều khiển
-            { text: "bộ điều khiển", weight: 40 },
-
-            { text: "điều khiển", weight: 25 },
-
-            // Nguồn điều khiển
-            { text: "power supply", weight: 35 },
-
-            { text: "smps", weight: 40 },
-
-            { text: "ups", weight: 40 },
-
-            { text: "psu", weight: 40 }
-
+            { text: "interlock", weight: 65 }
         ]
     },
 
@@ -276,52 +167,41 @@ module.exports = [
 
     {
         category: "Cảm biến",
-        priority: 75,
+        priority: 90,
 
         keywords: [
 
-            { text: "sensor", weight: 50 },
+            { text: "sensor", weight: 65 },
+            { text: "cảm biến", weight: 75 },
 
-            { text: "cảm biến", weight: 55 },
+            { text: "encoder", weight: 65 },
+            { text: "resolver", weight: 65 },
 
-            { text: "encoder", weight: 50 },
+            { text: "photoelectric", weight: 60 },
+            { text: "photo sensor", weight: 60 },
+            { text: "cảm biến quang", weight: 65 },
 
-            { text: "resolver", weight: 50 },
+            { text: "laser sensor", weight: 60 },
 
-            { text: "photoelectric", weight: 45 },
+            { text: "proximity", weight: 60 },
+            { text: "proximity sensor", weight: 65 },
+            { text: "cảm biến tiệm cận", weight: 70 },
 
-            { text: "photo sensor", weight: 45 },
+            { text: "inductive sensor", weight: 60 },
 
-            { text: "cảm biến quang", weight: 50 },
+            { text: "limit switch", weight: 60 },
+            { text: "công tắc hành trình", weight: 70 },
 
-            { text: "laser sensor", weight: 45 },
+            { text: "reed switch", weight: 55 },
 
-            { text: "proximity", weight: 45 },
+            { text: "temperature sensor", weight: 60 },
+            { text: "cảm biến nhiệt", weight: 70 },
 
-            { text: "proximity sensor", weight: 50 },
+            { text: "pressure sensor", weight: 60 },
+            { text: "cảm biến áp suất", weight: 70 },
 
-            { text: "cảm biến tiệm cận", weight: 50 },
-
-            { text: "inductive sensor", weight: 45 },
-
-            { text: "limit switch", weight: 45 },
-
-            { text: "công tắc hành trình", weight: 50 },
-
-            { text: "reed switch", weight: 40 },
-
-            { text: "temperature sensor", weight: 45 },
-
-            { text: "cảm biến nhiệt", weight: 50 },
-
-            { text: "pressure sensor", weight: 45 },
-
-            { text: "cảm biến áp suất", weight: 50 },
-
-            { text: "load cell", weight: 45 },
-
-            { text: "cảm biến lực", weight: 50 }
-
+            { text: "load cell", weight: 60 },
+            { text: "cảm biến lực", weight: 70 }
         ]
     },
 
@@ -332,34 +212,27 @@ module.exports = [
 
     {
         category: "Động cơ",
-        priority: 70,
+        priority: 90,
 
         keywords: [
 
-            { text: "motor", weight: 50 },
+            { text: "motor", weight: 70 },
+            { text: "động cơ", weight: 80 },
 
-            { text: "động cơ", weight: 55 },
+            { text: "servo motor", weight: 75 },
+            { text: "servo", weight: 65 },
 
-            { text: "servo", weight: 50 },
+            { text: "gear motor", weight: 75 },
+            { text: "gearbox", weight: 45 },
 
-            { text: "servo motor", weight: 55 },
+            { text: "hộp số", weight: 45 },
 
-            { text: "gear motor", weight: 55 },
+            { text: "brake motor", weight: 70 },
+            { text: "động cơ phanh", weight: 80 },
 
-            { text: "gearbox", weight: 35 },
-
-            { text: "hộp số", weight: 35 },
-
-            { text: "brake motor", weight: 50 },
-
-            { text: "động cơ phanh", weight: 55 },
-
-            { text: "fan", weight: 25 },
-
-            { text: "blower", weight: 30 },
-
-            { text: "quạt", weight: 30 }
-
+            { text: "fan motor", weight: 60 },
+            { text: "quạt", weight: 45 },
+            { text: "blower", weight: 45 }
         ]
     },
 
@@ -370,54 +243,41 @@ module.exports = [
 
     {
         category: "Nguồn",
-        priority: 70,
+        priority: 88,
 
         keywords: [
 
-            { text: "battery", weight: 45 },
+            { text: "battery", weight: 60 },
+            { text: "ắc quy", weight: 70 },
+            { text: "ac quy", weight: 70 },
 
-            { text: "ắc quy", weight: 50 },
+            { text: "charger", weight: 60 },
+            { text: "battery charger", weight: 70 },
 
-            { text: "ac quy", weight: 50 },
+            { text: "bộ sạc", weight: 75 },
+            { text: "victron", weight: 75 },
 
-            { text: "charger", weight: 45 },
+            { text: "rectifier", weight: 65 },
+            { text: "bộ chỉnh lưu", weight: 75 },
 
-            { text: "battery charger", weight: 55 },
+            { text: "transformer", weight: 60 },
+            { text: "máy biến áp", weight: 70 },
 
-            { text: "bộ sạc", weight: 55 },
+            { text: "power module", weight: 60 },
+            { text: "power supply", weight: 60 },
 
-            { text: "victron", weight: 55 },
+            { text: "bộ nguồn", weight: 70 },
+            { text: "bộ chuyển nguồn", weight: 80 },
 
-            { text: "rectifier", weight: 50 },
+            { text: "nguồn", weight: 35 },
 
-            { text: "bộ chỉnh lưu", weight: 55 },
+            { text: "24 volt", weight: 35 },
+            { text: "24v", weight: 30 },
+            { text: "24vdc", weight: 45 },
 
-            { text: "transformer", weight: 45 },
-
-            { text: "máy biến áp", weight: 50 },
-
-            { text: "power module", weight: 45 },
-
-            { text: "power supply", weight: 45 },
-
-            { text: "bộ nguồn", weight: 50 },
-
-            { text: "bộ chuyển nguồn", weight: 55 },
-
-            { text: "nguồn", weight: 25 },
-
-            { text: "24 volt", weight: 25 },
-
-            { text: "24v", weight: 20 },
-
-            { text: "24vdc", weight: 30 },
-
-            { text: "48 volt", weight: 25 },
-
-            { text: "48v", weight: 20 },
-
-            { text: "48vdc", weight: 30 }
-
+            { text: "48 volt", weight: 35 },
+            { text: "48v", weight: 30 },
+            { text: "48vdc", weight: 45 }
         ]
     },
 
@@ -428,40 +288,35 @@ module.exports = [
 
     {
         category: "Truyền thông",
-        priority: 60,
+        priority: 87,
 
         keywords: [
 
-            { text: "ethernet", weight: 40 },
+            { text: "ethernet", weight: 55 },
+            { text: "profinet", weight: 65 },
+            { text: "profibus", weight: 65 },
+            { text: "modbus", weight: 65 },
+            { text: "canopen", weight: 65 },
 
-            { text: "profinet", weight: 45 },
+            { text: "gateway", weight: 60 },
 
-            { text: "profibus", weight: 45 },
+            { text: "network switch", weight: 70 },
+            { text: "industrial switch", weight: 70 },
 
-            { text: "modbus", weight: 45 },
+            { text: "fiber converter", weight: 70 },
+            { text: "media converter", weight: 65 },
 
-            { text: "canopen", weight: 45 },
+            { text: "modem", weight: 50 },
+            { text: "communication", weight: 55 },
 
-            { text: "gateway", weight: 45 },
+            { text: "truyền thông", weight: 70 },
+            { text: "mạng", weight: 35 },
+            { text: "switch mạng", weight: 65 },
 
-            { text: "network switch", weight: 50 },
+            { text: "hub", weight: 55 },
+            { text: "network hub", weight: 70 },
 
-            { text: "industrial switch", weight: 50 },
-
-            { text: "fiber converter", weight: 50 },
-
-            { text: "media converter", weight: 45 },
-
-            { text: "modem", weight: 35 },
-
-            { text: "communication", weight: 40 },
-
-            { text: "truyền thông", weight: 45 },
-
-            { text: "mạng", weight: 25 },
-
-            { text: "switch mạng", weight: 45 }
-
+            { text: "phonix contact hub", weight: 85 }
         ]
     },
 
@@ -472,28 +327,149 @@ module.exports = [
 
     {
         category: "Chống sét",
-        priority: 80,
+        priority: 95,
 
         keywords: [
 
-            { text: "surge protector", weight: 60 },
+            { text: "surge protector", weight: 80 },
+            { text: "surge protection", weight: 80 },
+            { text: "surge arrester", weight: 80 },
 
-            { text: "surge protection", weight: 60 },
+            { text: "lightning protection", weight: 80 },
+            { text: "lightning arrester", weight: 80 },
 
-            { text: "surge arrester", weight: 60 },
+            { text: "chống sét", weight: 90 },
+            { text: "thiết bị chống sét", weight: 90 },
+            { text: "bộ chống sét", weight: 90 },
+            { text: "bảo vệ chống sét", weight: 85 }
+        ]
+    },
 
-            { text: "lightning protection", weight: 60 },
 
-            { text: "lightning arrester", weight: 60 },
+    // =====================================================
+    // ĐIỆN ĐIỀU KHIỂN
+    // =====================================================
 
-            { text: "chống sét", weight: 65 },
+    {
+        category: "Điện điều khiển",
+        priority: 86,
 
-            { text: "thiết bị chống sét", weight: 65 },
+        keywords: [
 
-            { text: "bộ chống sét", weight: 65 },
+            // Relay
+            { text: "relay", weight: 60 },
+            { text: "rơ le", weight: 65 },
+            { text: "role", weight: 60 },
 
-            { text: "bảo vệ chống sét", weight: 60 }
+            { text: "interface relay", weight: 70 },
+            { text: "time relay", weight: 70 },
+            { text: "solid state relay", weight: 70 },
 
+            // Contactor
+            { text: "contactor", weight: 65 },
+            { text: "khởi động từ", weight: 65 },
+
+            // Breaker
+            { text: "breaker", weight: 45 },
+            { text: "circuit breaker", weight: 55 },
+
+            { text: "mcb", weight: 55 },
+            { text: "mccb", weight: 55 },
+            { text: "rcbo", weight: 55 },
+            { text: "rccb", weight: 65 },
+
+            // Fuse
+            { text: "fuse", weight: 60 },
+            { text: "cầu chì", weight: 70 },
+
+            // Terminal
+            { text: "terminal", weight: 45 },
+            { text: "terminal block", weight: 60 },
+            { text: "cầu đấu", weight: 65 },
+
+            // Selector
+            { text: "selector", weight: 55 },
+            { text: "selector switch", weight: 65 },
+
+            { text: "công tắc", weight: 50 },
+            { text: "công tắc chọn", weight: 65 },
+
+            // Push button
+            { text: "push button", weight: 65 },
+            { text: "pushbutton", weight: 65 },
+
+            { text: "nút nhấn", weight: 65 },
+            { text: "nút ấn", weight: 65 },
+
+            // Pilot lamp
+            { text: "pilot lamp", weight: 55 },
+            { text: "indicator lamp", weight: 55 },
+            { text: "đèn báo", weight: 60 },
+            { text: "đèn cảnh báo", weight: 60 },
+
+            // Buzzer
+            { text: "buzzer", weight: 50 },
+            { text: "horn", weight: 50 },
+            { text: "còi", weight: 50 },
+
+            // Chiết áp
+            { text: "potentiometer", weight: 70 },
+            { text: "chiết áp", weight: 80 },
+            { text: "biến trở", weight: 80 },
+
+            { text: "hiệu chỉnh tốc độ", weight: 60 },
+            { text: "điều chỉnh tốc độ", weight: 60 },
+
+            // Điều khiển
+            { text: "bộ điều khiển", weight: 55 },
+            { text: "điều khiển", weight: 35 },
+
+            // MCR
+            { text: "mcr", weight: 55 },
+
+            // Lọc nhiễu
+            { text: "lọc nhiễu", weight: 65 },
+            { text: "noise filter", weight: 65 },
+            { text: "rcprb", weight: 70 },
+
+            // Optocoupler
+            { text: "optocoupler", weight: 75 },
+
+            // PT100 trong module MCR
+            { text: "pt100", weight: 55 },
+
+            // Công tắc / SW
+            { text: "sw ", weight: 40 },
+
+            { text: "bước tốc độ", weight: 65 },
+            { text: "chọn chế độ", weight: 60 },
+            { text: "chế độ truyền động", weight: 65 },
+            { text: "hướng truyền động", weight: 65 },
+
+            { text: "bơm phanh", weight: 65 },
+            { text: "làm nóng nước làm mát", weight: 65 },
+            { text: "đèn chiếu sáng", weight: 55 },
+
+            // Điện trở
+            { text: "điện trở", weight: 65 },
+            { text: "resistor", weight: 60 },
+
+            // Đồng hồ
+            { text: "đồng hồ", weight: 60 },
+            { text: "ammeter", weight: 60 },
+            { text: "voltmeter", weight: 60 },
+
+            { text: "armature current", weight: 70 },
+            { text: "line current", weight: 65 },
+            { text: "tower fault", weight: 55 },
+
+            // Light / Test / Trip
+            { text: "light test", weight: 55 },
+            { text: "total trip", weight: 50 },
+
+            // Ổ cắm
+            { text: "ổ cắm", weight: 45 },
+            { text: "socket", weight: 45 }
         ]
     }
 
