@@ -1304,12 +1304,10 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // MAP
+    // MAP EXISTING DEVICES
     // ==================================================
 
-    const existingMap =
-      new Map();
-
+    const existingMap = new Map();
 
     for (
       const device
@@ -1317,9 +1315,7 @@ exports.previewImport = async (req, res) => {
     ) {
 
       const locationKey =
-        getSpareLocationKey(
-          device
-        );
+        getSpareLocationKey(device);
 
       if (locationKey) {
 
@@ -1336,6 +1332,13 @@ exports.previewImport = async (req, res) => {
     // ==================================================
     // PROCESS
     // ==================================================
+
+    // Theo dõi các dòng đã xuất hiện trong chính file Excel
+    // Chỉ dòng thứ 2 trở đi bị cảnh báo nếu:
+    // Mã ID + Kho + Tủ + Kệ + Khay giống nhau.
+
+    const seenLocationRows = new Map();
+
 
     for (
       const item
@@ -1354,7 +1357,6 @@ exports.previewImport = async (req, res) => {
 
         warningCount++;
 
-
         previewRows.push({
 
           action: "WARNING",
@@ -1371,33 +1373,35 @@ exports.previewImport = async (req, res) => {
 
         });
 
-
         continue;
 
       }
 
+
       // ==================================================
-      // TRÙNG CÙNG MÃ + VỊ TRÍ TRONG FILE
+      // LOCATION KEY
       // ==================================================
 
       const locationKey =
-        getSpareLocationKey(
-          row
-        );
+        getSpareLocationKey(row);
 
+
+      // ==================================================
+      // KIỂM TRA TRÙNG TRONG FILE EXCEL
+      // ==================================================
 
       if (
-        duplicateLocationKeys.has(
+        seenLocationRows.has(
           locationKey
         )
       ) {
 
-        warningCount++;
-
         const firstRow =
-          firstLocationRow.get(
+          seenLocationRows.get(
             locationKey
           );
+
+        warningCount++;
 
         previewRows.push({
 
@@ -1420,14 +1424,22 @@ exports.previewImport = async (req, res) => {
       }
 
 
+      // Đánh dấu dòng đầu tiên
+      seenLocationRows.set(
+        locationKey,
+        item.rowNumber
+      );
+
+
       // ==================================================
-      // TÌM THIẾT BỊ
+      // TÌM THIẾT BỊ TRONG DATABASE
       // ==================================================
 
       const exist =
         existingMap.get(
           locationKey
         );
+
 
       // ==================================================
       // NEW
@@ -1436,7 +1448,6 @@ exports.previewImport = async (req, res) => {
       if (!exist) {
 
         newCount++;
-
 
         previewRows.push({
 
@@ -1450,7 +1461,6 @@ exports.previewImport = async (req, res) => {
           row
 
         });
-
 
         continue;
 
@@ -1485,8 +1495,7 @@ exports.previewImport = async (req, res) => {
 
 
       if (
-        result.action ===
-        "UPDATE"
+        result.action === "UPDATE"
       ) {
 
         updateCount++;
