@@ -12,6 +12,61 @@ const toNumber = (value, defaultValue = 0) => {
   return isNaN(n) ? defaultValue : n;
 };
 
+// ================= SPARE LOCATION KEY =================
+
+const normalizeKeyText = (value) => {
+
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return "";
+  }
+
+  return String(value)
+    .trim()
+    .toUpperCase();
+
+};
+
+
+const getSpareLocationKey = (row) => {
+
+  const deviceId =
+    normalizeKeyText(
+      row?.deviceId
+    );
+
+  const warehouse =
+    normalizeKeyText(
+      row?.warehouse
+    );
+
+  const cabinet =
+    normalizeKeyText(
+      row?.cabinet
+    );
+
+  const shelf =
+    normalizeKeyText(
+      row?.shelf
+    );
+
+  const slot =
+    normalizeKeyText(
+      row?.slot
+    );
+
+  return [
+    deviceId,
+    warehouse,
+    cabinet,
+    shelf,
+    slot
+  ].join("|");
+
+};
+
 // ================= NORMALIZE ROW =================
 const normalizeSpareRow = (r) => {
 
@@ -1142,6 +1197,63 @@ exports.previewImport = async (req, res) => {
 
         });
 
+    // ==================================================
+    // PHÁT HIỆN TRÙNG CÙNG VỊ TRÍ TRONG FILE
+    // ==================================================
+
+    const firstLocationRow =
+      new Map();
+
+    const duplicateLocationKeys =
+      new Set();
+
+
+    for (
+      const item
+      of normalizedRows
+    ) {
+
+      const row =
+        item.row;
+
+      const deviceId =
+        String(
+          row.deviceId || ""
+        ).trim();
+
+
+      if (!deviceId) {
+        continue;
+      }
+
+
+      const locationKey =
+        getSpareLocationKey(
+          row
+        );
+
+
+      if (
+        firstLocationRow.has(
+          locationKey
+        )
+      ) {
+
+        duplicateLocationKeys.add(
+          locationKey
+        );
+
+      }
+      else {
+
+        firstLocationRow.set(
+          locationKey,
+          item.rowNumber
+        );
+
+      }
+
+    }
 
     // ==================================================
     // CHỈ LẤY ID KHÔNG RỖNG
@@ -1204,16 +1316,15 @@ exports.previewImport = async (req, res) => {
       of existingDevices
     ) {
 
-      const id =
-        String(
-          device.deviceId || ""
-        ).trim();
+      const locationKey =
+        getSpareLocationKey(
+          device
+        );
 
-
-      if (id) {
+      if (locationKey) {
 
         existingMap.set(
-          id,
+          locationKey,
           device
         );
 
@@ -1265,16 +1376,63 @@ exports.previewImport = async (req, res) => {
 
       }
 
+      // ==================================================
+      // TRÙNG CÙNG MÃ + VỊ TRÍ TRONG FILE
+      // ==================================================
+
+      const locationKey =
+        getSpareLocationKey(
+          row
+        );
+
+
+      if (
+        duplicateLocationKeys.has(
+          locationKey
+        )
+      ) {
+
+        warningCount++;
+
+        const firstRow =
+          firstLocationRow.get(
+            locationKey
+          );
+
+        previewRows.push({
+
+          action: "WARNING",
+
+          changedFields: [],
+
+          warning:
+            `Cảnh báo: Trùng Mã ID ${row.deviceId} tại cùng vị trí. Dòng đầu tiên: ${firstRow}.`,
+
+          rowNumber:
+            item.rowNumber,
+
+          row
+
+        });
+
+        continue;
+
+      }
+
 
       // ==================================================
       // TÌM THIẾT BỊ
       // ==================================================
+      const locationKey =
+        getSpareLocationKey(
+          row
+        );
+
 
       const exist =
         existingMap.get(
-          row.deviceId
+          locationKey
         );
-
 
       // ==================================================
       // NEW
@@ -1604,16 +1762,15 @@ exports.confirmImport = async (req, res) => {
       of existingDevices
     ) {
 
-      const id =
-        String(
-          device.deviceId || ""
-        ).trim();
+      const locationKey =
+        getSpareLocationKey(
+          device
+        );
 
-
-      if (id) {
+      if (locationKey) {
 
         deviceMap.set(
-          id,
+          locationKey,
           device
         );
 
@@ -1819,7 +1976,7 @@ exports.confirmImport = async (req, res) => {
 
               const unit =
                 row.unit == null ||
-                row.unit === ""
+                  row.unit === ""
                   ? "Cái"
                   : String(
                     row.unit
@@ -1828,7 +1985,7 @@ exports.confirmImport = async (req, res) => {
 
               const condition =
                 row.condition == null ||
-                row.condition === ""
+                  row.condition === ""
                   ? "New"
                   : String(
                     row.condition
@@ -1848,8 +2005,8 @@ exports.confirmImport = async (req, res) => {
 
               const note =
                 row.note === undefined ||
-                row.note === null ||
-                row.note === ""
+                  row.note === null ||
+                  row.note === ""
                   ? null
                   : String(
                     row.note
@@ -1912,11 +2069,26 @@ exports.confirmImport = async (req, res) => {
               // TÌM DEVICE HIỆN TẠI
               // ================================================
 
+              const locationKey =
+                getSpareLocationKey({
+
+                  deviceId,
+
+                  warehouse,
+
+                  cabinet,
+
+                  shelf,
+
+                  slot
+
+                });
+
+
               let existing =
                 deviceMap.get(
-                  deviceId
+                  locationKey
                 );
-
 
               // ================================================
               // NEW
@@ -1975,10 +2147,9 @@ exports.confirmImport = async (req, res) => {
                 // --------------------------------------------
 
                 deviceMap.set(
-                  deviceId,
+                  locationKey,
                   createdDevice
                 );
-
 
                 committedDevices.push(
                   createdDevice
@@ -2138,10 +2309,9 @@ exports.confirmImport = async (req, res) => {
               // --------------------------------------------
 
               deviceMap.set(
-                deviceId,
+                locationKey,
                 updatedDevice
               );
-
 
               committedDevices.push(
                 updatedDevice
