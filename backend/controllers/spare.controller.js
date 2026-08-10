@@ -15,27 +15,7 @@ const toNumber = (value, defaultValue = 0) => {
 // ================= NORMALIZE ROW =================
 const normalizeSpareRow = (r) => {
 
-  const initialQuantity = toNumber(
-    r["SL"] ??
-    r["Số lượng"] ??
-    r["Ban đầu"] ??
-    r["Initial"],
-    0
-  );
-
-  const importQty = toNumber(
-    r["Nhập"] ??
-    r["Import"],
-    0
-  );
-
-  const exportQty = toNumber(
-    r["Xuất"] ??
-    r["Export"],
-    0
-  );
-
-  const normalizeString = (value, defaultValue = "") => {
+  const toText = (value, defaultValue = "") => {
 
     if (
       value === undefined ||
@@ -45,55 +25,129 @@ const normalizeSpareRow = (r) => {
     }
 
     return String(value).trim();
+
   };
+
+
+  const initialQuantity =
+    toNumber(
+      r["SL"] ??
+      r["Số lượng"] ??
+      r["Ban đầu"] ??
+      r["Initial"],
+      0
+    );
+
+
+  const importQty =
+    toNumber(
+      r["Nhập"] ??
+      r["Import"],
+      0
+    );
+
+
+  const exportQty =
+    toNumber(
+      r["Xuất"] ??
+      r["Export"],
+      0
+    );
+
 
   return {
 
-    name: normalizeString(
-      r["Tên vật tư"] ??
-      r["Tên thiết bị"] ??
-      r["Name"]
-    ),
+    // =========================
+    // THÔNG TIN
+    // =========================
 
-    deviceId: normalizeString(
-      r["Mã vật tư"] ??
-      r["Mã ID"] ??
-      r["Device ID"]
-    ),
+    name:
+      toText(
+        r["Tên vật tư"] ??
+        r["Tên thiết bị"] ??
+        r["Thiết bị"] ??
+        r["Tên"] ??
+        r["Name"]
+      ),
 
-    symbol: normalizeString(
-      r["Ký hiệu"] ??
-      r["Symbol"]
-    ),
 
-    materialCode: normalizeString(
-      r["Mã vật tư SAP"] ??
-      r["Material Code"]
-    ),
+    deviceId:
+      toText(
+        r["Mã vật tư"] ??
+        r["Mã ID"] ??
+        r["Mã TB"] ??
+        r["Mã thiết bị"] ??
+        r["Device ID"] ??
+        r["DeviceID"]
+      ),
 
-    warehouse: normalizeString(
-      r["Kho"]
-    ),
 
-    cabinet: normalizeString(
-      r["Tủ"]
-    ),
+    symbol:
+      toText(
+        r["Ký hiệu"] ??
+        r["Symbol"]
+      ),
 
-    shelf: normalizeString(
-      r["Ngăn"] ??
-      r["Kệ"]
-    ),
 
-    slot: normalizeString(
-      r["Số khay"] ??
-      r["Khay"]
-    ),
+    materialCode:
+      toText(
+        r["Mã vật tư SAP"] ??
+        r["Material Code"] ??
+        r["MaterialCode"]
+      ),
 
-    unit: normalizeString(
-      r["ĐVT"] ??
-      r["Đvt"],
-      "Cái"
-    ),
+
+    // =========================
+    // VỊ TRÍ
+    // =========================
+
+    warehouse:
+      toText(
+        r["Kho"] ??
+        r["Warehouse"]
+      ),
+
+
+    cabinet:
+      toText(
+        r["Tủ"] ??
+        r["Cabinet"]
+      ),
+
+
+    shelf:
+      toText(
+        r["Ngăn"] ??
+        r["Kệ"] ??
+        r["Shelf"]
+      ),
+
+
+    slot:
+      toText(
+        r["Số khay"] ??
+        r["Khay"] ??
+        r["Slot"]
+      ),
+
+
+    // =========================
+    // ĐƠN VỊ
+    // =========================
+
+    unit:
+      toText(
+        r["ĐVT"] ??
+        r["Đvt"] ??
+        r["Đơn vị"] ??
+        r["Unit"],
+        "Cái"
+      ),
+
+
+    // =========================
+    // SỐ LƯỢNG
+    // =========================
 
     initialQuantity,
 
@@ -106,31 +160,48 @@ const normalizeSpareRow = (r) => {
       importQty -
       exportQty,
 
-    condition: normalizeString(
-      r["Tình trạng"],
-      "New"
-    ),
 
-    /*
-     * QUAN TRỌNG:
-     * Excel có thể trả note = 1, 2, 3...
-     * Prisma yêu cầu String | Null
-     */
+    // =========================
+    // TRẠNG THÁI
+    // =========================
+
+    condition:
+      toText(
+        r["Tình trạng"] ??
+        r["Tình trạng thiết bị"] ??
+        r["Condition"],
+        "New"
+      ),
+
+
+    // =========================
+    // GHI CHÚ
+    // =========================
+
     note:
       r["Ghi chú"] === undefined ||
-      r["Ghi chú"] === null ||
-      r["Ghi chú"] === ""
+        r["Ghi chú"] === null ||
+        r["Ghi chú"] === ""
         ? null
-        : String(r["Ghi chú"]).trim(),
+        : String(
+          r["Ghi chú"]
+        ).trim(),
 
-    image: normalizeString(
-      r["Ảnh"] ??
-      r["Image"]
-    )
+
+    // =========================
+    // ẢNH
+    // =========================
+
+    image:
+      toText(
+        r["Ảnh"] ??
+        r["Image"]
+      )
 
   };
 
 };
+
 
 // ================= COMPARE FIELD =================
 const compareField = (oldValue, newValue) => {
@@ -966,6 +1037,7 @@ exports.importExcel = async (req, res) => {
 
 };
 
+
 // ================= PREVIEW IMPORT =================
 exports.previewImport = async (req, res) => {
 
@@ -979,29 +1051,36 @@ exports.previewImport = async (req, res) => {
 
     }
 
-    // =====================
+
+    // ==================================================
     // READ EXCEL
-    // =====================
+    // ==================================================
 
-    const workbook = XLSX.read(
-      req.file.buffer,
-      {
-        type: "buffer"
-      }
-    );
+    const workbook =
+      XLSX.read(
+        req.file.buffer,
+        {
+          type: "buffer"
+        }
+      );
 
-    const sheet =
-      workbook.Sheets[
-        workbook.SheetNames[0]
-      ];
 
-    if (!sheet) {
+    const sheetName =
+      workbook.SheetNames[0];
+
+
+    if (!sheetName) {
 
       return res.status(400).json({
-        error: "Không tìm thấy sheet Excel"
+        error: "File Excel không có sheet"
       });
 
     }
+
+
+    const sheet =
+      workbook.Sheets[sheetName];
+
 
     const rawRows =
       XLSX.utils.sheet_to_json(
@@ -1011,104 +1090,200 @@ exports.previewImport = async (req, res) => {
         }
       );
 
-    // =====================
-    // NORMALIZE
-    // =====================
 
-    const normalizedRows = [];
+    // ==================================================
+    // PREVIEW
+    // ==================================================
 
-    for (const excelRow of rawRows) {
+    const previewRows = [];
 
-      const row =
-        normalizeSpareRow(excelRow);
 
-      // bỏ dòng hoàn toàn trống
-      if (
-        !row.name &&
-        !row.deviceId
-      ) {
-        continue;
-      }
+    let newCount = 0;
 
-      // bắt buộc phải có mã ID
-      if (!row.deviceId) {
+    let updateCount = 0;
 
-        throw new Error(
-          `Thiếu Mã ID ở dòng dữ liệu: ${JSON.stringify(row)}`
-        );
+    let skipCount = 0;
 
-      }
+    let warningCount = 0;
 
-      normalizedRows.push(row);
 
-    }
+    // ==================================================
+    // LOAD DEVICE IDS
+    // ==================================================
 
-    // =====================
-    // LOAD EXISTING DEVICES
-    // =====================
+    const normalizedRows =
+      rawRows
+        .map((excelRow, index) => {
+
+          const row =
+            normalizeSpareRow(
+              excelRow
+            );
+
+
+          return {
+
+            excelRow,
+
+            row,
+
+            rowNumber:
+              index + 2
+
+          };
+
+        })
+        .filter(item => {
+
+          return (
+            item.row.name ||
+            item.row.deviceId
+          );
+
+        });
+
+
+    // ==================================================
+    // CHỈ LẤY ID KHÔNG RỖNG
+    // ==================================================
 
     const deviceIds =
       [
         ...new Set(
+
           normalizedRows
-            .map(row => row.deviceId)
+
+            .map(
+              item =>
+                item.row.deviceId
+            )
+
             .filter(Boolean)
+
+            .map(
+              id =>
+                String(id).trim()
+            )
+
         )
       ];
 
+
+    // ==================================================
+    // LOAD EXISTING DEVICES MỘT LẦN
+    // ==================================================
+
     const existingDevices =
       deviceIds.length > 0
+
         ? await prisma.spareDevice.findMany({
 
-            where: {
-              deviceId: {
-                in: deviceIds
-              }
+          where: {
+
+            deviceId: {
+              in: deviceIds
             }
 
-          })
+          }
+
+        })
+
         : [];
 
-    // =====================
-    // MAP EXISTING
-    // =====================
+
+    // ==================================================
+    // MAP
+    // ==================================================
 
     const existingMap =
       new Map();
 
-    for (const device of existingDevices) {
 
-      existingMap.set(
-        String(device.deviceId).trim(),
-        device
-      );
+    for (
+      const device
+      of existingDevices
+    ) {
+
+      const id =
+        String(
+          device.deviceId || ""
+        ).trim();
+
+
+      if (id) {
+
+        existingMap.set(
+          id,
+          device
+        );
+
+      }
 
     }
 
-    // =====================
-    // PREVIEW
-    // =====================
 
-    const previewRows = [];
+    // ==================================================
+    // PROCESS
+    // ==================================================
 
-    let newCount = 0;
-    let updateCount = 0;
-    let skipCount = 0;
+    for (
+      const item
+      of normalizedRows
+    ) {
 
-    for (const row of normalizedRows) {
+      const row =
+        item.row;
+
+
+      // ==================================================
+      // THIẾU MÃ ID
+      // ==================================================
+
+      if (!row.deviceId) {
+
+        warningCount++;
+
+
+        previewRows.push({
+
+          action: "WARNING",
+
+          changedFields: [],
+
+          warning:
+            "Thiếu Mã ID",
+
+          rowNumber:
+            item.rowNumber,
+
+          row
+
+        });
+
+
+        continue;
+
+      }
+
+
+      // ==================================================
+      // TÌM THIẾT BỊ
+      // ==================================================
 
       const exist =
         existingMap.get(
           row.deviceId
         );
 
-      // =====================
+
+      // ==================================================
       // NEW
-      // =====================
+      // ==================================================
 
       if (!exist) {
 
         newCount++;
+
 
         previewRows.push({
 
@@ -1116,23 +1291,29 @@ exports.previewImport = async (req, res) => {
 
           changedFields: [],
 
+          rowNumber:
+            item.rowNumber,
+
           row
 
         });
+
 
         continue;
 
       }
 
-      // =====================
+
+      // ==================================================
       // UPDATE / SKIP
-      // =====================
+      // ==================================================
 
       const result =
         compareRows(
           exist,
           row
         );
+
 
       previewRows.push({
 
@@ -1142,16 +1323,23 @@ exports.previewImport = async (req, res) => {
         changedFields:
           result.changedFields,
 
+        rowNumber:
+          item.rowNumber,
+
         row
 
       });
 
-      if (result.action === "UPDATE") {
+
+      if (
+        result.action ===
+        "UPDATE"
+      ) {
 
         updateCount++;
 
       }
-      else if (result.action === "SKIP") {
+      else {
 
         skipCount++;
 
@@ -1159,9 +1347,10 @@ exports.previewImport = async (req, res) => {
 
     }
 
-    // =====================
+
+    // ==================================================
     // SUMMARY
-    // =====================
+    // ==================================================
 
     const summary = {
 
@@ -1172,13 +1361,16 @@ exports.previewImport = async (req, res) => {
 
       updateCount,
 
-      skipCount
+      skipCount,
+
+      warningCount
 
     };
 
-    // =====================
+
+    // ==================================================
     // SAVE SESSION
-    // =====================
+    // ==================================================
 
     const expiredAt =
       new Date(
@@ -1186,12 +1378,14 @@ exports.previewImport = async (req, res) => {
         30 * 60 * 1000
       );
 
+
     const session =
       await prisma.importSession.create({
 
         data: {
 
-          module: "spare",
+          module:
+            "spare",
 
           filename:
             req.file.originalname,
@@ -1212,7 +1406,8 @@ exports.previewImport = async (req, res) => {
             summary.skipCount,
 
           userId:
-            req.user?.id || null,
+            req.user?.id ||
+            null,
 
           expiredAt
 
@@ -1220,11 +1415,12 @@ exports.previewImport = async (req, res) => {
 
       });
 
-    // =====================
-    // RESPONSE
-    // =====================
 
-    res.json({
+    // ==================================================
+    // RESPONSE
+    // ==================================================
+
+    return res.json({
 
       ok: true,
 
@@ -1242,15 +1438,19 @@ exports.previewImport = async (req, res) => {
 
   catch (err) {
 
-    console.log(
+    console.error(
       "PREVIEW IMPORT ERROR:",
       err
     );
 
-    res.status(500).json({
+
+    return res.status(500).json({
+
+      ok: false,
 
       error:
-        err.message
+        err.message ||
+        "Preview import thất bại"
 
     });
 
@@ -1353,15 +1553,15 @@ exports.confirmImport = async (req, res) => {
             deviceIds.length > 0
               ? await tx.spareDevice.findMany({
 
-                  where: {
+                where: {
 
-                    deviceId: {
-                      in: deviceIds
-                    }
-
+                  deviceId: {
+                    in: deviceIds
                   }
 
-                })
+                }
+
+              })
               : [];
 
           // ==================================================
@@ -1399,6 +1599,16 @@ exports.confirmImport = async (req, res) => {
 
             if (!row) {
               continue;
+            }
+
+            if (
+              item.action === "WARNING"
+            ) {
+
+              skipped++;
+
+              continue;
+
             }
 
             const deviceId =
@@ -1455,13 +1665,13 @@ exports.confirmImport = async (req, res) => {
 
             const unit =
               row.unit == null ||
-              row.unit === ""
+                row.unit === ""
                 ? "Cái"
                 : String(row.unit).trim();
 
             const condition =
               row.condition == null ||
-              row.condition === ""
+                row.condition === ""
                 ? "New"
                 : String(row.condition).trim();
 
@@ -1471,8 +1681,8 @@ exports.confirmImport = async (req, res) => {
              */
             const note =
               row.note === undefined ||
-              row.note === null ||
-              row.note === ""
+                row.note === null ||
+                row.note === ""
                 ? null
                 : String(row.note).trim();
 
