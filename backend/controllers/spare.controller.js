@@ -1423,11 +1423,6 @@ exports.previewImport = async (req, res) => {
       // ==================================================
       // TÌM THIẾT BỊ
       // ==================================================
-      const locationKey =
-        getSpareLocationKey(
-          row
-        );
-
 
       const exist =
         existingMap.get(
