@@ -1458,6 +1458,7 @@ exports.previewImport = async (req, res) => {
 
 };
 
+
 // ================= CONFIRM IMPORT =================
 exports.confirmImport = async (req, res) => {
 
@@ -1473,9 +1474,9 @@ exports.confirmImport = async (req, res) => {
 
     }
 
-    // ======================
-    // GET SESSION
-    // ======================
+    // ==================================================
+    // LẤY SESSION
+    // ==================================================
 
     const session =
       await prisma.importSession.findUnique({
@@ -1486,6 +1487,7 @@ exports.confirmImport = async (req, res) => {
 
       });
 
+
     if (!session) {
 
       return res.status(404).json({
@@ -1493,6 +1495,7 @@ exports.confirmImport = async (req, res) => {
       });
 
     }
+
 
     if (session.module !== "spare") {
 
@@ -1502,10 +1505,16 @@ exports.confirmImport = async (req, res) => {
 
     }
 
+
+    // ==================================================
+    // LẤY DATA
+    // ==================================================
+
     const rows =
       Array.isArray(session.data)
         ? session.data
         : [];
+
 
     if (rows.length === 0) {
 
@@ -1515,240 +1524,577 @@ exports.confirmImport = async (req, res) => {
 
     }
 
-    // ======================
+
+    // ==================================================
+    // BATCH SIZE
+    // ==================================================
+
+    const BATCH_SIZE = 50;
+
+
+    // ==================================================
     // COUNTER
-    // ======================
+    // ==================================================
 
     let created = 0;
+
     let updated = 0;
+
     let skipped = 0;
 
+    let warning = 0;
+
+
     // ==================================================
-    // TRANSACTION
+    // LẤY TOÀN BỘ DEVICE ID
     // ==================================================
 
-    const result =
-      await prisma.$transaction(
-        async (tx) => {
+    const deviceIds =
+      [
+        ...new Set(
 
-          // ==================================================
-          // LẤY TOÀN BỘ DEVICE ĐÃ CÓ
-          // ==================================================
+          rows
 
-          const deviceIds =
-            [
-              ...new Set(
-                rows
-                  .map(item =>
-                    item?.row?.deviceId
-                  )
-                  .filter(Boolean)
-                  .map(id =>
-                    String(id).trim()
-                  )
-              )
-            ];
+            .map(item =>
+              item?.row?.deviceId
+            )
 
-          const existingDevices =
-            deviceIds.length > 0
-              ? await tx.spareDevice.findMany({
+            .filter(Boolean)
 
-                where: {
+            .map(id =>
+              String(id).trim()
+            )
 
-                  deviceId: {
-                    in: deviceIds
-                  }
+        )
+      ];
 
-                }
 
-              })
-              : [];
+    // ==================================================
+    // LOAD DEVICE HIỆN TẠI
+    // ==================================================
 
-          // ==================================================
-          // MAP DEVICE
-          // ==================================================
+    const existingDevices =
+      deviceIds.length > 0
 
-          const deviceMap =
-            new Map();
+        ? await prisma.spareDevice.findMany({
 
-          for (
-            const device
-            of existingDevices
-          ) {
+          where: {
 
-            deviceMap.set(
-              String(
-                device.deviceId
-              ).trim(),
-              device
-            );
+            deviceId: {
+              in: deviceIds
+            }
 
           }
 
-          // ==================================================
-          // LOOP
-          // ==================================================
+        })
 
-          for (
-            const item
-            of rows
-          ) {
+        : [];
 
-            const row =
-              item?.row;
 
-            if (!row) {
-              continue;
-            }
+    // ==================================================
+    // MAP DEVICE
+    // ==================================================
 
-            if (
-              item.action === "WARNING"
+    const deviceMap =
+      new Map();
+
+
+    for (
+      const device
+      of existingDevices
+    ) {
+
+      const id =
+        String(
+          device.deviceId || ""
+        ).trim();
+
+
+      if (id) {
+
+        deviceMap.set(
+          id,
+          device
+        );
+
+      }
+
+    }
+
+
+    // ==================================================
+    // CHIA BATCH
+    // ==================================================
+
+    const batches = [];
+
+    for (
+      let i = 0;
+      i < rows.length;
+      i += BATCH_SIZE
+    ) {
+
+      batches.push(
+        rows.slice(
+          i,
+          i + BATCH_SIZE
+        )
+      );
+
+    }
+
+
+    console.log(
+      `SPARE IMPORT: ${rows.length} dòng → ${batches.length} batch`
+    );
+
+
+    // ==================================================
+    // XỬ LÝ TỪNG BATCH
+    // ==================================================
+
+    for (
+      let batchIndex = 0;
+      batchIndex < batches.length;
+      batchIndex++
+    ) {
+
+      const batch =
+        batches[batchIndex];
+
+
+      console.log(
+        `SPARE IMPORT: đang xử lý batch ${batchIndex + 1}/${batches.length} - ${batch.length} dòng`
+      );
+
+
+      // ==================================================
+      // COUNTER TẠM CHO BATCH
+      // ==================================================
+
+      let batchCreated = 0;
+
+      let batchUpdated = 0;
+
+      let batchSkipped = 0;
+
+      let batchWarning = 0;
+
+
+      // ==================================================
+      // TRANSACTION CHỈ CHO 1 BATCH
+      // ==================================================
+
+      const batchResult =
+        await prisma.$transaction(
+
+          async (tx) => {
+
+            // ==================================================
+            // KẾT QUẢ DEVICE SAU KHI BATCH THÀNH CÔNG
+            // ==================================================
+
+            const committedDevices = [];
+
+
+            // ==================================================
+            // LOOP BATCH
+            // ==================================================
+
+            for (
+              const item
+              of batch
             ) {
 
-              skipped++;
+              const row =
+                item?.row;
 
-              continue;
 
-            }
+              // ================================================
+              // KHÔNG CÓ ROW
+              // ================================================
 
-            const deviceId =
-              String(
-                row.deviceId || ""
-              ).trim();
+              if (!row) {
 
-            if (!deviceId) {
+                batchSkipped++;
 
-              throw new Error(
-                `Thiếu Mã ID của thiết bị "${row.name || ""}"`
-              );
+                continue;
 
-            }
+              }
 
-            // ==================================================
-            // CHUẨN HÓA GIÁ TRỊ
-            // ==================================================
 
-            const name =
-              row.name == null
-                ? ""
-                : String(row.name).trim();
+              // ================================================
+              // WARNING
+              // ================================================
 
-            const symbol =
-              row.symbol == null
-                ? ""
-                : String(row.symbol).trim();
+              if (
+                item.action === "WARNING"
+              ) {
 
-            const materialCode =
-              row.materialCode == null
-                ? ""
-                : String(row.materialCode).trim();
+                batchWarning++;
 
-            const warehouse =
-              row.warehouse == null
-                ? ""
-                : String(row.warehouse).trim();
+                continue;
 
-            const cabinet =
-              row.cabinet == null
-                ? ""
-                : String(row.cabinet).trim();
+              }
 
-            const shelf =
-              row.shelf == null
-                ? ""
-                : String(row.shelf).trim();
 
-            const slot =
-              row.slot == null
-                ? ""
-                : String(row.slot).trim();
+              // ================================================
+              // DEVICE ID
+              // ================================================
 
-            const unit =
-              row.unit == null ||
+              const deviceId =
+                String(
+                  row.deviceId || ""
+                ).trim();
+
+
+              if (!deviceId) {
+
+                throw new Error(
+                  `Thiếu Mã ID của thiết bị "${row.name || ""}"`
+                );
+
+              }
+
+
+              // ================================================
+              // CHUẨN HÓA TEXT
+              // ================================================
+
+              const name =
+                row.name == null
+                  ? ""
+                  : String(
+                    row.name
+                  ).trim();
+
+
+              const symbol =
+                row.symbol == null
+                  ? ""
+                  : String(
+                    row.symbol
+                  ).trim();
+
+
+              const materialCode =
+                row.materialCode == null
+                  ? ""
+                  : String(
+                    row.materialCode
+                  ).trim();
+
+
+              const warehouse =
+                row.warehouse == null
+                  ? ""
+                  : String(
+                    row.warehouse
+                  ).trim();
+
+
+              const cabinet =
+                row.cabinet == null
+                  ? ""
+                  : String(
+                    row.cabinet
+                  ).trim();
+
+
+              const shelf =
+                row.shelf == null
+                  ? ""
+                  : String(
+                    row.shelf
+                  ).trim();
+
+
+              const slot =
+                row.slot == null
+                  ? ""
+                  : String(
+                    row.slot
+                  ).trim();
+
+
+              const unit =
+                row.unit == null ||
                 row.unit === ""
-                ? "Cái"
-                : String(row.unit).trim();
+                  ? "Cái"
+                  : String(
+                    row.unit
+                  ).trim();
 
-            const condition =
-              row.condition == null ||
+
+              const condition =
+                row.condition == null ||
                 row.condition === ""
-                ? "New"
-                : String(row.condition).trim();
+                  ? "New"
+                  : String(
+                    row.condition
+                  ).trim();
 
-            /*
-             * QUAN TRỌNG:
-             * note luôn String hoặc null
-             */
-            const note =
-              row.note === undefined ||
+
+              // ================================================
+              // NOTE
+              // ================================================
+
+              // Excel có thể trả về:
+              // số
+              // text
+              // null
+              //
+              // Prisma yêu cầu String hoặc null
+
+              const note =
+                row.note === undefined ||
                 row.note === null ||
                 row.note === ""
-                ? null
-                : String(row.note).trim();
+                  ? null
+                  : String(
+                    row.note
+                  ).trim();
 
-            const image =
-              row.image == null
-                ? ""
-                : String(row.image).trim();
 
-            const initialQuantity =
-              toNumber(
-                row.initialQuantity,
-                0
-              );
+              const image =
+                row.image == null
+                  ? ""
+                  : String(
+                    row.image
+                  ).trim();
 
-            const importQty =
-              toNumber(
-                row.importQty,
-                0
-              );
 
-            const exportQty =
-              toNumber(
-                row.exportQty,
-                0
-              );
+              // ================================================
+              // SỐ LƯỢNG
+              // ================================================
 
-            const quantity =
-              initialQuantity +
-              importQty -
-              exportQty;
+              const initialQuantity =
+                toNumber(
+                  row.initialQuantity,
+                  0
+                );
 
-            // ==================================================
-            // KHÔNG CHO ÂM KHO
-            // ==================================================
 
-            if (quantity < 0) {
+              const importQty =
+                toNumber(
+                  row.importQty,
+                  0
+                );
 
-              throw new Error(
-                `Số lượng tồn âm tại thiết bị: ${name} (${deviceId})`
-              );
 
-            }
+              const exportQty =
+                toNumber(
+                  row.exportQty,
+                  0
+                );
 
-            // ==================================================
-            // KIỂM TRA DEVICE HIỆN TẠI
-            // ==================================================
 
-            let existing =
-              deviceMap.get(
-                deviceId
-              );
+              const quantity =
+                initialQuantity +
+                importQty -
+                exportQty;
 
-            // ==================================================
-            // NEW
-            // ==================================================
 
-            if (!existing) {
+              // ================================================
+              // KHÔNG CHO ÂM KHO
+              // ================================================
 
-              const createdDevice =
-                await tx.spareDevice.create({
+              if (quantity < 0) {
+
+                throw new Error(
+                  `Số lượng tồn âm tại thiết bị: ${name} (${deviceId})`
+                );
+
+              }
+
+
+              // ================================================
+              // TÌM DEVICE HIỆN TẠI
+              // ================================================
+
+              let existing =
+                deviceMap.get(
+                  deviceId
+                );
+
+
+              // ================================================
+              // NEW
+              // ================================================
+
+              if (!existing) {
+
+                const createdDevice =
+                  await tx.spareDevice.create({
+
+                    data: {
+
+                      name,
+
+                      deviceId,
+
+                      symbol,
+
+                      materialCode,
+
+                      initialQuantity,
+
+                      quantity,
+
+                      importQty,
+
+                      exportQty,
+
+                      unit,
+
+                      condition,
+
+                      warehouse,
+
+                      cabinet,
+
+                      shelf,
+
+                      slot,
+
+                      note,
+
+                      image,
+
+                      editedBy:
+                        req.user?.username ||
+                        ""
+
+                    }
+
+                  });
+
+
+                // --------------------------------------------
+                // Cập nhật map ngay trong batch
+                // --------------------------------------------
+
+                deviceMap.set(
+                  deviceId,
+                  createdDevice
+                );
+
+
+                committedDevices.push(
+                  createdDevice
+                );
+
+
+                // --------------------------------------------
+                // HISTORY
+                // --------------------------------------------
+
+                await tx.spareHistory.create({
+
+                  data: {
+
+                    action:
+                      "CREATE",
+
+                    deviceName:
+                      name,
+
+                    quantity:
+                      initialQuantity,
+
+                    editedBy:
+                      req.user?.username ||
+                      "System",
+
+                    note:
+                      "Import tạo mới"
+
+                  }
+
+                });
+
+
+                batchCreated++;
+
+                continue;
+
+              }
+
+
+              // ================================================
+              // SO SÁNH
+              // ================================================
+
+              const changedFields =
+                getChangedFields(
+
+                  existing,
+
+                  {
+
+                    name,
+
+                    symbol,
+
+                    materialCode,
+
+                    warehouse,
+
+                    cabinet,
+
+                    shelf,
+
+                    slot,
+
+                    unit,
+
+                    initialQuantity,
+
+                    importQty,
+
+                    exportQty,
+
+                    condition,
+
+                    note
+
+                  }
+
+                );
+
+
+              // ================================================
+              // SKIP
+              // ================================================
+
+              if (
+                changedFields.length === 0
+              ) {
+
+                batchSkipped++;
+
+                continue;
+
+              }
+
+
+              // ================================================
+              // UPDATE
+              // ================================================
+
+              const updatedDevice =
+                await tx.spareDevice.update({
+
+                  where: {
+
+                    id:
+                      existing.id
+
+                  },
 
                   data: {
 
                     name,
-
-                    deviceId,
 
                     symbol,
 
@@ -1779,23 +2125,39 @@ exports.confirmImport = async (req, res) => {
                     image,
 
                     editedBy:
-                      req.user?.username || ""
+                      req.user?.username ||
+                      ""
 
                   }
 
                 });
 
-              // đưa vào map ngay
+
+              // --------------------------------------------
+              // cập nhật map
+              // --------------------------------------------
+
               deviceMap.set(
                 deviceId,
-                createdDevice
+                updatedDevice
               );
+
+
+              committedDevices.push(
+                updatedDevice
+              );
+
+
+              // ================================================
+              // HISTORY
+              // ================================================
 
               await tx.spareHistory.create({
 
                 data: {
 
-                  action: "CREATE",
+                  action:
+                    "UPDATE",
 
                   deviceName:
                     name,
@@ -1808,186 +2170,137 @@ exports.confirmImport = async (req, res) => {
                     "System",
 
                   note:
-                    "Import tạo mới"
+                    `Import cập nhật: ${changedFields.join(", ")}`
 
                 }
 
               });
 
-              created++;
 
-              continue;
-
-            }
-
-            // ==================================================
-            // ĐÃ TỒN TẠI
-            // ==================================================
-
-            const changedFields =
-              getChangedFields(
-                existing,
-                {
-                  name,
-                  symbol,
-                  materialCode,
-                  warehouse,
-                  cabinet,
-                  shelf,
-                  slot,
-                  unit,
-                  initialQuantity,
-                  importQty,
-                  exportQty,
-                  condition,
-                  note
-                }
-              );
-
-            // ==================================================
-            // KHÔNG THAY ĐỔI
-            // ==================================================
-
-            if (
-              changedFields.length === 0
-            ) {
-
-              skipped++;
-
-              continue;
+              batchUpdated++;
 
             }
 
-            // ==================================================
-            // UPDATE
-            // ==================================================
 
-            const updatedDevice =
-              await tx.spareDevice.update({
+            // ================================================
+            // RETURN BATCH
+            // ================================================
 
-                where: {
-                  id: existing.id
-                },
+            return {
 
-                data: {
+              created:
+                batchCreated,
 
-                  name,
+              updated:
+                batchUpdated,
 
-                  symbol,
+              skipped:
+                batchSkipped,
 
-                  materialCode,
+              warning:
+                batchWarning,
 
-                  initialQuantity,
+              committedDevices
 
-                  quantity,
+            };
 
-                  importQty,
+          },
 
-                  exportQty,
+          {
 
-                  unit,
+            maxWait:
+              10000,
 
-                  condition,
-
-                  warehouse,
-
-                  cabinet,
-
-                  shelf,
-
-                  slot,
-
-                  note,
-
-                  image,
-
-                  editedBy:
-                    req.user?.username || ""
-
-                }
-
-              });
-
-            // cập nhật map
-            deviceMap.set(
-              deviceId,
-              updatedDevice
-            );
-
-            await tx.spareHistory.create({
-
-              data: {
-
-                action: "UPDATE",
-
-                deviceName:
-                  name,
-
-                quantity:
-                  initialQuantity,
-
-                editedBy:
-                  req.user?.username ||
-                  "System",
-
-                note:
-                  `Import cập nhật: ${changedFields.join(", ")}`
-
-              }
-
-            });
-
-            updated++;
+            timeout:
+              60000
 
           }
 
-          // ==================================================
-          // XÓA SESSION
-          // ==================================================
+        );
 
-          await tx.importSession.delete({
 
-            where: {
-              id: sessionId
-            }
+      // ==================================================
+      // CỘNG COUNTER SAU KHI TRANSACTION THÀNH CÔNG
+      // ==================================================
 
-          });
+      created +=
+        batchResult.created;
 
-          // ==================================================
-          // RETURN
-          // ==================================================
 
-          return {
+      updated +=
+        batchResult.updated;
 
-            created,
 
-            updated,
+      skipped +=
+        batchResult.skipped;
 
-            skipped
 
-          };
+      warning +=
+        batchResult.warning;
 
-        },
 
-        {
-          maxWait: 10000,
-          timeout: 120000
-        }
+      // ==================================================
+      // LOG
+      // ==================================================
+
+      console.log(
+
+        `SPARE IMPORT: batch ${batchIndex + 1}/${batches.length} OK | ` +
+
+        `NEW=${batchResult.created} | ` +
+
+        `UPDATE=${batchResult.updated} | ` +
+
+        `SKIP=${batchResult.skipped} | ` +
+
+        `WARNING=${batchResult.warning}`
 
       );
 
-    // ======================
-    // RESPONSE
-    // ======================
+    }
 
-    res.json({
+
+    // ==================================================
+    // XÓA SESSION
+    // ==================================================
+
+    await prisma.importSession.delete({
+
+      where: {
+        id: sessionId
+      }
+
+    });
+
+
+    // ==================================================
+    // RESPONSE
+    // ==================================================
+
+    return res.json({
 
       ok: true,
 
       message:
         "Import thành công",
 
-      result
+      result: {
+
+        created,
+
+        updated,
+
+        skipped,
+
+        warning,
+
+        total:
+          created +
+          updated +
+          skipped +
+          warning
+
+      }
 
     });
 
@@ -2000,7 +2313,8 @@ exports.confirmImport = async (req, res) => {
       err
     );
 
-    res.status(500).json({
+
+    return res.status(500).json({
 
       ok: false,
 
