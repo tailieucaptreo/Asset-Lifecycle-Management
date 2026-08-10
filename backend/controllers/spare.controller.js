@@ -79,7 +79,7 @@ const normalizeSpareRow = (rawRow) => {
 
   const r =
     rawRow &&
-    typeof rawRow === "object"
+      typeof rawRow === "object"
       ? rawRow
       : {};
 
@@ -1457,6 +1457,10 @@ exports.previewImport = async (req, res) => {
 
   try {
 
+    // ==================================================
+    // 1. KIỂM TRA FILE
+    // ==================================================
+
     if (!req.file) {
 
       return res.status(400).json({
@@ -1467,7 +1471,7 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // READ EXCEL
+    // 2. ĐỌC FILE EXCEL
     // ==================================================
 
     const workbook =
@@ -1506,11 +1510,10 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // PREVIEW
+    // 3. KHỞI TẠO PREVIEW
     // ==================================================
 
     const previewRows = [];
-
 
     let newCount = 0;
 
@@ -1522,100 +1525,58 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // LOAD DEVICE IDS
+    // 4. NORMALIZE TOÀN BỘ DÒNG EXCEL
     // ==================================================
 
     const normalizedRows =
       rawRows
-        .map((excelRow, index) => {
+        .map(
+          (excelRow, index) => {
 
-          const row =
-            normalizeSpareRow(
-              excelRow
+            const row =
+              normalizeSpareRow(
+                excelRow
+              );
+
+
+            return {
+
+              excelRow,
+
+              row,
+
+              rowNumber:
+                index + 2
+
+            };
+
+          }
+        )
+        .filter(
+          item => {
+
+            return (
+              item.row.name ||
+              item.row.deviceId
             );
 
-
-          return {
-
-            excelRow,
-
-            row,
-
-            rowNumber:
-              index + 2
-
-          };
-
-        })
-        .filter(item => {
-
-          return (
-            item.row.name ||
-            item.row.deviceId
-          );
-
-        });
-
-    // ==================================================
-    // PHÁT HIỆN TRÙNG CÙNG VỊ TRÍ TRONG FILE
-    // ==================================================
-
-    const firstLocationRow =
-      new Map();
-
-    const duplicateLocationKeys =
-      new Set();
-
-
-    for (
-      const item
-      of normalizedRows
-    ) {
-
-      const row =
-        item.row;
-
-      const deviceId =
-        String(
-          row.deviceId || ""
-        ).trim();
-
-
-      if (!deviceId) {
-        continue;
-      }
-
-
-      const locationKey =
-        getSpareLocationKey(
-          row
+          }
         );
 
 
-      if (
-        firstLocationRow.has(
-          locationKey
-        )
-      ) {
-
-        duplicateLocationKeys.add(
-          locationKey
-        );
-
-      }
-      else {
-
-        firstLocationRow.set(
-          locationKey,
-          item.rowNumber
-        );
-
-      }
-
-    }
-
     // ==================================================
-    // CHỈ LẤY ID KHÔNG RỖNG
+    // 5. LẤY TOÀN BỘ DEVICE ID
+    //
+    // QUAN TRỌNG:
+    //
+    // Không dùng deviceId làm khóa duy nhất.
+    //
+    // Vì một Mã ID có thể có:
+    //
+    // 10012345 | KHO
+    // 10012345 | GA 02
+    // 10012345 | GA 03
+    //
     // ==================================================
 
     const deviceIds =
@@ -1626,22 +1587,19 @@ exports.previewImport = async (req, res) => {
 
             .map(
               item =>
-                item.row.deviceId
+                String(
+                  item.row.deviceId || ""
+                ).trim()
             )
 
             .filter(Boolean)
-
-            .map(
-              id =>
-                String(id).trim()
-            )
 
         )
       ];
 
 
     // ==================================================
-    // LOAD EXISTING DEVICES MỘT LẦN
+    // 6. LOAD THIẾT BỊ HIỆN CÓ TRONG DATABASE
     // ==================================================
 
     const existingDevices =
@@ -1652,7 +1610,10 @@ exports.previewImport = async (req, res) => {
           where: {
 
             deviceId: {
-              in: deviceIds
+
+              in:
+                deviceIds
+
             }
 
           }
@@ -1663,10 +1624,30 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // MAP EXISTING DEVICES
+    // 7. MAP DATABASE THEO:
+    //
+    // Mã ID
+    // +
+    // Kho
+    // +
+    // Tủ
+    // +
+    // Kệ
+    // +
+    // Khay
+    //
+    // Ví dụ:
+    //
+    // 10012345|KHO|||
+    // 10012345|GA 02|||
+    // 10012345|GA 03|||
+    //
+    // là 3 thiết bị khác nhau.
     // ==================================================
 
-    const existingMap = new Map();
+    const existingMap =
+      new Map();
+
 
     for (
       const device
@@ -1674,30 +1655,56 @@ exports.previewImport = async (req, res) => {
     ) {
 
       const locationKey =
-        getSpareLocationKey(device);
-
-      if (locationKey) {
-
-        existingMap.set(
-          locationKey,
+        getSpareLocationKey(
           device
         );
 
+
+      if (!locationKey) {
+        continue;
       }
+
+
+      existingMap.set(
+        locationKey,
+        device
+      );
 
     }
 
 
     // ==================================================
-    // PROCESS
+    // 8. MAP DÒNG ĐÃ GẶP TRONG FILE EXCEL
+    //
+    // Dùng để xử lý:
+    //
+    // Excel:
+    //
+    // 10012345 | GA 02
+    // 10012345 | GA 02
+    //
+    // Hai dòng hoàn toàn giống nhau
+    // => dòng 1 NEW
+    // => dòng 2 SKIP
+    //
+    // Nếu dữ liệu dòng 2 khác:
+    // => UPDATE
+    //
+    // Nhưng:
+    //
+    // 10012345 | GA 02
+    // 10012345 | GA 03
+    //
+    // => KHÔNG TRÙNG.
     // ==================================================
 
-    // Theo dõi các dòng đã xuất hiện trong chính file Excel
-    // Chỉ dòng thứ 2 trở đi bị cảnh báo nếu:
-    // Mã ID + Kho + Tủ + Kệ + Khay giống nhau.
+    const fileLocationMap =
+      new Map();
 
-    const seenLocationRows = new Map();
 
+    // ==================================================
+    // 9. XỬ LÝ TỪNG DÒNG
+    // ==================================================
 
     for (
       const item
@@ -1709,18 +1716,27 @@ exports.previewImport = async (req, res) => {
 
 
       // ==================================================
-      // THIẾU MÃ ID
+      // 9.1 THIẾU MÃ ID
       // ==================================================
 
-      if (!row.deviceId) {
+      const deviceId =
+        String(
+          row.deviceId || ""
+        ).trim();
+
+
+      if (!deviceId) {
 
         warningCount++;
 
+
         previewRows.push({
 
-          action: "WARNING",
+          action:
+            "WARNING",
 
-          changedFields: [],
+          changedFields:
+            [],
 
           warning:
             "Thiếu Mã ID",
@@ -1732,44 +1748,40 @@ exports.previewImport = async (req, res) => {
 
         });
 
+
         continue;
 
       }
 
 
       // ==================================================
-      // LOCATION KEY
+      // 9.2 KIỂM TRA TỒN KHO ÂM
       // ==================================================
 
-      const locationKey =
-        getSpareLocationKey(row);
+      const quantity =
+        Number(
+          row.quantity
+        );
 
-
-      // ==================================================
-      // KIỂM TRA TRÙNG TRONG FILE EXCEL
-      // ==================================================
 
       if (
-        seenLocationRows.has(
-          locationKey
-        )
+        !Number.isFinite(quantity) ||
+        quantity < 0
       ) {
-
-        const firstRow =
-          seenLocationRows.get(
-            locationKey
-          );
 
         warningCount++;
 
+
         previewRows.push({
 
-          action: "WARNING",
+          action:
+            "WARNING",
 
-          changedFields: [],
+          changedFields:
+            [],
 
           warning:
-            `Cảnh báo: Trùng Mã ID ${row.deviceId} tại cùng vị trí. Dòng đầu tiên: ${firstRow}.`,
+            `Số lượng tồn âm hoặc không hợp lệ tại dòng ${item.rowNumber}`,
 
           rowNumber:
             item.rowNumber,
@@ -1778,41 +1790,195 @@ exports.previewImport = async (req, res) => {
 
         });
 
+
         continue;
 
       }
 
 
-      // Đánh dấu dòng đầu tiên
-      seenLocationRows.set(
+      // ==================================================
+      // 9.3 TẠO LOCATION KEY
+      // ==================================================
+
+      const locationKey =
+        getSpareLocationKey({
+
+          deviceId,
+
+          warehouse:
+            row.warehouse,
+
+          cabinet:
+            row.cabinet,
+
+          shelf:
+            row.shelf,
+
+          slot:
+            row.slot
+
+        });
+
+
+      // ==================================================
+      // 9.4 KIỂM TRA DÒNG TRÙNG TRONG FILE
+      // ==================================================
+
+      const previous =
+        fileLocationMap.get(
+          locationKey
+        );
+
+
+      // ==================================================
+      // 9.4.1 NẾU TRÙNG HOÀN TOÀN TRONG EXCEL
+      // ==================================================
+
+      if (previous) {
+
+        const previousRow =
+          previous.row;
+
+
+        const changedFields =
+          getChangedFields(
+
+            previousRow,
+
+            row
+
+          );
+
+
+        // ----------------------------------------------
+        // GIỐNG HOÀN TOÀN
+        // ----------------------------------------------
+
+        if (
+          changedFields.length === 0
+        ) {
+
+          skipCount++;
+
+
+          previewRows.push({
+
+            action:
+              "SKIP",
+
+            changedFields:
+              [],
+
+            warning:
+              `Trùng dữ liệu với dòng ${previous.rowNumber}`,
+
+            rowNumber:
+              item.rowNumber,
+
+            row
+
+          });
+
+
+          continue;
+
+        }
+
+
+        // ----------------------------------------------
+        // CÙNG VỊ TRÍ NHƯNG DỮ LIỆU KHÁC
+        // ----------------------------------------------
+
+        updateCount++;
+
+
+        previewRows.push({
+
+          action:
+            "UPDATE",
+
+          changedFields,
+
+          warning:
+            `Cùng Mã ID và vị trí với dòng ${previous.rowNumber}`,
+
+          rowNumber:
+            item.rowNumber,
+
+          row
+
+        });
+
+
+        // Cập nhật dòng mới nhất vào map
+        fileLocationMap.set(
+
+          locationKey,
+
+          {
+
+            row,
+
+            rowNumber:
+              item.rowNumber
+
+          }
+
+        );
+
+
+        continue;
+
+      }
+
+
+      // ==================================================
+      // 9.5 ĐÁNH DẤU DÒNG ĐẦU TIÊN CỦA VỊ TRÍ
+      // ==================================================
+
+      fileLocationMap.set(
+
         locationKey,
-        item.rowNumber
+
+        {
+
+          row,
+
+          rowNumber:
+            item.rowNumber
+
+        }
+
       );
 
 
       // ==================================================
-      // TÌM THIẾT BỊ TRONG DATABASE
+      // 9.6 TÌM TRONG DATABASE
       // ==================================================
 
-      const exist =
+      const existing =
         existingMap.get(
           locationKey
         );
 
 
       // ==================================================
-      // NEW
+      // 9.7 KHÔNG CÓ TRONG DATABASE
+      // => NEW
       // ==================================================
 
-      if (!exist) {
+      if (!existing) {
 
         newCount++;
 
+
         previewRows.push({
 
-          action: "NEW",
+          action:
+            "NEW",
 
-          changedFields: [],
+          changedFields:
+            [],
 
           rowNumber:
             item.rowNumber,
@@ -1821,20 +1987,51 @@ exports.previewImport = async (req, res) => {
 
         });
 
+
         continue;
 
       }
 
 
       // ==================================================
-      // UPDATE / SKIP
+      // 9.8 CÓ TRONG DATABASE
+      // => UPDATE / SKIP
       // ==================================================
 
       const result =
         compareRows(
-          exist,
+
+          existing,
+
           row
+
         );
+
+
+      // ==================================================
+      // UPDATE
+      // ==================================================
+
+      if (
+        result.action === "UPDATE"
+      ) {
+
+        updateCount++;
+
+      }
+
+
+      // ==================================================
+      // SKIP
+      // ==================================================
+
+      if (
+        result.action === "SKIP"
+      ) {
+
+        skipCount++;
+
+      }
 
 
       previewRows.push({
@@ -1852,25 +2049,11 @@ exports.previewImport = async (req, res) => {
 
       });
 
-
-      if (
-        result.action === "UPDATE"
-      ) {
-
-        updateCount++;
-
-      }
-      else {
-
-        skipCount++;
-
-      }
-
     }
 
 
     // ==================================================
-    // SUMMARY
+    // 10. SUMMARY
     // ==================================================
 
     const summary = {
@@ -1890,13 +2073,16 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // SAVE SESSION
+    // 11. TẠO IMPORT SESSION
     // ==================================================
 
     const expiredAt =
       new Date(
+
         Date.now() +
+
         30 * 60 * 1000
+
       );
 
 
@@ -1938,12 +2124,54 @@ exports.previewImport = async (req, res) => {
 
 
     // ==================================================
-    // RESPONSE
+    // 12. LOG SERVER
+    // ==================================================
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "SPARE IMPORT PREVIEW"
+    );
+
+    console.log(
+      `File: ${req.file.originalname}`
+    );
+
+    console.log(
+      `Tổng: ${summary.total}`
+    );
+
+    console.log(
+      `NEW: ${summary.newCount}`
+    );
+
+    console.log(
+      `UPDATE: ${summary.updateCount}`
+    );
+
+    console.log(
+      `SKIP: ${summary.skipCount}`
+    );
+
+    console.log(
+      `WARNING: ${summary.warningCount}`
+    );
+
+    console.log(
+      "=========================================="
+    );
+
+
+    // ==================================================
+    // 13. RESPONSE
     // ==================================================
 
     return res.json({
 
-      ok: true,
+      ok:
+        true,
 
       sessionId:
         session.id,
@@ -1967,7 +2195,8 @@ exports.previewImport = async (req, res) => {
 
     return res.status(500).json({
 
-      ok: false,
+      ok:
+        false,
 
       error:
         err.message ||
