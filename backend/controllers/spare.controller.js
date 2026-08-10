@@ -67,142 +67,461 @@ const getSpareLocationKey = (row) => {
 
 };
 
-// ================= NORMALIZE ROW =================
-const normalizeSpareRow = (r) => {
+// ============================================================
+// NORMALIZE SPARE ROW
+// ============================================================
 
-  const toText = (value, defaultValue = "") => {
+const normalizeSpareRow = (rawRow) => {
+
+  // ==========================================================
+  // 1. BẢO VỆ DỮ LIỆU ĐẦU VÀO
+  // ==========================================================
+
+  const r =
+    rawRow &&
+    typeof rawRow === "object"
+      ? rawRow
+      : {};
+
+
+  // ==========================================================
+  // 2. CHUẨN HÓA TÊN CỘT EXCEL
+  //
+  // Ví dụ:
+  //
+  // " khay"        -> "KHAY"
+  // "Khay "        -> "KHAY"
+  // " KHAY "       -> "KHAY"
+  // "Mã vật tư "   -> "MÃ VẬT TƯ"
+  //
+  // Nhờ vậy Excel có thừa khoảng trắng vẫn đọc được.
+  // ==========================================================
+
+  const normalizedColumns = {};
+
+  for (
+    const [key, value]
+    of Object.entries(r)
+  ) {
+
+    const cleanKey =
+      String(key)
+        .trim()
+        .replace(/\s+/g, " ")
+        .toUpperCase();
+
+    normalizedColumns[cleanKey] =
+      value;
+
+  }
+
+
+  // ==========================================================
+  // 3. HÀM LẤY GIÁ TRỊ THEO NHIỀU TÊN CỘT
+  // ==========================================================
+
+  const getValue = (
+    ...aliases
+  ) => {
+
+    for (
+      const alias
+      of aliases
+    ) {
+
+      const key =
+        String(alias)
+          .trim()
+          .replace(/\s+/g, " ")
+          .toUpperCase();
+
+      if (
+        Object.prototype.hasOwnProperty.call(
+          normalizedColumns,
+          key
+        )
+      ) {
+
+        const value =
+          normalizedColumns[key];
+
+        if (
+          value !== undefined &&
+          value !== null &&
+          String(value).trim() !== ""
+        ) {
+
+          return value;
+
+        }
+
+      }
+
+    }
+
+    return "";
+
+  };
+
+
+  // ==========================================================
+  // 4. CHUYỂN TEXT
+  // ==========================================================
+
+  const toText = (
+    value,
+    defaultValue = ""
+  ) => {
 
     if (
       value === undefined ||
       value === null
     ) {
+
       return defaultValue;
+
     }
 
-    return String(value).trim();
+    return String(value)
+      .trim();
 
   };
 
 
+  // ==========================================================
+  // 5. CHUYỂN NUMBER
+  // ==========================================================
+
+  const toNumber = (
+    value,
+    defaultValue = 0
+  ) => {
+
+    if (
+      value === undefined ||
+      value === null ||
+      value === ""
+    ) {
+
+      return defaultValue;
+
+    }
+
+    // Excel đôi khi trả về "1,000"
+    // hoặc "1.000"
+    let text =
+      String(value)
+        .trim();
+
+    text =
+      text.replace(
+        /,/g,
+        ""
+      );
+
+    const number =
+      Number(text);
+
+    return Number.isFinite(number)
+      ? number
+      : defaultValue;
+
+  };
+
+
+  // ==========================================================
+  // 6. SỐ LƯỢNG BAN ĐẦU
+  // ==========================================================
+
   const initialQuantity =
     toNumber(
-      r["SL"] ??
-      r["Số lượng"] ??
-      r["Ban đầu"] ??
-      r["Initial"],
+
+      getValue(
+        "SL",
+        "SỐ LƯỢNG",
+        "BAN ĐẦU",
+        "BAN DAU",
+        "INITIAL",
+        "INITIAL QUANTITY",
+        "TỒN ĐẦU KỲ",
+        "TON DAU KY"
+      ),
+
       0
+
     );
 
+
+  // ==========================================================
+  // 7. SỐ LƯỢNG NHẬP
+  // ==========================================================
 
   const importQty =
     toNumber(
-      r["Nhập"] ??
-      r["Import"],
+
+      getValue(
+        "NHẬP",
+        "NHAP",
+        "IMPORT",
+        "IMPORT QTY"
+      ),
+
       0
+
     );
 
+
+  // ==========================================================
+  // 8. SỐ LƯỢNG XUẤT
+  // ==========================================================
 
   const exportQty =
     toNumber(
-      r["Xuất"] ??
-      r["Export"],
+
+      getValue(
+        "XUẤT",
+        "XUAT",
+        "EXPORT",
+        "EXPORT QTY"
+      ),
+
       0
+
     );
 
 
+  // ==========================================================
+  // 9. TỒN KHO
+  //
+  // Không lấy trực tiếp từ Excel.
+  // Tính lại để tránh sai số:
+  //
+  // Tồn = Ban đầu + Nhập - Xuất
+  // ==========================================================
+
+  const quantity =
+    initialQuantity +
+    importQty -
+    exportQty;
+
+
+  // ==========================================================
+  // 10. TRẢ VỀ DỮ LIỆU CHUẨN
+  // ==========================================================
+
   return {
 
-    // =========================
-    // THÔNG TIN
-    // =========================
+    // ========================================================
+    // THÔNG TIN THIẾT BỊ
+    // ========================================================
 
     name:
       toText(
-        r["Tên vật tư"] ??
-        r["Tên thiết bị"] ??
-        r["Thiết bị"] ??
-        r["Tên"] ??
-        r["Name"]
+
+        getValue(
+
+          "TÊN VẬT TƯ",
+          "TÊN VẬT TƯ ",
+          "TÊN THIẾT BỊ",
+          "THIẾT BỊ",
+          "TÊN",
+          "NAME",
+          "MATERIAL NAME",
+          "ITEM NAME"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // MÃ ID
+    // ========================================================
 
     deviceId:
       toText(
-        r["Mã vật tư"] ??
-        r["Mã ID"] ??
-        r["Mã TB"] ??
-        r["Mã thiết bị"] ??
-        r["Device ID"] ??
-        r["DeviceID"]
+
+        getValue(
+
+          "MÃ VẬT TƯ",
+          "MÃ VẬT TƯ ",
+          "MÃ ID",
+          "MÃ TB",
+          "MÃ THIẾT BỊ",
+          "DEVICE ID",
+          "DEVICEID",
+          "ID",
+          "MATERIAL ID"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // KÝ HIỆU
+    // ========================================================
 
     symbol:
       toText(
-        r["Ký hiệu"] ??
-        r["Symbol"]
+
+        getValue(
+
+          "KÝ HIỆU",
+          "KY HIEU",
+          "SYMBOL"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // MÃ VẬT TƯ SAP
+    // ========================================================
 
     materialCode:
       toText(
-        r["Mã vật tư SAP"] ??
-        r["Material Code"] ??
-        r["MaterialCode"]
+
+        getValue(
+
+          "MÃ VẬT TƯ SAP",
+          "MA VAT TU SAP",
+          "MÃ SAP",
+          "MA SAP",
+          "MATERIAL CODE",
+          "MATERIALCODE",
+          "SAP CODE"
+
+        )
+
       ),
 
 
-    // =========================
-    // VỊ TRÍ
-    // =========================
+    // ========================================================
+    // VỊ TRÍ - KHO
+    //
+    // Quan trọng:
+    // "Kho"
+    // " KHO"
+    // "Kho "
+    // "KHO"
+    //
+    // đều được xử lý như nhau.
+    // ========================================================
 
     warehouse:
       toText(
-        r["Kho"] ??
-        r["Warehouse"]
+
+        getValue(
+
+          "KHO",
+          "WAREHOUSE",
+          "LOCATION",
+          "ĐỊA ĐIỂM",
+          "DIA DIEM"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // VỊ TRÍ - TỦ
+    // ========================================================
 
     cabinet:
       toText(
-        r["Tủ"] ??
-        r["Cabinet"]
+
+        getValue(
+
+          "TỦ",
+          "TU",
+          "CABINET"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // VỊ TRÍ - KỆ / NGĂN
+    // ========================================================
 
     shelf:
       toText(
-        r["Ngăn"] ??
-        r["Kệ"] ??
-        r["Shelf"]
+
+        getValue(
+
+          "NGĂN",
+          "NGAN",
+          "KỆ",
+          "KE",
+          "SHELF"
+
+        )
+
       ),
 
+
+    // ========================================================
+    // VỊ TRÍ - KHAY
+    //
+    // Đặc biệt xử lý:
+    //
+    // " khay"
+    // "Khay"
+    // "KHAY "
+    // " KHAY "
+    //
+    // đều trở thành KHAY nhờ bước normalize header.
+    // ========================================================
 
     slot:
       toText(
-        r["Số khay"] ??
-        r["Khay"] ??
-        r["Slot"]
+
+        getValue(
+
+          "SỐ KHAY",
+          "SO KHAY",
+          "KHAY",
+          "SLOT",
+          "TRAY",
+          "SỐ TRAY",
+          "SO TRAY"
+
+        )
+
       ),
 
 
-    // =========================
-    // ĐƠN VỊ
-    // =========================
+    // ========================================================
+    // ĐƠN VỊ TÍNH
+    // ========================================================
 
     unit:
       toText(
-        r["ĐVT"] ??
-        r["Đvt"] ??
-        r["Đơn vị"] ??
-        r["Unit"],
+
+        getValue(
+
+          "ĐVT",
+          "ĐVT ",
+          "ĐƠN VỊ",
+          "DON VI",
+          "ĐVTÍNH",
+          "UNIT",
+          "UOM"
+
+        ),
+
         "Cái"
+
       ),
 
 
-    // =========================
+    // ========================================================
     // SỐ LƯỢNG
-    // =========================
+    // ========================================================
 
     initialQuantity,
 
@@ -210,47 +529,87 @@ const normalizeSpareRow = (r) => {
 
     exportQty,
 
-    quantity:
-      initialQuantity +
-      importQty -
-      exportQty,
+    quantity,
 
 
-    // =========================
-    // TRẠNG THÁI
-    // =========================
+    // ========================================================
+    // TÌNH TRẠNG
+    // ========================================================
 
     condition:
       toText(
-        r["Tình trạng"] ??
-        r["Tình trạng thiết bị"] ??
-        r["Condition"],
+
+        getValue(
+
+          "TÌNH TRẠNG",
+          "TINH TRANG",
+          "TÌNH TRẠNG THIẾT BỊ",
+          "TINH TRANG THIET BI",
+          "CONDITION",
+          "STATUS"
+
+        ),
+
         "New"
+
       ),
 
 
-    // =========================
+    // ========================================================
     // GHI CHÚ
-    // =========================
+    //
+    // Luôn chuyển về String.
+    //
+    // Tránh lỗi:
+    //
+    // Expected String or Null,
+    // provided Int
+    //
+    // mà trước đây bạn gặp:
+    //
+    // note: 1
+    // ========================================================
 
     note:
-      r["Ghi chú"] === undefined ||
-        r["Ghi chú"] === null ||
-        r["Ghi chú"] === ""
-        ? null
-        : String(
-          r["Ghi chú"]
-        ).trim(),
+      toText(
+
+        getValue(
+
+          "GHI CHÚ",
+          "GHI CHU",
+          "NOTE",
+          "NOTES",
+          "REMARK",
+          "REMARKS"
+
+        ),
+
+        ""
+
+      ),
 
 
-    // =========================
-    // ẢNH
-    // =========================
+    // ========================================================
+    // HÌNH ẢNH
+    // ========================================================
 
     image:
       toText(
-        r["Ảnh"] ??
-        r["Image"]
+
+        getValue(
+
+          "HÌNH ẢNH",
+          "HINH ANH",
+          "ẢNH",
+          "ANH",
+          "IMAGE",
+          "PHOTO",
+          "URL"
+
+        ),
+
+        ""
+
       )
 
   };
