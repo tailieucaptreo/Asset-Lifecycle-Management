@@ -1,528 +1,471 @@
 const {
-  parseDate,
-  sameDate
+    parseDate,
+    sameDate
 } = require("../utils/date");
 
 const {
-  normalize
+    normalize
 } = require("../utils/normalize");
 
 
 // =====================================================
-// NORMALIZE HEADER
+// HEADER HELPER
+// Tự nhận nhiều cách đặt tên Header Excel
 // =====================================================
 
-const normalizeHeader = (value) => {
+function normalizeHeader(value) {
 
-  if (
-    value === undefined ||
-    value === null
-  ) {
-    return "";
-  }
-
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/[_\-\/\\().:]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-
-// =====================================================
-// NORMALIZE KEY
-// =====================================================
-
-const normalizeKey = (value) => {
-
-  if (
-    value === undefined ||
-    value === null
-  ) {
-    return "";
-  }
-
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/\s+/g, " ")
-    .trim();
-};
-
-
-// =====================================================
-// HEADER ALIASES
-// =====================================================
-
-const HEADER_ALIASES = {
-
-  deviceId: [
-    "ma id",
-    "ma thiet bi",
-    "ma tb",
-    "device id",
-    "deviceid",
-    "equipment id",
-    "asset id"
-  ],
-
-  name: [
-    "ten thiet bi",
-    "ten",
-    "device name",
-    "device",
-    "name",
-    "equipment name"
-  ],
-
-  category: [
-    "phan loai",
-    "loai thiet bi",
-    "category",
-    "type",
-    "device type"
-  ],
-
-  line: [
-    "tuyen",
-    "tuyen cap",
-    "tuyen cap treo",
-    "line",
-    "cable line",
-    "cable"
-  ],
-
-  station: [
-    "nha ga",
-    "ga",
-    "station",
-    "station name"
-  ],
-
-  code: [
-    "ky hieu",
-    "ky hieu thiet bi",
-    "symbol",
-    "code",
-    "device code"
-  ],
-
-  area: [
-    "khu vuc",
-    "khu vuc lap dat",
-    "vi tri",
-    "location",
-    "area",
-    "position"
-  ],
-
-  status: [
-    "trang thai",
-    "tinh trang",
-    "status",
-    "device status",
-    "state"
-  ],
-
-  installDate: [
-    "ngay lap",
-    "ngay lap dat",
-    "ngay lap dat lan dau",
-    "ngay cai dat",
-    "install date",
-    "installation date",
-    "installed date"
-  ],
-
-  lastMaintenance: [
-    "ngay bao tri",
-    "ngay bao tri gan nhat",
-    "ngay bt",
-    "ngay bt gan nhat",
-    "last maintenance",
-    "last maintenance date",
-    "maintenance date"
-  ],
-
-  replacementDate: [
-    "ngay thay the",
-    "ngay thay",
-    "replacement date",
-    "replace date"
-  ],
-
-  expiryDate: [
-    "ngay het han",
-    "het han",
-    "expiry date",
-    "expiration date"
-  ],
-
-  lifespan: [
-    "tuoi tho",
-    "tuoi tho thiet bi",
-    "thoi gian su dung",
-    "lifespan",
-    "life",
-    "service life"
-  ]
-};
-
-
-// =====================================================
-// FIND FIELD
-// =====================================================
-
-const getField = (
-  row,
-  field
-) => {
-
-  const aliases =
-    HEADER_ALIASES[field] || [];
-
-  const rowKeys =
-    Object.keys(row);
-
-
-  // ---------------------------------------------------
-  // Exact normalized match
-  // ---------------------------------------------------
-
-  for (
-    const rowKey of rowKeys
-  ) {
-
-    const normalizedRowKey =
-      normalizeHeader(rowKey);
-
-    for (
-      const alias of aliases
+    if (
+        value === null ||
+        value === undefined
     ) {
-
-      if (
-        normalizedRowKey ===
-        normalizeHeader(alias)
-      ) {
-
-        return row[rowKey];
-      }
+        return "";
     }
-  }
+
+    return normalize(
+        String(value)
+            .replace(/^\uFEFF/, "")
+            .trim()
+    );
+
+}
 
 
-  // ---------------------------------------------------
-  // Partial match
-  // ---------------------------------------------------
+// =====================================================
+// LẤY GIÁ TRỊ THEO NHIỀU HEADER
+// =====================================================
 
-  for (
-    const rowKey of rowKeys
-  ) {
+function getFlexible(row, aliases = []) {
 
-    const normalizedRowKey =
-      normalizeHeader(rowKey);
-
-    for (
-      const alias of aliases
-    ) {
-
-      const normalizedAlias =
-        normalizeHeader(alias);
-
-      if (
-        normalizedRowKey.includes(
-          normalizedAlias
-        )
-      ) {
-
-        return row[rowKey];
-      }
+    if (!row || typeof row !== "object") {
+        return "";
     }
-  }
 
+    const keys = Object.keys(row);
 
-  return "";
-};
+    // ---------------------------------------------
+    // Tạo Map Header đã normalize
+    // ---------------------------------------------
 
+    const headerMap = new Map();
 
-// =====================================================
-// STATUS
-// =====================================================
+    for (const key of keys) {
 
-const normalizeStatus = (value) => {
+        const normalizedKey =
+            normalizeHeader(key);
 
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
+        if (!headerMap.has(normalizedKey)) {
 
-    return "Inactive";
-  }
+            headerMap.set(
+                normalizedKey,
+                key
+            );
 
+        }
 
-  const text =
-    normalizeHeader(value);
+    }
 
+    // ---------------------------------------------
+    // Tìm theo alias
+    // ---------------------------------------------
 
-  // Active
+    for (const alias of aliases) {
 
-  if (
-    text === "active" ||
-    text === "hoat dong" ||
-    text === "dang hoat dong" ||
-    text === "dang su dung" ||
-    text === "su dung" ||
-    text === "running"
-  ) {
+        const normalizedAlias =
+            normalizeHeader(alias);
 
-    return "Active";
-  }
+        const realKey =
+            headerMap.get(
+                normalizedAlias
+            );
 
+        if (
+            realKey !== undefined &&
+            row[realKey] !== undefined &&
+            row[realKey] !== null
+        ) {
 
-  // Maintenance
+            const value = row[realKey];
 
-  if (
-    text === "maintenance" ||
-    text === "bao tri" ||
-    text === "dang bao tri" ||
-    text === "sua chua"
-  ) {
+            if (
+                String(value).trim() !== ""
+            ) {
 
-    return "Maintenance";
-  }
+                return value;
 
+            }
 
-  // Inactive
+        }
 
-  if (
-    text === "inactive" ||
-    text === "khong hoat dong" ||
-    text === "ngung hoat dong" ||
-    text === "ngung su dung" ||
-    text === "offline"
-  ) {
+    }
 
-    return "Inactive";
-  }
-
-
-  return "Inactive";
-};
+    return "";
+}
 
 
 // =====================================================
-// DEVICE KEY
+// TẠO DEVICE KEY DÙNG ĐỂ COMPARE
+//
+// LƯU Ý:
+// Đây KHÔNG phải deviceKey trong Database.
+//
+// Đây chỉ là khóa tạm thời:
+//
+// Tuyến + Nhà ga + Ký hiệu
+//
+// Dùng để xác định cùng một thiết bị.
 // =====================================================
 
-const makeDeviceKey = ({
-  line,
-  station,
-  code,
-  area
-}) => {
-
-  return [
-
-    normalizeKey(line),
-
-    normalizeKey(station),
-
-    normalizeKey(code),
-
-    normalizeKey(area)
-
-  ].join("|");
-};
-
-
-// =====================================================
-// BUILD DEVICE DATA
-// =====================================================
-
-const buildDeviceData = (row) => {
-
-  const deviceId =
-    normalize(
-      getField(
-        row,
-        "deviceId"
-      )
-    );
-
-
-  const name =
-    normalize(
-      getField(
-        row,
-        "name"
-      )
-    );
-
-
-  const category =
-    normalize(
-      getField(
-        row,
-        "category"
-      )
-    );
-
-
-  const line =
-    normalize(
-      getField(
-        row,
-        "line"
-      )
-    );
-
-
-  const station =
-    normalize(
-      getField(
-        row,
-        "station"
-      )
-    );
-
-
-  const code =
-    normalize(
-      getField(
-        row,
-        "code"
-      )
-    );
-
-
-  const area =
-    normalize(
-      getField(
-        row,
-        "area"
-      )
-    );
-
-
-  const status =
-    normalizeStatus(
-      getField(
-        row,
-        "status"
-      )
-    );
-
-
-  const installDate =
-    parseDate(
-      getField(
-        row,
-        "installDate"
-      )
-    );
-
-
-  const lastMaintenance =
-    parseDate(
-      getField(
-        row,
-        "lastMaintenance"
-      )
-    );
-
-
-  const replacementDate =
-    parseDate(
-      getField(
-        row,
-        "replacementDate"
-      )
-    );
-
-
-  const expiryDate =
-    parseDate(
-      getField(
-        row,
-        "expiryDate"
-      )
-    );
-
-
-  const lifespanValue =
-    getField(
-      row,
-      "lifespan"
-    );
-
-
-  const lifespan =
-    Number(
-      lifespanValue || 0
-    );
-
-
-  // =================================================
-  // DEVICE KEY
-  // =================================================
-
-  const deviceKey =
-    makeDeviceKey({
-
-      line,
-
-      station,
-
-      code,
-
-      area
-
-    });
-
-
-  return {
-
-    deviceId,
-
-    deviceKey,
-
-    name,
-
-    category,
-
+function makeCompareKey(
     line,
-
     station,
+    code
+) {
 
-    code,
+    return [
+        normalize(line),
+        normalize(station),
+        normalize(code)
+    ].join("_");
 
-    area,
+}
 
-    status,
 
-    installDate,
+// =====================================================
+// CHUẨN HÓA DỮ LIỆU EXCEL
+// =====================================================
 
-    lastMaintenance,
+function parseExcelRow(row) {
 
-    replacementDate,
+    // =============================================
+    // MÃ ID
+    // Cho phép trùng
+    // =============================================
 
-    expiryDate,
+    const deviceId =
+        getFlexible(row, [
 
-    lifespan:
-      Number.isNaN(lifespan)
-        ? 0
-        : lifespan
+            "Mã ID",
+            "Mã ID thiết bị",
+            "Mã thiết bị",
+            "Device ID",
+            "DeviceID",
+            "deviceId",
+            "Device_Id",
+            "ID thiết bị",
+            "ID"
 
-  };
-};
+        ]);
+
+
+    // =============================================
+    // TÊN THIẾT BỊ
+    // =============================================
+
+    const name =
+        getFlexible(row, [
+
+            "Tên thiết bị",
+            "Tên thiết bị ",
+            "Tên",
+            "Tên TB",
+            "Tên máy",
+            "Device Name",
+            "DeviceName",
+            "deviceName",
+            "Name"
+
+        ]);
+
+
+    // =============================================
+    // PHÂN LOẠI
+    // =============================================
+
+    const category =
+        getFlexible(row, [
+
+            "Phân loại",
+            "Phân loại thiết bị",
+            "Loại thiết bị",
+            "Category",
+            "category",
+            "Type"
+
+        ]);
+
+
+    // =============================================
+    // TUYẾN
+    // =============================================
+
+    const line =
+        getFlexible(row, [
+
+            "Tuyến",
+            "Tuyến cáp",
+            "Tuyến cáp treo",
+            "Line",
+            "line",
+            "Cable Line",
+            "CableLine"
+
+        ]);
+
+
+    // =============================================
+    // NHÀ GA
+    // =============================================
+
+    const station =
+        getFlexible(row, [
+
+            "Nhà ga",
+            "Ga",
+            "Ga máy",
+            "Trạm",
+            "Station",
+            "station",
+            "Station Name"
+
+        ]);
+
+
+    // =============================================
+    // KÝ HIỆU
+    // =============================================
+
+    const code =
+        getFlexible(row, [
+
+            "Ký hiệu",
+            "Ký hiệu thiết bị",
+            "Mã ký hiệu",
+            "Code",
+            "code",
+            "Symbol",
+            "symbol",
+            "Tag",
+            "Device Code"
+
+        ]);
+
+
+    // =============================================
+    // KHU VỰC
+    // =============================================
+
+    const area =
+        getFlexible(row, [
+
+            "Khu vực",
+            "Vị trí",
+            "Vị trí lắp đặt",
+            "Khu vực lắp đặt",
+            "Area",
+            "area",
+            "Location"
+
+        ]);
+
+
+    // =============================================
+    // TRẠNG THÁI
+    // =============================================
+
+    const status =
+        getFlexible(row, [
+
+            "Trạng thái",
+            "Tình trạng",
+            "Status",
+            "status",
+            "State"
+
+        ]);
+
+
+    // =============================================
+    // NGÀY LẮP
+    // =============================================
+
+    const rawInstallDate =
+        getFlexible(row, [
+
+            "Ngày lắp",
+            "Ngày lắp đặt",
+            "Ngày lắp đặt lần đầu",
+            "Ngày lắp lần đầu",
+            "Ngày đưa vào sử dụng",
+            "Ngày vận hành",
+            "Install Date",
+            "InstallDate",
+            "installDate"
+
+        ]);
+
+
+    // =============================================
+    // NGÀY BẢO DƯỠNG
+    // =============================================
+
+    const rawLastMaintenance =
+        getFlexible(row, [
+
+            "Bảo dưỡng gần nhất",
+            "Ngày bảo dưỡng",
+            "Ngày bảo dưỡng gần nhất",
+            "Lần bảo dưỡng gần nhất",
+            "Last Maintenance",
+            "LastMaintenance",
+            "lastMaintenance"
+
+        ]);
+
+
+    // =============================================
+    // NGÀY THAY THẾ
+    // =============================================
+
+    const rawReplacementDate =
+        getFlexible(row, [
+
+            "Ngày thay thế",
+            "Ngày thay",
+            "Ngày thay mới",
+            "Replacement Date",
+            "ReplacementDate",
+            "replacementDate"
+
+        ]);
+
+
+    // =============================================
+    // TUỔI THỌ
+    // =============================================
+
+    const rawLifespan =
+        getFlexible(row, [
+
+            "Tuổi thọ",
+            "Tuổi thọ thiết bị",
+            "Thời gian sử dụng",
+            "Lifespan",
+            "lifespan",
+            "Life Span"
+
+        ]);
+
+
+    // =============================================
+    // NGÀY HẾT HẠN
+    // =============================================
+
+    const rawExpiryDate =
+        getFlexible(row, [
+
+            "Ngày hết hạn",
+            "Ngày hết hạn sử dụng",
+            "Ngày hết tuổi thọ",
+            "Expiry Date",
+            "ExpiryDate",
+            "expiryDate"
+
+        ]);
+
+
+    // =============================================
+    // CHUYỂN ĐỔI
+    // =============================================
+
+    const installDate =
+        parseDate(rawInstallDate);
+
+    const lastMaintenance =
+        parseDate(rawLastMaintenance);
+
+    const replacementDate =
+        parseDate(rawReplacementDate);
+
+    const expiryDate =
+        parseDate(rawExpiryDate);
+
+    const lifespan =
+        rawLifespan === "" ||
+        rawLifespan === null ||
+        rawLifespan === undefined
+            ? 0
+            : Number(rawLifespan) || 0;
+
+
+    // =============================================
+    // DATA
+    // =============================================
+
+    return {
+
+        deviceId:
+            deviceId === "" ||
+            deviceId === null ||
+            deviceId === undefined
+                ? null
+                : String(deviceId).trim(),
+
+        name:
+            name === null ||
+            name === undefined
+                ? ""
+                : String(name).trim(),
+
+        category:
+            category === null ||
+            category === undefined
+                ? ""
+                : String(category).trim(),
+
+        line:
+            line === null ||
+            line === undefined
+                ? ""
+                : String(line).trim(),
+
+        station:
+            station === null ||
+            station === undefined
+                ? ""
+                : String(station).trim(),
+
+        code:
+            code === null ||
+            code === undefined
+                ? ""
+                : String(code).trim(),
+
+        area:
+            area === null ||
+            area === undefined
+                ? ""
+                : String(area).trim(),
+
+        status:
+            status === null ||
+            status === undefined
+                ? ""
+                : String(status).trim(),
+
+        installDate,
+
+        lastMaintenance,
+
+        replacementDate,
+
+        lifespan,
+
+        expiryDate
+
+    };
+
+}
 
 
 // =====================================================
@@ -530,520 +473,760 @@ const buildDeviceData = (row) => {
 // =====================================================
 
 async function compareRows(
-  prisma,
-  rows
+    prisma,
+    rows
 ) {
 
-  // ===================================================
-  // LOAD EXISTING DEVICES
-  // ===================================================
+    // =================================================
+    // 1. LẤY DEVICE HIỆN TẠI
+    // =================================================
 
-  const devices =
-    await prisma.device.findMany({
+    const devices =
+        await prisma.device.findMany({
 
-      select: {
+            select: {
 
-        id: true,
+                id: true,
 
-        deviceId: true,
+                deviceId: true,
 
-        deviceKey: true,
+                deviceKey: true,
 
-        name: true,
+                name: true,
 
-        category: true,
+                category: true,
 
-        line: true,
+                line: true,
 
-        station: true,
+                station: true,
 
-        code: true,
+                code: true,
 
-        area: true,
+                area: true,
 
-        status: true,
+                status: true,
 
-        installDate: true,
+                originalInstallDate: true,
 
-        lastMaintenance: true,
+                installDate: true,
 
-        replacementDate: true,
+                lastMaintenance: true,
 
-        expiryDate: true,
+                replacementDate: true,
 
-        lifespan: true
+                lifespan: true,
 
-      }
+                expiryDate: true
 
-    });
+            }
 
-
-  // ===================================================
-  // MAP DEVICE KEY
-  // ===================================================
-
-  const deviceMap =
-    new Map();
-
-
-  devices.forEach(
-    (device) => {
-
-      let key =
-        device.deviceKey;
-
-
-      // ------------------------------------------------
-      // Nếu dữ liệu cũ chưa có deviceKey
-      // ------------------------------------------------
-
-      if (
-        !key &&
-        device.line &&
-        device.station &&
-        device.code
-      ) {
-
-        key =
-          makeDeviceKey({
-
-            line:
-              device.line,
-
-            station:
-              device.station,
-
-            code:
-              device.code,
-
-            area:
-              device.area
-
-          });
-
-      }
-
-
-      if (key) {
-
-        deviceMap.set(
-          key,
-          device
-        );
-
-      }
-
-    }
-  );
-
-
-  let newCount = 0;
-
-  let updateCount = 0;
-
-  let skipCount = 0;
-
-
-  const result = [];
-
-
-  // ===================================================
-  // PROCESS EXCEL
-  // ===================================================
-
-  for (
-    let index = 0;
-    index < rows.length;
-    index++
-  ) {
-
-    const row =
-      rows[index];
-
-
-    console.log(
-      `\n========== EXCEL ROW ${
-        index + 2
-      } ==========`
-    );
-
-
-    console.log(
-      "COLUMN NAMES:",
-      Object.keys(row)
-    );
-
-
-    const data =
-      buildDeviceData(row);
-
-
-    console.log(
-      "DEVICE DATA:",
-      {
-
-        deviceId:
-          data.deviceId,
-
-        name:
-          data.name,
-
-        line:
-          data.line,
-
-        station:
-          data.station,
-
-        code:
-          data.code,
-
-        area:
-          data.area,
-
-        status:
-          data.status,
-
-        deviceKey:
-          data.deviceKey
-
-      }
-    );
+        });
 
 
     // =================================================
-    // REQUIRED FIELDS
+    // 2. TẠO MAP
+    //
+    // KHÔNG DÙNG deviceId
+    //
+    // Dùng:
+    //
+    // Tuyến + Nhà ga + Ký hiệu
     // =================================================
 
-    if (
-      !data.name ||
-      !data.line ||
-      !data.station ||
-      !data.code
-    ) {
+    const deviceMap = new Map();
 
-      skipCount++;
+    const duplicateDatabaseKeys = new Set();
 
 
-      result.push({
+    for (const device of devices) {
 
-        action: "SKIP",
+        if (
+            device.line &&
+            device.station &&
+            device.code
+        ) {
 
-        reason:
-          "Thiếu Tên thiết bị, Tuyến, Nhà ga hoặc Ký hiệu",
+            const key =
+                makeCompareKey(
 
-        changedFields: [],
+                    device.line,
 
-        row: data
+                    device.station,
 
-      });
+                    device.code
 
+                );
 
-      continue;
-    }
 
+            // -----------------------------------------
+            // Phát hiện DB có duplicate
+            // -----------------------------------------
 
-    // =================================================
-    // FIND OLD DEVICE
-    // =================================================
+            if (deviceMap.has(key)) {
 
-    const old =
-      deviceMap.get(
-        data.deviceKey
-      );
+                duplicateDatabaseKeys.add(key);
 
+            }
+            else {
 
-    // =================================================
-    // NEW
-    // =================================================
+                deviceMap.set(
+                    key,
+                    device
+                );
 
-    if (!old) {
-
-      newCount++;
-
-
-      result.push({
-
-        action: "NEW",
-
-        changedFields: [],
-
-        row: data
-
-      });
-
-
-      continue;
-    }
-
-
-    // =================================================
-    // COMPARE
-    // =================================================
-
-    const changedFields = [];
-
-
-    if (
-      normalize(old.deviceId) !==
-      normalize(data.deviceId)
-    ) {
-
-      changedFields.push(
-        "Mã ID"
-      );
-
-    }
-
-
-    if (
-      normalize(old.name) !==
-      normalize(data.name)
-    ) {
-
-      changedFields.push(
-        "Tên thiết bị"
-      );
-
-    }
-
-
-    if (
-      normalize(old.category) !==
-      normalize(data.category)
-    ) {
-
-      changedFields.push(
-        "Phân loại"
-      );
-
-    }
-
-
-    if (
-      normalize(old.line) !==
-      normalize(data.line)
-    ) {
-
-      changedFields.push(
-        "Tuyến"
-      );
-
-    }
-
-
-    if (
-      normalize(old.station) !==
-      normalize(data.station)
-    ) {
-
-      changedFields.push(
-        "Nhà ga"
-      );
-
-    }
-
-
-    if (
-      normalize(old.code) !==
-      normalize(data.code)
-    ) {
-
-      changedFields.push(
-        "Ký hiệu"
-      );
-
-    }
-
-
-    if (
-      normalize(old.area) !==
-      normalize(data.area)
-    ) {
-
-      changedFields.push(
-        "Khu vực"
-      );
-
-    }
-
-
-    if (
-      normalize(old.status) !==
-      normalize(data.status)
-    ) {
-
-      changedFields.push(
-        "Trạng thái"
-      );
-
-    }
-
-
-    if (
-      !sameDate(
-        old.installDate,
-        data.installDate
-      )
-    ) {
-
-      changedFields.push(
-        "Ngày lắp"
-      );
-
-    }
-
-
-    if (
-      !sameDate(
-        old.lastMaintenance,
-        data.lastMaintenance
-      )
-    ) {
-
-      changedFields.push(
-        "Ngày bảo trì"
-      );
-
-    }
-
-
-    if (
-      !sameDate(
-        old.replacementDate,
-        data.replacementDate
-      )
-    ) {
-
-      changedFields.push(
-        "Ngày thay thế"
-      );
-
-    }
-
-
-    if (
-      !sameDate(
-        old.expiryDate,
-        data.expiryDate
-      )
-    ) {
-
-      changedFields.push(
-        "Ngày hết hạn"
-      );
-
-    }
-
-
-    if (
-      Number(old.lifespan || 0) !==
-      Number(data.lifespan || 0)
-    ) {
-
-      changedFields.push(
-        "Tuổi thọ"
-      );
-
-    }
-
-
-    // =================================================
-    // UPDATE
-    // =================================================
-
-    if (
-      changedFields.length > 0
-    ) {
-
-      updateCount++;
-
-
-      console.log(
-        "UPDATE:",
-        {
-
-          existingId:
-            old.id,
-
-          deviceKey:
-            data.deviceKey,
-
-          changedFields
+            }
 
         }
-      );
 
-
-      result.push({
-
-        action: "UPDATE",
-
-        existingId:
-          old.id,
-
-        changedFields,
-
-        row: data
-
-      });
-
-
-      continue;
     }
 
 
     // =================================================
-    // SKIP
+    // 3. COUNTER
     // =================================================
 
-    skipCount++;
+    let newCount = 0;
+
+    let updateCount = 0;
+
+    let skipCount = 0;
 
 
-    result.push({
+    // =================================================
+    // 4. KẾT QUẢ
+    // =================================================
 
-      action: "SKIP",
-
-      existingId:
-        old.id,
-
-      changedFields: [],
-
-      row: data
-
-    });
-
-  }
+    const result = [];
 
 
-  // ===================================================
-  // RESULT
-  // ===================================================
+    // =================================================
+    // 5. THEO DÕI DUPLICATE TRONG FILE EXCEL
+    // =================================================
 
-  return {
+    const excelKeys = new Map();
 
-    summary: {
 
-      total:
-        rows.length,
+    // =================================================
+    // 6. DUYỆT TỪNG DÒNG EXCEL
+    // =================================================
 
-      newCount,
+    for (
+        let index = 0;
+        index < rows.length;
+        index++
+    ) {
 
-      updateCount,
+        const row =
+            rows[index];
 
-      skipCount
 
-    },
+        // =============================================
+        // DEBUG HEADER
+        // =============================================
 
-    rows:
-      result
+        if (index === 0) {
 
-  };
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "EXCEL COLUMN NAMES:"
+            );
+
+            console.log(
+                Object.keys(row || {})
+            );
+
+            console.log(
+                "================================"
+            );
+
+        }
+
+
+        // =============================================
+        // PARSE DATA
+        // =============================================
+
+        const data =
+            parseExcelRow(row);
+
+
+        // =============================================
+        // LOG
+        // =============================================
+
+        console.log(
+            `IMPORT ROW ${index + 2}:`,
+            {
+                deviceId:
+                    data.deviceId,
+
+                name:
+                    data.name,
+
+                line:
+                    data.line,
+
+                station:
+                    data.station,
+
+                code:
+                    data.code
+            }
+        );
+
+
+        // =============================================
+        // 7. VALIDATE
+        //
+        // Tuyến + Nhà ga + Ký hiệu + Tên
+        // là bắt buộc để xác định thiết bị
+        // =============================================
+
+        if (
+            !data.line ||
+            !data.station ||
+            !data.code ||
+            !data.name
+        ) {
+
+            skipCount++;
+
+
+            result.push({
+
+                action: "SKIP",
+
+                reason:
+                    "Thiếu Tuyến hoặc Nhà ga hoặc Ký hiệu hoặc Tên thiết bị",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+
+            continue;
+
+        }
+
+
+        // =============================================
+        // 8. TẠO COMPARE KEY
+        // =============================================
+
+        const key =
+            makeCompareKey(
+
+                data.line,
+
+                data.station,
+
+                data.code
+
+            );
+
+
+        // =============================================
+        // 9. DUPLICATE TRONG DATABASE
+        // =============================================
+
+        if (
+            duplicateDatabaseKeys.has(key)
+        ) {
+
+            skipCount++;
+
+
+            result.push({
+
+                action: "SKIP",
+
+                reason:
+                    "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Ký hiệu",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+
+            continue;
+
+        }
+
+
+        // =============================================
+        // 10. DUPLICATE TRONG FILE EXCEL
+        // =============================================
+
+        if (
+            excelKeys.has(key)
+        ) {
+
+            const firstRow =
+                excelKeys.get(key);
+
+
+            skipCount++;
+
+
+            result.push({
+
+                action: "SKIP",
+
+                reason:
+                    `Trùng Tuyến + Nhà ga + Ký hiệu trong file Excel với dòng ${firstRow}`,
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+
+            continue;
+
+        }
+
+
+        excelKeys.set(
+            key,
+            index + 2
+        );
+
+
+        // =============================================
+        // 11. TÌM DEVICE CŨ
+        // =============================================
+
+        const old =
+            deviceMap.get(key);
+
+
+        // =============================================
+        // 12. NEW
+        // =============================================
+
+        if (!old) {
+
+            newCount++;
+
+
+            result.push({
+
+                action: "NEW",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+
+            continue;
+
+        }
+
+
+        // =============================================
+        // 13. SO SÁNH
+        // =============================================
+
+        const changedFields = [];
+
+
+        // ---------------------------------------------
+        // Tên
+        // ---------------------------------------------
+
+        if (
+            normalize(old.name) !==
+            normalize(data.name)
+        ) {
+
+            changedFields.push(
+                "Tên thiết bị"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Phân loại
+        // ---------------------------------------------
+
+        if (
+            normalize(old.category) !==
+            normalize(data.category)
+        ) {
+
+            changedFields.push(
+                "Phân loại"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Tuyến
+        // ---------------------------------------------
+
+        if (
+            normalize(old.line) !==
+            normalize(data.line)
+        ) {
+
+            changedFields.push(
+                "Tuyến"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Nhà ga
+        // ---------------------------------------------
+
+        if (
+            normalize(old.station) !==
+            normalize(data.station)
+        ) {
+
+            changedFields.push(
+                "Nhà ga"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ký hiệu
+        // ---------------------------------------------
+
+        if (
+            normalize(old.code) !==
+            normalize(data.code)
+        ) {
+
+            changedFields.push(
+                "Ký hiệu"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Khu vực
+        // ---------------------------------------------
+
+        if (
+            normalize(old.area) !==
+            normalize(data.area)
+        ) {
+
+            changedFields.push(
+                "Khu vực"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Mã ID
+        //
+        // CHỈ là thông tin.
+        //
+        // Không dùng để xác định thiết bị.
+        // ---------------------------------------------
+
+        if (
+            normalize(old.deviceId) !==
+            normalize(data.deviceId)
+        ) {
+
+            changedFields.push(
+                "Mã ID"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Trạng thái
+        // ---------------------------------------------
+
+        if (
+            data.status &&
+            normalize(old.status) !==
+            normalize(data.status)
+        ) {
+
+            changedFields.push(
+                "Trạng thái"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ngày lắp
+        // ---------------------------------------------
+
+        if (
+            !sameDate(
+                old.installDate,
+                data.installDate
+            )
+        ) {
+
+            changedFields.push(
+                "Ngày lắp"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ngày bảo dưỡng
+        // ---------------------------------------------
+
+        if (
+            !sameDate(
+                old.lastMaintenance,
+                data.lastMaintenance
+            )
+        ) {
+
+            changedFields.push(
+                "Bảo dưỡng gần nhất"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ngày thay thế
+        // ---------------------------------------------
+
+        if (
+            !sameDate(
+                old.replacementDate,
+                data.replacementDate
+            )
+        ) {
+
+            changedFields.push(
+                "Ngày thay thế"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Tuổi thọ
+        // ---------------------------------------------
+
+        if (
+            Number(old.lifespan || 0) !==
+            Number(data.lifespan || 0)
+        ) {
+
+            changedFields.push(
+                "Tuổi thọ"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ngày hết hạn
+        // ---------------------------------------------
+
+        if (
+            data.expiryDate &&
+            !sameDate(
+                old.expiryDate,
+                data.expiryDate
+            )
+        ) {
+
+            changedFields.push(
+                "Ngày hết hạn"
+            );
+
+        }
+
+
+        // =============================================
+        // 14. DEBUG
+        // =============================================
+
+        if (
+            changedFields.length
+        ) {
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "DEVICE MATCH"
+            );
+
+            console.log(
+                "KEY:",
+                key
+            );
+
+            console.log(
+                "DB ID:",
+                old.id
+            );
+
+            console.log(
+                "DEVICE KEY:",
+                old.deviceKey
+            );
+
+            console.log(
+                "Changed:",
+                changedFields
+            );
+
+            console.log(
+                "OLD:",
+                {
+
+                    deviceId:
+                        old.deviceId,
+
+                    name:
+                        old.name,
+
+                    category:
+                        old.category,
+
+                    line:
+                        old.line,
+
+                    station:
+                        old.station,
+
+                    code:
+                        old.code,
+
+                    area:
+                        old.area,
+
+                    status:
+                        old.status,
+
+                    installDate:
+                        old.installDate,
+
+                    lifespan:
+                        old.lifespan
+
+                }
+            );
+
+            console.log(
+                "NEW:",
+                data
+            );
+
+            console.log(
+                "================================"
+            );
+
+        }
+
+
+        // =============================================
+        // 15. UPDATE
+        // =============================================
+
+        if (
+            changedFields.length
+        ) {
+
+            updateCount++;
+
+
+            result.push({
+
+                action: "UPDATE",
+
+                changedFields,
+
+                row: data
+
+            });
+
+        }
+
+        // =============================================
+        // 16. SKIP
+        // =============================================
+
+        else {
+
+            skipCount++;
+
+
+            result.push({
+
+                action: "SKIP",
+
+                changedFields: [],
+
+                row: data
+
+            });
+
+        }
+
+    }
+
+
+    // =================================================
+    // 17. RETURN
+    // =================================================
+
+    return {
+
+        summary: {
+
+            total:
+                rows.length,
+
+            newCount,
+
+            updateCount,
+
+            skipCount
+
+        },
+
+        rows:
+            result
+
+    };
 
 }
 
 
+// =====================================================
+// EXPORT
+// =====================================================
+
 module.exports = {
 
-  compareRows
+    compareRows
 
 };
