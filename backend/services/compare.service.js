@@ -37,24 +37,38 @@ function normalizeHeader(value) {
 
 function getFlexible(row, aliases = []) {
 
-    if (!row || typeof row !== "object") {
+    if (
+        !row ||
+        typeof row !== "object"
+    ) {
+
         return "";
+
     }
 
-    const keys = Object.keys(row);
+    const keys =
+        Object.keys(row);
+
 
     // ---------------------------------------------
     // Tạo Map Header đã normalize
     // ---------------------------------------------
 
-    const headerMap = new Map();
+    const headerMap =
+        new Map();
+
 
     for (const key of keys) {
 
         const normalizedKey =
             normalizeHeader(key);
 
-        if (!headerMap.has(normalizedKey)) {
+
+        if (
+            !headerMap.has(
+                normalizedKey
+            )
+        ) {
 
             headerMap.set(
                 normalizedKey,
@@ -65,19 +79,24 @@ function getFlexible(row, aliases = []) {
 
     }
 
+
     // ---------------------------------------------
     // Tìm theo alias
     // ---------------------------------------------
 
-    for (const alias of aliases) {
+    for (
+        const alias of aliases
+    ) {
 
         const normalizedAlias =
             normalizeHeader(alias);
+
 
         const realKey =
             headerMap.get(
                 normalizedAlias
             );
+
 
         if (
             realKey !== undefined &&
@@ -85,7 +104,9 @@ function getFlexible(row, aliases = []) {
             row[realKey] !== null
         ) {
 
-            const value = row[realKey];
+            const value =
+                row[realKey];
+
 
             if (
                 String(value).trim() !== ""
@@ -99,34 +120,172 @@ function getFlexible(row, aliases = []) {
 
     }
 
+
     return "";
+
 }
 
 
 // =====================================================
-// TẠO DEVICE KEY DÙNG ĐỂ COMPARE
+// CHUẨN HÓA TEXT
+// =====================================================
+
+function cleanText(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+    return String(value)
+
+        .replace(/\r\n/g, " ")
+
+        .replace(/\n/g, " ")
+
+        .replace(/\r/g, " ")
+
+        .replace(/\s+/g, " ")
+
+        .trim();
+
+}
+
+
+// =====================================================
+// TẠO KEY XÁC ĐỊNH THIẾT BỊ
+//
+// ƯU TIÊN:
+//
+// Tuyến
+// + Nhà ga
+// + Khu vực
+// + Ký hiệu
+//
+// Nếu không có Ký hiệu:
+//
+// Tuyến
+// + Nhà ga
+// + Khu vực
+// + Tên thiết bị
 //
 // LƯU Ý:
 // Đây KHÔNG phải deviceKey trong Database.
 //
-// Đây chỉ là khóa tạm thời:
-//
-// Tuyến + Nhà ga + Ký hiệu
-//
-// Dùng để xác định cùng một thiết bị.
+// Chỉ là khóa tạm dùng cho IMPORT / COMPARE.
 // =====================================================
 
 function makeCompareKey(
     line,
     station,
-    code
+    area,
+    code,
+    name
 ) {
 
+    const normalizedLine =
+        normalize(
+            cleanText(line)
+        );
+
+    const normalizedStation =
+        normalize(
+            cleanText(station)
+        );
+
+    const normalizedArea =
+        normalize(
+            cleanText(area)
+        );
+
+    const normalizedCode =
+        normalize(
+            cleanText(code)
+        );
+
+    const normalizedName =
+        normalize(
+            cleanText(name)
+        );
+
+
+    // ---------------------------------------------
+    // Trường hợp có Ký hiệu
+    // ---------------------------------------------
+
+    if (
+        normalizedCode
+    ) {
+
+        return [
+            "CODE",
+            normalizedLine,
+            normalizedStation,
+            normalizedArea,
+            normalizedCode
+        ].join("_");
+
+    }
+
+
+    // ---------------------------------------------
+    // Không có Ký hiệu
+    //
+    // Dùng Tên thiết bị làm fallback
+    // ---------------------------------------------
+
     return [
-        normalize(line),
-        normalize(station),
-        normalize(code)
+        "NAME",
+        normalizedLine,
+        normalizedStation,
+        normalizedArea,
+        normalizedName
     ].join("_");
+
+}
+
+
+// =====================================================
+// KIỂM TRA DÒNG EXCEL CÓ HOÀN TOÀN TRỐNG KHÔNG
+// =====================================================
+
+function isEmptyExcelRow(row) {
+
+    if (
+        !row ||
+        typeof row !== "object"
+    ) {
+
+        return true;
+
+    }
+
+    const values =
+        Object.values(row);
+
+
+    if (
+        values.length === 0
+    ) {
+
+        return true;
+
+    }
+
+
+    return values.every(value => {
+
+        return (
+            value === null ||
+            value === undefined ||
+            String(value).trim() === ""
+        );
+
+    });
 
 }
 
@@ -139,7 +298,10 @@ function parseExcelRow(row) {
 
     // =============================================
     // MÃ ID
-    // Cho phép trùng
+    //
+    // Cho phép trống.
+    //
+    // KHÔNG dùng làm khóa xác định thiết bị.
     // =============================================
 
     const deviceId =
@@ -259,6 +421,8 @@ function parseExcelRow(row) {
         getFlexible(row, [
 
             "Khu vực",
+            "Khu Vực",
+            "KHU VỰC",
             "Vị trí",
             "Vị trí lắp đặt",
             "Khu vực lắp đặt",
@@ -379,22 +543,36 @@ function parseExcelRow(row) {
     // =============================================
 
     const installDate =
-        parseDate(rawInstallDate);
+        parseDate(
+            rawInstallDate
+        );
+
 
     const lastMaintenance =
-        parseDate(rawLastMaintenance);
+        parseDate(
+            rawLastMaintenance
+        );
+
 
     const replacementDate =
-        parseDate(rawReplacementDate);
+        parseDate(
+            rawReplacementDate
+        );
+
 
     const expiryDate =
-        parseDate(rawExpiryDate);
+        parseDate(
+            rawExpiryDate
+        );
+
 
     const lifespan =
         rawLifespan === "" ||
         rawLifespan === null ||
         rawLifespan === undefined
+
             ? 0
+
             : Number(rawLifespan) || 0;
 
 
@@ -408,62 +586,92 @@ function parseExcelRow(row) {
             deviceId === "" ||
             deviceId === null ||
             deviceId === undefined
+
                 ? null
-                : String(deviceId).trim(),
+
+                : cleanText(
+                    deviceId
+                ),
+
 
         name:
-            name === null ||
-            name === undefined
-                ? ""
-                : String(name).trim(),
+            cleanText(
+                name
+            ),
+
 
         category:
-            category === null ||
-            category === undefined
-                ? ""
-                : String(category).trim(),
+            cleanText(
+                category
+            ),
+
 
         line:
-            line === null ||
-            line === undefined
-                ? ""
-                : String(line).trim(),
+            cleanText(
+                line
+            ),
+
 
         station:
-            station === null ||
-            station === undefined
-                ? ""
-                : String(station).trim(),
+            cleanText(
+                station
+            ),
+
 
         code:
-            code === null ||
-            code === undefined
-                ? ""
-                : String(code).trim(),
+            cleanText(
+                code
+            ),
+
 
         area:
-            area === null ||
-            area === undefined
-                ? ""
-                : String(area).trim(),
+            cleanText(
+                area
+            ),
+
 
         status:
-            status === null ||
-            status === undefined
-                ? ""
-                : String(status).trim(),
+            cleanText(
+                status
+            ),
+
 
         installDate,
 
+
         lastMaintenance,
+
 
         replacementDate,
 
+
         lifespan,
+
 
         expiryDate
 
     };
+
+}
+
+
+// =====================================================
+// SO SÁNH GIÁ TRỊ
+// =====================================================
+
+function sameText(
+    a,
+    b
+) {
+
+    return (
+        normalize(
+            cleanText(a)
+        ) ===
+        normalize(
+            cleanText(b)
+        )
+    );
 
 }
 
@@ -524,57 +732,92 @@ async function compareRows(
 
 
     // =================================================
-    // 2. TẠO MAP
+    // 2. TẠO MAP DATABASE
     //
-    // KHÔNG DÙNG deviceId
+    // Không dùng deviceId.
     //
     // Dùng:
     //
-    // Tuyến + Nhà ga + Ký hiệu
+    // Tuyến
+    // + Nhà ga
+    // + Khu vực
+    // + Ký hiệu
+    //
+    // hoặc:
+    //
+    // Tuyến
+    // + Nhà ga
+    // + Khu vực
+    // + Tên
+    //
+    // nếu thiếu Ký hiệu.
     // =================================================
 
-    const deviceMap = new Map();
+    const deviceMap =
+        new Map();
 
-    const duplicateDatabaseKeys = new Set();
+
+    const duplicateDatabaseKeys =
+        new Set();
 
 
-    for (const device of devices) {
+    for (
+        const device of devices
+    ) {
+
+        const key =
+            makeCompareKey(
+
+                device.line,
+
+                device.station,
+
+                device.area,
+
+                device.code,
+
+                device.name
+
+            );
+
+
+        // ---------------------------------------------
+        // Chỉ tạo key khi có đủ thông tin cơ bản
+        // ---------------------------------------------
 
         if (
-            device.line &&
-            device.station &&
-            device.code
+            !device.line ||
+            !device.station ||
+            (
+                !device.code &&
+                !device.name
+            )
         ) {
 
-            const key =
-                makeCompareKey(
+            continue;
 
-                    device.line,
-
-                    device.station,
-
-                    device.code
-
-                );
+        }
 
 
-            // -----------------------------------------
-            // Phát hiện DB có duplicate
-            // -----------------------------------------
+        // ---------------------------------------------
+        // Phát hiện duplicate Database
+        // ---------------------------------------------
 
-            if (deviceMap.has(key)) {
+        if (
+            deviceMap.has(key)
+        ) {
 
-                duplicateDatabaseKeys.add(key);
+            duplicateDatabaseKeys.add(
+                key
+            );
 
-            }
-            else {
+        }
+        else {
 
-                deviceMap.set(
-                    key,
-                    device
-                );
-
-            }
+            deviceMap.set(
+                key,
+                device
+            );
 
         }
 
@@ -603,7 +846,8 @@ async function compareRows(
     // 5. THEO DÕI DUPLICATE TRONG FILE EXCEL
     // =================================================
 
-    const excelKeys = new Map();
+    const excelKeys =
+        new Map();
 
 
     // =================================================
@@ -620,27 +864,50 @@ async function compareRows(
             rows[index];
 
 
+        const excelRowNumber =
+            index + 2;
+
+
         // =============================================
-        // DEBUG HEADER
+        // BỎ QUA DÒNG HOÀN TOÀN TRỐNG
         // =============================================
 
-        if (index === 0) {
+        if (
+            isEmptyExcelRow(row)
+        ) {
 
-            console.log(
-                "================================"
-            );
+            skipCount++;
 
-            console.log(
-                "EXCEL COLUMN NAMES:"
-            );
 
-            console.log(
-                Object.keys(row || {})
-            );
+            result.push({
 
-            console.log(
-                "================================"
-            );
+                action: "SKIP",
+
+                reason:
+                    "Dòng Excel trống",
+
+                changedFields: [],
+
+                row: {
+
+                    deviceId: null,
+
+                    name: "",
+
+                    line: "",
+
+                    station: "",
+
+                    code: "",
+
+                    area: ""
+
+                }
+
+            });
+
+
+            continue;
 
         }
 
@@ -650,7 +917,9 @@ async function compareRows(
         // =============================================
 
         const data =
-            parseExcelRow(row);
+            parseExcelRow(
+                row
+            );
 
 
         // =============================================
@@ -658,8 +927,9 @@ async function compareRows(
         // =============================================
 
         console.log(
-            `IMPORT ROW ${index + 2}:`,
+            `IMPORT ROW ${excelRowNumber}:`,
             {
+
                 deviceId:
                     data.deviceId,
 
@@ -672,8 +942,12 @@ async function compareRows(
                 station:
                     data.station,
 
+                area:
+                    data.area,
+
                 code:
                     data.code
+
             }
         );
 
@@ -681,14 +955,23 @@ async function compareRows(
         // =============================================
         // 7. VALIDATE
         //
-        // Tuyến + Nhà ga + Ký hiệu + Tên
-        // là bắt buộc để xác định thiết bị
+        // Mã ID KHÔNG bắt buộc.
+        //
+        // Ký hiệu cũng KHÔNG bắt buộc tuyệt đối.
+        //
+        // Chỉ yêu cầu:
+        //
+        // Tuyến
+        // Nhà ga
+        // Tên thiết bị
+        //
+        // Nếu thiếu Ký hiệu thì dùng Tên
+        // để tạo khóa dự phòng.
         // =============================================
 
         if (
             !data.line ||
             !data.station ||
-            !data.code ||
             !data.name
         ) {
 
@@ -700,7 +983,7 @@ async function compareRows(
                 action: "SKIP",
 
                 reason:
-                    "Thiếu Tuyến hoặc Nhà ga hoặc Ký hiệu hoặc Tên thiết bị",
+                    "Thiếu Tuyến hoặc Nhà ga hoặc Tên thiết bị",
 
                 changedFields: [],
 
@@ -725,17 +1008,23 @@ async function compareRows(
 
                 data.station,
 
-                data.code
+                data.area,
+
+                data.code,
+
+                data.name
 
             );
 
 
         // =============================================
-        // 9. DUPLICATE TRONG DATABASE
+        // 9. DUPLICATE DATABASE
         // =============================================
 
         if (
-            duplicateDatabaseKeys.has(key)
+            duplicateDatabaseKeys.has(
+                key
+            )
         ) {
 
             skipCount++;
@@ -746,7 +1035,7 @@ async function compareRows(
                 action: "SKIP",
 
                 reason:
-                    "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Ký hiệu",
+                    "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Khu vực + Ký hiệu/Tên",
 
                 changedFields: [],
 
@@ -765,11 +1054,15 @@ async function compareRows(
         // =============================================
 
         if (
-            excelKeys.has(key)
+            excelKeys.has(
+                key
+            )
         ) {
 
             const firstRow =
-                excelKeys.get(key);
+                excelKeys.get(
+                    key
+                );
 
 
             skipCount++;
@@ -780,7 +1073,7 @@ async function compareRows(
                 action: "SKIP",
 
                 reason:
-                    `Trùng Tuyến + Nhà ga + Ký hiệu trong file Excel với dòng ${firstRow}`,
+                    `Trùng thiết bị trong file Excel với dòng ${firstRow}`,
 
                 changedFields: [],
 
@@ -796,7 +1089,7 @@ async function compareRows(
 
         excelKeys.set(
             key,
-            index + 2
+            excelRowNumber
         );
 
 
@@ -805,7 +1098,9 @@ async function compareRows(
         // =============================================
 
         const old =
-            deviceMap.get(key);
+            deviceMap.get(
+                key
+            );
 
 
         // =============================================
@@ -845,8 +1140,10 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
-            normalize(old.name) !==
-            normalize(data.name)
+            !sameText(
+                old.name,
+                data.name
+            )
         ) {
 
             changedFields.push(
@@ -861,8 +1158,10 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
-            normalize(old.category) !==
-            normalize(data.category)
+            !sameText(
+                old.category,
+                data.category
+            )
         ) {
 
             changedFields.push(
@@ -877,8 +1176,10 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
-            normalize(old.line) !==
-            normalize(data.line)
+            !sameText(
+                old.line,
+                data.line
+            )
         ) {
 
             changedFields.push(
@@ -893,8 +1194,10 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
-            normalize(old.station) !==
-            normalize(data.station)
+            !sameText(
+                old.station,
+                data.station
+            )
         ) {
 
             changedFields.push(
@@ -905,28 +1208,14 @@ async function compareRows(
 
 
         // ---------------------------------------------
-        // Ký hiệu
-        // ---------------------------------------------
-
-        if (
-            normalize(old.code) !==
-            normalize(data.code)
-        ) {
-
-            changedFields.push(
-                "Ký hiệu"
-            );
-
-        }
-
-
-        // ---------------------------------------------
         // Khu vực
         // ---------------------------------------------
 
         if (
-            normalize(old.area) !==
-            normalize(data.area)
+            !sameText(
+                old.area,
+                data.area
+            )
         ) {
 
             changedFields.push(
@@ -937,16 +1226,36 @@ async function compareRows(
 
 
         // ---------------------------------------------
+        // Ký hiệu
+        // ---------------------------------------------
+
+        if (
+            !sameText(
+                old.code,
+                data.code
+            )
+        ) {
+
+            changedFields.push(
+                "Ký hiệu"
+            );
+
+        }
+
+
+        // ---------------------------------------------
         // Mã ID
         //
-        // CHỈ là thông tin.
+        // Chỉ là thông tin.
         //
         // Không dùng để xác định thiết bị.
         // ---------------------------------------------
 
         if (
-            normalize(old.deviceId) !==
-            normalize(data.deviceId)
+            !sameText(
+                old.deviceId,
+                data.deviceId
+            )
         ) {
 
             changedFields.push(
@@ -958,12 +1267,16 @@ async function compareRows(
 
         // ---------------------------------------------
         // Trạng thái
+        //
+        // Chỉ update khi Excel có dữ liệu.
         // ---------------------------------------------
 
         if (
             data.status &&
-            normalize(old.status) !==
-            normalize(data.status)
+            !sameText(
+                old.status,
+                data.status
+            )
         ) {
 
             changedFields.push(
@@ -1032,8 +1345,12 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
-            Number(old.lifespan || 0) !==
-            Number(data.lifespan || 0)
+            Number(
+                old.lifespan || 0
+            ) !==
+            Number(
+                data.lifespan || 0
+            )
         ) {
 
             changedFields.push(
@@ -1063,11 +1380,11 @@ async function compareRows(
 
 
         // =============================================
-        // 14. DEBUG
+        // 14. DEBUG MATCH
         // =============================================
 
         if (
-            changedFields.length
+            changedFields.length > 0
         ) {
 
             console.log(
@@ -1117,11 +1434,11 @@ async function compareRows(
                     station:
                         old.station,
 
-                    code:
-                        old.code,
-
                     area:
                         old.area,
+
+                    code:
+                        old.code,
 
                     status:
                         old.status,
@@ -1152,7 +1469,7 @@ async function compareRows(
         // =============================================
 
         if (
-            changedFields.length
+            changedFields.length > 0
         ) {
 
             updateCount++;
@@ -1168,96 +1485,117 @@ async function compareRows(
 
             });
 
-        }
 
-        // =============================================
-        // 16. SKIP
-        // =============================================
-
-        else {
-
-            skipCount++;
-
-
-            result.push({
-
-                action: "SKIP",
-
-                changedFields: [],
-
-                row: data
-
-            });
+            continue;
 
         }
+
+
+        // =============================================
+        // 16. KHÔNG CÓ THAY ĐỔI
+        // =============================================
+
+        skipCount++;
+
+
+        result.push({
+
+            action: "SKIP",
+
+            reason:
+                "Thiết bị đã tồn tại và không có thay đổi",
+
+            changedFields: [],
+
+            row: data
+
+        });
 
     }
 
+
     // =====================================================
-    // THỐNG KÊ LÝ DO SKIP
+    // 17. THỐNG KÊ LÝ DO SKIP
     // =====================================================
-    
+
     const skipReasons = {};
-    
-    for (const item of result) {
-    
-        if (item.action !== "SKIP") {
+
+
+    for (
+        const item of result
+    ) {
+
+        if (
+            item.action !== "SKIP"
+        ) {
+
             continue;
+
         }
-    
+
+
         const reason =
             item.reason ||
             "Không xác định";
-    
+
+
         skipReasons[reason] =
-            (skipReasons[reason] || 0) + 1;
-    
+            (
+                skipReasons[reason] ||
+                0
+            ) + 1;
+
     }
-    
+
+
+    // =====================================================
+    // 18. LOG SUMMARY
+    // =====================================================
+
     console.log(
         "========================================"
     );
-    
+
     console.log(
         "IMPORT SUMMARY"
     );
-    
+
     console.log(
         "TOTAL:",
         rows.length
     );
-    
+
     console.log(
         "NEW:",
         newCount
     );
-    
+
     console.log(
         "UPDATE:",
         updateCount
     );
-    
+
     console.log(
         "SKIP:",
         skipCount
     );
-    
+
     console.log(
         "SKIP REASONS:"
     );
-    
+
     console.log(
         skipReasons
     );
-    
+
     console.log(
         "========================================"
     );
 
 
-    // =================================================
-    // 17. RETURN
-    // =================================================
+    // =====================================================
+    // 19. RETURN
+    // =====================================================
 
     return {
 
