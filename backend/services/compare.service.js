@@ -568,8 +568,8 @@ function parseExcelRow(row) {
 
     const lifespan =
         rawLifespan === "" ||
-        rawLifespan === null ||
-        rawLifespan === undefined
+            rawLifespan === null ||
+            rawLifespan === undefined
 
             ? 0
 
@@ -584,8 +584,8 @@ function parseExcelRow(row) {
 
         deviceId:
             deviceId === "" ||
-            deviceId === null ||
-            deviceId === undefined
+                deviceId === null ||
+                deviceId === undefined
 
                 ? null
 
@@ -953,37 +953,49 @@ async function compareRows(
 
 
         // =============================================
-        // 7. VALIDATE
+        // VALIDATE DỮ LIỆU BẮT BUỘC
         //
-        // Mã ID KHÔNG bắt buộc.
+        // deviceId KHÔNG bắt buộc
+        // code KHÔNG bắt buộc
         //
-        // Ký hiệu cũng KHÔNG bắt buộc tuyệt đối.
-        //
-        // Chỉ yêu cầu:
-        //
-        // Tuyến
-        // Nhà ga
-        // Tên thiết bị
-        //
-        // Nếu thiếu Ký hiệu thì dùng Tên
-        // để tạo khóa dự phòng.
+        // Bắt buộc:
+        // - Tên thiết bị
+        // - Tuyến
+        // - Nhà ga
         // =============================================
 
-        if (
-            !data.line ||
-            !data.station ||
-            !data.name
-        ) {
+        const missingFields = [];
+
+        if (!data.name) {
+            missingFields.push("Tên thiết bị");
+        }
+
+        if (!data.line) {
+            missingFields.push("Tuyến");
+        }
+
+        if (!data.station) {
+            missingFields.push("Nhà ga");
+        }
+
+        if (missingFields.length > 0) {
 
             skipCount++;
 
+            const reason =
+                `Thiếu: ${missingFields.join(", ")}`;
+
+            console.warn(
+                `IMPORT SKIP - dòng Excel ${excelRowNumber}:`,
+                reason,
+                data
+            );
 
             result.push({
 
                 action: "SKIP",
 
-                reason:
-                    "Thiếu Tuyến hoặc Nhà ga hoặc Tên thiết bị",
+                reason,
 
                 changedFields: [],
 
@@ -991,9 +1003,7 @@ async function compareRows(
 
             });
 
-
             continue;
-
         }
 
 
