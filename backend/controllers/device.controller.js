@@ -285,38 +285,87 @@ exports.createDevice = async (req, res) => {
         const d = req.body;
 
         const categoryInfo = detectCategory({
-
             name: d.name,
-
             code: d.code,
-
-            model: d.model,
-
+            model: d.model || ""
         });
 
         const installDate = parseDate(d.installDate);
+
+        // ============================================
+        // DEVICE KEY
+        // Không lấy từ frontend
+        // Không lấy từ Excel
+        // Hệ thống tự tạo
+        // ============================================
+
+        const deviceKey = crypto.randomUUID();
 
         const device = await prisma.device.create({
 
             data: {
 
-                ...d,
+                deviceKey,
 
-                category: categoryInfo.category,
+                deviceId:
+                    d.deviceId
+                    ? String(d.deviceId).trim()
+                    : null,
 
-                originalInstallDate: installDate,
+                name:
+                    d.name || "",
 
-                installDate: installDate,
+                category:
+                    d.category ||
+                    categoryInfo.category ||
+                    null,
 
-                lastMaintenance: parseDate(d.lastMaintenance),
+                line:
+                    d.line || "",
 
-                replacementDate: parseDate(d.replacementDate),
+                station:
+                    d.station || "",
 
-                expiryDate: parseDate(d.expiryDate)
+                code:
+                    d.code || null,
+
+                area:
+                    d.area || null,
+
+                status:
+                    d.status || "Running",
+
+                originalInstallDate:
+                    installDate,
+
+                installDate:
+                    installDate,
+
+                lastMaintenance:
+                    parseDate(d.lastMaintenance),
+
+                replacementDate:
+                    parseDate(d.replacementDate),
+
+                lifespan:
+                    d.lifespan
+                        ? Number(d.lifespan)
+                        : null,
+
+                expiryDate:
+                    parseDate(d.expiryDate) ||
+                    calculateExpiryDate(
+                        installDate,
+                        d.lifespan
+                    )
 
             }
 
         });
+
+        // ============================================
+        // HISTORY
+        // ============================================
 
         await writeHistory({
 
@@ -324,7 +373,9 @@ exports.createDevice = async (req, res) => {
 
             action: "CREATE",
 
-            user: req.user?.username || "System",
+            user:
+                req.user?.username ||
+                "System",
 
             code: device.deviceId,
 
@@ -340,7 +391,10 @@ exports.createDevice = async (req, res) => {
 
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "CREATE DEVICE ERROR:",
+            err
+        );
 
         res.status(500).json({
 
@@ -355,11 +409,15 @@ exports.createDevice = async (req, res) => {
 // =====================================================
 // UPDATE DEVICE
 // =====================================================
+
 function normalizeCompare(value) {
 
-    if (value === null || value === undefined)
-
+    if (
+        value === null ||
+        value === undefined
+    ) {
         return "";
+    }
 
     return String(value);
 
@@ -371,7 +429,41 @@ exports.updateDevice = async (req, res) => {
 
         const id = Number(req.params.id);
 
+        if (!id || Number.isNaN(id)) {
+
+            return res.status(400).json({
+
+                message: "ID thiết bị không hợp lệ."
+
+            });
+
+        }
+
         const d = req.body;
+
+        // ============================================
+        // LẤY THIẾT BỊ CŨ
+        // ============================================
+
+        const oldDevice =
+            await prisma.device.findUnique({
+
+                where: {
+                    id
+                }
+
+            });
+
+        if (!oldDevice) {
+
+            return res.status(404).json({
+
+                message:
+                    "Không tìm thấy thiết bị."
+
+            });
+
+        }
 
         const categoryInfo = detectCategory({
 
@@ -379,86 +471,164 @@ exports.updateDevice = async (req, res) => {
 
             code: d.code,
 
-            model: d.model,
+            model: d.model || ""
 
         });
 
-        const oldDevice = await prisma.device.findUnique({
+        const installDate =
+            parseDate(d.installDate);
 
-            where: {
-
-                id
-
-            }
-
-        });
+        // ============================================
+        // KHÔNG cập nhật deviceKey
+        // ============================================
 
         const data = {
 
-            ...d,
+            deviceId:
+                d.deviceId !== undefined
+                    ? String(d.deviceId).trim()
+                    : oldDevice.deviceId,
 
-            category: categoryInfo.category,
+            name:
+                d.name !== undefined
+                    ? d.name
+                    : oldDevice.name,
 
-            installDate: parseDate(d.installDate),
+            category:
+                d.category ||
+                categoryInfo.category ||
+                null,
 
-            lastMaintenance: parseDate(d.lastMaintenance),
+            line:
+                d.line !== undefined
+                    ? d.line
+                    : oldDevice.line,
 
-            replacementDate: parseDate(d.replacementDate)
+            station:
+                d.station !== undefined
+                    ? d.station
+                    : oldDevice.station,
+
+            code:
+                d.code !== undefined
+                    ? d.code
+                    : oldDevice.code,
+
+            area:
+                d.area !== undefined
+                    ? d.area
+                    : oldDevice.area,
+
+            status:
+                d.status ||
+                oldDevice.status ||
+                "Running",
+
+            installDate:
+                installDate,
+
+            lastMaintenance:
+                parseDate(d.lastMaintenance),
+
+            replacementDate:
+                parseDate(d.replacementDate),
+
+            lifespan:
+                d.lifespan !== undefined &&
+                d.lifespan !== ""
+                    ? Number(d.lifespan)
+                    : null
 
         };
 
-        data.expiryDate = calculateExpiryDate(
-            data.installDate,
-            d.lifespan
-        );
+        // ============================================
+        // ORIGINAL INSTALL DATE
+        // ============================================
+
+        data.originalInstallDate =
+            oldDevice.originalInstallDate ||
+            installDate;
+
+        // ============================================
+        // EXPIRY DATE
+        // ============================================
+
+        data.expiryDate =
+            parseDate(d.expiryDate) ||
+            calculateExpiryDate(
+                data.installDate,
+                data.lifespan
+            );
+
+        // ============================================
+        // TRƯỜNG HỢP THAY THẾ
+        // ============================================
 
         if (
             d.replacementDate &&
             (
                 !oldDevice.replacementDate ||
-                String(oldDevice.replacementDate).slice(0, 10) !==
-                String(d.replacementDate).slice(0, 10)
+                String(
+                    oldDevice.replacementDate
+                ).slice(0, 10) !==
+                String(
+                    d.replacementDate
+                ).slice(0, 10)
             )
         ) {
 
-            data.installDate = parseDate(d.replacementDate);
+            data.installDate =
+                parseDate(
+                    d.replacementDate
+                );
 
-            data.expiryDate = calculateExpiryDate(
-                data.installDate,
-                d.lifespan
-            );
+            data.expiryDate =
+                calculateExpiryDate(
+                    data.installDate,
+                    data.lifespan
+                );
 
         }
 
-        const updated = await prisma.device.update({
+        // ============================================
+        // UPDATE
+        // ============================================
 
-            where: {
+        const updated =
+            await prisma.device.update({
 
-                id
+                where: {
+                    id
+                },
 
-            },
+                data
 
-            data
+            });
 
-        });
+        // ============================================
+        // HISTORY
+        // ============================================
 
         const changes = {};
 
-        Object.keys(d).forEach(key => {
+        Object.keys(data).forEach(key => {
 
             if (
-
-                normalizeCompare(oldDevice[key]) !==
-
-                normalizeCompare(updated[key])
-
+                normalizeCompare(
+                    oldDevice[key]
+                ) !==
+                normalizeCompare(
+                    updated[key]
+                )
             ) {
 
                 changes[key] = {
 
-                    old: oldDevice[key],
+                    old:
+                        oldDevice[key],
 
-                    new: updated[key]
+                    new:
+                        updated[key]
 
                 };
 
@@ -468,17 +638,24 @@ exports.updateDevice = async (req, res) => {
 
         await writeHistory({
 
-            deviceId: updated.id,
+            deviceId:
+                updated.id,
 
-            action: "UPDATE",
+            action:
+                "UPDATE",
 
-            user: req.user?.username || "System",
+            user:
+                req.user?.username ||
+                "System",
 
-            code: updated.deviceId,
+            code:
+                updated.deviceId,
 
-            name: updated.name,
+            name:
+                updated.name,
 
-            note: "Cập nhật thiết bị",
+            note:
+                "Cập nhật thiết bị",
 
             changes
 
@@ -490,7 +667,10 @@ exports.updateDevice = async (req, res) => {
 
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "UPDATE DEVICE ERROR:",
+            err
+        );
 
         res.status(500).json({
 
