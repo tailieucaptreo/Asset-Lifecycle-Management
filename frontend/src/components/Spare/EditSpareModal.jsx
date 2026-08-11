@@ -433,7 +433,7 @@ export default function EditSpareModal({
 
                     <input
 
-                        placeholder="Người chỉnh sửa"
+                        placeholder="Người thực hiện"
 
                         value={form.editedBy}
 
