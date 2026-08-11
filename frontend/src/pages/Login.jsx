@@ -3,6 +3,8 @@ import API from "../config";
 
 import { useState, useEffect } from "react";
 
+import { Eye, EyeOff } from "lucide-react";
+
 export default function Login() {
 
     const [username, setUsername] =
@@ -11,93 +13,133 @@ export default function Login() {
     const [password, setPassword] =
         useState("");
 
+    // Hiện / ẩn mật khẩu
+    const [showPassword, setShowPassword] =
+        useState(false);
+
+
     useEffect(() => {
 
         const timer = setTimeout(() => {
-    
+
             autoBackup();
-    
+
         }, 500);
-    
+
         return () => clearTimeout(timer);
-    
+
     }, []);
+
+
+    // =====================================================
+    // AUTO BACKUP
+    // =====================================================
 
     const autoBackup = async () => {
 
         try {
-    
-            const today = new Date()
-                .toISOString()
-                .slice(0, 10);
-    
+
+            const today =
+                new Date()
+                    .toISOString()
+                    .slice(0, 10);
+
+
             const lastBackup =
-                localStorage.getItem("lastBackup");
-    
+                localStorage.getItem(
+                    "lastBackup"
+                );
+
+
             if (lastBackup === today) {
-    
+
                 return;
-    
+
             }
-    
-            const response = await axios.get(
-    
-                `${API}/api/backup/system`,
-    
-                {
-    
-                    responseType: "blob"
-    
-                }
-    
-            );
-    
-            const blob = new Blob([response.data]);
-    
-            const url = window.URL.createObjectURL(blob);
-    
-            const link = document.createElement("a");
-    
+
+
+            const response =
+                await axios.get(
+
+                    `${API}/api/backup/system`,
+
+                    {
+                        responseType: "blob"
+                    }
+
+                );
+
+
+            const blob =
+                new Blob([
+                    response.data
+                ]);
+
+
+            const url =
+                window.URL.createObjectURL(
+                    blob
+                );
+
+
+            const link =
+                document.createElement("a");
+
+
             link.href = url;
-    
+
+
             link.download =
                 `AssetLifecycleBackup_${today}.xlsx`;
-    
-            document.body.appendChild(link);
-    
+
+
+            document.body.appendChild(
+                link
+            );
+
+
             link.click();
-    
+
+
             link.remove();
-    
-            window.URL.revokeObjectURL(url);
-    
+
+
+            window.URL.revokeObjectURL(
+                url
+            );
+
+
             localStorage.setItem(
-    
                 "lastBackup",
-    
                 today
-    
             );
-    
+
         }
-    
+
         catch (err) {
-    
+
             console.error(
-    
                 "Auto Backup Error:",
-    
                 err
-    
             );
-    
+
         }
-    
+
     };
+
+
+    // =====================================================
+    // LOGIN
+    // =====================================================
 
     const handleLogin = async (e) => {
 
-        if (e) e.preventDefault();
+        if (e) {
+
+            e.preventDefault();
+
+        }
+
 
         try {
 
@@ -113,11 +155,15 @@ export default function Login() {
 
                 );
 
+
+            // Token
             localStorage.setItem(
                 "token",
                 res.data.token
             );
 
+
+            // User
             localStorage.setItem(
                 "user",
                 JSON.stringify(
@@ -125,18 +171,28 @@ export default function Login() {
                 )
             );
 
+
+            // Role
             localStorage.setItem(
                 "role",
                 res.data.user.role
             );
 
-            if (res.data.user.role === "admin") {
 
-                window.location.href = "/dashboard";
+            // Chuyển trang
+            if (
+                res.data.user.role === "admin"
+            ) {
 
-            } else {
+                window.location.href =
+                    "/dashboard";
 
-                window.location.href = "/spare-devices";
+            }
+
+            else {
+
+                window.location.href =
+                    "/spare-devices";
 
             }
 
@@ -146,30 +202,45 @@ export default function Login() {
 
             console.log(err);
 
-            if (err.response?.status === 401) {
 
-                alert("Sai tên đăng nhập hoặc mật khẩu");
+            if (
+                err.response?.status === 401
+            ) {
+
+                alert(
+                    "Sai tên đăng nhập hoặc mật khẩu"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                err.response?.status === 500
+            ) {
+
+                alert(
+                    "Lỗi máy chủ, vui lòng thử lại"
+                );
 
                 return;
 
             }
 
-            if (err.response?.status === 500) {
-
-                alert("Lỗi máy chủ, vui lòng thử lại");
-
-                return;
-
-            }
 
             alert(
+
                 err.response?.data?.message ||
+
                 "Đăng nhập thất bại"
+
             );
 
         }
 
     };
+
 
     return (
 
@@ -188,7 +259,9 @@ export default function Login() {
             "
         >
 
-            {/* nền blur */}
+            {/* =================================================
+                NỀN BLUR
+            ================================================= */}
 
             <div
                 className="
@@ -202,6 +275,7 @@ export default function Login() {
                 blur-[180px]
                 "
             />
+
 
             <div
                 className="
@@ -217,7 +291,9 @@ export default function Login() {
             />
 
 
-            {/* CARD */}
+            {/* =================================================
+                LOGIN CARD
+            ================================================= */}
 
             <div
                 className="
@@ -234,12 +310,19 @@ export default function Login() {
                 p-10
                 "
             >
+
                 <form onSubmit={handleLogin}>
+
+                    {/* =================================================
+                        HEADER
+                    ================================================= */}
+
                     <div className="text-center">
 
                         <div className="text-6xl mb-4">
                             🔐
                         </div>
+
 
                         <h1
                             className="
@@ -251,6 +334,7 @@ export default function Login() {
                         >
                             Đăng nhập
                         </h1>
+
 
                         <p
                             className="
@@ -264,11 +348,19 @@ export default function Login() {
                     </div>
 
 
+                    {/* =================================================
+                        TÀI KHOẢN
+                    ================================================= */}
+
                     <input
                         type="text"
                         placeholder="Tài khoản"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e) =>
+                            setUsername(
+                                e.target.value
+                            )
+                        }
                         className="
                         w-full
                         mb-5
@@ -286,27 +378,103 @@ export default function Login() {
                     />
 
 
-                    <input
-                        type="password"
-                        placeholder="Mật khẩu"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                    {/* =================================================
+                        MẬT KHẨU + CON MẮT
+                    ================================================= */}
+
+                    <div
                         className="
+                        relative
                         w-full
                         mb-6
-                        p-5
-                        rounded-2xl
-                        bg-white/15
-                        border
-                        border-white/20
-                        text-white
-                        placeholder-white/50
-                        outline-none
-                        focus:ring-2
-                        focus:ring-cyan-300
                         "
-                    />
+                    >
 
+                        <input
+                            type={
+                                showPassword
+                                    ? "text"
+                                    : "password"
+                            }
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) =>
+                                setPassword(
+                                    e.target.value
+                                )
+                            }
+                            className="
+                            w-full
+                            p-5
+                            pr-14
+                            rounded-2xl
+                            bg-white/15
+                            border
+                            border-white/20
+                            text-white
+                            placeholder-white/50
+                            outline-none
+                            focus:ring-2
+                            focus:ring-cyan-300
+                            "
+                        />
+
+
+                        {/* CON MẮT */}
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setShowPassword(
+                                    (prev) =>
+                                        !prev
+                                )
+                            }
+                            className="
+                            absolute
+                            right-4
+                            top-1/2
+                            -translate-y-1/2
+                            flex
+                            items-center
+                            justify-center
+                            p-2
+                            text-white/70
+                            hover:text-white
+                            transition
+                            duration-200
+                            "
+                            aria-label={
+                                showPassword
+                                    ? "Ẩn mật khẩu"
+                                    : "Hiện mật khẩu"
+                            }
+                        >
+
+                            {showPassword ? (
+
+                                <EyeOff
+                                    size={23}
+                                    strokeWidth={2}
+                                />
+
+                            ) : (
+
+                                <Eye
+                                    size={23}
+                                    strokeWidth={2}
+                                />
+
+                            )}
+
+                        </button>
+
+                    </div>
+
+
+                    {/* =================================================
+                        NÚT ĐĂNG NHẬP
+                    ================================================= */}
 
                     <button
                         type="submit"
