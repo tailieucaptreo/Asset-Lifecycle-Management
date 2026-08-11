@@ -292,87 +292,121 @@ export default function EditSpareModal({
 
                     />
 
-                    <input
-
-                        type="number"
-
-                        placeholder="Ban đầu"
-
-                        value={form.initialQuantity}
-
-                        disabled={editing || isUser}
-
-                        onChange={(e)=>
-
-                            setForm({
-
-                                ...form,
-
-                                initialQuantity:Number(e.target.value)
-
-                            })
-
-                        }
-
-                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
-
-                    />
-
-                    <input
-
-                        type="number"
-
-                        placeholder="Nhập"
-
-                        value={form.importQty}
-
-                        disabled={isUser}
-
-                        onChange={(e)=>
-
-                            setForm({
-
-                                ...form,
-
-                                importQty:Number(e.target.value)
-
-                            })
-
-                        }
-
-                        className={`${inputClass} ${isUser ? readOnlyClass : ""}`}
-
-                    />
-
-                    <input
-
-                        type="number"
-
-                        placeholder="Xuất"
-
-                        value={form.exportQty}
-
-                        disabled={!editing}
-
-                        onChange={(e)=>
-
-                            setForm({
-
-                                ...form,
-
-                                exportQty:Number(e.target.value)
-
-                            })
-
-                        }
-
-                        className={`
-                            ${inputClass}
-                            ${isUser ? editableClass : ""}
-                        `}
-
-                    />
-
+                    {/* =========================
+                        SỐ LƯỢNG
+                    ========================= */}
+                    
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    
+                        {/* BAN ĐẦU */}
+                        <div>
+                    
+                            <label
+                                className="
+                                    block
+                                    mb-2
+                                    text-sm
+                                    font-semibold
+                                    text-slate-600
+                                "
+                            >
+                                Ban đầu
+                            </label>
+                    
+                            <input
+                                type="number"
+                                min="0"
+                                value={form.initialQuantity ?? 0}
+                                disabled={editing || isUser}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        initialQuantity:
+                                            Number(e.target.value) || 0
+                                    })
+                                }
+                                className={`
+                                    ${inputClass}
+                                    ${isUser ? readOnlyClass : ""}
+                                `}
+                            />
+                    
+                        </div>
+                    
+                    
+                        {/* NHẬP */}
+                        <div>
+                    
+                            <label
+                                className="
+                                    block
+                                    mb-2
+                                    text-sm
+                                    font-semibold
+                                    text-slate-600
+                                "
+                            >
+                                Nhập
+                            </label>
+                    
+                            <input
+                                type="number"
+                                min="0"
+                                value={form.importQty ?? 0}
+                                disabled={isUser}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        importQty:
+                                            Number(e.target.value) || 0
+                                    })
+                                }
+                                className={`
+                                    ${inputClass}
+                                    ${isUser ? readOnlyClass : ""}
+                                `}
+                            />
+                    
+                        </div>
+                    
+                    
+                        {/* XUẤT */}
+                        <div>
+                    
+                            <label
+                                className="
+                                    block
+                                    mb-2
+                                    text-sm
+                                    font-semibold
+                                    text-slate-600
+                                "
+                            >
+                                Xuất
+                            </label>
+                    
+                            <input
+                                type="number"
+                                min="0"
+                                value={form.exportQty ?? 0}
+                                disabled={!editing}
+                                onChange={(e) =>
+                                    setForm({
+                                        ...form,
+                                        exportQty:
+                                            Number(e.target.value) || 0
+                                    })
+                                }
+                                className={`
+                                    ${inputClass}
+                                    ${isUser ? editableClass : ""}
+                                `}
+                            />
+                    
+                        </div>
+                    
+                    </div>
+                    
                     <input
 
                         placeholder="Đơn vị"
