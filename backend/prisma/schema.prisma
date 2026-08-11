@@ -34,7 +34,7 @@ model Device {
 
   // Khóa kỹ thuật do hệ thống tự tạo
   // Không hiển thị cho người dùng
-  deviceKey           String?
+  deviceKey           String    @unique
 
   // Thông tin thiết bị
   name                String
