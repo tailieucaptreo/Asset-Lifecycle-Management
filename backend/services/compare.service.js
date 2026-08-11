@@ -1193,6 +1193,67 @@ async function compareRows(
 
     }
 
+    // =====================================================
+    // THỐNG KÊ LÝ DO SKIP
+    // =====================================================
+    
+    const skipReasons = {};
+    
+    for (const item of result) {
+    
+        if (item.action !== "SKIP") {
+            continue;
+        }
+    
+        const reason =
+            item.reason ||
+            "Không xác định";
+    
+        skipReasons[reason] =
+            (skipReasons[reason] || 0) + 1;
+    
+    }
+    
+    console.log(
+        "========================================"
+    );
+    
+    console.log(
+        "IMPORT SUMMARY"
+    );
+    
+    console.log(
+        "TOTAL:",
+        rows.length
+    );
+    
+    console.log(
+        "NEW:",
+        newCount
+    );
+    
+    console.log(
+        "UPDATE:",
+        updateCount
+    );
+    
+    console.log(
+        "SKIP:",
+        skipCount
+    );
+    
+    console.log(
+        "SKIP REASONS:"
+    );
+    
+    console.log(
+        skipReasons
+    );
+    
+    console.log(
+        "========================================"
+    );
+
 
     // =================================================
     // 17. RETURN
