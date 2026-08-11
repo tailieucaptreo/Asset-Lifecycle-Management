@@ -27,35 +27,45 @@ model User {
 }
 
 model Device {
+  id                  Int       @id @default(autoincrement())
 
-  id              Int      @id @default(autoincrement())
+  // Mã ID trong Excel - ĐƯỢC PHÉP TRÙNG
+  deviceId            String?
 
-  name            String
-  line            String
-  station         String
+  // Khóa kỹ thuật do hệ thống tự tạo
+  // Không hiển thị cho người dùng
+  deviceKey           String?
 
-  category        String?
+  // Thông tin thiết bị
+  name                String
+  line                String
+  station             String
+  category            String?
+  code                String?
+  area                String?
 
-  code            String?
-  area            String?
+  // Trạng thái
+  status              String
 
-  deviceId        String?
+  // Thời gian
+  originalInstallDate DateTime?
+  installDate         DateTime?
+  lastMaintenance     DateTime?
+  replacementDate     DateTime?
+  lifespan            Int?
+  expiryDate          DateTime?
 
-  status          String
+  createdAt            DateTime @default(now())
 
-  originalInstallDate DateTime?   // Ngày lắp lần đầu
-  installDate         DateTime?   // Ngày lắp hiện tại
-  lastMaintenance DateTime?
-  replacementDate DateTime?
+  // Quan hệ
+  workOrders           WorkOrder[]
 
-  lifespan        Int?
-  expiryDate      DateTime?
-
-  createdAt       DateTime @default(now())
-
-  workOrders      WorkOrder[]
-
-  @@unique([line, code])
+  // Index phục vụ tìm kiếm
+  @@index([deviceId])
+  @@index([line])
+  @@index([station])
+  @@index([code])
+  @@index([line, station, code])
 }
 
 model WorkOrder {
