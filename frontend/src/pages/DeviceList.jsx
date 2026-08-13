@@ -180,20 +180,17 @@ export default function DeviceList() {
 
       catch (err) {
 
-        console.log(err);
-
-        alert(
-
-          err.response?.data?.message ||
-
-          "Không tải được danh sách thiết bị"
-
-        );
-
-        setDevices([]);
-
-        setFilteredData([]);
-
+          console.error(
+              "LOAD DEVICES ERROR:",
+              err
+          );
+      
+          setDevices([]);
+      
+          setFilteredData([]);
+      
+          throw err;
+      
       }
 
       finally {
@@ -476,75 +473,203 @@ export default function DeviceList() {
   // =========================
   // CONFIRM IMPORT
   // =========================
-
+  
   const confirmImport = async () => {
-
-    if (!sessionId) return;
-
-    try {
-
-      setImportLoading(true);
-
-      const token =
-        localStorage.getItem("token");
-
-      await axios.post(
-
-        `${API}/api/devices/import`,
-
-        {
-
-          sessionId
-
-        },
-
-        {
-
-          headers: {
-
-            Authorization:
-              `Bearer ${token}`
-
+  
+      if (!sessionId) {
+  
+          alert("Không tìm thấy phiên import.");
+  
+          return;
+  
+      }
+  
+      try {
+  
+          setImportLoading(true);
+  
+          const token =
+              localStorage.getItem("token");
+  
+  
+          // =================================================
+          // 1. THỰC HIỆN IMPORT
+          // =================================================
+  
+          const response =
+              await axios.post(
+  
+                  `${API}/api/devices/import`,
+  
+                  {
+                      sessionId
+                  },
+  
+                  {
+                      headers: {
+                          Authorization:
+                              `Bearer ${token}`
+                      }
+                  }
+  
+              );
+  
+  
+          console.log(
+              "IMPORT RESULT =",
+              response.data
+          );
+  
+  
+          // =================================================
+          // 2. KIỂM TRA KẾT QUẢ IMPORT
+          // =================================================
+  
+          if (
+              response.data?.success === false
+          ) {
+  
+              throw new Error(
+  
+                  response.data?.message ||
+  
+                  "Server báo import thất bại."
+  
+              );
+  
           }
-
-        }
-
-      );
-
-      alert("Import thành công.");
-
-      setImportOpen(false);
-
-      setPreviewRows([]);
-
-      setSummary(null);
-
-      setSessionId("");
-
-      await loadDevices();
-
-    }
-
-    catch (err) {
-
-      console.log(err);
-
-      alert(
-
-        err.response?.data?.message ||
-
-        "Import thất bại"
-
-      );
-
-    }
-
-    finally {
-
-      setImportLoading(false);
-
-    }
-
+  
+  
+          // =================================================
+          // 3. IMPORT DATABASE ĐÃ THÀNH CÔNG
+          // =================================================
+  
+          const inserted =
+              response.data?.inserted ?? 0;
+  
+          const updated =
+              response.data?.updated ?? 0;
+  
+          const skipped =
+              response.data?.skipped ?? 0;
+  
+          const total =
+              response.data?.total ?? 0;
+  
+  
+          console.log(
+              "IMPORT SUCCESS:",
+              {
+                  total,
+                  inserted,
+                  updated,
+                  skipped
+              }
+          );
+  
+  
+          // =================================================
+          // 4. ĐÓNG MODAL
+          // =================================================
+  
+          setImportOpen(false);
+  
+          setPreviewRows([]);
+  
+          setSummary(null);
+  
+          setSessionId("");
+  
+  
+          // =================================================
+          // 5. THÔNG BÁO IMPORT THÀNH CÔNG
+          // =================================================
+  
+          alert(
+  
+              `Import thành công!\n\n` +
+  
+              `Tổng: ${total}\n` +
+  
+              `Thiết bị mới: ${inserted}\n` +
+  
+              `Cập nhật: ${updated}\n` +
+  
+              `Bỏ qua: ${skipped}`
+  
+          );
+  
+  
+          // =================================================
+          // 6. RELOAD DANH SÁCH
+          //
+          // QUAN TRỌNG:
+          // Reload lỗi KHÔNG được coi là Import lỗi
+          // =================================================
+  
+          try {
+  
+              await loadDevices();
+  
+          }
+  
+          catch (reloadError) {
+  
+              console.error(
+  
+                  "IMPORT OK - RELOAD ERROR:",
+  
+                  reloadError
+  
+              );
+  
+              alert(
+  
+                  "Import đã thành công vào database,\n" +
+  
+                  "nhưng không thể tải lại danh sách thiết bị.\n\n" +
+  
+                  "Vui lòng bấm Reload để cập nhật danh sách."
+  
+              );
+  
+          }
+  
+      }
+  
+      catch (err) {
+  
+          console.error(
+  
+              "CONFIRM IMPORT ERROR:",
+  
+              err
+  
+          );
+  
+  
+          // =================================================
+          // CHỈ VÀO ĐÂY KHI POST /import THỰC SỰ LỖI
+          // =================================================
+  
+          alert(
+  
+              err.response?.data?.message ||
+  
+              err.message ||
+  
+              "Import thất bại."
+  
+          );
+  
+      }
+  
+      finally {
+  
+          setImportLoading(false);
+  
+      }
+  
   };
 
   // =========================
