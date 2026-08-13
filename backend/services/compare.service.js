@@ -734,23 +734,15 @@ async function compareRows(
     // =================================================
     // 2. TẠO MAP DATABASE
     //
-    // Không dùng deviceId.
+    // KHÔNG dùng deviceId.
     //
-    // Dùng:
+    // Ưu tiên:
     //
-    // Tuyến
-    // + Nhà ga
-    // + Khu vực
-    // + Ký hiệu
+    // Tuyến + Nhà ga + Khu vực + Ký hiệu
     //
-    // hoặc:
+    // Nếu không có Ký hiệu:
     //
-    // Tuyến
-    // + Nhà ga
-    // + Khu vực
-    // + Tên
-    //
-    // nếu thiếu Ký hiệu.
+    // Tuyến + Nhà ga + Khu vực + Tên
     // =================================================
 
     const deviceMap =
@@ -764,6 +756,24 @@ async function compareRows(
     for (
         const device of devices
     ) {
+
+        // ---------------------------------------------
+        // Không đủ dữ liệu để tạo key
+        // ---------------------------------------------
+
+        if (
+            !device.line ||
+            !device.station ||
+            (
+                !device.code &&
+                !device.name
+            )
+        ) {
+
+            continue;
+
+        }
+
 
         const key =
             makeCompareKey(
@@ -782,25 +792,7 @@ async function compareRows(
 
 
         // ---------------------------------------------
-        // Chỉ tạo key khi có đủ thông tin cơ bản
-        // ---------------------------------------------
-
-        if (
-            !device.line ||
-            !device.station ||
-            (
-                !device.code &&
-                !device.name
-            )
-        ) {
-
-            continue;
-
-        }
-
-
-        // ---------------------------------------------
-        // Phát hiện duplicate Database
+        // Phát hiện duplicate trong Database
         // ---------------------------------------------
 
         if (
@@ -811,15 +803,15 @@ async function compareRows(
                 key
             );
 
-        }
-        else {
-
-            deviceMap.set(
-                key,
-                device
-            );
+            continue;
 
         }
+
+
+        deviceMap.set(
+            key,
+            device
+        );
 
     }
 
@@ -834,16 +826,18 @@ async function compareRows(
 
     let skipCount = 0;
 
+    let warningCount = 0;
+
 
     // =================================================
-    // 4. KẾT QUẢ
+    // 4. RESULT
     // =================================================
 
     const result = [];
 
 
     // =================================================
-    // 5. THEO DÕI DUPLICATE TRONG FILE EXCEL
+    // 5. THEO DÕI DUPLICATE TRONG EXCEL
     // =================================================
 
     const excelKeys =
@@ -851,7 +845,7 @@ async function compareRows(
 
 
     // =================================================
-    // 6. DUYỆT TỪNG DÒNG EXCEL
+    // 6. DUYỆT EXCEL
     // =================================================
 
     for (
@@ -869,7 +863,7 @@ async function compareRows(
 
 
         // =============================================
-        // BỎ QUA DÒNG HOÀN TOÀN TRỐNG
+        // 6.1 DÒNG HOÀN TOÀN TRỐNG
         // =============================================
 
         if (
@@ -885,6 +879,8 @@ async function compareRows(
 
                 reason:
                     "Dòng Excel trống",
+
+                warnings: [],
 
                 changedFields: [],
 
@@ -913,7 +909,7 @@ async function compareRows(
 
 
         // =============================================
-        // PARSE DATA
+        // 6.2 PARSE
         // =============================================
 
         const data =
@@ -923,7 +919,65 @@ async function compareRows(
 
 
         // =============================================
-        // LOG
+        // 6.3 WARNING
+        // =============================================
+
+        const warnings = [];
+
+
+        // ---------------------------------------------
+        // Mã ID trống
+        //
+        // KHÔNG SKIP
+        // ---------------------------------------------
+
+        if (
+            !data.deviceId
+        ) {
+
+            warnings.push(
+                "Thiếu Mã ID"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Ký hiệu trống
+        //
+        // Không phải lỗi nếu có Tên thiết bị
+        // ---------------------------------------------
+
+        if (
+            !data.code
+        ) {
+
+            warnings.push(
+                "Thiếu Ký hiệu"
+            );
+
+        }
+
+
+        // ---------------------------------------------
+        // Khu vực trống
+        //
+        // Không phải lỗi
+        // ---------------------------------------------
+
+        if (
+            !data.area
+        ) {
+
+            warnings.push(
+                "Thiếu Khu vực"
+            );
+
+        }
+
+
+        // =============================================
+        // 6.4 LOG
         // =============================================
 
         console.log(
@@ -953,37 +1007,69 @@ async function compareRows(
 
 
         // =============================================
-        // VALIDATE DỮ LIỆU BẮT BUỘC
+        // 6.5 VALIDATION THỰC SỰ
+        //
+        // CHỈ 3 FIELD BẮT BUỘC:
+        //
+        // Tên
+        // Tuyến
+        // Nhà ga
         //
         // deviceId KHÔNG bắt buộc
         // code KHÔNG bắt buộc
-        //
-        // Bắt buộc:
-        // - Tên thiết bị
-        // - Tuyến
-        // - Nhà ga
+        // area KHÔNG bắt buộc
         // =============================================
 
         const missingFields = [];
 
-        if (!data.name) {
-            missingFields.push("Tên thiết bị");
+
+        if (
+            !data.name
+        ) {
+
+            missingFields.push(
+                "Tên thiết bị"
+            );
+
         }
 
-        if (!data.line) {
-            missingFields.push("Tuyến");
+
+        if (
+            !data.line
+        ) {
+
+            missingFields.push(
+                "Tuyến"
+            );
+
         }
 
-        if (!data.station) {
-            missingFields.push("Nhà ga");
+
+        if (
+            !data.station
+        ) {
+
+            missingFields.push(
+                "Nhà ga"
+            );
+
         }
 
-        if (missingFields.length > 0) {
+
+        // =============================================
+        // 6.6 THIẾU FIELD BẮT BUỘC
+        // =============================================
+
+        if (
+            missingFields.length > 0
+        ) {
 
             skipCount++;
 
+
             const reason =
                 `Thiếu: ${missingFields.join(", ")}`;
+
 
             console.warn(
                 `IMPORT SKIP - dòng Excel ${excelRowNumber}:`,
@@ -991,11 +1077,14 @@ async function compareRows(
                 data
             );
 
+
             result.push({
 
                 action: "SKIP",
 
                 reason,
+
+                warnings: [],
 
                 changedFields: [],
 
@@ -1003,12 +1092,14 @@ async function compareRows(
 
             });
 
+
             continue;
+
         }
 
 
         // =============================================
-        // 8. TẠO COMPARE KEY
+        // 7. TẠO COMPARE KEY
         // =============================================
 
         const key =
@@ -1028,39 +1119,7 @@ async function compareRows(
 
 
         // =============================================
-        // 9. DUPLICATE DATABASE
-        // =============================================
-
-        if (
-            duplicateDatabaseKeys.has(
-                key
-            )
-        ) {
-
-            skipCount++;
-
-
-            result.push({
-
-                action: "SKIP",
-
-                reason:
-                    "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Khu vực + Ký hiệu/Tên",
-
-                changedFields: [],
-
-                row: data
-
-            });
-
-
-            continue;
-
-        }
-
-
-        // =============================================
-        // 10. DUPLICATE TRONG FILE EXCEL
+        // 8. DUPLICATE TRONG EXCEL
         // =============================================
 
         if (
@@ -1075,36 +1134,49 @@ async function compareRows(
                 );
 
 
-            skipCount++;
+            /*
+             * Không bỏ qua nữa.
+             *
+             * Đánh dấu WARNING.
+             *
+             * Vì importRows hiện tại xử lý NEW/UPDATE/SKIP,
+             * ta vẫn cho dòng này đi tiếp.
+             */
 
+            warnings.push(
+                `Trùng khóa với dòng Excel ${firstRow}`
+            );
 
-            result.push({
+        }
+        else {
 
-                action: "SKIP",
-
-                reason:
-                    `Trùng thiết bị trong file Excel với dòng ${firstRow}`,
-
-                changedFields: [],
-
-                row: data
-
-            });
-
-
-            continue;
+            excelKeys.set(
+                key,
+                excelRowNumber
+            );
 
         }
 
 
-        excelKeys.set(
-            key,
-            excelRowNumber
-        );
+        // =============================================
+        // 9. DATABASE DUPLICATE
+        // =============================================
+
+        if (
+            duplicateDatabaseKeys.has(
+                key
+            )
+        ) {
+
+            warnings.push(
+                "Database có nhiều thiết bị trùng Tuyến + Nhà ga + Khu vực + Ký hiệu/Tên"
+            );
+
+        }
 
 
         // =============================================
-        // 11. TÌM DEVICE CŨ
+        // 10. TÌM DEVICE CŨ
         // =============================================
 
         const old =
@@ -1114,12 +1186,38 @@ async function compareRows(
 
 
         // =============================================
-        // 12. NEW
+        // 11. NEW
         // =============================================
 
-        if (!old) {
+        if (
+            !old
+        ) {
 
             newCount++;
+
+
+            if (
+                warnings.length > 0
+            ) {
+
+                warningCount +=
+                    warnings.length;
+
+            }
+
+
+            console.log(
+                `IMPORT NEW - dòng ${excelRowNumber}`,
+                {
+
+                    key,
+
+                    warnings,
+
+                    data
+
+                }
+            );
 
 
             result.push({
@@ -1127,6 +1225,8 @@ async function compareRows(
                 action: "NEW",
 
                 changedFields: [],
+
+                warnings,
 
                 row: data
 
@@ -1139,7 +1239,7 @@ async function compareRows(
 
 
         // =============================================
-        // 13. SO SÁNH
+        // 12. SO SÁNH
         // =============================================
 
         const changedFields = [];
@@ -1256,12 +1356,14 @@ async function compareRows(
         // ---------------------------------------------
         // Mã ID
         //
-        // Chỉ là thông tin.
+        // Chỉ cập nhật nếu Excel có Mã ID.
         //
-        // Không dùng để xác định thiết bị.
+        // Nếu Excel trống:
+        // KHÔNG xóa Mã ID cũ.
         // ---------------------------------------------
 
         if (
+            data.deviceId &&
             !sameText(
                 old.deviceId,
                 data.deviceId
@@ -1278,7 +1380,7 @@ async function compareRows(
         // ---------------------------------------------
         // Trạng thái
         //
-        // Chỉ update khi Excel có dữ liệu.
+        // Chỉ so sánh khi Excel có dữ liệu.
         // ---------------------------------------------
 
         if (
@@ -1298,9 +1400,12 @@ async function compareRows(
 
         // ---------------------------------------------
         // Ngày lắp
+        //
+        // Chỉ so sánh nếu Excel có ngày.
         // ---------------------------------------------
 
         if (
+            data.installDate &&
             !sameDate(
                 old.installDate,
                 data.installDate
@@ -1315,10 +1420,11 @@ async function compareRows(
 
 
         // ---------------------------------------------
-        // Ngày bảo dưỡng
+        // Bảo dưỡng
         // ---------------------------------------------
 
         if (
+            data.lastMaintenance &&
             !sameDate(
                 old.lastMaintenance,
                 data.lastMaintenance
@@ -1337,6 +1443,7 @@ async function compareRows(
         // ---------------------------------------------
 
         if (
+            data.replacementDate &&
             !sameDate(
                 old.replacementDate,
                 data.replacementDate
@@ -1352,9 +1459,12 @@ async function compareRows(
 
         // ---------------------------------------------
         // Tuổi thọ
+        //
+        // Chỉ so sánh khi Excel có giá trị.
         // ---------------------------------------------
 
         if (
+            data.lifespan &&
             Number(
                 old.lifespan || 0
             ) !==
@@ -1390,12 +1500,25 @@ async function compareRows(
 
 
         // =============================================
-        // 14. DEBUG MATCH
+        // 13. UPDATE
         // =============================================
 
         if (
             changedFields.length > 0
         ) {
+
+            updateCount++;
+
+
+            if (
+                warnings.length > 0
+            ) {
+
+                warningCount +=
+                    warnings.length;
+
+            }
+
 
             console.log(
                 "================================"
@@ -1423,6 +1546,11 @@ async function compareRows(
             console.log(
                 "Changed:",
                 changedFields
+            );
+
+            console.log(
+                "Warnings:",
+                warnings
             );
 
             console.log(
@@ -1471,25 +1599,14 @@ async function compareRows(
                 "================================"
             );
 
-        }
-
-
-        // =============================================
-        // 15. UPDATE
-        // =============================================
-
-        if (
-            changedFields.length > 0
-        ) {
-
-            updateCount++;
-
 
             result.push({
 
                 action: "UPDATE",
 
                 changedFields,
+
+                warnings,
 
                 row: data
 
@@ -1502,8 +1619,24 @@ async function compareRows(
 
 
         // =============================================
-        // 16. KHÔNG CÓ THAY ĐỔI
+        // 14. ĐÃ TỒN TẠI - KHÔNG THAY ĐỔI
         // =============================================
+
+        if (
+            warnings.length > 0
+        ) {
+
+            /*
+             * Có cảnh báo nhưng không có thay đổi.
+             *
+             * Vẫn giữ SKIP vì không có gì cần cập nhật.
+             */
+
+            warningCount +=
+                warnings.length;
+
+        }
+
 
         skipCount++;
 
@@ -1515,6 +1648,8 @@ async function compareRows(
             reason:
                 "Thiết bị đã tồn tại và không có thay đổi",
 
+            warnings,
+
             changedFields: [],
 
             row: data
@@ -1524,9 +1659,9 @@ async function compareRows(
     }
 
 
-    // =====================================================
-    // 17. THỐNG KÊ LÝ DO SKIP
-    // =====================================================
+    // =================================================
+    // 15. THỐNG KÊ LÝ DO SKIP
+    // =================================================
 
     const skipReasons = {};
 
@@ -1558,9 +1693,47 @@ async function compareRows(
     }
 
 
-    // =====================================================
-    // 18. LOG SUMMARY
-    // =====================================================
+    // =================================================
+    // 16. THỐNG KÊ WARNING
+    // =================================================
+
+    const warningReasons = {};
+
+
+    for (
+        const item of result
+    ) {
+
+        if (
+            !item.warnings ||
+            !Array.isArray(
+                item.warnings
+            )
+        ) {
+
+            continue;
+
+        }
+
+
+        for (
+            const warning of item.warnings
+        ) {
+
+            warningReasons[warning] =
+                (
+                    warningReasons[warning] ||
+                    0
+                ) + 1;
+
+        }
+
+    }
+
+
+    // =================================================
+    // 17. LOG SUMMARY
+    // =================================================
 
     console.log(
         "========================================"
@@ -1591,6 +1764,11 @@ async function compareRows(
     );
 
     console.log(
+        "WARNING:",
+        warningCount
+    );
+
+    console.log(
         "SKIP REASONS:"
     );
 
@@ -1599,13 +1777,21 @@ async function compareRows(
     );
 
     console.log(
+        "WARNING REASONS:"
+    );
+
+    console.log(
+        warningReasons
+    );
+
+    console.log(
         "========================================"
     );
 
 
-    // =====================================================
-    // 19. RETURN
-    // =====================================================
+    // =================================================
+    // 18. RETURN
+    // =================================================
 
     return {
 
@@ -1618,7 +1804,9 @@ async function compareRows(
 
             updateCount,
 
-            skipCount
+            skipCount,
+
+            warningCount
 
         },
 
@@ -1628,7 +1816,6 @@ async function compareRows(
     };
 
 }
-
 
 // =====================================================
 // EXPORT
