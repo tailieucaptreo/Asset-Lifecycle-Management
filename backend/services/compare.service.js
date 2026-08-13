@@ -197,6 +197,13 @@ function normalizeDeviceKey(value) {
 
 function normalizeStatus(value) {
 
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
     const text =
         cleanText(value);
 
@@ -209,30 +216,35 @@ function normalizeStatus(value) {
 
 
     // =================================================
-    // RUNNING
+    // ĐANG SỬ DỤNG / ACTIVE / RUNNING
     // =================================================
 
     if (
         [
+            "active",
             "running",
             "run",
-            "active",
             "operating",
             "working",
+
+            "dang su dung",
             "dang hoat dong",
             "hoat dong",
             "dang chay",
-            "dang van hanh"
+            "dang van hanh",
+
+            "active device",
+            "in service"
         ].includes(normalized)
     ) {
 
-        return "running";
+        return "active";
 
     }
 
 
     // =================================================
-    // MAINTENANCE
+    // BẢO TRÌ
     // =================================================
 
     if (
@@ -241,6 +253,7 @@ function normalizeStatus(value) {
             "maintain",
             "service",
             "under maintenance",
+
             "dang bao tri",
             "bao tri",
             "dang sua chua",
@@ -254,7 +267,7 @@ function normalizeStatus(value) {
 
 
     // =================================================
-    // FAULT
+    // LỖI
     // =================================================
 
     if (
@@ -263,6 +276,7 @@ function normalizeStatus(value) {
             "error",
             "failed",
             "failure",
+
             "loi",
             "bi loi",
             "hong",
@@ -285,6 +299,7 @@ function normalizeStatus(value) {
             "disconnect",
             "disconnected",
             "not connected",
+
             "mat ket noi",
             "ngat ket noi",
             "khong ket noi"
@@ -297,7 +312,7 @@ function normalizeStatus(value) {
 
 
     // =================================================
-    // NEW
+    // MỚI
     // =================================================
 
     if (
@@ -314,15 +329,12 @@ function normalizeStatus(value) {
 
 
     // =================================================
-    // KHÔNG NHẬN DIỆN
-    //
-    // Vẫn normalize để so sánh.
+    // GIÁ TRỊ KHÁC
     // =================================================
 
     return normalized;
 
 }
-
 
 // =====================================================
 // SO SÁNH STATUS
@@ -2431,29 +2443,58 @@ async function compareRows(
 
     return {
 
+        // ============================================
+        // THỐNG KÊ CHÍNH
+        // ============================================
+    
         total:
             rows.length,
-
-        newCount,
-
-        updateCount,
-
-        skipCount,
-
+    
+        newCount:
+            newCount,
+    
+        updateCount:
+            updateCount,
+    
+        skipCount:
+            skipCount,
+    
+    
+        // ============================================
+        // TƯƠNG THÍCH FRONTEND CŨ
+        // ============================================
+    
+        inserted:
+            newCount,
+    
+        created:
+            newCount,
+    
+        updated:
+            updateCount,
+    
+        skipped:
+            skipCount,
+    
+    
+        // ============================================
+        // CHI TIẾT
+        // ============================================
+    
         duplicateDeviceKeys:
             duplicateDeviceKeys.size,
-
+    
         duplicateDeviceIds:
             duplicateDeviceIds.size,
-
+    
         duplicateDatabaseKeys:
             duplicateDatabaseKeys.size,
-
+    
         skipReasons,
-
+    
         rows:
             result
-
+    
     };
 
 }
