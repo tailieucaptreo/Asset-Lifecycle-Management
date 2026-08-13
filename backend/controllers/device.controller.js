@@ -970,6 +970,9 @@ exports.exportDevices = async (req, res) => {
 
             return {
 
+                "Device Key":
+                    device.deviceKey || "",
+
                 "Tên thiết bị": device.name,
 
                 "Phân loại":
