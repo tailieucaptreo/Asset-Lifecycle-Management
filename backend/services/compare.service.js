@@ -7,6 +7,10 @@ const {
     normalize
 } = require("../utils/normalize");
 
+const {
+    normalizeStatus
+} = require("../utils/status");
+
 
 // =====================================================
 // HEADER HELPER
@@ -179,162 +183,6 @@ function normalizeDeviceKey(value) {
 
 }
 
-
-// =====================================================
-// CHUẨN HÓA STATUS
-//
-// Mục đích:
-//
-// DB:
-// Running
-//
-// Excel:
-// Đang hoạt động
-//
-// => phải coi là giống nhau.
-//
-// =====================================================
-
-function normalizeStatus(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-    const text =
-        cleanText(value);
-
-    if (!text) {
-        return "";
-    }
-
-    const normalized =
-        normalize(text);
-
-
-    // =================================================
-    // ĐANG SỬ DỤNG / ACTIVE / RUNNING
-    // =================================================
-
-    if (
-        [
-            "active",
-            "running",
-            "run",
-            "operating",
-            "working",
-
-            "dang su dung",
-            "dang hoat dong",
-            "hoat dong",
-            "dang chay",
-            "dang van hanh",
-
-            "active device",
-            "in service"
-        ].includes(normalized)
-    ) {
-
-        return "active";
-
-    }
-
-
-    // =================================================
-    // BẢO TRÌ
-    // =================================================
-
-    if (
-        [
-            "maintenance",
-            "maintain",
-            "service",
-            "under maintenance",
-
-            "dang bao tri",
-            "bao tri",
-            "dang sua chua",
-            "sua chua"
-        ].includes(normalized)
-    ) {
-
-        return "maintenance";
-
-    }
-
-
-    // =================================================
-    // LỖI
-    // =================================================
-
-    if (
-        [
-            "fault",
-            "error",
-            "failed",
-            "failure",
-
-            "loi",
-            "bi loi",
-            "hong",
-            "su co"
-        ].includes(normalized)
-    ) {
-
-        return "fault";
-
-    }
-
-
-    // =================================================
-    // OFFLINE
-    // =================================================
-
-    if (
-        [
-            "offline",
-            "disconnect",
-            "disconnected",
-            "not connected",
-
-            "mat ket noi",
-            "ngat ket noi",
-            "khong ket noi"
-        ].includes(normalized)
-    ) {
-
-        return "offline";
-
-    }
-
-
-    // =================================================
-    // MỚI
-    // =================================================
-
-    if (
-        [
-            "new",
-            "moi",
-            "thiet bi moi"
-        ].includes(normalized)
-    ) {
-
-        return "new";
-
-    }
-
-
-    // =================================================
-    // GIÁ TRỊ KHÁC
-    // =================================================
-
-    return normalized;
-
-}
 
 // =====================================================
 // SO SÁNH STATUS
@@ -945,7 +793,7 @@ function parseExcelRow(
             normalizeStatus(
                 status
             ),
-            
+
         installDate,
 
         lastMaintenance,
