@@ -1,165 +1,291 @@
-// =======================================
-// Status Utils
-// =======================================
+// =====================================================
+// STATUS UTILS
+// =====================================================
 
-// Chuẩn hóa trạng thái
-function normalizeStatus(value = "") {
-
-    if (!value) {
-
-        return "Inactive";
-
+/**
+ * Chuẩn hóa text để xử lý trạng thái.
+ *
+ * Ví dụ:
+ * "Đang hoạt động"
+ * "đang hoạt động"
+ * "DANG HOAT DONG"
+ * "Dang hoat dong"
+ *
+ * => "dang hoat dong"
+ */
+function normalizeStatusText(value) {
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
     }
 
-    const text = value
-        .toString()
+    return String(value)
         .trim()
         .toLowerCase()
+
+        // Bỏ dấu tiếng Việt
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .replace(/[\u0300-\u036f]/g, "")
 
-    // ===========================
-    // ACTIVE
-    // ===========================
+        // Đổi đ / Đ
+        .replace(/đ/g, "d")
 
-    if (
+        // Chuẩn hóa khoảng trắng
+        .replace(/\s+/g, " ")
 
-        text === "active" ||
-
-        text.includes("active") ||
-
-        text.includes("dang su dung") ||
-
-        text.includes("su dung") ||
-
-        text.includes("running") ||
-
-        text.includes("online")
-
-    ) {
-
-        return "Active";
-
-    }
-
-    // ===========================
-    // MAINTENANCE
-    // ===========================
-
-    if (
-
-        text.includes("maintenance") ||
-
-        text.includes("bao tri") ||
-
-        text.includes("repair")
-
-    ) {
-
-        return "Maintenance";
-
-    }
-
-    // ===========================
-    // EXPIRED
-    // ===========================
-
-    if (
-
-        text.includes("expired") ||
-
-        text.includes("het han")
-
-    ) {
-
-        return "Expired";
-
-    }
-
-    return "Inactive";
-
+        .trim();
 }
 
-// =======================================
-// Tính trạng thái theo tuổi thọ
-// =======================================
+
+// =====================================================
+// NORMALIZE STATUS
+// =====================================================
+//
+// Các trạng thái chuẩn của hệ thống:
+//
+// Active
+// Maintenance
+// Inactive
+// Expired
+//
+// Tuyệt đối không trả về trạng thái tiếng Việt
+// từ hàm này.
+//
+// =====================================================
+
+function normalizeStatus(value) {
+
+    const status =
+        normalizeStatusText(value);
+
+    // -------------------------------------------------
+    // Không có trạng thái
+    // -------------------------------------------------
+
+    if (!status) {
+        return "Inactive";
+    }
+
+
+    // -------------------------------------------------
+    // ACTIVE
+    // -------------------------------------------------
+
+    if (
+        status === "active" ||
+        status === "running" ||
+        status === "run" ||
+
+        status.includes("dang hoat dong") ||
+        status.includes("dang su dung") ||
+        status.includes("su dung") ||
+
+        status === "hoat dong" ||
+        status === "hoat dong binh thuong"
+    ) {
+        return "Active";
+    }
+
+
+    // -------------------------------------------------
+    // MAINTENANCE
+    // -------------------------------------------------
+
+    if (
+        status === "maintenance" ||
+        status === "maintain" ||
+        status === "service" ||
+
+        status.includes("dang bao tri") ||
+        status.includes("bao tri") ||
+        status.includes("bao duong") ||
+        status.includes("dang sua chua") ||
+        status.includes("sua chua")
+    ) {
+        return "Maintenance";
+    }
+
+
+    // -------------------------------------------------
+    // EXPIRED
+    // -------------------------------------------------
+
+    if (
+        status === "expired" ||
+        status === "expire" ||
+
+        status.includes("het han") ||
+        status.includes("qua han") ||
+        status.includes("het tuoi tho")
+    ) {
+        return "Expired";
+    }
+
+
+    // -------------------------------------------------
+    // INACTIVE
+    // -------------------------------------------------
+
+    if (
+        status === "inactive" ||
+        status === "disabled" ||
+        status === "disable" ||
+        status === "offline" ||
+        status === "stopped" ||
+        status === "stop" ||
+
+        status.includes("khong hoat dong") ||
+        status.includes("ngung hoat dong") ||
+        status.includes("ngung su dung") ||
+        status.includes("khong su dung") ||
+        status.includes("da ngung")
+    ) {
+        return "Inactive";
+    }
+
+
+    // -------------------------------------------------
+    // MẶC ĐỊNH
+    // -------------------------------------------------
+    //
+    // Không nhận diện được trạng thái thì không tự
+    // coi là Active.
+    //
+    // -------------------------------------------------
+
+    return "Inactive";
+}
+
+
+// =====================================================
+// CALCULATE MAINTENANCE
+// =====================================================
+//
+// Tính trạng thái theo:
+// - Ngày lắp
+// - Tuổi thọ
+//
+// Quy tắc hiện tại:
+// >= 100%  -> Expired
+// >= 70%   -> Maintenance
+// < 70%    -> Active
+//
+// =====================================================
 
 function calcMaintenance(device) {
 
-    if (!device || !device.installDate) {
+    if (
+        !device ||
+        !device.installDate ||
+        !device.lifespan
+    ) {
         return "Inactive";
     }
 
-    const now = new Date();
 
-    // =======================================
-    // Ưu tiên dùng expiryDate
-    // =======================================
+    const installDate =
+        new Date(
+            device.installDate
+        );
 
-    if (device.expiryDate) {
+    const now =
+        new Date();
 
-        const install = new Date(device.installDate);
-        const expiry = new Date(device.expiryDate);
 
-        if (isNaN(install) || isNaN(expiry)) {
-            return "Inactive";
-        }
+    // -------------------------------------------------
+    // Kiểm tra ngày hợp lệ
+    // -------------------------------------------------
 
-        // Đã hết hạn
-        if (now >= expiry) {
-            return "Expired";
-        }
+    if (
+        Number.isNaN(
+            installDate.getTime()
+        )
+    ) {
+        return "Inactive";
+    }
 
-        // % tuổi thọ đã sử dụng
-        const total = expiry.getTime() - install.getTime();
-        const used = now.getTime() - install.getTime();
 
-        if (total > 0) {
+    const lifespan =
+        Number(
+            device.lifespan
+        );
 
-            const percent = used / total;
 
-            if (percent >= 0.7) {
-                return "Maintenance";
-            }
+    if (
+        !Number.isFinite(lifespan) ||
+        lifespan <= 0
+    ) {
+        return "Inactive";
+    }
 
-        }
 
+    // -------------------------------------------------
+    // TÍNH SỐ NGÀY
+    // -------------------------------------------------
+
+    const totalDays =
+        lifespan * 365;
+
+
+    const usedDays =
+        (
+            now.getTime() -
+            installDate.getTime()
+        ) / 86400000;
+
+
+    // -------------------------------------------------
+    // Nếu ngày lắp nằm trong tương lai
+    // -------------------------------------------------
+
+    if (usedDays < 0) {
         return "Active";
     }
 
-    // =======================================
-    // Fallback nếu chưa có expiryDate
-    // =======================================
 
-    if (!device.lifespan) {
-        return "Inactive";
-    }
+    const percent =
+        usedDays /
+        totalDays;
 
-    const install = new Date(device.installDate);
 
-    if (isNaN(install)) {
-        return "Inactive";
-    }
+    // -------------------------------------------------
+    // HẾT HẠN
+    // -------------------------------------------------
 
-    const totalDays = Number(device.lifespan) * 365;
-    const usedDays = (now.getTime() - install.getTime()) / 86400000;
-
-    const percent = usedDays / totalDays;
-
-    if (percent >= 1) {
+    if (
+        percent >= 1
+    ) {
         return "Expired";
     }
 
-    if (percent >= 0.7) {
+
+    // -------------------------------------------------
+    // ĐẾN KỲ BẢO TRÌ
+    // -------------------------------------------------
+
+    if (
+        percent >= 0.7
+    ) {
         return "Maintenance";
     }
 
+
+    // -------------------------------------------------
+    // ĐANG HOẠT ĐỘNG
+    // -------------------------------------------------
+
     return "Active";
 }
+
+
+// =====================================================
+// EXPORT
+// =====================================================
+
 module.exports = {
-
     normalizeStatus,
-
+    normalizeStatusText,
     calcMaintenance
-
 };

@@ -1,17 +1,35 @@
+const crypto = require("crypto");
+
+// =====================================================
+// DATE
+// =====================================================
+
 const {
     parseDate,
     calculateExpiryDate
 } = require("../utils/date");
 
+
+// =====================================================
+// STATUS
+// =====================================================
+
+const {
+    normalizeStatus
+} = require("../utils/status");
+
+
+// =====================================================
+// CATEGORY
+// =====================================================
+
 const {
     detectCategory
 } = require("./category.service");
 
-const crypto = require("crypto");
-
 
 // =====================================================
-// HELPER
+// HELPERS
 // =====================================================
 
 function cleanText(value) {
@@ -20,71 +38,48 @@ function cleanText(value) {
         value === null ||
         value === undefined
     ) {
-
         return "";
-
     }
 
-    return String(value)
-
-        .replace(/\r\n/g, " ")
-
-        .replace(/\n/g, " ")
-
-        .replace(/\r/g, " ")
-
-        .replace(/\s+/g, " ")
-
-        .trim();
-
+    return String(value).trim();
 }
 
 
-// =====================================================
-// CHUẨN HÓA DEVICE KEY
-// =====================================================
-
-function normalizeDeviceKey(
-    value
-) {
+function toNumber(value, fallback = 0) {
 
     if (
         value === null ||
-        value === undefined
+        value === undefined ||
+        value === ""
     ) {
-
-        return null;
-
+        return fallback;
     }
 
-    const key =
-        String(value).trim();
+    const number =
+        Number(value);
 
-    return key || null;
-
+    return Number.isFinite(number)
+        ? number
+        : fallback;
 }
 
 
 // =====================================================
-// TẠO DATA CHO DEVICE
+// BUILD DEVICE DATA
+// =====================================================
+//
+// Dùng chung cho NEW và UPDATE.
 //
 // LƯU Ý:
-//
-// Hàm này KHÔNG tạo deviceKey.
-//
-// deviceKey được xử lý riêng:
-//
-// NEW    -> tạo key
-// UPDATE -> giữ nguyên key cũ
+// Không đưa deviceKey vào đây cho UPDATE.
+// Device Key là khóa bất biến.
 // =====================================================
 
-function buildDeviceData(
-    d
-) {
+function buildDeviceData(row) {
 
-    // =================================================
-    // DATE
-    // =================================================
+    const d =
+        row || {};
+
 
     const installDate =
         parseDate(
@@ -92,84 +87,68 @@ function buildDeviceData(
         );
 
 
-    const lastMaintenance =
-        parseDate(
-            d.lastMaintenance
+    const lifespan =
+        toNumber(
+            d.lifespan,
+            0
         );
 
 
-    const replacementDate =
-        parseDate(
-            d.replacementDate
-        );
-
-
-    const expiryDate =
+    let expiryDate =
         parseDate(
             d.expiryDate
-        ) ||
-        calculateExpiryDate(
-            installDate,
-            d.lifespan
         );
 
 
-    // =================================================
-    // CATEGORY
-    // =================================================
-
-    const categoryInfo =
-        detectCategory({
-
-            name:
-                d.name,
-
-            code:
-                d.code,
-
-            model:
-                d.model || ""
-
-        });
-
-
-    // =================================================
-    // LIFESPAN
-    // =================================================
-
-    let lifespan =
-        null;
-
+    // Nếu Excel không có ngày hết hạn
+    // thì tính từ ngày lắp + tuổi thọ.
 
     if (
-        d.lifespan !== undefined &&
-        d.lifespan !== null &&
-        d.lifespan !== ""
+        !expiryDate &&
+        installDate &&
+        lifespan > 0
     ) {
-
-        const number =
-            Number(
-                d.lifespan
+        expiryDate =
+            calculateExpiryDate(
+                installDate,
+                lifespan
             );
-
-
-        if (
-            Number.isFinite(
-                number
-            )
-        ) {
-
-            lifespan =
-                number;
-
-        }
-
     }
 
 
-    // =================================================
-    // DATA
-    // =================================================
+    // -------------------------------------------------
+    // CATEGORY
+    // -------------------------------------------------
+
+    let category =
+        cleanText(
+            d.category
+        );
+
+
+    if (!category) {
+
+        const categoryInfo =
+            detectCategory({
+                name:
+                    d.name || "",
+
+                code:
+                    d.code || "",
+
+                model:
+                    d.model || "",
+
+                brand:
+                    d.brand || ""
+            });
+
+
+        category =
+            categoryInfo?.category ||
+            "";
+    }
+
 
     return {
 
@@ -178,142 +157,95 @@ function buildDeviceData(
                 d.name
             ),
 
-
-        category:
-            cleanText(
-                d.category
-            ) ||
-            categoryInfo.category ||
-            null,
-
+        category,
 
         line:
             cleanText(
                 d.line
             ),
 
-
         station:
             cleanText(
                 d.station
             ),
 
-
         code:
             cleanText(
                 d.code
-            ) ||
-            null,
-
+            ),
 
         area:
             cleanText(
                 d.area
-            ) ||
-            null,
-
+            ),
 
         deviceId:
-            cleanText(
-                d.deviceId
-            ) ||
-            null,
-
+            d.deviceId === null ||
+            d.deviceId === undefined ||
+            d.deviceId === ""
+                ? null
+                : cleanText(
+                    d.deviceId
+                ),
 
         status:
-            cleanText(
+            normalizeStatus(
                 d.status
-            ) ||
-            "Running",
+            ),
 
-
-        originalInstallDate:
-            installDate,
-
-
-        installDate:
-            installDate,
-
+        installDate,
 
         lastMaintenance:
-            lastMaintenance,
-
+            parseDate(
+                d.lastMaintenance
+            ),
 
         replacementDate:
-            replacementDate,
+            parseDate(
+                d.replacementDate
+            ),
 
+        lifespan,
 
-        lifespan:
-            lifespan,
-
-
-        expiryDate:
-            expiryDate
-
+        expiryDate
     };
-
 }
 
 
 // =====================================================
-// IMPORT DEVICES
+// IMPORT ROWS
 // =====================================================
 
 async function importRows(
     prisma,
-    rows
+    rows = []
 ) {
 
-    let created =
-        0;
+    let inserted = 0;
 
-    let updated =
-        0;
+    let updated = 0;
 
-    let skipped =
-        0;
+    let skipped = 0;
 
-
-    const failed =
-        [];
+    const errors = [];
 
 
-    // =================================================
-    // VALIDATE INPUT
-    // =================================================
+    console.log(
+        "========================================"
+    );
 
-    if (
-        !Array.isArray(rows)
-    ) {
+    console.log(
+        "IMPORT START"
+    );
 
-        return {
+    console.log(
+        "TOTAL ROWS:",
+        rows.length
+    );
 
-            inserted:
-                0,
-
-            updated:
-                0,
-
-            skipped:
-                0,
-
-            total:
-                0,
-
-            errors: [
-
-                {
-
-                    message:
-                        "Dữ liệu import không phải là một mảng."
-
-                }
-
-            ]
-
-        };
-
-    }
+    console.log(
+        "========================================"
+    );
 
 
     // =================================================
@@ -330,438 +262,235 @@ async function importRows(
             rows[index];
 
 
-        const importRowNumber =
+        const excelRow =
             index + 2;
-
-
-        // =================================================
-        // CHECK ITEM
-        // =================================================
-
-        if (
-            !item ||
-            typeof item !== "object"
-        ) {
-
-            skipped++;
-
-
-            failed.push({
-
-                row:
-                    importRowNumber,
-
-                message:
-                    "Dòng import không hợp lệ."
-
-            });
-
-
-            continue;
-
-        }
-
-
-        // =================================================
-        // SKIP
-        // =================================================
-
-        if (
-            item.action === "SKIP"
-        ) {
-
-            skipped++;
-
-            continue;
-
-        }
-
-
-        // =================================================
-        // ROW DATA
-        // =================================================
-
-        const d =
-            item.row;
-
-
-        if (
-            !d ||
-            typeof d !== "object"
-        ) {
-
-            skipped++;
-
-
-            failed.push({
-
-                row:
-                    importRowNumber,
-
-                message:
-                    "Dòng import không có dữ liệu row."
-
-            });
-
-
-            continue;
-
-        }
-
-
-        // =================================================
-        // LOG
-        // =================================================
-
-        console.log(
-            "========================================"
-        );
-
-        console.log(
-            `IMPORT ${item.action} - ROW ${importRowNumber}`
-        );
-
-        console.log({
-
-            existingId:
-                item.existingId,
-
-            matchedBy:
-                item.matchedBy,
-
-            deviceKey:
-                d.deviceKey,
-
-            deviceId:
-                d.deviceId,
-
-            name:
-                d.name,
-
-            line:
-                d.line,
-
-            station:
-                d.station,
-
-            code:
-                d.code
-
-        });
 
 
         try {
 
-            // =================================================
-            // BUILD DATA
-            // =================================================
+            // =========================================
+            // VALIDATE ITEM
+            // =========================================
+
+            if (
+                !item ||
+                typeof item !== "object"
+            ) {
+
+                throw new Error(
+                    "Dòng import không hợp lệ."
+                );
+            }
+
+
+            const action =
+                item.action;
+
+
+            const row =
+                item.row || {};
+
+
+            // =========================================
+            // SKIP
+            // =========================================
+            //
+            // SKIP tuyệt đối không chạm database.
+            //
+            // =========================================
+
+            if (
+                action === "SKIP"
+            ) {
+
+                skipped++;
+
+                continue;
+            }
+
+
+            // =========================================
+            // DATA
+            // =========================================
 
             const data =
                 buildDeviceData(
-                    d
+                    row
                 );
 
 
-            // =================================================
+            // =========================================
             // NEW
-            // =================================================
+            // =========================================
 
             if (
-                item.action === "NEW"
+                action === "NEW"
             ) {
 
-                // ---------------------------------------------
-                // DEVICE KEY
-                //
-                // Nếu Excel đã có Device Key:
-                // giữ nguyên.
-                //
-                // Nếu Excel chưa có:
-                // tạo UUID mới.
-                // ---------------------------------------------
+                // -------------------------------------
+                // Device Key chỉ tạo ở NEW
+                // -------------------------------------
 
-                const excelDeviceKey =
-                    normalizeDeviceKey(
-                        d.deviceKey
-                    );
-
-
-                const newDeviceKey =
-                    excelDeviceKey ||
+                const deviceKey =
                     crypto.randomUUID();
 
-
-                // ---------------------------------------------
-                // KIỂM TRA DEVICE KEY ĐÃ TỒN TẠI
-                //
-                // Đây là lớp bảo vệ thứ 2.
-                //
-                // Nếu compare.service.js nói NEW
-                // nhưng DB thực tế đã có key:
-                //
-                // KHÔNG tạo duplicate.
-                // ---------------------------------------------
-
-                const existingByKey =
-                    await prisma.device.findFirst({
-
-                        where: {
-
-                            deviceKey:
-                                newDeviceKey
-
-                        },
-
-                        select: {
-
-                            id: true,
-
-                            deviceKey: true
-
-                        }
-
-                    });
-
-
-                if (
-                    existingByKey
-                ) {
-
-                    skipped++;
-
-
-                    failed.push({
-
-                        row:
-                            importRowNumber,
-
-                        deviceId:
-                            d.deviceId,
-
-                        name:
-                            d.name,
-
-                        message:
-                            "Device Key đã tồn tại trong database. Không tạo thiết bị trùng.",
-
-                        existingId:
-                            existingByKey.id
-
-                    });
-
-
-                    console.warn(
-
-                        `IMPORT NEW SKIP - Device Key đã tồn tại: ${newDeviceKey}`
-
-                    );
-
-
-                    continue;
-
-                }
-
-
-                // ---------------------------------------------
-                // CREATE
-                // ---------------------------------------------
 
                 await prisma.device.create({
 
                     data: {
 
-                        ...data,
+                        deviceKey,
 
-                        deviceKey:
-                            newDeviceKey
-
+                        ...data
                     }
 
                 });
 
 
-                created++;
+                inserted++;
 
 
                 console.log(
-
-                    `CREATE SUCCESS - row ${importRowNumber}`
-
+                    `[IMPORT][NEW] Excel row ${excelRow}`,
+                    {
+                        deviceKey,
+                        deviceId:
+                            data.deviceId,
+                        name:
+                            data.name
+                    }
                 );
 
 
                 continue;
-
             }
 
 
-            // =================================================
+            // =========================================
             // UPDATE
-            // =================================================
+            // =========================================
 
             if (
-                item.action === "UPDATE"
+                action === "UPDATE"
             ) {
 
-                let oldDevice =
-                    null;
+                // -------------------------------------
+                // existingId được tạo bởi compareRows()
+                // -------------------------------------
 
+                const existingId =
+                    Number(
+                        item.existingId
+                    );
 
-                // =================================================
-                // 1. ƯU TIÊN existingId
-                //
-                // compare.service.js đã tìm ra chính xác
-                // thiết bị cũ.
-                // =================================================
 
                 if (
-                    item.existingId !== null &&
-                    item.existingId !== undefined
+                    !Number.isInteger(
+                        existingId
+                    ) ||
+                    existingId <= 0
                 ) {
 
-                    oldDevice =
-                        await prisma.device.findUnique({
-
-                            where: {
-
-                                id:
-                                    Number(
-                                        item.existingId
-                                    )
-
-                            },
-
-                            select: {
-
-                                id: true,
-
-                                deviceKey: true,
-
-                                deviceId: true,
-
-                                name: true
-
-                            }
-
-                        });
-
+                    throw new Error(
+                        `UPDATE nhưng existingId không hợp lệ: ${item.existingId}`
+                    );
                 }
 
 
-                // =================================================
-                // 2. FALLBACK DEVICE KEY
-                //
-                // Trường hợp existingId không có.
-                // =================================================
+                // -------------------------------------
+                // KIỂM TRA THIẾT BỊ
+                // -------------------------------------
 
-                if (
-                    !oldDevice &&
-                    d.deviceKey
-                ) {
+                const existing =
+                    await prisma.device.findUnique({
 
-                    const deviceKey =
-                        normalizeDeviceKey(
-                            d.deviceKey
-                        );
-
-
-                    if (
-                        deviceKey
-                    ) {
-
-                        oldDevice =
-                            await prisma.device.findFirst({
-
-                                where: {
-
-                                    deviceKey:
-                                        deviceKey
-
-                                },
-
-                                select: {
-
-                                    id: true,
-
-                                    deviceKey: true,
-
-                                    deviceId: true,
-
-                                    name: true
-
-                                }
-
-                            });
-
-                    }
-
-                }
-
-
-                // =================================================
-                // KHÔNG TÌM THẤY
-                // =================================================
-
-                if (
-                    !oldDevice
-                ) {
-
-                    skipped++;
-
-
-                    failed.push({
-
-                        row:
-                            importRowNumber,
-
-                        deviceId:
-                            d.deviceId,
-
-                        deviceKey:
-                            d.deviceKey,
-
-                        name:
-                            d.name,
-
-                        message:
-                            "Không tìm thấy thiết bị cũ để cập nhật."
+                        where: {
+                            id:
+                                existingId
+                        }
 
                     });
 
 
-                    console.warn(
+                if (!existing) {
 
-                        `UPDATE SKIP - Không tìm thấy thiết bị - row ${importRowNumber}`
-
+                    throw new Error(
+                        `Không tìm thấy thiết bị ID=${existingId}`
                     );
-
-
-                    continue;
-
                 }
 
 
-                // =================================================
-                // QUAN TRỌNG:
+                // -------------------------------------
+                // UPDATE DATA
+                // -------------------------------------
                 //
-                // KHÔNG UPDATE deviceKey
+                // TUYỆT ĐỐI KHÔNG update:
+                // - id
+                // - deviceKey
                 //
-                // data KHÔNG chứa deviceKey.
+                // Device Key phải giữ nguyên.
+                // -------------------------------------
+
+                const updateData = {
+
+                    ...data
+
+                };
+
+
+                // -------------------------------------
+                // DEBUG
+                // -------------------------------------
+
+                console.log(
+                    `[IMPORT][UPDATE] Excel row ${excelRow}`,
+                    {
+                        existingId,
+
+                        oldDeviceKey:
+                            existing.deviceKey,
+
+                        excelDeviceKey:
+                            row.deviceKey,
+
+                        matchedBy:
+                            item.matchedBy,
+
+                        deviceId:
+                            data.deviceId,
+
+                        name:
+                            data.name,
+
+                        changedFields:
+                            item.changedFields || []
+                    }
+                );
+
+
+                // -------------------------------------
+                // UPDATE BẰNG ID
+                // -------------------------------------
                 //
-                // Prisma sẽ giữ nguyên deviceKey hiện tại.
-                // =================================================
+                // Đây là điểm quan trọng nhất.
+                //
+                // KHÔNG dùng:
+                //
+                // where: {
+                //     line_code: ...
+                // }
+                //
+                // -------------------------------------
 
                 await prisma.device.update({
 
                     where: {
-
                         id:
-                            oldDevice.id
-
+                            existingId
                     },
 
                     data:
-                        data
+                        updateData
 
                 });
 
@@ -769,84 +498,56 @@ async function importRows(
                 updated++;
 
 
-                console.log(
-
-                    `UPDATE SUCCESS - row ${importRowNumber} - DB ID ${oldDevice.id}`
-
-                );
-
-
                 continue;
-
             }
 
 
-            // =================================================
+            // =========================================
             // ACTION KHÔNG HỢP LỆ
-            // =================================================
+            // =========================================
 
-            skipped++;
-
-
-            failed.push({
-
-                row:
-                    importRowNumber,
-
-                deviceId:
-                    d.deviceId,
-
-                deviceKey:
-                    d.deviceKey,
-
-                name:
-                    d.name,
-
-                message:
-                    `Action không hợp lệ: ${item.action}`
-
-            });
-
+            throw new Error(
+                `Action không hợp lệ: ${action}`
+            );
 
         }
 
         catch (err) {
 
-            // =================================================
-            // ERROR
-            // =================================================
-
             console.error(
-
-                `IMPORT ERROR - row ${importRowNumber}:`,
-
+                `[IMPORT][ERROR] Excel row ${excelRow}:`,
                 err
-
             );
 
 
-            skipped++;
-
-
-            failed.push({
+            errors.push({
 
                 row:
-                    importRowNumber,
+                    excelRow,
 
-                deviceId:
-                    d.deviceId,
+                action:
+                    item?.action || null,
+
+                existingId:
+                    item?.existingId || null,
+
+                matchedBy:
+                    item?.matchedBy || null,
 
                 deviceKey:
-                    d.deviceKey,
+                    item?.row?.deviceKey ||
+                    null,
+
+                deviceId:
+                    item?.row?.deviceId ||
+                    null,
 
                 name:
-                    d.name,
+                    item?.row?.name ||
+                    "",
 
                 message:
-                    err.message,
-
-                code:
-                    err.code || null
+                    err.message
 
             });
 
@@ -855,69 +556,65 @@ async function importRows(
     }
 
 
-    // =====================================================
+    // =================================================
     // SUMMARY
-    // =====================================================
+    // =================================================
 
-    console.log(
-        "========================================"
-    );
+    const result = {
 
-    console.log(
-        "IMPORT RESULT"
-    );
+        total:
+            rows.length,
 
-    console.log(
-        "TOTAL:",
-        rows.length
-    );
-
-    console.log(
-        "CREATED:",
-        created
-    );
-
-    console.log(
-        "UPDATED:",
-        updated
-    );
-
-    console.log(
-        "SKIPPED:",
-        skipped
-    );
-
-    console.log(
-        "ERRORS:",
-        failed.length
-    );
-
-    console.log(
-        "========================================"
-    );
-
-
-    // =====================================================
-    // RETURN
-    // =====================================================
-
-    return {
-
-        inserted:
-            created,
+        inserted,
 
         updated,
 
         skipped,
 
-        total:
-            rows.length,
-
-        errors:
-            failed
+        errors
 
     };
 
+
+    console.log(
+        "========================================"
+    );
+
+    console.log(
+        "IMPORT SUMMARY"
+    );
+
+    console.log(
+        "TOTAL:",
+        result.total
+    );
+
+    console.log(
+        "INSERTED:",
+        result.inserted
+    );
+
+    console.log(
+        "UPDATED:",
+        result.updated
+    );
+
+    console.log(
+        "SKIPPED:",
+        result.skipped
+    );
+
+    console.log(
+        "ERRORS:",
+        result.errors.length
+    );
+
+    console.log(
+        "========================================"
+    );
+
+
+    return result;
 }
 
 

@@ -873,8 +873,8 @@ function parseExcelRow(
 
     const lifespan =
         rawLifespan === "" ||
-        rawLifespan === null ||
-        rawLifespan === undefined
+            rawLifespan === null ||
+            rawLifespan === undefined
 
             ? 0
 
@@ -891,8 +891,8 @@ function parseExcelRow(
 
         deviceKey:
             deviceKey === "" ||
-            deviceKey === null ||
-            deviceKey === undefined
+                deviceKey === null ||
+                deviceKey === undefined
 
                 ? null
 
@@ -902,8 +902,8 @@ function parseExcelRow(
 
         deviceId:
             deviceId === "" ||
-            deviceId === null ||
-            deviceId === undefined
+                deviceId === null ||
+                deviceId === undefined
 
                 ? null
 
@@ -2442,59 +2442,28 @@ async function compareRows(
     // =====================================================
 
     return {
+        summary: {
+            total: rows.length,
 
-        // ============================================
-        // THỐNG KÊ CHÍNH
-        // ============================================
-    
-        total:
-            rows.length,
-    
-        newCount:
             newCount,
-    
-        updateCount:
+
             updateCount,
-    
-        skipCount:
+
             skipCount,
-    
-    
-        // ============================================
-        // TƯƠNG THÍCH FRONTEND CŨ
-        // ============================================
-    
-        inserted:
-            newCount,
-    
-        created:
-            newCount,
-    
-        updated:
-            updateCount,
-    
-        skipped:
-            skipCount,
-    
-    
-        // ============================================
-        // CHI TIẾT
-        // ============================================
-    
-        duplicateDeviceKeys:
-            duplicateDeviceKeys.size,
-    
-        duplicateDeviceIds:
-            duplicateDeviceIds.size,
-    
-        duplicateDatabaseKeys:
-            duplicateDatabaseKeys.size,
-    
-        skipReasons,
-    
-        rows:
-            result
-    
+
+            duplicateDeviceKeys:
+                duplicateDeviceKeys.size,
+
+            duplicateDeviceIds:
+                duplicateDeviceIds.size,
+
+            duplicateDatabaseKeys:
+                duplicateDatabaseKeys.size,
+
+            skipReasons
+        },
+
+        rows: result
     };
 
 }

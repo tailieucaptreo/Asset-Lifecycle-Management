@@ -566,7 +566,7 @@ export default function DeviceImportModal({
 
                         <span className="ml-3 text-amber-600 font-medium">
 
-                            Cập nhật: {summary?.update || 0}
+                            Cập nhật: {summary?.updateCount || 0}
 
                         </span>
 

@@ -1,9 +1,51 @@
 const { PrismaClient } = require("@prisma/client");
+const XLSX = require("xlsx");
+const crypto = require("crypto");
+
 const prisma = new PrismaClient();
 
-/* =====================================================
-   HISTORY
-===================================================== */
+
+// =====================================================
+// UTILS
+// =====================================================
+
+const {
+    parseDate,
+    formatDate,
+    calculateExpiryDate
+} = require("../utils/date");
+
+const {
+    normalizeStatus,
+    calcMaintenance
+} = require("../utils/status");
+
+
+// =====================================================
+// CATEGORY
+// =====================================================
+
+const {
+    detectCategory
+} = require("../services/category.service");
+
+
+// =====================================================
+// IMPORT SERVICES
+// =====================================================
+
+const {
+    compareRows
+} = require("../services/compare.service");
+
+const {
+    importRows
+} = require("../services/import.service");
+
+
+// =====================================================
+// HISTORY
+// =====================================================
 
 async function writeHistory({
     deviceId = null,
@@ -40,63 +82,124 @@ async function writeHistory({
         });
 
     }
-
     catch (err) {
 
-        console.error("DeviceHistory:", err.message);
+        console.error(
+            "DeviceHistory:",
+            err.message
+        );
 
     }
 
 }
 
-const XLSX = require("xlsx");
-const crypto = require("crypto");
 
-// ================= IMPORT SESSION =================
+// =====================================================
+// IMPORT SESSION
+// =====================================================
+//
+// Session dùng để:
+//
+// PREVIEW
+//    ↓
+// tạo sessionId
+//    ↓
+// lưu rows tạm thời
+//    ↓
+// CONFIRM
+//    ↓
+// importRows()
+//    ↓
+// xóa session
+//
+// Session sống tối đa 30 phút.
+// =====================================================
 
-const importSessions = new Map();
+const importSessions =
+    new Map();
 
-function createImportSession(rows, summary) {
 
-    const sessionId = crypto.randomUUID();
+function createImportSession(
+    rows,
+    summary
+) {
 
-    importSessions.set(sessionId, {
+    const sessionId =
+        crypto.randomUUID();
 
-        rows,
 
-        summary,
+    importSessions.set(
+        sessionId,
+        {
 
-        createdAt: Date.now()
+            rows,
 
-    });
+            summary,
+
+            createdAt:
+                Date.now()
+
+        }
+    );
+
 
     return sessionId;
+}
+
+
+function getImportSession(
+    sessionId
+) {
+
+    return importSessions.get(
+        sessionId
+    );
 
 }
 
-function getImportSession(sessionId) {
 
-    return importSessions.get(sessionId);
+function deleteImportSession(
+    sessionId
+) {
+
+    importSessions.delete(
+        sessionId
+    );
 
 }
 
-function deleteImportSession(sessionId) {
 
-    importSessions.delete(sessionId);
-
-}
-
-// ================= AUTO CLEAN SESSION =================
+// =====================================================
+// AUTO CLEAN IMPORT SESSION
+// =====================================================
+//
+// Xóa session sau 30 phút.
+// =====================================================
 
 setInterval(() => {
 
-    const now = Date.now();
+    const now =
+        Date.now();
 
-    for (const [id, session] of importSessions.entries()) {
 
-        if (now - session.createdAt > 30 * 60 * 1000) {
+    for (
+        const [
+            id,
+            session
+        ]
+        of importSessions.entries()
+    ) {
 
-            importSessions.delete(id);
+        if (
+            now -
+            session.createdAt
+            >
+            30 * 60 * 1000
+        ) {
+
+            importSessions.delete(
+                id
+            );
 
         }
 
@@ -104,291 +207,513 @@ setInterval(() => {
 
 }, 5 * 60 * 1000);
 
-// ================= DATE =================
 
-const {
+// =====================================================
+// NORMALIZE VALUE
+// =====================================================
 
-    parseDate,
+function normalizeCompare(
+    value
+) {
 
-    formatDate,
+    if (
+        value === null ||
+        value === undefined
+    ) {
 
-    calculateExpiryDate
-
-} = require("../utils/date");
-
-// ================= STATUS =================
-
-const {
-
-    calcMaintenance
-
-} = require("../utils/status");
-
-// ================= CATEGORY =================
-
-const {
-
-    detectCategory
-
-} = require("../services/category.service");
-
-// ================= IMPORT SERVICES =================
-
-const {
-
-    compareRows
-
-} = require("../services/compare.service");
-
-const {
-
-    importRows
-
-} = require("../services/import.service");
-
-/* =====================================================
-   GET HISTORY
-===================================================== */
-
-exports.getHistory = async (req, res) => {
-
-    try {
-
-        const histories = await prisma.deviceHistory.findMany({
-
-            orderBy: {
-
-                createdAt: "desc"
-
-            }
-
-        });
-
-        res.json(histories);
+        return "";
 
     }
 
+
+    return String(
+        value
+    ).trim();
+
+}
+
+
+// =====================================================
+// BUILD DEVICE DATA
+// =====================================================
+//
+// Dùng cho CREATE / UPDATE thủ công.
+//
+// KHÔNG cho phép frontend thay deviceKey.
+// =====================================================
+
+function buildManualDeviceData(
+    d
+) {
+
+    const data = {
+
+        deviceId:
+            d.deviceId === null ||
+            d.deviceId === undefined ||
+            d.deviceId === ""
+                ? null
+                : String(
+                    d.deviceId
+                ).trim(),
+
+        name:
+            d.name || "",
+
+        category:
+            d.category || null,
+
+        line:
+            d.line || "",
+
+        station:
+            d.station || "",
+
+        code:
+            d.code || null,
+
+        area:
+            d.area || "",
+
+        status:
+            normalizeStatus(
+                d.status
+            ),
+
+        installDate:
+            parseDate(
+                d.installDate
+            ),
+
+        lastMaintenance:
+            parseDate(
+                d.lastMaintenance
+            ),
+
+        replacementDate:
+            parseDate(
+                d.replacementDate
+            ),
+
+        lifespan:
+            d.lifespan === "" ||
+            d.lifespan === null ||
+            d.lifespan === undefined
+                ? 0
+                : Number(
+                    d.lifespan
+                ) || 0,
+
+        expiryDate:
+            parseDate(
+                d.expiryDate
+            ),
+
+        note:
+            d.note || ""
+
+    };
+
+
+    // =================================================
+    // CATEGORY AUTO DETECT
+    // =================================================
+
+    if (
+        !data.category
+    ) {
+
+        const categoryInfo =
+            detectCategory({
+
+                name:
+                    data.name,
+
+                code:
+                    data.code,
+
+                model:
+                    d.model || "",
+
+                brand:
+                    d.brand || ""
+
+            });
+
+
+        data.category =
+            categoryInfo?.category ||
+            null;
+
+    }
+
+
+    // =================================================
+    // EXPIRY DATE
+    // =================================================
+
+    if (
+        !data.expiryDate &&
+        data.installDate &&
+        data.lifespan > 0
+    ) {
+
+        data.expiryDate =
+            calculateExpiryDate(
+                data.installDate,
+                data.lifespan
+            );
+
+    }
+
+
+    return data;
+
+}
+
+
+// =====================================================
+// GET HISTORY
+// =====================================================
+
+exports.getHistory =
+async (
+    req,
+    res
+) => {
+
+    try {
+
+        const histories =
+            await prisma.deviceHistory.findMany({
+
+                orderBy: {
+
+                    createdAt:
+                        "desc"
+
+                }
+
+            });
+
+
+        res.json(
+            histories
+        );
+
+    }
     catch (err) {
 
-        console.error(err);
+        console.error(
+            err
+        );
 
         res.status(500).json({
 
-            message: "Không thể lấy lịch sử thiết bị."
+            success:
+                false,
+
+            message:
+                "Không thể lấy lịch sử thiết bị."
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // GET ALL DEVICES
 // =====================================================
 
-exports.getDevices = async (req, res) => {
+exports.getDevices =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const devices = await prisma.device.findMany({
+        const devices =
+            await prisma.device.findMany({
 
-            orderBy: {
+                orderBy: {
 
-                id: "desc"
+                    id:
+                        "desc"
 
-            }
+                }
 
-        });
+            });
 
-        const data = devices.map(device => ({
 
-            ...device,
+        const data =
+            devices.map(
+                device => ({
 
-            status: calcMaintenance(device)
+                    ...device,
 
-        }));
+                    status:
+                        calcMaintenance(
+                            device
+                        )
 
-        res.json(data);
+                })
+            );
+
+
+        res.json(
+            data
+        );
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "GET DEVICES ERROR:",
+            err
+        );
 
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // GET ONE DEVICE
 // =====================================================
 
-exports.getOne = async (req, res) => {
+exports.getOne =
+async (
+    req,
+    res
+) => {
+
     try {
-        console.log("URL:", req.originalUrl);
-        console.log("Params:", req.params);
 
-        const rawId = req.params.id;
+        const rawId =
+            req.params.id;
 
-        if (!rawId) {
+
+        if (
+            !rawId
+        ) {
+
             return res.status(400).json({
-                message: "Thiếu id."
+
+                success:
+                    false,
+
+                message:
+                    "Thiếu id."
+
             });
+
         }
 
-        const id = Number(rawId);
 
-        if (Number.isNaN(id)) {
+        const id =
+            Number(
+                rawId
+            );
+
+
+        if (
+            !Number.isInteger(
+                id
+            )
+        ) {
+
             return res.status(400).json({
-                message: "ID không hợp lệ."
+
+                success:
+                    false,
+
+                message:
+                    "ID không hợp lệ."
+
             });
+
         }
 
-        const device = await prisma.device.findUnique({
-            where: { id }
-        });
 
-        if (!device) {
+        const device =
+            await prisma.device.findUnique({
+
+                where: {
+                    id
+                }
+
+            });
+
+
+        if (
+            !device
+        ) {
+
             return res.status(404).json({
-                message: "Không tìm thấy thiết bị."
+
+                success:
+                    false,
+
+                message:
+                    "Không tìm thấy thiết bị."
+
             });
+
         }
 
-        return res.json({
+
+        res.json({
+
             ...device,
-            status: calcMaintenance(device)
+
+            status:
+                calcMaintenance(
+                    device
+                )
+
         });
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            error: err.message
-        });
     }
+    catch (err) {
+
+        console.error(
+            "GET ONE DEVICE ERROR:",
+            err
+        );
+
+        res.status(500).json({
+
+            success:
+                false,
+
+            error:
+                err.message
+
+        });
+
+    }
+
 };
+
 
 // =====================================================
 // CREATE DEVICE
 // =====================================================
+//
+// Device Key:
+//
+// KHÔNG nhận từ frontend.
+// KHÔNG nhận từ Excel.
+// Server tự tạo.
+//
+// =====================================================
 
-exports.createDevice = async (req, res) => {
+exports.createDevice =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const d = req.body;
+        const d =
+            req.body || {};
 
-        const categoryInfo = detectCategory({
-            name: d.name,
-            code: d.code,
-            model: d.model || ""
-        });
 
-        const installDate = parseDate(d.installDate);
+        if (
+            !d.name ||
+            !String(
+                d.name
+            ).trim()
+        ) {
 
-        // ============================================
+            return res.status(400).json({
+
+                success:
+                    false,
+
+                message:
+                    "Tên thiết bị không được để trống."
+
+            });
+
+        }
+
+
+        const data =
+            buildManualDeviceData(
+                d
+            );
+
+
+        // =================================================
         // DEVICE KEY
-        // Không lấy từ frontend
-        // Không lấy từ Excel
-        // Hệ thống tự tạo
-        // ============================================
+        // =================================================
 
-        const deviceKey = crypto.randomUUID();
+        const deviceKey =
+            crypto.randomUUID();
 
-        const device = await prisma.device.create({
 
-            data: {
+        const device =
+            await prisma.device.create({
 
-                deviceKey,
+                data: {
 
-                deviceId:
-                    d.deviceId
-                    ? String(d.deviceId).trim()
-                    : null,
+                    deviceKey,
 
-                name:
-                    d.name || "",
+                    ...data
 
-                category:
-                    d.category ||
-                    categoryInfo.category ||
-                    null,
+                }
 
-                line:
-                    d.line || "",
+            });
 
-                station:
-                    d.station || "",
 
-                code:
-                    d.code || null,
-
-                area:
-                    d.area || null,
-
-                status:
-                    d.status || "Running",
-
-                originalInstallDate:
-                    installDate,
-
-                installDate:
-                    installDate,
-
-                lastMaintenance:
-                    parseDate(d.lastMaintenance),
-
-                replacementDate:
-                    parseDate(d.replacementDate),
-
-                lifespan:
-                    d.lifespan
-                        ? Number(d.lifespan)
-                        : null,
-
-                expiryDate:
-                    parseDate(d.expiryDate) ||
-                    calculateExpiryDate(
-                        installDate,
-                        d.lifespan
-                    )
-
-            }
-
-        });
-
-        // ============================================
+        // =================================================
         // HISTORY
-        // ============================================
+        // =================================================
 
         await writeHistory({
 
-            deviceId: device.id,
+            deviceId:
+                device.id,
 
-            action: "CREATE",
+            action:
+                "CREATE",
 
             user:
                 req.user?.username ||
                 "System",
 
-            code: device.deviceId,
+            code:
+                device.deviceId,
 
-            name: device.name,
+            name:
+                device.name,
 
-            note: "Thêm mới thiết bị"
+            note:
+                "Thêm thiết bị"
 
         });
 
-        res.json(device);
+
+        res.status(201).json(
+            device
+        );
 
     }
-
     catch (err) {
 
         console.error(
@@ -396,9 +721,14 @@ exports.createDevice = async (req, res) => {
             err
         );
 
+
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
@@ -406,44 +736,57 @@ exports.createDevice = async (req, res) => {
 
 };
 
+
 // =====================================================
 // UPDATE DEVICE
 // =====================================================
+//
+// QUAN TRỌNG:
+//
+// Không cho UPDATE thay:
+//
+// - id
+// - deviceKey
+//
+// Device Key phải bất biến.
+// =====================================================
 
-function normalizeCompare(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-    return String(value);
-
-}
-
-exports.updateDevice = async (req, res) => {
+exports.updateDevice =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(
+                req.params.id
+            );
 
-        if (!id || Number.isNaN(id)) {
+
+        if (
+            !Number.isInteger(
+                id
+            )
+        ) {
 
             return res.status(400).json({
 
-                message: "ID thiết bị không hợp lệ."
+                success:
+                    false,
+
+                message:
+                    "ID không hợp lệ."
 
             });
 
         }
 
-        const d = req.body;
 
-        // ============================================
-        // LẤY THIẾT BỊ CŨ
-        // ============================================
+        const d =
+            req.body || {};
+
 
         const oldDevice =
             await prisma.device.findUnique({
@@ -454,9 +797,15 @@ exports.updateDevice = async (req, res) => {
 
             });
 
-        if (!oldDevice) {
+
+        if (
+            !oldDevice
+        ) {
 
             return res.status(404).json({
+
+                success:
+                    false,
 
                 message:
                     "Không tìm thấy thiết bị."
@@ -465,134 +814,23 @@ exports.updateDevice = async (req, res) => {
 
         }
 
-        const categoryInfo = detectCategory({
 
-            name: d.name,
-
-            code: d.code,
-
-            model: d.model || ""
-
-        });
-
-        const installDate =
-            parseDate(d.installDate);
-
-        // ============================================
-        // KHÔNG cập nhật deviceKey
-        // ============================================
-
-        const data = {
-
-            deviceId:
-                d.deviceId !== undefined
-                    ? String(d.deviceId).trim()
-                    : oldDevice.deviceId,
-
-            name:
-                d.name !== undefined
-                    ? d.name
-                    : oldDevice.name,
-
-            category:
-                d.category ||
-                categoryInfo.category ||
-                null,
-
-            line:
-                d.line !== undefined
-                    ? d.line
-                    : oldDevice.line,
-
-            station:
-                d.station !== undefined
-                    ? d.station
-                    : oldDevice.station,
-
-            code:
-                d.code !== undefined
-                    ? d.code
-                    : oldDevice.code,
-
-            area:
-                d.area !== undefined
-                    ? d.area
-                    : oldDevice.area,
-
-            status:
-                d.status ||
-                oldDevice.status ||
-                "Running",
-
-            installDate:
-                installDate,
-
-            lastMaintenance:
-                parseDate(d.lastMaintenance),
-
-            replacementDate:
-                parseDate(d.replacementDate),
-
-            lifespan:
-                d.lifespan !== undefined &&
-                d.lifespan !== ""
-                    ? Number(d.lifespan)
-                    : null
-
-        };
-
-        // ============================================
-        // ORIGINAL INSTALL DATE
-        // ============================================
-
-        data.originalInstallDate =
-            oldDevice.originalInstallDate ||
-            installDate;
-
-        // ============================================
-        // EXPIRY DATE
-        // ============================================
-
-        data.expiryDate =
-            parseDate(d.expiryDate) ||
-            calculateExpiryDate(
-                data.installDate,
-                data.lifespan
+        const data =
+            buildManualDeviceData(
+                d
             );
 
-        // ============================================
-        // TRƯỜNG HỢP THAY THẾ
-        // ============================================
 
-        if (
-            d.replacementDate &&
-            (
-                !oldDevice.replacementDate ||
-                String(
-                    oldDevice.replacementDate
-                ).slice(0, 10) !==
-                String(
-                    d.replacementDate
-                ).slice(0, 10)
-            )
-        ) {
+        // =================================================
+        // KHÔNG cho phép frontend thay Device Key
+        // =================================================
 
-            data.installDate =
-                parseDate(
-                    d.replacementDate
-                );
+        delete data.deviceKey;
 
-            data.expiryDate =
-                calculateExpiryDate(
-                    data.installDate,
-                    data.lifespan
-                );
 
-        }
-
-        // ============================================
+        // =================================================
         // UPDATE
-        // ============================================
+        // =================================================
 
         const updated =
             await prisma.device.update({
@@ -605,66 +843,186 @@ exports.updateDevice = async (req, res) => {
 
             });
 
-        // ============================================
-        // HISTORY
-        // ============================================
+
+        // =================================================
+        // CHANGE HISTORY
+        // =================================================
 
         const changes = {};
 
-        Object.keys(data).forEach(key => {
+
+        const fields = [
+
+            "deviceId",
+
+            "name",
+
+            "category",
+
+            "line",
+
+            "station",
+
+            "code",
+
+            "area",
+
+            "status",
+
+            "installDate",
+
+            "lastMaintenance",
+
+            "replacementDate",
+
+            "lifespan",
+
+            "expiryDate",
+
+            "note"
+
+        ];
+
+
+        for (
+            const key
+            of fields
+        ) {
+
+            const oldValue =
+                oldDevice[key];
+
+
+            const newValue =
+                updated[key];
+
+
+            if (
+                key ===
+                "installDate" ||
+                key ===
+                "lastMaintenance" ||
+                key ===
+                "replacementDate" ||
+                key ===
+                "expiryDate"
+            ) {
+
+                const oldDate =
+                    oldValue
+                        ? new Date(
+                            oldValue
+                        )
+                            .toISOString()
+                            .slice(
+                                0,
+                                10
+                            )
+                        : "";
+
+                const newDate =
+                    newValue
+                        ? new Date(
+                            newValue
+                        )
+                            .toISOString()
+                            .slice(
+                                0,
+                                10
+                            )
+                        : "";
+
+
+                if (
+                    oldDate !==
+                    newDate
+                ) {
+
+                    changes[key] = {
+
+                        old:
+                            oldValue,
+
+                        new:
+                            newValue
+
+                    };
+
+                }
+
+
+                continue;
+
+            }
+
 
             if (
                 normalizeCompare(
-                    oldDevice[key]
+                    oldValue
                 ) !==
                 normalizeCompare(
-                    updated[key]
+                    newValue
                 )
             ) {
 
                 changes[key] = {
 
                     old:
-                        oldDevice[key],
+                        oldValue,
 
                     new:
-                        updated[key]
+                        newValue
 
                 };
 
             }
 
-        });
+        }
 
-        await writeHistory({
 
-            deviceId:
-                updated.id,
+        // =================================================
+        // WRITE HISTORY
+        // =================================================
 
-            action:
-                "UPDATE",
+        if (
+            Object.keys(
+                changes
+            ).length > 0
+        ) {
 
-            user:
-                req.user?.username ||
-                "System",
+            await writeHistory({
 
-            code:
-                updated.deviceId,
+                deviceId:
+                    updated.id,
 
-            name:
-                updated.name,
+                action:
+                    "UPDATE",
 
-            note:
-                "Cập nhật thiết bị",
+                user:
+                    req.user?.username ||
+                    "System",
 
-            changes
+                code:
+                    updated.deviceId,
 
-        });
+                name:
+                    updated.name,
 
-        res.json(updated);
+                note:
+                    "Cập nhật thiết bị",
+
+                changes
+
+            });
+
+        }
+
+
+        res.json(
+            updated
+        );
 
     }
-
     catch (err) {
 
         console.error(
@@ -672,79 +1030,145 @@ exports.updateDevice = async (req, res) => {
             err
         );
 
+
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // DELETE DEVICE
 // =====================================================
 
-exports.deleteDevice = async (req, res) => {
+exports.deleteDevice =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(
+                req.params.id
+            );
 
-        const device = await prisma.device.findUnique({
 
-            where: {
-
+        if (
+            !Number.isInteger(
                 id
+            )
+        ) {
 
-            }
+            return res.status(400).json({
 
-        });
+                success:
+                    false,
 
-        if (!device) {
-
-            return res.status(404).json({
-
-                message: "Không tìm thấy thiết bị."
+                message:
+                    "ID không hợp lệ."
 
             });
 
         }
 
+
+        const device =
+            await prisma.device.findUnique({
+
+                where: {
+                    id
+                }
+
+            });
+
+
+        if (
+            !device
+        ) {
+
+            return res.status(404).json({
+
+                success:
+                    false,
+
+                message:
+                    "Không tìm thấy thiết bị."
+
+            });
+
+        }
+
+
         await prisma.device.delete({
 
             where: {
-
                 id
-
             }
 
         });
 
+
         await writeHistory({
 
-            action: "DELETE",
+            deviceId:
+                id,
 
-            user: req.user?.username || "System",
+            action:
+                "DELETE",
 
-            code: device.deviceId,
+            user:
+                req.user?.username ||
+                "System",
 
-            name: device.name,
+            code:
+                device.deviceId,
 
-            note: "Xóa thiết bị"
+            name:
+                device.name,
+
+            note:
+                "Xóa thiết bị"
+
+        });
+
+
+        res.json({
+
+            success:
+                true,
+
+            message:
+                "Đã xóa thiết bị."
 
         });
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "DELETE DEVICE ERROR:",
+            err
+        );
+
 
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
@@ -752,298 +1176,604 @@ exports.deleteDevice = async (req, res) => {
 
 };
 
+
 // =====================================================
 // PREVIEW IMPORT
 // =====================================================
+//
+// Excel
+//   ↓
+// XLSX buffer
+//   ↓
+// excelRows
+//   ↓
+// compareRows()
+//   ↓
+// session
+//   ↓
+// frontend
+//
+// Chưa ghi database.
+// =====================================================
 
-exports.previewImport = async (req, res) => {
+exports.previewImport =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        if (!req.file) {
+        if (
+            !req.file
+        ) {
 
             return res.status(400).json({
 
-                success: false,
+                success:
+                    false,
 
-                message: "Chưa chọn file Excel."
+                message:
+                    "Chưa chọn file Excel."
 
             });
 
         }
 
-        const workbook = XLSX.read(
 
-            req.file.buffer,
+        if (
+            !req.file.buffer
+        ) {
 
-            {
+            return res.status(400).json({
 
-                type: "buffer"
+                success:
+                    false,
 
-            }
+                message:
+                    "Không đọc được nội dung file Excel."
 
-        );
+            });
+
+        }
+
+
+        // =================================================
+        // READ EXCEL
+        // =================================================
+
+        const workbook =
+            XLSX.read(
+
+                req.file.buffer,
+
+                {
+                    type:
+                        "buffer"
+                }
+
+            );
+
+
+        if (
+            !workbook.SheetNames ||
+            workbook.SheetNames.length === 0
+        ) {
+
+            return res.status(400).json({
+
+                success:
+                    false,
+
+                message:
+                    "File Excel không có sheet."
+
+            });
+
+        }
+
+
+        const sheetName =
+            workbook.SheetNames[0];
+
 
         const sheet =
-
             workbook.Sheets[
-
-            workbook.SheetNames[0]
-
+                sheetName
             ];
 
-        const excelRows =
 
+        if (
+            !sheet
+        ) {
+
+            return res.status(400).json({
+
+                success:
+                    false,
+
+                message:
+                    "Không tìm thấy sheet đầu tiên."
+
+            });
+
+        }
+
+
+        // =================================================
+        // SHEET → JSON
+        // =================================================
+
+        const excelRows =
             XLSX.utils.sheet_to_json(
 
                 sheet,
 
                 {
 
-                    raw: true,
+                    raw:
+                        true,
 
-                    defval: ""
+                    defval:
+                        ""
 
                 }
 
             );
 
-        const result = await compareRows(
 
-            prisma,
+        if (
+            !excelRows.length
+        ) {
 
-            excelRows
+            return res.status(400).json({
 
+                success:
+                    false,
+
+                message:
+                    "File Excel không có dữ liệu."
+
+            });
+
+        }
+
+
+        console.log(
+            "========================================"
         );
 
-        const sessionId = createImportSession(
-
-            result.rows,
-
-            result.summary
-
+        console.log(
+            "IMPORT PREVIEW"
         );
 
-        res.json({
+        console.log(
+            "FILE:",
+            req.file.originalname
+        );
 
-            success: true,
+        console.log(
+            "SHEET:",
+            sheetName
+        );
+
+        console.log(
+            "ROWS:",
+            excelRows.length
+        );
+
+        console.log(
+            "FIRST ROW:"
+        );
+
+        console.dir(
+            excelRows[0],
+            {
+                depth:
+                    null
+            }
+        );
+
+        console.log(
+            "========================================"
+        );
+
+
+        // =================================================
+        // COMPARE
+        // =================================================
+
+        const result =
+            await compareRows(
+
+                prisma,
+
+                excelRows
+
+            );
+
+
+        // =================================================
+        // CREATE SESSION
+        // =================================================
+
+        const sessionId =
+            createImportSession(
+
+                result.rows,
+
+                result.summary
+
+            );
+
+
+        // =================================================
+        // RESPONSE
+        // =================================================
+
+        return res.json({
+
+            success:
+                true,
 
             sessionId,
 
-            summary: result.summary,
+            summary:
+                result.summary,
 
-            rows: result.rows
+            rows:
+                result.rows
 
         });
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "PREVIEW IMPORT ERROR:",
+            err
+        );
 
-        res.status(500).json({
 
-            success: false,
+        return res.status(500).json({
 
-            message: err.message
+            success:
+                false,
+
+            message:
+                err.message
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // CONFIRM IMPORT
 // =====================================================
+//
+// Frontend chỉ gửi:
+//
+// {
+//     sessionId: "..."
+// }
+//
+// Controller lấy rows từ session.
+//
+// Không nhận rows từ frontend.
+// Không cho frontend tự sửa existingId.
+//
+// =====================================================
 
-exports.confirmImport = async (req, res) => {
+exports.confirmImport =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const { sessionId } = req.body;
+        const {
+            sessionId
+        } =
+            req.body || {};
 
-        if (!sessionId) {
+
+        if (
+            !sessionId
+        ) {
 
             return res.status(400).json({
 
-                success: false,
+                success:
+                    false,
 
-                message: "Thiếu sessionId."
+                message:
+                    "Thiếu sessionId."
 
             });
 
         }
 
+
+        // =================================================
+        // GET SESSION
+        // =================================================
+
         const session =
+            getImportSession(
+                sessionId
+            );
 
-            getImportSession(sessionId);
 
-        if (!session) {
+        if (
+            !session
+        ) {
 
             return res.status(404).json({
 
-                success: false,
+                success:
+                    false,
 
-                message: "Phiên import đã hết hạn hoặc không tồn tại."
+                message:
+                    "Phiên import đã hết hạn hoặc không tồn tại."
 
             });
 
         }
 
-        console.dir(session.rows[0], { depth: null });
 
-        const result = await importRows(
-
-            prisma,
-
-            session.rows
-
+        console.log(
+            "========================================"
         );
 
-        deleteImportSession(sessionId);
+        console.log(
+            "IMPORT CONFIRM"
+        );
 
-        res.json({
+        console.log(
+            "SESSION:",
+            sessionId
+        );
 
-            success: true,
+        console.log(
+            "ROWS:",
+            session.rows.length
+        );
 
-            inserted: result.inserted,
+        console.log(
+            "SUMMARY:",
+            session.summary
+        );
 
-            updated: result.updated,
+        console.log(
+            "========================================"
+        );
 
-            skipped: result.skipped,
 
-            errors: result.errors || [],
+        // =================================================
+        // IMPORT
+        // =================================================
 
-            total: result.total
+        const result =
+            await importRows(
+
+                prisma,
+
+                session.rows
+
+            );
+
+
+        // =================================================
+        // DELETE SESSION
+        // =================================================
+
+        deleteImportSession(
+            sessionId
+        );
+
+
+        // =================================================
+        // WRITE IMPORT HISTORY
+        // =================================================
+        //
+        // History chi tiết CREATE/UPDATE/DELETE
+        // đã do từng API riêng xử lý.
+        //
+        // Import chỉ ghi log tổng quan.
+        //
+        // =================================================
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "IMPORT RESULT"
+        );
+
+        console.log(
+            result
+        );
+
+        console.log(
+            "========================================"
+        );
+
+
+        // =================================================
+        // RESPONSE
+        // =================================================
+
+        return res.json({
+
+            success:
+                true,
+
+            inserted:
+                result.inserted,
+
+            updated:
+                result.updated,
+
+            skipped:
+                result.skipped,
+
+            errors:
+                result.errors || [],
+
+            total:
+                result.total
 
         });
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "CONFIRM IMPORT ERROR:",
+            err
+        );
 
-        res.status(500).json({
 
-            success: false,
+        return res.status(500).json({
 
-            message: err.message
+            success:
+                false,
+
+            message:
+                err.message
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // EXPORT DEVICES
 // =====================================================
 
-exports.exportDevices = async (req, res) => {
+exports.exportDevices =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const devices = await prisma.device.findMany({
+        const devices =
+            await prisma.device.findMany({
 
-            orderBy: {
+                orderBy: {
 
-                id: "asc"
+                    id:
+                        "asc"
 
-            }
-
-        });
-
-        const rows = devices.map(device => {
-
-            const categoryInfo = detectCategory({
-
-                name: device.name,
-
-                code: device.code,
-
-                model: device.model,
+                }
 
             });
 
-            return {
 
-                "Device Key":
-                    device.deviceKey || "",
+        const rows =
+            devices.map(
+                device => ({
 
-                "Tên thiết bị": device.name,
+                    "Device Key":
+                        device.deviceKey ||
+                        "",
 
-                "Phân loại":
+                    "Tên thiết bị":
+                        device.name ||
+                        "",
 
-                    device.category || "",
+                    "Phân loại":
+                        device.category ||
+                        "",
 
-                "Hãng":
+                    "Hãng":
+                        device.brand ||
+                        "",
 
-                    device.brand || "",
+                    "Model":
+                        device.model ||
+                        "",
 
-                "Model":
+                    "Tuyến":
+                        device.line ||
+                        "",
 
-                    device.model || "",
+                    "Nhà ga":
+                        device.station ||
+                        "",
 
-                "Tuyến":
+                    "Khu vực":
+                        device.area ||
+                        "",
 
-                    device.line || "",
+                    "Mã ID":
+                        device.deviceId ||
+                        "",
 
-                "Nhà ga":
+                    "Ký hiệu":
+                        device.code ||
+                        "",
 
-                    device.station || "",
+                    "Trạng thái":
+                        calcMaintenance(
+                            device
+                        ),
 
-                "Khu vực":
+                    "Ngày lắp":
+                        formatDate(
+                            device.installDate
+                        ),
 
-                    device.area || "",
+                    "Ngày lắp lần đầu":
+                        formatDate(
+                            device.originalInstallDate
+                        ),
 
-                "Mã ID":
+                    "Ngày thay thế":
+                        formatDate(
+                            device.replacementDate
+                        ),
 
-                    device.deviceId || "",
+                    "Bảo dưỡng gần nhất":
+                        formatDate(
+                            device.lastMaintenance
+                        ),
 
-                "Ký hiệu":
+                    "Tuổi thọ":
+                        device.lifespan ||
+                        "",
 
-                    device.code || "",
+                    "Ngày hết hạn":
+                        formatDate(
+                            device.expiryDate
+                        ),
 
-                "Trạng thái":
+                    "Ghi chú":
+                        device.note ||
+                        ""
 
-                    calcMaintenance(device),
+                })
+            );
 
-                "Ngày lắp":
 
-                    formatDate(device.installDate),
+        const workbook =
+            XLSX.utils.book_new();
 
-                "Ngày lắp lần đầu":
-                    formatDate(device.originalInstallDate),
 
-                "Ngày thay thế":
-                    formatDate(device.replacementDate),
+        const worksheet =
+            XLSX.utils.json_to_sheet(
+                rows
+            );
 
-                "Bảo dưỡng gần nhất":
-
-                    formatDate(device.lastMaintenance),
-
-                "Tuổi thọ":
-
-                    device.lifespan || "",
-
-                "Ngày hết hạn":
-
-                    formatDate(device.expiryDate),
-
-                "Ghi chú":
-
-                    device.note || ""
-
-            };
-
-        });
-
-        const workbook = XLSX.utils.book_new();
-
-        const worksheet = XLSX.utils.json_to_sheet(rows);
 
         XLSX.utils.book_append_sheet(
 
@@ -1055,19 +1785,51 @@ exports.exportDevices = async (req, res) => {
 
         );
 
-        const buffer = XLSX.write(
 
-            workbook,
+        // =================================================
+        // AUTO WIDTH
+        // =================================================
 
-            {
+        const headers =
+            Object.keys(
+                rows[0] || {}
+            );
 
-                type: "buffer",
 
-                bookType: "xlsx"
+        worksheet["!cols"] =
+            headers.map(
+                header => ({
 
-            }
+                    wch:
+                        Math.min(
+                            40,
+                            Math.max(
+                                12,
+                                header.length + 2
+                            )
+                        )
 
-        );
+                })
+            );
+
+
+        const buffer =
+            XLSX.write(
+
+                workbook,
+
+                {
+
+                    type:
+                        "buffer",
+
+                    bookType:
+                        "xlsx"
+
+                }
+
+            );
+
 
         res.setHeader(
 
@@ -1077,91 +1839,140 @@ exports.exportDevices = async (req, res) => {
 
         );
 
+
         res.setHeader(
 
             "Content-Disposition",
 
-            "attachment; filename=devices.xlsx"
+            'attachment; filename="devices.xlsx"'
 
         );
 
-        res.send(buffer);
+
+        res.send(
+            buffer
+        );
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "EXPORT DEVICES ERROR:",
+            err
+        );
+
 
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
     }
 
 };
+
 
 // =====================================================
 // GET DEVICE CATEGORIES
 // =====================================================
 
-exports.getCategories = async (req, res) => {
+exports.getCategories =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const devices = await prisma.device.findMany({
+        const devices =
+            await prisma.device.findMany({
 
-            select: {
+                select: {
 
-                category: true
+                    category:
+                        true
 
-            }
+                }
 
-        });
+            });
 
-        const counter = {};
 
-        for (const device of devices) {
+        const counter =
+            {};
+
+
+        for (
+            const device
+            of devices
+        ) {
 
             const category =
+                device.category?.trim() ||
+                "Chưa phân loại";
 
-                device.category?.trim()
-
-                || "Chưa phân loại";
 
             counter[category] =
-
-                (counter[category] || 0) + 1;
+                (
+                    counter[category] ||
+                    0
+                ) + 1;
 
         }
 
-        const result = Object.keys(counter)
 
-            .sort()
+        const result =
+            Object.keys(
+                counter
+            )
 
-            .map(name => ({
+            .sort(
+                (a, b) =>
+                    a.localeCompare(
+                        b,
+                        "vi"
+                    )
+            )
 
-                id: name,
+            .map(
+                name => ({
 
-                name,
+                    id:
+                        name,
 
-                count: counter[name]
+                    name,
 
-            }));
+                    count:
+                        counter[name]
 
-        res.json(result);
+                })
+            );
+
+
+        res.json(
+            result
+        );
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "GET CATEGORIES ERROR:",
+            err
+        );
+
 
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
@@ -1169,39 +1980,58 @@ exports.getCategories = async (req, res) => {
 
 };
 
+
 // =====================================================
 // UPDATE ALL DEVICE CATEGORIES
 // =====================================================
 
-exports.updateCategories = async (req, res) => {
+exports.updateCategories =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const devices = await prisma.device.findMany({
+        const devices =
+            await prisma.device.findMany({
 
-            orderBy: {
-                id: "asc"
-            }
+                orderBy: {
 
-        });
+                    id:
+                        "asc"
 
-        let updated = 0;
-
-        for (const device of devices) {
-
-            const result = detectCategory({
-
-                name: device.name,
-
-                code: device.code,
-
-                // Device không có model
-                model: "",
-
-                // Device không có brand
-                brand: ""
+                }
 
             });
+
+
+        let updated =
+            0;
+
+
+        for (
+            const device
+            of devices
+        ) {
+
+            const result =
+                detectCategory({
+
+                    name:
+                        device.name,
+
+                    code:
+                        device.code,
+
+                    model:
+                        device.model,
+
+                    brand:
+                        device.brand
+
+                });
+
 
             console.log(
 
@@ -1211,43 +2041,58 @@ exports.updateCategories = async (req, res) => {
 
                 "=>",
 
-                result.category,
+                result?.category,
 
-                `(${result.score} điểm)`
+                `(${result?.score || 0} điểm)`,
+
+                result?.brand || ""
 
             );
+
 
             await prisma.device.update({
 
                 where: {
-                    id: device.id
+
+                    id:
+                        device.id
+
                 },
 
                 data: {
 
                     category:
-                        result.category
+                        result?.category ||
+                        null,
+
+                    brand:
+                        result?.brand ||
+                        device.brand ||
+                        null
 
                 }
 
             });
 
+
             updated++;
 
         }
 
+
         res.json({
 
-            success: true,
+            success:
+                true,
 
             updated,
 
-            total: devices.length
+            total:
+                devices.length
 
         });
 
     }
-
     catch (err) {
 
         console.error(
@@ -1255,11 +2100,14 @@ exports.updateCategories = async (req, res) => {
             err
         );
 
+
         res.status(500).json({
 
-            success: false,
+            success:
+                false,
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1267,110 +2115,495 @@ exports.updateCategories = async (req, res) => {
 
 };
 
+
 // =====================================================
 // GET DEVICES BY CATEGORY
 // =====================================================
 
-exports.getByCategory = async (req, res) => {
+exports.getByCategory =
+async (
+    req,
+    res
+) => {
 
     try {
 
-        const category = decodeURIComponent(
+        const category =
+            decodeURIComponent(
+                req.params.name
+            );
 
-            req.params.name
 
-        );
+        const where =
+            category ===
+            "Chưa phân loại"
 
-        let where = {};
+                ? {
 
-        if (
+                    OR: [
 
-            category === "Chưa phân loại"
+                        {
+                            category:
+                                null
+                        },
 
-        ) {
+                        {
+                            category:
+                                ""
+                        }
 
-            where = {
-
-                OR: [
-
-                    {
-
-                        category: null
-
-                    },
-
-                    {
-
-                        category: ""
-
-                    }
-
-                ]
-
-            };
-
-        }
-
-        else {
-
-            where = {
-
-                category
-
-            };
-
-        }
-
-        const devices = await prisma.device.findMany({
-
-            where,
-
-            orderBy: [
-
-                {
-
-                    line: "asc"
-
-                },
-
-                {
-
-                    station: "asc"
-
-                },
-
-                {
-
-                    name: "asc"
+                    ]
 
                 }
 
-            ]
+                : {
 
-        });
+                    category
 
-        const result = devices.map(device => ({
+                };
 
-            ...device,
 
-            status: calcMaintenance(device)
+        const devices =
+            await prisma.device.findMany({
 
-        }));
+                where,
 
-        res.json(result);
+                orderBy: {
+
+                    id:
+                        "desc"
+
+                }
+
+            });
+
+
+        const data =
+            devices.map(
+                device => ({
+
+                    ...device,
+
+                    status:
+                        calcMaintenance(
+                            device
+                        )
+
+                })
+            );
+
+
+        res.json(
+            data
+        );
 
     }
-
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "GET BY CATEGORY ERROR:",
+            err
+        );
+
 
         res.status(500).json({
 
-            error: err.message
+            success:
+                false,
+
+            error:
+                err.message
 
         });
 
     }
+
+};
+
+
+// =====================================================
+// GET DEVICE STATISTICS
+// =====================================================
+
+exports.getStatistics =
+async (
+    req,
+    res
+) => {
+
+    try {
+
+        const devices =
+            await prisma.device.findMany();
+
+
+        const statistics = {
+
+            total:
+                devices.length,
+
+            active:
+                0,
+
+            maintenance:
+                0,
+
+            inactive:
+                0,
+
+            expired:
+                0,
+
+            expiring:
+                0,
+
+            categories:
+                {},
+
+            brands:
+                {},
+
+            lines:
+                {},
+
+            stations:
+                {}
+
+        };
+
+
+        for (
+            const device
+            of devices
+        ) {
+
+            // =========================================
+            // STATUS
+            // =========================================
+
+            const status =
+                calcMaintenance(
+                    device
+                );
+
+
+            if (
+                status ===
+                "Active"
+            ) {
+
+                statistics.active++;
+
+            }
+            else if (
+                status ===
+                "Maintenance"
+            ) {
+
+                statistics.maintenance++;
+
+            }
+            else {
+
+                statistics.inactive++;
+
+            }
+
+
+            // =========================================
+            // CATEGORY
+            // =========================================
+
+            const category =
+                device.category?.trim() ||
+                "Chưa phân loại";
+
+
+            statistics.categories[
+                category
+            ] =
+                (
+                    statistics.categories[
+                        category
+                    ] ||
+                    0
+                ) + 1;
+
+
+            // =========================================
+            // BRAND
+            // =========================================
+
+            const brand =
+                device.brand?.trim() ||
+                "Chưa xác định";
+
+
+            statistics.brands[
+                brand
+            ] =
+                (
+                    statistics.brands[
+                        brand
+                    ] ||
+                    0
+                ) + 1;
+
+
+            // =========================================
+            // LINE
+            // =========================================
+
+            const line =
+                device.line?.trim() ||
+                "Chưa xác định";
+
+
+            statistics.lines[
+                line
+            ] =
+                (
+                    statistics.lines[
+                        line
+                    ] ||
+                    0
+                ) + 1;
+
+
+            // =========================================
+            // STATION
+            // =========================================
+
+            const station =
+                device.station?.trim() ||
+                "Chưa xác định";
+
+
+            statistics.stations[
+                station
+            ] =
+                (
+                    statistics.stations[
+                        station
+                    ] ||
+                    0
+                ) + 1;
+
+
+            // =========================================
+            // EXPIRY
+            // =========================================
+
+            if (
+                device.expiryDate
+            ) {
+
+                const expiry =
+                    new Date(
+                        device.expiryDate
+                    );
+
+
+                const now =
+                    new Date();
+
+
+                if (
+                    expiry <
+                    now
+                ) {
+
+                    statistics.expired++;
+
+                }
+                else {
+
+                    const diff =
+                        expiry.getTime() -
+                        now.getTime();
+
+
+                    const days =
+                        Math.ceil(
+                            diff /
+                            (
+                                1000 *
+                                60 *
+                                60 *
+                                24
+                            )
+                        );
+
+
+                    if (
+                        days <=
+                        90
+                    ) {
+
+                        statistics.expiring++;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        res.json(
+            statistics
+        );
+
+    }
+    catch (err) {
+
+        console.error(
+            "GET STATISTICS ERROR:",
+            err
+        );
+
+
+        res.status(500).json({
+
+            success:
+                false,
+
+            error:
+                err.message
+
+        });
+
+    }
+
+};
+
+
+// =====================================================
+// GET FILTER OPTIONS
+// =====================================================
+
+exports.getFilters =
+async (
+    req,
+    res
+) => {
+
+    try {
+
+        const devices =
+            await prisma.device.findMany({
+
+                select: {
+
+                    brand:
+                        true,
+
+                    line:
+                        true,
+
+                    station:
+                        true,
+
+                    category:
+                        true
+
+                }
+
+            });
+
+
+        const unique =
+            values =>
+                [
+                    ...
+                    new Set(
+
+                        values
+
+                            .map(
+                                value =>
+                                    value?.trim()
+                            )
+
+                            .filter(
+                                Boolean
+                            )
+
+                    )
+                ]
+
+                .sort(
+                    (a, b) =>
+                        a.localeCompare(
+                            b,
+                            "vi"
+                        )
+                );
+
+
+        res.json({
+
+            brands:
+                unique(
+                    devices.map(
+                        d => d.brand
+                    )
+                ),
+
+            lines:
+                unique(
+                    devices.map(
+                        d => d.line
+                    )
+                ),
+
+            stations:
+                unique(
+                    devices.map(
+                        d => d.station
+                    )
+                ),
+
+            categories:
+                unique(
+                    devices.map(
+                        d => d.category
+                    )
+                )
+
+        });
+
+    }
+    catch (err) {
+
+        console.error(
+            "GET FILTERS ERROR:",
+            err
+        );
+
+
+        res.status(500).json({
+
+            success:
+                false,
+
+            error:
+                err.message
+
+        });
+
+    }
+
+};
+
+
+// =====================================================
+// EXPORT
+// =====================================================
+
+module.exports = {
+
+    ...exports
 
 };
