@@ -1706,54 +1706,40 @@ async function compareRows(
 
         // =================================================
         // 2. DEVICE ID
+        //
+        // QUAN TRỌNG:
+        //
+        // Device ID KHÔNG dùng để match thiết bị.
+        //
+        // Chỉ dùng để cảnh báo duplicate.
+        // Không UPDATE theo Device ID.
         // =================================================
-
+        
         if (
-            !old &&
             data.deviceId
         ) {
-
+        
             const deviceId =
                 normalize(
                     cleanText(
                         data.deviceId
                     )
                 );
-
-
+        
             if (
                 duplicateDeviceIds.has(
                     deviceId
                 )
             ) {
-
+        
                 console.warn(
-                    `DEVICE ID DUPLICATE - dòng ${excelRowNumber}:`,
+                    `DEVICE ID TRÙNG TRONG DATABASE - dòng ${excelRowNumber}:`,
                     data.deviceId
                 );
-
+        
             }
-            else {
-
-                old =
-                    deviceIdMap.get(
-                        deviceId
-                    );
-
-
-                if (
-                    old
-                ) {
-
-                    matchedBy =
-                        "DEVICE_ID";
-
-                }
-
-            }
-
+        
         }
-
 
         // =================================================
         // 3. STRUCTURE KEY
