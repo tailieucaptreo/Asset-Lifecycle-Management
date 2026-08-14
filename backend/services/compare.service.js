@@ -155,6 +155,47 @@ function cleanText(value) {
 
 }
 
+function normalizeDeviceStatus(value) {
+
+    const text =
+        cleanText(value);
+
+    if (!text) {
+        return "";
+    }
+
+    const key =
+        normalize(text);
+
+    switch (key) {
+
+        // Đang sử dụng
+        case "active":
+        case "running":
+        case "dangsu dung":
+        case "danghoatdong":
+        case "dangvanhanh":
+            return "Đang sử dụng";
+
+        // Bảo trì
+        case "maintenance":
+        case "baotri":
+            return "Bảo trì";
+
+        // Đã thay
+        case "replaced":
+        case "dathay":
+            return "Đã thay";
+
+        // Chưa thay
+        case "original":
+        case "chuathay":
+            return "Chưa thay";
+
+        default:
+            return text;
+    }
+}
 
 // =====================================================
 // CHUẨN HÓA DEVICE KEY
@@ -942,7 +983,7 @@ function parseExcelRow(
             ),
 
         status:
-            cleanText(
+            normalizeDeviceStatus(
                 status
             ),
 
@@ -1159,10 +1200,8 @@ function compareDeviceFields(
 
     if (
         data.status &&
-        !sameStatus(
-            old.status,
-            data.status
-        )
+        normalizeDeviceStatus(old.status) !==
+        normalizeDeviceStatus(data.status)
     ) {
 
         changedFields.push(
@@ -1170,7 +1209,6 @@ function compareDeviceFields(
         );
 
     }
-
 
     // =================================================
     // NGÀY LẮP
