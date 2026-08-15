@@ -1005,25 +1005,6 @@ function compareDeviceFields(
 
     }
 
-
-    // =================================================
-    // HÃNG
-    // =================================================
-
-    if (
-        !sameText(
-            old.brand,
-            data.brand
-        )
-    ) {
-
-        changedFields.push(
-            "Hãng"
-        );
-
-    }
-
-
     // =================================================
     // MODEL
     // =================================================
@@ -1285,8 +1266,6 @@ async function compareRows(
                 name: true,
 
                 category: true,
-
-                brand: true,
 
                 model: true,
 
