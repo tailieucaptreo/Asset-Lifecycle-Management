@@ -1006,24 +1006,6 @@ function compareDeviceFields(
     }
 
     // =================================================
-    // MODEL
-    // =================================================
-
-    if (
-        !sameText(
-            old.model,
-            data.model
-        )
-    ) {
-
-        changedFields.push(
-            "Model"
-        );
-
-    }
-
-
-    // =================================================
     // TUYẾN
     // =================================================
 
@@ -1266,8 +1248,6 @@ async function compareRows(
                 name: true,
 
                 category: true,
-
-                model: true,
 
                 line: true,
 
