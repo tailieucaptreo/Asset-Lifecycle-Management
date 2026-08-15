@@ -57,9 +57,9 @@ function getFlexible(
         new Map();
 
 
-    // ---------------------------------------------
+    // -------------------------------------------------
     // MAP HEADER
-    // ---------------------------------------------
+    // -------------------------------------------------
 
     for (const key of keys) {
 
@@ -82,9 +82,9 @@ function getFlexible(
     }
 
 
-    // ---------------------------------------------
+    // -------------------------------------------------
     // TÌM ALIAS
-    // ---------------------------------------------
+    // -------------------------------------------------
 
     for (
         const alias
@@ -141,17 +141,17 @@ function cleanText(value) {
 
     return String(value)
 
-        // -----------------------------------------
+        // ---------------------------------------------
         // Xuống dòng
-        // -----------------------------------------
+        // ---------------------------------------------
 
         .replace(/\r\n/g, " ")
         .replace(/\n/g, " ")
         .replace(/\r/g, " ")
 
-        // -----------------------------------------
+        // ---------------------------------------------
         // Nhiều khoảng trắng
-        // -----------------------------------------
+        // ---------------------------------------------
 
         .replace(/\s+/g, " ")
 
@@ -162,11 +162,14 @@ function cleanText(value) {
 
 // =====================================================
 // CHUẨN HÓA DEVICE KEY
+// =====================================================
 //
-// Device Key là khóa thật trong DB.
+// Device Key là khóa nhận diện chính.
+//
 // Không tạo lại.
 // Không thay đổi.
 // Chỉ dùng để match.
+//
 // =====================================================
 
 function normalizeDeviceKey(value) {
@@ -202,15 +205,40 @@ function sameStatus(
 
 
 // =====================================================
-// COMPARE KEY
+// BUILD STRUCTURE KEY
+// =====================================================
 //
-// Ưu tiên:
+// QUAN TRỌNG:
+//
+// BẢN CŨ:
 //
 // Tuyến + Nhà ga + Khu vực + Ký hiệu
 //
-// Nếu không có Ký hiệu:
+// CÓ LỖI:
 //
-// Tuyến + Nhà ga + Khu vực + Tên
+// Thiết bị A:
+//   8 + Ga20 + Sàn + 260S1
+//
+// Thiết bị B:
+//   8 + Ga20 + Sàn + 260S1
+//
+// nhưng tên khác nhau
+//
+// => bị coi là cùng thiết bị.
+//
+// -----------------------------------------------------
+//
+// BẢN MỚI:
+//
+// Tuyến
+// + Nhà ga
+// + Khu vực
+// + Ký hiệu
+// + Tên thiết bị
+//
+// Tên được đưa vào KEY để tránh gom các thiết bị
+// khác nhau chỉ vì chúng dùng chung một ký hiệu.
+//
 // =====================================================
 
 function makeCompareKey(
@@ -247,33 +275,6 @@ function makeCompareKey(
         );
 
 
-    // ---------------------------------------------
-    // CÓ KÝ HIỆU
-    // ---------------------------------------------
-
-    if (
-        normalizedCode
-    ) {
-
-        return [
-
-            normalizedLine,
-
-            normalizedStation,
-
-            normalizedArea,
-
-            normalizedCode
-
-        ].join("_");
-
-    }
-
-
-    // ---------------------------------------------
-    // KHÔNG CÓ KÝ HIỆU
-    // ---------------------------------------------
-
     return [
 
         normalizedLine,
@@ -282,9 +283,54 @@ function makeCompareKey(
 
         normalizedArea,
 
+        normalizedCode,
+
         normalizedName
 
     ].join("_");
+
+}
+
+
+// =====================================================
+// IDENTITY KEY
+// =====================================================
+//
+// Đây là key dùng để phát hiện:
+//
+// - Trùng trong Excel
+// - Trùng cấu trúc trong DB
+//
+// Không dùng Device ID.
+//
+// =====================================================
+
+function makeIdentityKey(
+    data
+) {
+
+    if (
+        !data
+    ) {
+
+        return "";
+
+    }
+
+
+    return makeCompareKey(
+
+        data.line,
+
+        data.station,
+
+        data.area,
+
+        data.code,
+
+        data.name
+
+    );
 
 }
 
@@ -447,6 +493,52 @@ function parseExcelRow(
                 "category",
 
                 "Loại thiết bị"
+
+            ]
+        );
+
+
+    // =================================================
+    // HÃNG
+    // =================================================
+
+    const brand =
+        getFlexible(
+            row,
+            [
+
+                "Hãng",
+
+                "Hang",
+
+                "Brand",
+
+                "brand",
+
+                "Manufacturer",
+
+                "Nhà sản xuất"
+
+            ]
+        );
+
+
+    // =================================================
+    // MODEL
+    // =================================================
+
+    const model =
+        getFlexible(
+            row,
+            [
+
+                "Model",
+
+                "model",
+
+                "Mẫu",
+
+                "Mã model"
 
             ]
         );
@@ -699,15 +791,18 @@ function parseExcelRow(
             rawInstallDate
         );
 
+
     const lastMaintenance =
         parseDate(
             rawLastMaintenance
         );
 
+
     const replacementDate =
         parseDate(
             rawReplacementDate
         );
+
 
     const expiryDate =
         parseDate(
@@ -721,8 +816,8 @@ function parseExcelRow(
 
     const lifespan =
         rawLifespan === "" ||
-            rawLifespan === null ||
-            rawLifespan === undefined
+        rawLifespan === null ||
+        rawLifespan === undefined
 
             ? 0
 
@@ -739,8 +834,8 @@ function parseExcelRow(
 
         deviceKey:
             deviceKey === "" ||
-                deviceKey === null ||
-                deviceKey === undefined
+            deviceKey === null ||
+            deviceKey === undefined
 
                 ? null
 
@@ -750,8 +845,8 @@ function parseExcelRow(
 
         deviceId:
             deviceId === "" ||
-                deviceId === null ||
-                deviceId === undefined
+            deviceId === null ||
+            deviceId === undefined
 
                 ? null
 
@@ -767,6 +862,16 @@ function parseExcelRow(
         category:
             cleanText(
                 category
+            ),
+
+        brand:
+            cleanText(
+                brand
+            ),
+
+        model:
+            cleanText(
+                model
             ),
 
         line:
@@ -902,6 +1007,42 @@ function compareDeviceFields(
 
 
     // =================================================
+    // HÃNG
+    // =================================================
+
+    if (
+        !sameText(
+            old.brand,
+            data.brand
+        )
+    ) {
+
+        changedFields.push(
+            "Hãng"
+        );
+
+    }
+
+
+    // =================================================
+    // MODEL
+    // =================================================
+
+    if (
+        !sameText(
+            old.model,
+            data.model
+        )
+    ) {
+
+        changedFields.push(
+            "Model"
+        );
+
+    }
+
+
+    // =================================================
     // TUYẾN
     // =================================================
 
@@ -993,16 +1134,18 @@ function compareDeviceFields(
 
     // =================================================
     // STATUS
-    //
-    // QUAN TRỌNG:
+    // =================================================
     //
     // Không dùng sameText().
     //
     // Dùng sameStatus() để:
     //
     // Running
-    // =
-    // Đang hoạt động
+    // Đang sử dụng
+    // Active
+    //
+    // có thể được chuẩn hóa về cùng trạng thái.
+    //
     // =================================================
 
     if (
@@ -1016,7 +1159,9 @@ function compareDeviceFields(
         changedFields.push(
             "Trạng thái"
         );
+
     }
+
 
     // =================================================
     // NGÀY LẮP
@@ -1141,6 +1286,10 @@ async function compareRows(
 
                 category: true,
 
+                brand: true,
+
+                model: true,
+
                 line: true,
 
                 station: true,
@@ -1170,6 +1319,10 @@ async function compareRows(
 
     // =================================================
     // 2. DEVICE KEY MAP
+    // =================================================
+    //
+    // Device Key là nhận diện chính xác nhất.
+    //
     // =================================================
 
     const deviceKeyMap =
@@ -1233,8 +1386,12 @@ async function compareRows(
 
     // =================================================
     // 3. DEVICE ID MAP
+    // =================================================
     //
-    // Chỉ sử dụng Device ID nếu duy nhất.
+    // CHỈ DÙNG ĐỂ CẢNH BÁO DUPLICATE.
+    //
+    // KHÔNG MATCH THEO DEVICE ID.
+    //
     // =================================================
 
     const deviceIdMap =
@@ -1301,6 +1458,16 @@ async function compareRows(
     // =================================================
     // 4. STRUCTURE MAP
     // =================================================
+    //
+    // KEY MỚI:
+    //
+    // Tuyến
+    // + Nhà ga
+    // + Khu vực
+    // + Ký hiệu
+    // + Tên
+    //
+    // =================================================
 
     const deviceMap =
         new Map();
@@ -1316,7 +1483,8 @@ async function compareRows(
 
         if (
             !device.line ||
-            !device.station
+            !device.station ||
+            !device.name
         ) {
 
             continue;
@@ -1392,10 +1560,10 @@ async function compareRows(
     const excelDeviceKeys =
         new Map();
 
-    const excelDeviceIds =
+    const excelIdentityKeys =
         new Map();
 
-    const excelStructureKeys =
+    const excelDeviceIds =
         new Map();
 
 
@@ -1523,19 +1691,6 @@ async function compareRows(
 
         // =================================================
         // VALIDATION
-        //
-        // BẮT BUỘC:
-        //
-        // Tên
-        // Tuyến
-        // Nhà ga
-        //
-        // KHÔNG bắt buộc:
-        //
-        // Device Key
-        // Device ID
-        // Ký hiệu
-        // Khu vực
         // =================================================
 
         const missingFields =
@@ -1620,13 +1775,224 @@ async function compareRows(
 
 
         // =================================================
-        // TÌM THIẾT BỊ CŨ
+        // 1. KIỂM TRA DEVICE KEY TRÙNG TRONG EXCEL
+        // =================================================
+
+        if (
+            data.deviceKey
+        ) {
+
+            const key =
+                normalizeDeviceKey(
+                    data.deviceKey
+                );
+
+
+            if (
+                excelDeviceKeys.has(
+                    key
+                )
+            ) {
+
+                const firstRow =
+                    excelDeviceKeys.get(
+                        key
+                    );
+
+
+                skipCount++;
+
+
+                const reason =
+                    `Trùng Device Key trong file Excel với dòng ${firstRow}`;
+
+
+                console.warn(
+                    `IMPORT SKIP - dòng ${excelRowNumber}:`,
+                    reason
+                );
+
+
+                result.push({
+
+                    action:
+                        "SKIP",
+
+                    reason,
+
+                    changedFields: [],
+
+                    matchedBy:
+                        "DEVICE_KEY_DUPLICATE_EXCEL",
+
+                    existingId:
+                        null,
+
+                    row:
+                        data
+
+                });
+
+
+                continue;
+
+            }
+
+
+            excelDeviceKeys.set(
+                key,
+                excelRowNumber
+            );
+
+        }
+
+
+        // =================================================
+        // 2. DEVICE ID TRONG EXCEL
+        // =================================================
+        //
+        // CHỈ CẢNH BÁO.
+        //
+        // KHÔNG SKIP.
+        //
+        // =================================================
+
+        if (
+            data.deviceId
+        ) {
+
+            const deviceIdKey =
+                normalize(
+                    cleanText(
+                        data.deviceId
+                    )
+                );
+
+
+            if (
+                excelDeviceIds.has(
+                    deviceIdKey
+                )
+            ) {
+
+                const firstRow =
+                    excelDeviceIds.get(
+                        deviceIdKey
+                    );
+
+
+                console.warn(
+                    `DEVICE ID TRÙNG TRONG EXCEL - dòng ${excelRowNumber}:`,
+                    data.deviceId,
+                    `(dòng đầu: ${firstRow})`
+                );
+
+            }
+            else {
+
+                excelDeviceIds.set(
+                    deviceIdKey,
+                    excelRowNumber
+                );
+
+            }
+
+        }
+
+
+        // =================================================
+        // 3. TẠO IDENTITY KEY
+        // =================================================
+
+        const identityKey =
+            makeIdentityKey(
+                data
+            );
+
+
+        // =================================================
+        // 4. DUPLICATE TRONG EXCEL
+        // =================================================
+        //
+        // Chỉ coi là duplicate nếu:
+        //
+        // Tuyến
+        // + Nhà ga
+        // + Khu vực
+        // + Ký hiệu
+        // + Tên
+        //
+        // giống hoàn toàn.
+        //
+        // =================================================
+
+        if (
+            excelIdentityKeys.has(
+                identityKey
+            )
+        ) {
+
+            const firstRow =
+                excelIdentityKeys.get(
+                    identityKey
+                );
+
+
+            skipCount++;
+
+
+            const reason =
+                `Trùng thiết bị trong file Excel với dòng ${firstRow}`;
+
+
+            console.warn(
+                `IMPORT SKIP - dòng ${excelRowNumber}:`,
+                reason
+            );
+
+
+            result.push({
+
+                action:
+                    "SKIP",
+
+                reason,
+
+                changedFields: [],
+
+                matchedBy:
+                    "IDENTITY_DUPLICATE_EXCEL",
+
+                existingId:
+                    null,
+
+                row:
+                    data
+
+            });
+
+
+            continue;
+
+        }
+
+
+        excelIdentityKeys.set(
+            identityKey,
+            excelRowNumber
+        );
+
+
+        // =================================================
+        // 5. TÌM THIẾT BỊ CŨ
         //
         // ƯU TIÊN:
         //
         // 1. DEVICE KEY
-        // 2. DEVICE ID
-        // 3. STRUCTURE KEY
+        // 2. STRUCTURE/IDENTITY KEY
+        //
+        // KHÔNG DEVICE ID.
+        //
         // =================================================
 
         let old =
@@ -1637,7 +2003,7 @@ async function compareRows(
 
 
         // =================================================
-        // 1. DEVICE KEY
+        // 5.1 DEVICE KEY
         // =================================================
 
         if (
@@ -1659,18 +2025,27 @@ async function compareRows(
                 skipCount++;
 
 
+                const reason =
+                    "Device Key bị trùng trong database";
+
+
+                console.warn(
+                    `IMPORT SKIP - dòng ${excelRowNumber}:`,
+                    reason
+                );
+
+
                 result.push({
 
                     action:
                         "SKIP",
 
-                    reason:
-                        "Device Key bị trùng trong database",
+                    reason,
 
                     changedFields: [],
 
                     matchedBy:
-                        "DEVICE_KEY_DUPLICATE",
+                        "DEVICE_KEY_DUPLICATE_DB",
 
                     existingId:
                         null,
@@ -1705,61 +2080,82 @@ async function compareRows(
 
 
         // =================================================
-        // 2. DEVICE ID
-        //
-        // QUAN TRỌNG:
-        //
-        // Device ID KHÔNG dùng để match thiết bị.
-        //
-        // Chỉ dùng để cảnh báo duplicate.
-        // Không UPDATE theo Device ID.
+        // 5.2 DEVICE ID
         // =================================================
-        
+        //
+        // KHÔNG MATCH.
+        //
+        // Chỉ log cảnh báo.
+        //
+        // =================================================
+
         if (
             data.deviceId
         ) {
-        
-            const deviceId =
+
+            const deviceIdKey =
                 normalize(
                     cleanText(
                         data.deviceId
                     )
                 );
-        
+
+
             if (
                 duplicateDeviceIds.has(
-                    deviceId
+                    deviceIdKey
                 )
             ) {
-        
+
                 console.warn(
                     `DEVICE ID TRÙNG TRONG DATABASE - dòng ${excelRowNumber}:`,
                     data.deviceId
                 );
-        
+
             }
-        
+            else if (
+                deviceIdMap.has(
+                    deviceIdKey
+                )
+            ) {
+
+                const existingById =
+                    deviceIdMap.get(
+                        deviceIdKey
+                    );
+
+
+                console.log(
+                    `DEVICE ID tồn tại trong DB nhưng KHÔNG dùng để MATCH - dòng ${excelRowNumber}:`,
+                    {
+                        deviceId:
+                            data.deviceId,
+
+                        dbId:
+                            existingById.id,
+
+                        dbName:
+                            existingById.name,
+
+                        excelName:
+                            data.name
+                    }
+                );
+
+            }
+
         }
 
+
         // =================================================
-        // 3. STRUCTURE KEY
+        // 5.3 STRUCTURE / IDENTITY
         // =================================================
-
-        const structureKey =
-            makeCompareKey(
-
-                data.line,
-
-                data.station,
-
-                data.area,
-
-                data.code,
-
-                data.name
-
-            );
-
+        //
+        // CHỈ dùng nếu chưa match bằng Device Key.
+        //
+        // Và key đã bao gồm TÊN.
+        //
+        // =================================================
 
         if (
             !old
@@ -1767,11 +2163,22 @@ async function compareRows(
 
             if (
                 duplicateDatabaseKeys.has(
-                    structureKey
+                    identityKey
                 )
             ) {
 
                 skipCount++;
+
+
+                const reason =
+                    "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Khu vực + Ký hiệu + Tên";
+
+
+                console.warn(
+                    `IMPORT SKIP - dòng ${excelRowNumber}:`,
+                    reason,
+                    identityKey
+                );
 
 
                 result.push({
@@ -1779,8 +2186,7 @@ async function compareRows(
                     action:
                         "SKIP",
 
-                    reason:
-                        "Database đang có nhiều thiết bị trùng Tuyến + Nhà ga + Khu vực + Ký hiệu/Tên",
+                    reason,
 
                     changedFields: [],
 
@@ -1803,7 +2209,7 @@ async function compareRows(
 
             old =
                 deviceMap.get(
-                    structureKey
+                    identityKey
                 );
 
 
@@ -1820,182 +2226,7 @@ async function compareRows(
 
 
         // =================================================
-        // 4. DUPLICATE DEVICE KEY TRONG EXCEL
-        // =================================================
-
-        if (
-            data.deviceKey
-        ) {
-
-            const key =
-                normalizeDeviceKey(
-                    data.deviceKey
-                );
-
-
-            if (
-                excelDeviceKeys.has(
-                    key
-                )
-            ) {
-
-                const firstRow =
-                    excelDeviceKeys.get(
-                        key
-                    );
-
-
-                skipCount++;
-
-
-                result.push({
-
-                    action:
-                        "SKIP",
-
-                    reason:
-                        `Trùng Device Key trong file Excel với dòng ${firstRow}`,
-
-                    changedFields: [],
-
-                    matchedBy:
-                        null,
-
-                    existingId:
-                        null,
-
-                    row:
-                        data
-
-                });
-
-
-                continue;
-
-            }
-
-
-            excelDeviceKeys.set(
-                key,
-                excelRowNumber
-            );
-
-        }
-
-
-        // =================================================
-        // 5. DEVICE ID TRONG EXCEL
-        //
-        // Chỉ cảnh báo.
-        // Không chặn import.
-        // =================================================
-
-        if (
-            data.deviceId
-        ) {
-
-            const key =
-                normalize(
-                    cleanText(
-                        data.deviceId
-                    )
-                );
-
-
-            if (
-                excelDeviceIds.has(
-                    key
-                )
-            ) {
-
-                console.warn(
-                    `DEVICE ID TRÙNG TRONG EXCEL:`,
-                    data.deviceId
-                );
-
-            }
-            else {
-
-                excelDeviceIds.set(
-                    key,
-                    excelRowNumber
-                );
-
-            }
-
-        }
-
-
-        // =================================================
-        // 6. STRUCTURE DUPLICATE TRONG EXCEL
-        // =================================================
-
-        if (
-            excelStructureKeys.has(
-                structureKey
-            )
-        ) {
-
-            const firstRow =
-                excelStructureKeys.get(
-                    structureKey
-                );
-
-
-            /*
-             * Chỉ chặn duplicate structure
-             * khi dòng hiện tại KHÔNG có Device Key.
-             *
-             * Nếu có Device Key khác nhau:
-             * cho phép tồn tại.
-             */
-
-            if (
-                !data.deviceKey
-            ) {
-
-                skipCount++;
-
-
-                result.push({
-
-                    action:
-                        "SKIP",
-
-                    reason:
-                        `Trùng thiết bị trong file Excel với dòng ${firstRow}`,
-
-                    changedFields: [],
-
-                    matchedBy:
-                        null,
-
-                    existingId:
-                        null,
-
-                    row:
-                        data
-
-                });
-
-
-                continue;
-
-            }
-
-        }
-        else {
-
-            excelStructureKeys.set(
-                structureKey,
-                excelRowNumber
-            );
-
-        }
-
-
-        // =================================================
-        // 7. KHÔNG TÌM THẤY
+        // 6. KHÔNG TÌM THẤY
         // =================================================
 
         if (
@@ -2003,6 +2234,47 @@ async function compareRows(
         ) {
 
             newCount++;
+
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "DEVICE MATCH"
+            );
+
+            console.log(
+                "MATCHED BY: NONE"
+            );
+
+            console.log(
+                "RESULT: NEW"
+            );
+
+            console.log(
+                "EXCEL DEVICE KEY:",
+                data.deviceKey
+            );
+
+            console.log(
+                "DEVICE ID:",
+                data.deviceId
+            );
+
+            console.log(
+                "IDENTITY KEY:",
+                identityKey
+            );
+
+            console.log(
+                "NAME:",
+                data.name
+            );
+
+            console.log(
+                "================================"
+            );
 
 
             result.push({
@@ -2030,7 +2302,7 @@ async function compareRows(
 
 
         // =================================================
-        // 8. SO SÁNH
+        // 7. SO SÁNH
         // =================================================
 
         const changedFields =
@@ -2073,8 +2345,33 @@ async function compareRows(
         );
 
         console.log(
-            "STRUCTURE KEY:",
-            structureKey
+            "DB DEVICE ID:",
+            old.deviceId
+        );
+
+        console.log(
+            "EXCEL DEVICE ID:",
+            data.deviceId
+        );
+
+        console.log(
+            "IDENTITY KEY:",
+            identityKey
+        );
+
+        console.log(
+            "DB NAME:",
+            old.name
+        );
+
+        console.log(
+            "EXCEL NAME:",
+            data.name
+        );
+
+        console.log(
+            "STRUCTURE:",
+            `${data.line} | ${data.station} | ${data.area} | ${data.code} | ${data.name}`
         );
 
         console.log(
@@ -2112,7 +2409,7 @@ async function compareRows(
 
 
         // =================================================
-        // 9. UPDATE
+        // 8. UPDATE
         // =================================================
 
         if (
@@ -2146,7 +2443,7 @@ async function compareRows(
 
 
         // =================================================
-        // 10. KHÔNG THAY ĐỔI
+        // 9. KHÔNG THAY ĐỔI
         // =================================================
 
         skipCount++;
@@ -2274,8 +2571,11 @@ async function compareRows(
     // =====================================================
 
     return {
+
         summary: {
-            total: rows.length,
+
+            total:
+                rows.length,
 
             newCount,
 
@@ -2293,9 +2593,12 @@ async function compareRows(
                 duplicateDatabaseKeys.size,
 
             skipReasons
+
         },
 
-        rows: result
+        rows:
+            result
+
     };
 
 }
@@ -2312,6 +2615,8 @@ module.exports = {
     parseExcelRow,
 
     makeCompareKey,
+
+    makeIdentityKey,
 
     getFlexible,
 
