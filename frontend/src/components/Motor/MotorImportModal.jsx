@@ -4,10 +4,51 @@ import axios from "axios";
 import {
     X,
     Upload,
-    RefreshCw
+    RefreshCw,
+    ChevronRight
 } from "lucide-react";
 
 import API from "../../config";
+
+/* =====================================================
+   LABEL
+===================================================== */
+
+const ACTION_LABEL = {
+    NEW: "Thêm mới",
+    UPDATE: "Cập nhật",
+    SKIP: "Bỏ qua"
+};
+
+const FIELD_LABEL = {
+
+    line: "Tuyến",
+    station: "Nhà ga",
+    deviceId: "Mã TB",
+    name: "Tên động cơ",
+    type: "Loại",
+    location: "Vị trí",
+    brand: "Hãng",
+    model: "Model",
+    serial: "Serial",
+    power: "Công suất",
+    bearingCode: "Mã ổ bi",
+    quantity: "Số lượng",
+    runningHours: "Số giờ vận hành",
+    status: "Trạng thái",
+    replacementDate: "Ngày thay thế",
+    oldMotor: "Động cơ cũ",
+    newMotor: "Động cơ mới",
+    warehouse: "Vị trí lưu kho",
+    maintenanceDate: "Ngày bảo trì",
+    maintenanceContent: "Nội dung bảo trì",
+    note: "Ghi chú"
+
+};
+
+/* =====================================================
+   COLORS
+===================================================== */
 
 const badgeColor = {
 
@@ -38,58 +79,88 @@ const cardColor = {
 
 };
 
+/* =====================================================
+   SUMMARY CARD
+===================================================== */
+
 function SummaryCard({
-
     title,
-
     value,
-
-    color
-
+    color,
+    active,
+    onClick
 }) {
 
     return (
 
-        <div
+        <button
+            type="button"
+            onClick={onClick}
             className={`
+                w-full
+                text-left
                 rounded-xl
                 border
                 p-4
+                transition-all
                 ${color}
+
+                ${
+                    active
+                        ? "ring-2 ring-blue-400 shadow-md scale-[1.01]"
+                        : "hover:shadow-md hover:-translate-y-[1px]"
+                }
             `}
         >
 
-            <div
-                className="
-                    text-sm
-                    font-medium
-                    opacity-80
-                "
-            >
-                {title}
+            <div className="flex items-center justify-between">
+
+                <div>
+
+                    <div
+                        className="
+                            text-sm
+                            font-medium
+                            opacity-80
+                        "
+                    >
+                        {title}
+                    </div>
+
+                    <div
+                        className="
+                            mt-2
+                            text-4xl
+                            font-bold
+                        "
+                    >
+                        {value}
+                    </div>
+
+                </div>
+
+                <ChevronRight
+                    size={22}
+                    className={`
+                        opacity-50
+                        transition-transform
+                        ${active ? "rotate-90" : ""}
+                    `}
+                />
+
             </div>
 
-            <div
-                className="
-                    mt-2
-                    text-4xl
-                    font-bold
-                "
-            >
-                {value}
-            </div>
-
-        </div>
+        </button>
 
     );
 
 }
 
-function StatusBadge({
+/* =====================================================
+   STATUS BADGE
+===================================================== */
 
-    action
-
-}) {
+function StatusBadge({ action }) {
 
     return (
 
@@ -105,12 +176,26 @@ function StatusBadge({
                 ${badgeColor[action] || badgeColor.SKIP}
             `}
         >
-            {action}
+            {ACTION_LABEL[action] || action}
         </span>
 
     );
 
 }
+
+/* =====================================================
+   FIELD LABEL
+===================================================== */
+
+function fieldLabel(field) {
+
+    return FIELD_LABEL[field] || field;
+
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
 
 export default function MotorImportModal({
 
@@ -132,6 +217,14 @@ export default function MotorImportModal({
 
     const [loading, setLoading] = useState(false);
 
+    /*
+     * all = tất cả
+     * NEW
+     * UPDATE
+     * SKIP
+     */
+    const [filter, setFilter] = useState("all");
+
     const total =
         summary?.total ??
         preview.length;
@@ -148,42 +241,106 @@ export default function MotorImportModal({
     const hasData =
         preview.length > 0;
 
-    const canImport = useMemo(() => {
+    const canImport =
+        newCount > 0 ||
+        updateCount > 0;
 
-        return (
+    /* =====================================================
+       FILTER
+    ===================================================== */
 
-            newCount > 0 ||
+    const filteredPreview = useMemo(() => {
 
-            updateCount > 0
+        if (filter === "all")
+            return preview;
 
+        return preview.filter(
+            item => item.action === filter
         );
 
     }, [
-
-        newCount,
-
-        updateCount
-
+        preview,
+        filter
     ]);
+
+    /* =====================================================
+       FILTER TITLE
+    ===================================================== */
+
+    const filterTitle = useMemo(() => {
+
+        if (filter === "NEW") {
+
+            return (
+                <>
+                    Đang xem:{" "}
+                    <strong>Thiết bị thêm mới</strong>{" "}
+                    ({newCount} bản ghi)
+                </>
+            );
+
+        }
+
+        if (filter === "UPDATE") {
+
+            return (
+                <>
+                    Đang xem:{" "}
+                    <strong>Thiết bị cập nhật</strong>{" "}
+                    ({updateCount} bản ghi)
+                </>
+            );
+
+        }
+
+        if (filter === "SKIP") {
+
+            return (
+                <>
+                    Đang xem:{" "}
+                    <strong>Thiết bị bỏ qua</strong>{" "}
+                    ({skipCount} bản ghi)
+                </>
+            );
+
+        }
+
+        return (
+            <>
+                Đang xem:{" "}
+                <strong>Tất cả</strong>{" "}
+                ({total} bản ghi)
+            </>
+        );
+
+    }, [
+        filter,
+        total,
+        newCount,
+        updateCount,
+        skipCount
+    ]);
+
+    /* =====================================================
+       IMPORT
+    ===================================================== */
+
     const handleImport = async () => {
 
-        if (!file) return;
+        if (!file)
+            return;
 
         try {
 
             setLoading(true);
 
-            const form = new FormData();
+            const form =
+                new FormData();
 
-            form.append("file", file);
-
-            console.log("TOKEN:", token);
-
-            const headers = {
-                Authorization: `Bearer ${token}`
-            };
-
-            console.log(headers);
+            form.append(
+                "file",
+                file
+            );
 
             await axios.post(
 
@@ -192,13 +349,10 @@ export default function MotorImportModal({
                 form,
 
                 {
-
                     headers: {
-
-                        Authorization: `Bearer ${token}`
-
+                        Authorization:
+                            `Bearer ${token}`
                     }
-
                 }
 
             );
@@ -209,7 +363,10 @@ export default function MotorImportModal({
 
         catch (err) {
 
-            console.error(err);
+            console.error(
+                "MOTOR IMPORT ERROR:",
+                err
+            );
 
             alert(
 
@@ -228,6 +385,25 @@ export default function MotorImportModal({
         }
 
     };
+
+    /* =====================================================
+       CLOSE
+    ===================================================== */
+
+    const handleClose = () => {
+
+        if (loading)
+            return;
+
+        setFilter("all");
+
+        onClose?.();
+
+    };
+
+    /* =====================================================
+       RENDER
+    ===================================================== */
 
     if (!open)
         return null;
@@ -252,23 +428,19 @@ export default function MotorImportModal({
                 className="
                     w-full
                     max-w-7xl
-
                     h-[92vh]
-
                     bg-white
                     rounded-3xl
                     shadow-2xl
-
                     flex
                     flex-col
-
                     overflow-hidden
                 "
             >
 
-                {/* ===========================
+                {/* =================================================
                     HEADER
-                =========================== */}
+                ================================================= */}
 
                 <div
                     className="
@@ -279,6 +451,7 @@ export default function MotorImportModal({
                         flex
                         items-center
                         justify-between
+                        shrink-0
                     "
                 >
 
@@ -325,11 +498,9 @@ export default function MotorImportModal({
                     </div>
 
                     <button
-
-                        onClick={onClose}
-
+                        type="button"
+                        onClick={handleClose}
                         disabled={loading}
-
                         className="
                             w-10
                             h-10
@@ -340,7 +511,6 @@ export default function MotorImportModal({
                             justify-center
                             transition
                         "
-
                     >
 
                         <X size={22} />
@@ -349,11 +519,23 @@ export default function MotorImportModal({
 
                 </div>
 
-                {/* ===========================
-                    SUMMARY
-                =========================== */}
+                {/* =================================================
+                    BODY
+                ================================================= */}
 
-                <div className=" flex-1 flex flex-col p-6 overflow-hidden">
+                <div
+                    className="
+                        flex-1
+                        flex
+                        flex-col
+                        p-6
+                        overflow-hidden
+                    "
+                >
+
+                    {/* =================================================
+                        SUMMARY CARDS
+                    ================================================= */}
 
                     <div
                         className="
@@ -361,6 +543,7 @@ export default function MotorImportModal({
                             grid-cols-2
                             lg:grid-cols-4
                             gap-4
+                            shrink-0
                         "
                     >
 
@@ -368,95 +551,108 @@ export default function MotorImportModal({
                             title="Tổng bản ghi"
                             value={total}
                             color={cardColor.total}
+                            active={filter === "all"}
+                            onClick={() =>
+                                setFilter("all")
+                            }
                         />
 
                         <SummaryCard
                             title="Thêm mới"
                             value={newCount}
                             color={cardColor.new}
+                            active={filter === "NEW"}
+                            onClick={() =>
+                                setFilter("NEW")
+                            }
                         />
 
                         <SummaryCard
                             title="Cập nhật"
                             value={updateCount}
                             color={cardColor.update}
+                            active={filter === "UPDATE"}
+                            onClick={() =>
+                                setFilter("UPDATE")
+                            }
                         />
 
                         <SummaryCard
                             title="Bỏ qua"
                             value={skipCount}
                             color={cardColor.skip}
+                            active={filter === "SKIP"}
+                            onClick={() =>
+                                setFilter("SKIP")
+                            }
                         />
 
                     </div>
+
+                    {/* =================================================
+                        CURRENT FILTER
+                    ================================================= */}
 
                     {hasData && (
 
                         <div
                             className="
-                                mt-6
+                                mt-5
                                 flex
                                 items-center
                                 justify-between
-                                flex-wrap
                                 gap-3
+                                shrink-0
                             "
                         >
 
                             <div>
 
-                                <h3
-                                    className="
-                                        text-lg
-                                        font-semibold
-                                        text-slate-800
-                                    "
-                                >
-                                    Danh sách xem trước
-                                </h3>
-
-                                <p
+                                <div
                                     className="
                                         text-sm
                                         text-slate-500
                                     "
                                 >
-                                    Chỉ những bản ghi có thay đổi mới được cập nhật.
-                                </p>
+                                    {filterTitle}
+                                </div>
 
                             </div>
 
-                            <div
-                                className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                    flex-wrap
-                                "
-                            >
+                            {filter !== "all" && (
 
-                                <StatusBadge action="NEW" />
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setFilter("all")
+                                    }
+                                    className="
+                                        text-sm
+                                        text-blue-600
+                                        hover:underline
+                                    "
+                                >
+                                    Xem tất cả
+                                </button>
 
-                                <StatusBadge action="UPDATE" />
-
-                                <StatusBadge action="SKIP" />
-
-                            </div>
+                            )}
 
                         </div>
 
                     )}
-                    {/* ===========================
-                        PREVIEW TABLE
-                    =========================== */}
+
+                    {/* =================================================
+                        TABLE
+                    ================================================= */}
 
                     <div
                         className="
-                            mt-6
+                            mt-4
                             flex-1
                             border
                             rounded-2xl
                             overflow-hidden
+                            min-h-0
                         "
                     >
 
@@ -469,7 +665,8 @@ export default function MotorImportModal({
 
                             <table
                                 className="
-                                    min-w-full
+                                    min-w-[1500px]
+                                    w-full
                                     text-sm
                                 "
                             >
@@ -485,43 +682,128 @@ export default function MotorImportModal({
 
                                     <tr>
 
-                                        <th className="px-3 py-3 text-left font-semibold w-14">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                                w-14
+                                            "
+                                        >
                                             STT
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
-                                            Trạng thái
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
+                                            Kết quả
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Mã TB
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold min-w-[220px]">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                                min-w-[260px]
+                                            "
+                                        >
                                             Tên động cơ
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Loại
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Hãng
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Model
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Tuyến
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                            "
+                                        >
                                             Ga
                                         </th>
 
-                                        <th className="px-3 py-3 text-left font-semibold min-w-[220px]">
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                                min-w-[280px]
+                                            "
+                                        >
+                                            Kết quả / Lý do
+                                        </th>
+
+                                        <th
+                                            className="
+                                                px-3
+                                                py-3
+                                                text-left
+                                                font-semibold
+                                                min-w-[280px]
+                                            "
+                                        >
                                             Thay đổi
                                         </th>
 
@@ -531,134 +813,275 @@ export default function MotorImportModal({
 
                                 <tbody>
 
-                                    {!hasData && (
+                                    {!filteredPreview.length && (
 
                                         <tr>
 
                                             <td
-                                                colSpan={10}
+                                                colSpan={11}
                                                 className="
                                                     py-16
                                                     text-center
                                                     text-slate-500
                                                 "
                                             >
-                                                Không có dữ liệu xem trước.
+                                                Không có bản ghi trong nhóm này.
                                             </td>
 
                                         </tr>
 
                                     )}
 
-                                    {preview.map((item, index) => {
+                                    {filteredPreview.map(
+                                        (item, index) => {
 
-                                        const row =
-                                            item.row || {};
+                                            const row =
+                                                item.row || {};
 
-                                        return (
+                                            const changed =
+                                                item.changedFields || [];
 
-                                            <tr
-                                                key={index}
-                                                className="
-                                                    border-t
-                                                    hover:bg-slate-50
-                                                    transition
-                                                "
-                                            >
+                                            return (
 
-                                                <td className="px-3 py-3">
-                                                    {index + 1}
-                                                </td>
+                                                <tr
+                                                    key={
+                                                        item.existingId
+                                                        ? `${item.action}-${item.existingId}-${index}`
+                                                        : `${item.action}-${index}`
+                                                    }
+                                                    className="
+                                                        border-t
+                                                        hover:bg-slate-50
+                                                        transition
+                                                    "
+                                                >
 
-                                                <td className="px-3 py-3">
+                                                    {/* STT */}
 
-                                                    <StatusBadge
-                                                        action={item.action}
-                                                    />
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                        "
+                                                    >
+                                                        {index + 1}
+                                                    </td>
 
-                                                </td>
+                                                    {/* ACTION */}
 
-                                                <td className="px-3 py-3 font-medium whitespace-nowrap">
-                                                    {row.deviceId || "-"}
-                                                </td>
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                        "
+                                                    >
 
-                                                <td className="px-3 py-3">
-                                                    {row.name || "-"}
-                                                </td>
+                                                        <StatusBadge
+                                                            action={
+                                                                item.action
+                                                            }
+                                                        />
 
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {row.type || "-"}
-                                                </td>
+                                                    </td>
 
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {row.brand || "-"}
-                                                </td>
+                                                    {/* DEVICE ID */}
 
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {row.model || "-"}
-                                                </td>
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            font-medium
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.deviceId || "-"}
+                                                    </td>
 
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {row.line || "-"}
-                                                </td>
+                                                    {/* NAME */}
 
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    {row.station || "-"}
-                                                </td>
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                        "
+                                                    >
+                                                        {row.name || "-"}
+                                                    </td>
 
-                                                <td className="px-3 py-3">
+                                                    {/* TYPE */}
 
-                                                    {item.changedFields?.length ? (
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.type || "-"}
+                                                    </td>
 
-                                                        <div
-                                                            className="
-                                                                flex
-                                                                flex-wrap
-                                                                gap-1
-                                                            "
-                                                        >
+                                                    {/* BRAND */}
 
-                                                            {item.changedFields.map(
-                                                                (field) => (
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.brand || "-"}
+                                                    </td>
 
-                                                                    <span
-                                                                        key={field}
-                                                                        className="
-                                                                            px-2
-                                                                            py-1
-                                                                            rounded-full
-                                                                            text-xs
-                                                                            bg-blue-100
-                                                                            text-blue-700
-                                                                        "
-                                                                    >
-                                                                        {field}
+                                                    {/* MODEL */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.model || "-"}
+                                                    </td>
+
+                                                    {/* LINE */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.line || "-"}
+                                                    </td>
+
+                                                    {/* STATION */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            whitespace-nowrap
+                                                        "
+                                                    >
+                                                        {row.station || "-"}
+                                                    </td>
+
+                                                    {/* REASON */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                        "
+                                                    >
+
+                                                        {item.reason ? (
+
+                                                            <span
+                                                                className={`
+                                                                    ${
+                                                                        item.action === "SKIP"
+                                                                            ? "text-slate-600"
+                                                                            : item.action === "UPDATE"
+                                                                                ? "text-amber-700"
+                                                                                : "text-emerald-700"
+                                                                    }
+                                                                `}
+                                                            >
+                                                                {item.reason}
+                                                            </span>
+
+                                                        ) : (
+
+                                                            item.action === "SKIP"
+                                                                ? (
+                                                                    <span className="text-slate-500">
+                                                                        Đã tồn tại, không có thay đổi
                                                                     </span>
-
                                                                 )
-                                                            )}
+                                                                : item.action === "UPDATE"
+                                                                    ? (
+                                                                        <span className="text-amber-600">
+                                                                            Có dữ liệu thay đổi
+                                                                        </span>
+                                                                    )
+                                                                    : (
+                                                                        <span className="text-emerald-600">
+                                                                            Không tìm thấy trong hệ thống
+                                                                        </span>
+                                                                    )
 
-                                                        </div>
+                                                        )}
 
-                                                    ) : (
+                                                    </td>
 
-                                                        <span
-                                                            className="
-                                                                text-slate-400
-                                                            "
-                                                        >
-                                                            -
-                                                        </span>
+                                                    {/* CHANGED FIELDS */}
 
-                                                    )}
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                        "
+                                                    >
 
-                                                </td>
+                                                        {changed.length > 0 ? (
 
-                                            </tr>
+                                                            <div
+                                                                className="
+                                                                    flex
+                                                                    flex-wrap
+                                                                    gap-1
+                                                                "
+                                                            >
 
-                                        );
+                                                                {changed.map(
+                                                                    field => (
 
-                                    })}
+                                                                        <span
+                                                                            key={field}
+                                                                            className="
+                                                                                px-2
+                                                                                py-1
+                                                                                rounded-full
+                                                                                text-xs
+                                                                                bg-blue-100
+                                                                                text-blue-700
+                                                                            "
+                                                                        >
+                                                                            {
+                                                                                fieldLabel(
+                                                                                    field
+                                                                                )
+                                                                            }
+                                                                        </span>
+
+                                                                    )
+                                                                )}
+
+                                                            </div>
+
+                                                        ) : (
+
+                                                            <span
+                                                                className="
+                                                                    text-slate-400
+                                                                "
+                                                            >
+                                                                -
+                                                            </span>
+
+                                                        )}
+
+                                                    </td>
+
+                                                </tr>
+
+                                            );
+
+                                        }
+                                    )}
 
                                 </tbody>
 
@@ -667,28 +1090,21 @@ export default function MotorImportModal({
                         </div>
 
                     </div>
-                    {/* ===========================
+
+                    {/* =================================================
                         FOOTER
-                    =========================== */}
+                    ================================================= */}
 
                     <div
                         className="
                             mt-4
-
                             border-t
-
-                            bg-white
-
                             pt-5
-
                             flex
                             items-center
                             justify-between
-
                             flex-wrap
-
                             gap-4
-
                             shrink-0
                         "
                     >
@@ -699,9 +1115,25 @@ export default function MotorImportModal({
                                 text-slate-500
                             "
                         >
+
                             {canImport
-                                ? `Có ${newCount + updateCount} bản ghi sẽ được thêm hoặc cập nhật.`
-                                : "Không có dữ liệu cần import."}
+
+                                ? (
+                                    <>
+                                        Có{" "}
+                                        <strong>
+                                            {newCount + updateCount}
+                                        </strong>{" "}
+                                        bản ghi sẽ được thêm hoặc cập nhật.
+                                    </>
+                                )
+
+                                : (
+                                    "Không có dữ liệu cần import."
+                                )
+
+                            }
+
                         </div>
 
                         <div
@@ -713,13 +1145,9 @@ export default function MotorImportModal({
                         >
 
                             <button
-
                                 type="button"
-
                                 disabled={loading}
-
-                                onClick={onClose}
-
+                                onClick={handleClose}
                                 className="
                                     px-5
                                     py-2.5
@@ -729,22 +1157,17 @@ export default function MotorImportModal({
                                     hover:bg-slate-100
                                     transition
                                 "
-
                             >
                                 Hủy
                             </button>
 
                             <button
-
                                 type="button"
-
                                 disabled={
                                     loading ||
                                     !canImport
                                 }
-
                                 onClick={handleImport}
-
                                 className="
                                     px-6
                                     py-2.5
@@ -760,7 +1183,6 @@ export default function MotorImportModal({
                                     disabled:opacity-50
                                     disabled:cursor-not-allowed
                                 "
-
                             >
 
                                 {loading ? (
