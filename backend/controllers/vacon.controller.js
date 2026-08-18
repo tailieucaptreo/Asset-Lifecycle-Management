@@ -1527,85 +1527,160 @@ exports.importExcel = async (req, res) => {
 
             if (item.status === "UPDATE_HISTORY") {
 
+                // ==========================================
+                // Tìm lịch sử cũ
+                // ==========================================
+            
                 const existed = await prisma.vaconHistory.findFirst({
-
+            
                     where: {
-                
+            
                         deviceId: item.deviceId,
-                
+            
                         recordDate: item.recordDate,
-                
+            
                         operationHours: item.operationHours,
-                
+            
                         powerUnitDate:
                             item.powerUnitDate == null
                                 ? null
                                 : String(item.powerUnitDate),
-                
+            
                         faultHistory: item.faultHistory
-                
+            
+                    },
+            
+                    orderBy: {
+            
+                        id: "desc"
+            
                     }
-                
+            
                 });
-                
+            
+            
+                // ==========================================
+                // Không tìm thấy → tạo mới
+                // ==========================================
+            
                 if (!existed) {
-                
+            
                     await prisma.vaconHistory.create({
-                
+            
                         data: {
-                
+            
                             deviceId: item.deviceId,
-                
+            
                             recordDate: item.recordDate,
-                
-                            operationHours: item.operationHours,
-                
+            
+                            operationHours:
+                                item.operationHours,
+            
                             powerUnitDate:
                                 item.powerUnitDate == null
                                     ? null
                                     : String(item.powerUnitDate),
-                
-                            faultHistory: item.faultHistory,
-                
-                            description: item.description,
-                
-                            possibleCause: item.possibleCause,
-                
-                            correctiveActions: item.correctiveActions,
-                
-                            note: item.note
-                
+            
+                            faultHistory:
+                                item.faultHistory,
+            
+                            description:
+                                item.description,
+            
+                            possibleCause:
+                                item.possibleCause,
+            
+                            correctiveActions:
+                                item.correctiveActions,
+            
+                            note:
+                                item.note
+            
                         }
-                
+            
                     });
-                
+            
                     histories++;
-                
+            
                 }
+            
+                // ==========================================
+                // Đã có → CẬP NHẬT
+                // ==========================================
+            
                 else {
-                
-                    skipped++;
-                
+            
+                    await prisma.vaconHistory.update({
+            
+                        where: {
+            
+                            id: existed.id
+            
+                        },
+            
+                        data: {
+            
+                            recordDate:
+                                item.recordDate,
+            
+                            operationHours:
+                                item.operationHours,
+            
+                            powerUnitDate:
+                                item.powerUnitDate == null
+                                    ? null
+                                    : String(item.powerUnitDate),
+            
+                            faultHistory:
+                                item.faultHistory,
+            
+                            description:
+                                item.description,
+            
+                            possibleCause:
+                                item.possibleCause,
+            
+                            correctiveActions:
+                                item.correctiveActions,
+            
+                            note:
+                                item.note
+            
+                        }
+            
+                    });
+            
+                    updated++;
+            
                 }
-                
+            
                 continue;
             
             }
 
            if (item.status === "UPDATE_BOTH") {
 
-                // 1. cập nhật thiết bị
+                // ==========================================
+                // 1. Cập nhật thiết bị
+                // ==========================================
+            
                 await prisma.vaconDevice.update({
             
                     where: {
+            
                         id: item.deviceId
+            
                     },
             
                     data: item.updateData
             
                 });
             
-                // 2. kiểm tra lịch sử
+            
+                // ==========================================
+                // 2. Tìm lịch sử
+                // ==========================================
+            
                 const existed = await prisma.vaconHistory.findFirst({
             
                     where: {
@@ -1623,11 +1698,21 @@ exports.importExcel = async (req, res) => {
             
                         faultHistory: item.faultHistory
             
+                    },
+            
+                    orderBy: {
+            
+                        id: "desc"
+            
                     }
             
                 });
             
-                // 3. nếu chưa có thì thêm
+            
+                // ==========================================
+                // 3. Không có → tạo lịch sử
+                // ==========================================
+            
                 if (!existed) {
             
                     await prisma.vaconHistory.create({
@@ -1638,28 +1723,82 @@ exports.importExcel = async (req, res) => {
             
                             recordDate: item.recordDate,
             
-                            operationHours: item.operationHours,
+                            operationHours:
+                                item.operationHours,
             
                             powerUnitDate:
                                 item.powerUnitDate == null
                                     ? null
                                     : String(item.powerUnitDate),
             
-                            faultHistory: item.faultHistory,
+                            faultHistory:
+                                item.faultHistory,
             
-                            description: item.description,
+                            description:
+                                item.description,
             
-                            possibleCause: item.possibleCause,
+                            possibleCause:
+                                item.possibleCause,
             
-                            correctiveActions: item.correctiveActions,
+                            correctiveActions:
+                                item.correctiveActions,
             
-                            note: item.note
+                            note:
+                                item.note
             
                         }
             
                     });
             
                     histories++;
+            
+                }
+            
+                // ==========================================
+                // 4. Có → cập nhật lịch sử
+                // ==========================================
+            
+                else {
+            
+                    await prisma.vaconHistory.update({
+            
+                        where: {
+            
+                            id: existed.id
+            
+                        },
+            
+                        data: {
+            
+                            recordDate:
+                                item.recordDate,
+            
+                            operationHours:
+                                item.operationHours,
+            
+                            powerUnitDate:
+                                item.powerUnitDate == null
+                                    ? null
+                                    : String(item.powerUnitDate),
+            
+                            faultHistory:
+                                item.faultHistory,
+            
+                            description:
+                                item.description,
+            
+                            possibleCause:
+                                item.possibleCause,
+            
+                            correctiveActions:
+                                item.correctiveActions,
+            
+                            note:
+                                item.note
+            
+                        }
+            
+                    });
             
                 }
             
