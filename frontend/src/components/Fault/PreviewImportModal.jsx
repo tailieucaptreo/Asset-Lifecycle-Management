@@ -7,6 +7,10 @@ import {
     Upload,
 } from "lucide-react";
 
+/* =========================================================
+   STATUS CONFIG
+========================================================= */
+
 const statusConfig = {
     NEW: {
         label: "Mới",
@@ -18,11 +22,368 @@ const statusConfig = {
         className: "bg-amber-100 text-amber-700",
     },
 
+    UPDATE_HISTORY: {
+        label: "Cập nhật",
+        className: "bg-amber-100 text-amber-700",
+    },
+
+    UPDATE_DEVICE: {
+        label: "Cập nhật",
+        className: "bg-amber-100 text-amber-700",
+    },
+
+    UPDATE_BOTH: {
+        label: "Cập nhật",
+        className: "bg-amber-100 text-amber-700",
+    },
+
     SKIP: {
         label: "Bỏ qua",
         className: "bg-slate-100 text-slate-600",
     },
 };
+
+/* =========================================================
+   ACTION NORMALIZER
+========================================================= */
+
+function normalizeAction(item) {
+    const raw =
+        item?.action ??
+        item?.status ??
+        item?.result ??
+        "";
+
+    const value = String(raw).trim().toUpperCase();
+
+    /*
+     * Các trạng thái cập nhật lịch sử
+     */
+    if (
+        value === "UPDATE_HISTORY" ||
+        value === "HISTORY_UPDATE"
+    ) {
+        return "UPDATE_HISTORY";
+    }
+
+    /*
+     * Các trạng thái cập nhật thông tin thiết bị
+     */
+    if (
+        value === "UPDATE_DEVICE" ||
+        value === "DEVICE_UPDATE"
+    ) {
+        return "UPDATE_DEVICE";
+    }
+
+    /*
+     * Thiết bị + lịch sử cùng thay đổi
+     */
+    if (
+        value === "UPDATE_BOTH" ||
+        value === "BOTH_UPDATE"
+    ) {
+        return "UPDATE_BOTH";
+    }
+
+    /*
+     * UPDATE thông thường
+     */
+    if (value === "UPDATE") {
+        return "UPDATE";
+    }
+
+    /*
+     * Thiết bị mới
+     */
+    if (
+        value === "NEW" ||
+        value === "CREATE" ||
+        value === "CREATED"
+    ) {
+        return "NEW";
+    }
+
+    /*
+     * Bỏ qua
+     */
+    if (
+        value === "SKIP" ||
+        value === "IGNORE" ||
+        value === "IGNORED"
+    ) {
+        return "SKIP";
+    }
+
+    /*
+     * Không được tự động coi là NEW.
+     * An toàn nhất là SKIP.
+     */
+    return "SKIP";
+}
+
+/* =========================================================
+   IS UPDATE
+========================================================= */
+
+function isUpdateAction(action) {
+    return (
+        action === "UPDATE" ||
+        action === "UPDATE_HISTORY" ||
+        action === "UPDATE_DEVICE" ||
+        action === "UPDATE_BOTH"
+    );
+}
+
+/* =========================================================
+   GET ROW
+========================================================= */
+
+function getRow(item) {
+    return (
+        item?.row ||
+        item?.data ||
+        item
+    );
+}
+
+/* =========================================================
+   GET CHANGED FIELDS
+========================================================= */
+
+function getChangedFields(item) {
+    /*
+     * Backend có thể trả:
+     *
+     * changedFields: ["Note"]
+     *
+     * hoặc:
+     *
+     * changes: ["Note"]
+     *
+     * hoặc:
+     *
+     * updateData: {
+     *     note: "..."
+     * }
+     */
+
+    if (
+        Array.isArray(item?.changedFields) &&
+        item.changedFields.length > 0
+    ) {
+        return item.changedFields;
+    }
+
+    if (
+        Array.isArray(item?.changes) &&
+        item.changes.length > 0
+    ) {
+        return item.changes;
+    }
+
+    if (
+        Array.isArray(item?.changed) &&
+        item.changed.length > 0
+    ) {
+        return item.changed;
+    }
+
+    /*
+     * Nếu backend trả updateData dạng object
+     */
+    if (
+        item?.updateData &&
+        typeof item.updateData === "object" &&
+        !Array.isArray(item.updateData)
+    ) {
+        return Object.keys(item.updateData);
+    }
+
+    return [];
+}
+
+/* =========================================================
+   FIELD LABEL
+========================================================= */
+
+function getFieldLabel(field) {
+    if (!field) {
+        return "Thay đổi";
+    }
+
+    if (typeof field === "object") {
+        return (
+            field?.label ||
+            field?.name ||
+            field?.field ||
+            "Thay đổi"
+        );
+    }
+
+    const key = String(field);
+
+    const labels = {
+        note: "Ghi chú",
+        Note: "Note",
+
+        deviceName: "Tên thiết bị",
+        name: "Tên thiết bị",
+        "Tên thiết bị": "Tên thiết bị",
+
+        serialNumber: "Serial",
+        serial: "Serial",
+        "Số serial": "Serial",
+
+        station: "Trạm",
+        tandem: "Tandem",
+        application: "Ứng dụng",
+
+        recordDate: "Ngày ghi nhận",
+        operationHours: "Giờ vận hành",
+        powerUnitDate: "Power Unit Date",
+
+        faultHistory: "Lịch sử lỗi",
+        description: "Mô tả",
+        possibleCause: "Nguyên nhân",
+        correctiveActions: "Biện pháp khắc phục",
+    };
+
+    return labels[key] || key;
+}
+
+/* =========================================================
+   GET REASON
+========================================================= */
+
+function getReason(item, action) {
+    /*
+     * Nếu backend đã gửi reason cụ thể
+     * thì ưu tiên sử dụng.
+     */
+
+    if (
+        item?.reason &&
+        String(item.reason).trim()
+    ) {
+        return item.reason;
+    }
+
+    if (
+        item?.skipReason &&
+        String(item.skipReason).trim()
+    ) {
+        return item.skipReason;
+    }
+
+    if (
+        item?.message &&
+        String(item.message).trim()
+    ) {
+        return item.message;
+    }
+
+    if (
+        item?.reasonText &&
+        String(item.reasonText).trim()
+    ) {
+        return item.reasonText;
+    }
+
+    /*
+     * QUAN TRỌNG:
+     * Không được dùng deviceId để xác định NEW.
+     */
+
+    switch (action) {
+        case "NEW":
+            return "Thiết bị mới";
+
+        case "UPDATE_HISTORY":
+            return "Dữ liệu lịch sử thay đổi";
+
+        case "UPDATE_DEVICE":
+            return "Thông tin thiết bị thay đổi";
+
+        case "UPDATE_BOTH":
+            return "Thiết bị và lịch sử thay đổi";
+
+        case "UPDATE":
+            return "Có dữ liệu thay đổi";
+
+        case "SKIP":
+        default:
+            return "Thiết bị đã tồn tại và không có thay đổi";
+    }
+}
+
+/* =========================================================
+   GET SUMMARY
+========================================================= */
+
+function getSummary(summary, rows) {
+    const total =
+        summary?.total ??
+        summary?.totalCount ??
+        rows.length;
+
+    const newCount =
+        summary?.newCount ??
+        summary?.new ??
+        0;
+
+    /*
+     * Backend VACON hiện tại có thể trả:
+     *
+     * deviceUpdateCount
+     * historyUpdateCount
+     * bothUpdateCount
+     *
+     * thay vì updateCount.
+     */
+
+    const deviceUpdateCount =
+        Number(summary?.deviceUpdateCount ?? 0);
+
+    const historyUpdateCount =
+        Number(summary?.historyUpdateCount ?? 0);
+
+    const bothUpdateCount =
+        Number(summary?.bothUpdateCount ?? 0);
+
+    const calculatedUpdateCount =
+        deviceUpdateCount +
+        historyUpdateCount +
+        bothUpdateCount;
+
+    const updateCount =
+        summary?.updateCount ??
+        summary?.update ??
+        (
+            calculatedUpdateCount > 0
+                ? calculatedUpdateCount
+                : 0
+        );
+
+    const skipCount =
+        summary?.skipCount ??
+        summary?.skip ??
+        0;
+
+    return {
+        total,
+        newCount,
+        updateCount,
+        skipCount,
+        deviceUpdateCount,
+        historyUpdateCount,
+        bothUpdateCount,
+    };
+}
+
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
 
 export default function PreviewImportModal({
     open,
@@ -34,86 +395,75 @@ export default function PreviewImportModal({
     onConfirm,
 }) {
     /*
-     * Hook phải được khai báo trước khi return
+     * Hook phải luôn được khai báo trước return.
      */
     const [filter, setFilter] = useState("ALL");
 
-    /* =========================================================
-       HELPER
-    ========================================================= */
+    /* =====================================================
+       SUMMARY
+    ===================================================== */
 
-    const getAction = (item) => {
-        return String(
-            item?.action ||
-            item?.status ||
-            item?.result ||
-            "SKIP"
-        ).toUpperCase();
-    };
+    const {
+        total,
+        newCount,
+        updateCount,
+        skipCount,
+    } = getSummary(
+        summary,
+        rows
+    );
 
-    const getRow = (item) => {
-        return item?.row || item?.data || item;
-    };
-
-    /* =========================================================
+    /* =====================================================
        FILTER
-    ========================================================= */
+    ===================================================== */
 
     const filteredRows =
         filter === "ALL"
             ? rows
-            : rows.filter(
-                  (item) => getAction(item) === filter
-              );
+            : rows.filter((item) => {
+                  const action =
+                      normalizeAction(item);
 
-    /* =========================================================
-       CLOSE
-    ========================================================= */
+                  if (filter === "UPDATE") {
+                      return isUpdateAction(action);
+                  }
+
+                  return action === filter;
+              });
+
+    /* =====================================================
+       MODULE NAME
+    ===================================================== */
+
+    const moduleName =
+        String(module).toUpperCase() === "ABB"
+            ? "ABB"
+            : "VACON";
+
+    /* =====================================================
+       CURRENT FILTER LABEL
+    ===================================================== */
+
+    const filterLabel =
+        filter === "ALL"
+            ? "Tất cả thiết bị"
+            : filter === "NEW"
+            ? "Thiết bị mới"
+            : filter === "UPDATE"
+            ? "Thiết bị cập nhật"
+            : "Thiết bị bị bỏ qua";
+
+    /* =====================================================
+       IF CLOSED
+    ===================================================== */
 
     if (!open) {
         return null;
     }
 
-    /* =========================================================
-       SUMMARY
-    ========================================================= */
-
-    const total =
-        summary?.total ??
-        summary?.totalCount ??
-        rows.length;
-
-    const newCount =
-        summary?.newCount ??
-        summary?.new ??
-        0;
-
-    const updateCount =
-        summary?.updateCount ??
-        summary?.update ??
-        0;
-
-    const skipCount =
-        summary?.skipCount ??
-        summary?.skip ??
-        0;
-
-    const moduleName =
-        module === "ABB"
-            ? "ABB"
-            : "VACON";
-
-    /* =========================================================
-       FILTER CARD
-    ========================================================= */
-
-    const handleCardClick = (type) => {
-        setFilter(type);
-    };
-
-    /* =========================================================
+    /* =====================================================
        RENDER
-    ========================================================= */
+    ===================================================== */
 
     return (
         <div
@@ -193,7 +543,7 @@ export default function PreviewImportModal({
                 </div>
 
                 {/* =================================================
-                    SUMMARY
+                    SUMMARY CARDS
                 ================================================= */}
 
                 <div
@@ -206,15 +556,19 @@ export default function PreviewImportModal({
                         shrink-0
                     "
                 >
+                    {/* TOTAL */}
+
                     <SummaryCard
                         title="Tổng"
                         value={total}
                         color="blue"
                         active={filter === "ALL"}
                         onClick={() =>
-                            handleCardClick("ALL")
+                            setFilter("ALL")
                         }
                     />
+
+                    {/* NEW */}
 
                     <SummaryCard
                         title="Tạo mới"
@@ -222,9 +576,11 @@ export default function PreviewImportModal({
                         color="green"
                         active={filter === "NEW"}
                         onClick={() =>
-                            handleCardClick("NEW")
+                            setFilter("NEW")
                         }
                     />
+
+                    {/* UPDATE */}
 
                     <SummaryCard
                         title="Cập nhật"
@@ -232,9 +588,11 @@ export default function PreviewImportModal({
                         color="amber"
                         active={filter === "UPDATE"}
                         onClick={() =>
-                            handleCardClick("UPDATE")
+                            setFilter("UPDATE")
                         }
                     />
+
+                    {/* SKIP */}
 
                     <SummaryCard
                         title="Bỏ qua"
@@ -242,13 +600,13 @@ export default function PreviewImportModal({
                         color="slate"
                         active={filter === "SKIP"}
                         onClick={() =>
-                            handleCardClick("SKIP")
+                            setFilter("SKIP")
                         }
                     />
                 </div>
 
                 {/* =================================================
-                    FILTER HEADER
+                    CURRENT FILTER
                 ================================================= */}
 
                 <div
@@ -261,7 +619,12 @@ export default function PreviewImportModal({
                         shrink-0
                     "
                 >
-                    <div className="text-sm text-slate-500">
+                    <div
+                        className="
+                            text-sm
+                            text-slate-500
+                        "
+                    >
                         Đang xem:{" "}
 
                         <span
@@ -270,13 +633,7 @@ export default function PreviewImportModal({
                                 text-slate-700
                             "
                         >
-                            {filter === "ALL"
-                                ? "Tất cả thiết bị"
-                                : filter === "NEW"
-                                ? "Thiết bị mới"
-                                : filter === "UPDATE"
-                                ? "Thiết bị cập nhật"
-                                : "Thiết bị bị bỏ qua"}
+                            {filterLabel}
                         </span>
 
                         <span className="ml-2">
@@ -316,6 +673,7 @@ export default function PreviewImportModal({
                     <div
                         className="
                             border
+                            border-slate-300
                             rounded-xl
                             overflow-auto
                             h-full
@@ -331,14 +689,24 @@ export default function PreviewImportModal({
                             "
                         >
                             <colgroup>
-                                <col className="w-[48px]" />
-                                <col className="w-[27%]" />
+                                <col className="w-[45px]" />
+
+                                <col className="w-[25%]" />
+
                                 <col className="w-[14%]" />
-                                <col className="w-[9%]" />
-                                <col className="w-[11%]" />
-                                <col className="w-[19%]" />
-                                <col className="w-[20%]" />
+
+                                <col className="w-[8%]" />
+
+                                <col className="w-[12%]" />
+
+                                <col className="w-[18%]" />
+
+                                <col className="w-[18%]" />
                             </colgroup>
+
+                            {/* =================================================
+                                THEAD
+                            ================================================= */}
 
                             <thead
                                 className="
@@ -347,12 +715,13 @@ export default function PreviewImportModal({
                                     z-20
                                     bg-slate-100
                                     border-b
+                                    border-slate-300
                                 "
                             >
                                 <tr>
                                     <th
                                         className="
-                                            px-3
+                                            px-2
                                             py-3
                                             text-center
                                             font-semibold
@@ -387,7 +756,7 @@ export default function PreviewImportModal({
                                         className="
                                             px-3
                                             py-3
-                                            text-left
+                                            text-center
                                             font-semibold
                                         "
                                     >
@@ -429,14 +798,18 @@ export default function PreviewImportModal({
                                 </tr>
                             </thead>
 
+                            {/* =================================================
+                                TBODY
+                            ================================================= */}
+
                             <tbody>
                                 {filteredRows.length === 0 ? (
                                     <tr>
                                         <td
                                             colSpan={7}
                                             className="
-                                                text-center
                                                 py-12
+                                                text-center
                                                 text-slate-400
                                             "
                                         >
@@ -445,12 +818,25 @@ export default function PreviewImportModal({
                                     </tr>
                                 ) : (
                                     filteredRows.map(
-                                        (item, index) => {
+                                        (
+                                            item,
+                                            index
+                                        ) => {
                                             const row =
                                                 getRow(item);
 
+                                            /*
+                                             * QUAN TRỌNG:
+                                             * action lấy từ item.status/action.
+                                             *
+                                             * Không lấy deviceId
+                                             * để xác định NEW.
+                                             */
+
                                             const action =
-                                                getAction(item);
+                                                normalizeAction(
+                                                    item
+                                                );
 
                                             const config =
                                                 statusConfig[
@@ -459,37 +845,47 @@ export default function PreviewImportModal({
                                                 statusConfig.SKIP;
 
                                             const changedFields =
-                                                item?.changedFields ||
-                                                item?.changes ||
-                                                [];
+                                                getChangedFields(
+                                                    item
+                                                );
 
                                             const reason =
-                                                item?.reason ||
-                                                item?.skipReason ||
-                                                item?.message ||
-                                                item?.reasonText ||
-                                                (
-                                                    action === "SKIP"
-                                                        ? "Thiết bị đã tồn tại và không có thay đổi"
-                                                        : action === "UPDATE"
-                                                        ? "Có dữ liệu thay đổi"
-                                                        : "Thiết bị mới"
+                                                getReason(
+                                                    item,
+                                                    action
                                                 );
+
+                                            const rowNumber =
+                                                item?.rowIndex ??
+                                                item?.excelRow ??
+                                                item?.index ??
+                                                index + 1;
 
                                             return (
                                                 <tr
                                                     key={
-                                                        item?.id ||
-                                                        item?.rowIndex ||
-                                                        item?.excelRow ||
+                                                        item?.id ??
+                                                        item?.historyId ??
+                                                        item?.rowIndex ??
+                                                        item?.excelRow ??
                                                         index
                                                     }
                                                     className={`
                                                         border-b
                                                         last:border-b-0
+                                                        transition
                                                         ${
                                                             action ===
-                                                            "UPDATE"
+                                                            "UPDATE_HISTORY"
+                                                                ? "bg-amber-50"
+                                                                : action ===
+                                                                  "UPDATE_DEVICE"
+                                                                ? "bg-amber-50"
+                                                                : action ===
+                                                                  "UPDATE_BOTH"
+                                                                ? "bg-amber-50"
+                                                                : action ===
+                                                                  "UPDATE"
                                                                 ? "bg-amber-50"
                                                                 : action ===
                                                                   "NEW"
@@ -499,34 +895,37 @@ export default function PreviewImportModal({
                                                         hover:bg-slate-50
                                                     `}
                                                 >
-                                                    {/* # */}
+                                                    {/* =================================
+                                                        #
+                                                    ================================= */}
 
                                                     <td
                                                         className="
-                                                            px-3
+                                                            px-2
                                                             py-3
                                                             text-center
                                                             text-slate-500
                                                             align-top
                                                         "
                                                     >
-                                                        {item?.rowIndex ||
-                                                            item?.excelRow ||
-                                                            index + 1}
+                                                        {rowNumber}
                                                     </td>
 
-                                                    {/* DEVICE */}
+                                                    {/* =================================
+                                                        DEVICE
+                                                    ================================= */}
 
                                                     <td
                                                         className="
                                                             px-3
                                                             py-3
                                                             align-top
+                                                            min-w-0
                                                         "
                                                     >
                                                         <div
                                                             className="
-                                                                font-medium
+                                                                font-semibold
                                                                 text-slate-800
                                                                 break-words
                                                                 leading-5
@@ -535,10 +934,11 @@ export default function PreviewImportModal({
                                                             {row?.deviceName ||
                                                                 row?.name ||
                                                                 row?.title ||
+                                                                item?.deviceName ||
                                                                 "-"}
                                                         </div>
 
-                                                        {module ===
+                                                        {moduleName ===
                                                             "VACON" && (
                                                             <div
                                                                 className="
@@ -546,15 +946,36 @@ export default function PreviewImportModal({
                                                                     text-slate-400
                                                                     mt-1
                                                                     break-words
+                                                                    leading-4
                                                                 "
                                                             >
                                                                 {row?.application ||
+                                                                    item?.application ||
+                                                                    "-"}
+                                                            </div>
+                                                        )}
+
+                                                        {moduleName ===
+                                                            "ABB" && (
+                                                            <div
+                                                                className="
+                                                                    text-xs
+                                                                    text-slate-400
+                                                                    mt-1
+                                                                    break-words
+                                                                    leading-4
+                                                                "
+                                                            >
+                                                                {row?.typeCode ||
+                                                                    row?.application ||
                                                                     "-"}
                                                             </div>
                                                         )}
                                                     </td>
 
-                                                    {/* SERIAL */}
+                                                    {/* =================================
+                                                        SERIAL
+                                                    ================================= */}
 
                                                     <td
                                                         className="
@@ -562,29 +983,37 @@ export default function PreviewImportModal({
                                                             py-3
                                                             align-top
                                                             break-all
+                                                            text-slate-700
                                                         "
                                                     >
                                                         {row?.serialNumber ||
                                                             row?.serial ||
+                                                            item?.serialNumber ||
                                                             "-"}
                                                     </td>
 
-                                                    {/* STATION */}
+                                                    {/* =================================
+                                                        STATION
+                                                    ================================= */}
 
                                                     <td
                                                         className="
                                                             px-3
                                                             py-3
+                                                            text-center
                                                             align-top
                                                             break-words
                                                         "
                                                     >
                                                         {row?.station ||
+                                                            item?.station ||
                                                             row?.line ||
                                                             "-"}
                                                     </td>
 
-                                                    {/* STATUS */}
+                                                    {/* =================================
+                                                        STATUS
+                                                    ================================= */}
 
                                                     <td
                                                         className="
@@ -609,8 +1038,9 @@ export default function PreviewImportModal({
                                                                 ${config.className}
                                                             `}
                                                         >
-                                                            {action ===
-                                                                "UPDATE" && (
+                                                            {isUpdateAction(
+                                                                action
+                                                            ) && (
                                                                 <AlertTriangle
                                                                     size={
                                                                         13
@@ -627,26 +1057,31 @@ export default function PreviewImportModal({
                                                                 />
                                                             )}
 
-                                                            {config.label}
+                                                            {
+                                                                config.label
+                                                            }
                                                         </span>
                                                     </td>
 
-                                                    {/* REASON */}
+                                                    {/* =================================
+                                                        REASON
+                                                    ================================= */}
 
                                                     <td
                                                         className="
                                                             px-3
                                                             py-3
                                                             align-top
+                                                            break-words
                                                         "
                                                     >
                                                         <div
                                                             className={`
-                                                                break-words
                                                                 leading-5
                                                                 ${
-                                                                    action ===
-                                                                    "UPDATE"
+                                                                    isUpdateAction(
+                                                                        action
+                                                                    )
                                                                         ? "text-amber-700"
                                                                         : "text-slate-600"
                                                                 }
@@ -656,7 +1091,9 @@ export default function PreviewImportModal({
                                                         </div>
                                                     </td>
 
-                                                    {/* CHANGES */}
+                                                    {/* =================================
+                                                        CHANGES
+                                                    ================================= */}
 
                                                     <td
                                                         className="
@@ -665,21 +1102,19 @@ export default function PreviewImportModal({
                                                             align-top
                                                         "
                                                     >
-                                                        {action ===
-                                                        "UPDATE" ? (
-                                                            <div
-                                                                className="
-                                                                    flex
-                                                                    flex-wrap
-                                                                    gap-1
-                                                                "
-                                                            >
-                                                                {Array.isArray(
-                                                                    changedFields
-                                                                ) &&
-                                                                changedFields.length >
-                                                                    0 ? (
-                                                                    changedFields.map(
+                                                        {isUpdateAction(
+                                                            action
+                                                        ) ? (
+                                                            changedFields.length >
+                                                            0 ? (
+                                                                <div
+                                                                    className="
+                                                                        flex
+                                                                        flex-wrap
+                                                                        gap-1
+                                                                    "
+                                                                >
+                                                                    {changedFields.map(
                                                                         (
                                                                             field,
                                                                             fieldIndex
@@ -689,6 +1124,8 @@ export default function PreviewImportModal({
                                                                                     fieldIndex
                                                                                 }
                                                                                 className="
+                                                                                    inline-flex
+                                                                                    items-center
                                                                                     px-2
                                                                                     py-1
                                                                                     rounded-full
@@ -699,26 +1136,29 @@ export default function PreviewImportModal({
                                                                                     break-words
                                                                                 "
                                                                             >
-                                                                                {typeof field ===
-                                                                                "string"
-                                                                                    ? field
-                                                                                    : field?.field ||
-                                                                                      field?.name ||
-                                                                                      "Thay đổi"}
+                                                                                {getFieldLabel(
+                                                                                    field
+                                                                                )}
                                                                             </span>
                                                                         )
-                                                                    )
-                                                                ) : (
-                                                                    <span className="text-slate-400">
-                                                                        Có dữ
-                                                                        liệu
-                                                                        thay
-                                                                        đổi
-                                                                    </span>
-                                                                )}
-                                                            </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <span
+                                                                    className="
+                                                                        text-slate-400
+                                                                    "
+                                                                >
+                                                                    Có dữ liệu
+                                                                    thay đổi
+                                                                </span>
+                                                            )
                                                         ) : (
-                                                            <span className="text-slate-400">
+                                                            <span
+                                                                className="
+                                                                    text-slate-400
+                                                                "
+                                                            >
                                                                 -
                                                             </span>
                                                         )}
@@ -750,6 +1190,8 @@ export default function PreviewImportModal({
                         shrink-0
                     "
                 >
+                    {/* SUMMARY TEXT */}
+
                     <div
                         className="
                             text-sm
@@ -764,18 +1206,35 @@ export default function PreviewImportModal({
                         </b>{" "}
                         bản ghi.
 
-                        <span className="ml-2 text-emerald-600">
+                        <span
+                            className="
+                                ml-2
+                                text-emerald-600
+                            "
+                        >
                             Mới: {newCount}
                         </span>
 
-                        <span className="ml-2 text-amber-600">
+                        <span
+                            className="
+                                ml-2
+                                text-amber-600
+                            "
+                        >
                             Cập nhật: {updateCount}
                         </span>
 
-                        <span className="ml-2 text-slate-500">
+                        <span
+                            className="
+                                ml-2
+                                text-slate-500
+                            "
+                        >
                             Bỏ qua: {skipCount}
                         </span>
                     </div>
+
+                    {/* BUTTONS */}
 
                     <div className="flex gap-2">
                         <button
@@ -788,6 +1247,7 @@ export default function PreviewImportModal({
                                 border
                                 border-slate-300
                                 hover:bg-slate-50
+                                transition
                             "
                         >
                             Hủy
@@ -816,6 +1276,7 @@ export default function PreviewImportModal({
                                 hover:bg-blue-700
                                 disabled:bg-slate-300
                                 disabled:cursor-not-allowed
+                                transition
                             "
                         >
                             <Upload size={17} />
@@ -830,7 +1291,6 @@ export default function PreviewImportModal({
         </div>
     );
 }
-
 
 /* =========================================================
    SUMMARY CARD
