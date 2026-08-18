@@ -1174,6 +1174,10 @@ exports.previewImport = async (req, res) => {
 
                     action: "NEW",
 
+                    reason: "Import lần đầu, chưa có dữ liệu trong hệ thống",
+
+                    existingId: null,
+
                     changedFields: [],
 
                     row
@@ -1197,6 +1201,10 @@ exports.previewImport = async (req, res) => {
                 preview.push({
 
                     action: "NEW",
+
+                    reason: "Không tìm thấy thiết bị tương ứng trong hệ thống",
+
+                    existingId: null,
 
                     changedFields: [],
 
@@ -1257,6 +1265,10 @@ exports.previewImport = async (req, res) => {
 
                     action: "SKIP",
 
+                    reason: "Đã tồn tại và không có thay đổi",
+
+                    existingId: exists.id,
+
                     changedFields: [],
 
                     row
@@ -1272,6 +1284,10 @@ exports.previewImport = async (req, res) => {
                 preview.push({
 
                     action: "UPDATE",
+
+                    reason: "Dữ liệu khác với thiết bị đang có trong hệ thống",
+
+                    existingId: exists.id,
 
                     changedFields,
 
