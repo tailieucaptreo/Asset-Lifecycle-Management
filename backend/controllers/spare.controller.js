@@ -3101,11 +3101,23 @@ exports.exportExcel = async (req, res) => {
         orderBy: {
           id: "desc"
         }
+
       });
+
 
     const rows = data.map((d, index) => ({
 
-      STT: index + 1,
+      // =========================
+      // STT
+      // =========================
+
+      STT:
+        index + 1,
+
+
+      // =========================
+      // THÔNG TIN THIẾT BỊ
+      // =========================
 
       "Tên thiết bị":
         d.name || "",
@@ -3113,8 +3125,24 @@ exports.exportExcel = async (req, res) => {
       "Mã ID":
         d.deviceId || "",
 
+      "Ký hiệu":
+        d.symbol || "",
+
+      "Mã vật tư":
+        d.materialCode || "",
+
+
+      // =========================
+      // TÌNH TRẠNG
+      // =========================
+
       "Tình trạng":
         d.condition || "",
+
+
+      // =========================
+      // VỊ TRÍ KHO
+      // =========================
 
       "Kho":
         d.warehouse || "",
@@ -3128,62 +3156,170 @@ exports.exportExcel = async (req, res) => {
       "Khay":
         d.slot || "",
 
+
+      // =========================
+      // SỐ LƯỢNG
+      // =========================
+
       "Ban đầu":
-        d.initialQuantity || 0,
+        Number(d.initialQuantity || 0),
 
       "Nhập":
-        d.importQty || 0,
+        Number(d.importQty || 0),
 
       "Xuất":
-        d.exportQty || 0,
+        Number(d.exportQty || 0),
 
       "Tồn kho":
-        d.quantity || 0,
+        Number(d.quantity || 0),
+
+
+      // =========================
+      // ĐƠN VỊ
+      // =========================
 
       "ĐVT":
-        d.unit || ""
+        d.unit || "",
+
+
+      // =========================
+      // GHI CHÚ
+      // =========================
+
+      "Ghi chú":
+        d.note || "",
+
+
+      // =========================
+      // HÌNH ẢNH
+      // =========================
+
+      "Hình ảnh":
+        d.image || ""
+
     }));
 
+
+    // =========================
+    // TẠO WORKSHEET
+    // =========================
+
     const worksheet =
-      XLSX.utils.json_to_sheet(rows);
+      XLSX.utils.json_to_sheet(
+        rows
+      );
+
+
+    // =========================
+    // ĐỘ RỘNG CỘT
+    // =========================
+
+    worksheet["!cols"] = [
+
+      { wch: 8 },   // STT
+      { wch: 45 },  // Tên thiết bị
+      { wch: 18 },  // Mã ID
+      { wch: 20 },  // Ký hiệu
+      { wch: 20 },  // Mã vật tư
+      { wch: 18 },  // Tình trạng
+      { wch: 18 },  // Kho
+      { wch: 15 },  // Tủ
+      { wch: 15 },  // Kệ
+      { wch: 15 },  // Khay
+      { wch: 12 },  // Ban đầu
+      { wch: 12 },  // Nhập
+      { wch: 12 },  // Xuất
+      { wch: 12 },  // Tồn kho
+      { wch: 10 },  // ĐVT
+      { wch: 40 },  // Ghi chú
+      { wch: 40 }   // Hình ảnh
+
+    ];
+
+
+    // =========================
+    // TẠO WORKBOOK
+    // =========================
 
     const workbook =
       XLSX.utils.book_new();
 
+
     XLSX.utils.book_append_sheet(
+
       workbook,
+
       worksheet,
+
       "Spare Devices"
+
     );
+
+
+    // =========================
+    // GHI BUFFER
+    // =========================
 
     const buffer =
-      XLSX.write(workbook, {
+      XLSX.write(
 
-        type: "buffer",
+        workbook,
 
-        bookType: "xlsx"
-      });
+        {
+
+          type: "buffer",
+
+          bookType: "xlsx"
+
+        }
+
+      );
+
+
+    // =========================
+    // RESPONSE
+    // =========================
 
     res.setHeader(
+
       "Content-Disposition",
+
       "attachment; filename=spare-devices.xlsx"
+
     );
 
+
     res.setHeader(
+
       "Content-Type",
+
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
     );
+
 
     res.send(buffer);
 
-  } catch (err) {
 
-    console.log(err);
+  }
+
+  catch (err) {
+
+    console.error(
+      "EXPORT SPARE EXCEL ERROR:",
+      err
+    );
+
 
     res.status(500).json({
-      error: err.message
+
+      error:
+        err.message
+
     });
+
   }
+
 };
 
 // ================= HISTORY =================
