@@ -1,387 +1,131 @@
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
 import {
     X,
     ChevronRight,
-    ChevronDown,
     AlertTriangle,
     CheckCircle2,
-    Minus,
     Upload,
 } from "lucide-react";
 
-// ============================================================
-// ACTION CONFIG
-// ============================================================
-
-const ACTION_CONFIG = {
+const statusConfig = {
     NEW: {
-        label: "Tạo mới",
-        shortLabel: "NEW",
-        cardClass:
-            "border-emerald-200 bg-emerald-50/70 hover:border-emerald-400",
-        valueClass: "text-emerald-600",
-        badgeClass:
-            "bg-emerald-100 text-emerald-700 border border-emerald-200",
-        dotClass: "bg-emerald-500",
+        label: "Mới",
+        className: "bg-emerald-100 text-emerald-700",
     },
 
     UPDATE: {
         label: "Cập nhật",
-        shortLabel: "UPDATE",
-        cardClass:
-            "border-amber-200 bg-amber-50/70 hover:border-amber-400",
-        valueClass: "text-amber-600",
-        badgeClass:
-            "bg-amber-100 text-amber-700 border border-amber-200",
-        dotClass: "bg-amber-500",
+        className: "bg-amber-100 text-amber-700",
     },
 
     SKIP: {
         label: "Bỏ qua",
-        shortLabel: "SKIP",
-        cardClass:
-            "border-slate-200 bg-slate-50 hover:border-slate-400",
-        valueClass: "text-slate-600",
-        badgeClass:
-            "bg-slate-100 text-slate-600 border border-slate-200",
-        dotClass: "bg-slate-400",
+        className: "bg-slate-100 text-slate-600",
     },
 };
 
-// ============================================================
-// HELPERS
-// ============================================================
-
-function safeValue(value, fallback = "-") {
-    if (
-        value === null ||
-        value === undefined ||
-        String(value).trim() === ""
-    ) {
-        return fallback;
-    }
-
-    return value;
-}
-
-function normalizeAction(item) {
-    const raw =
-        item?.action ??
-        item?.status ??
-        item?.result ??
-        item?.type ??
-        "";
-
-    const value = String(raw).trim().toUpperCase();
-
-    if (
-        value === "NEW" ||
-        value === "CREATE" ||
-        value === "CREATED" ||
-        value === "INSERT"
-    ) {
-        return "NEW";
-    }
-
-    if (
-        value === "UPDATE" ||
-        value === "UPDATED" ||
-        value === "CHANGE" ||
-        value === "CHANGED"
-    ) {
-        return "UPDATE";
-    }
-
-    if (
-        value === "SKIP" ||
-        value === "SKIPPED" ||
-        value === "IGNORE"
-    ) {
-        return "SKIP";
-    }
-
-    return "SKIP";
-}
-
-function getRow(item) {
-    return item?.row || item?.data || item || {};
-}
-
-function getDeviceName(row) {
-    return (
-        row?.deviceName ??
-        row?.name ??
-        row?.device ??
-        row?.title ??
-        "-"
-    );
-}
-
-function getSerial(row) {
-    return (
-        row?.serialNumber ??
-        row?.serial ??
-        row?.serialNo ??
-        row?.serial_number ??
-        "-"
-    );
-}
-
-function getStation(row) {
-    return (
-        row?.station ??
-        row?.line ??
-        row?.tandem ??
-        "-"
-    );
-}
-
-function getReason(item, action) {
-    if (item?.reason) {
-        return item.reason;
-    }
-
-    if (item?.message) {
-        return item.message;
-    }
-
-    if (item?.skipReason) {
-        return item.skipReason;
-    }
-
-    if (item?.resultReason) {
-        return item.resultReason;
-    }
-
-    if (action === "NEW") {
-        return "Thiết bị mới";
-    }
-
-    if (action === "UPDATE") {
-        return "Có dữ liệu thay đổi";
-    }
-
-    return "Thiết bị đã tồn tại và không có thay đổi";
-}
-
-function getChangedFields(item) {
-    const fields =
-        item?.changedFields ??
-        item?.changes ??
-        item?.changed ??
-        [];
-
-    if (Array.isArray(fields)) {
-        return fields;
-    }
-
-    if (typeof fields === "string") {
-        return fields
-            .split(",")
-            .map((x) => x.trim())
-            .filter(Boolean);
-    }
-
-    if (fields && typeof fields === "object") {
-        return Object.keys(fields);
-    }
-
-    return [];
-}
-
-function normalizeFieldName(field) {
-    if (!field) return "Thay đổi";
-
-    if (typeof field === "object") {
-        return (
-            field.field ??
-            field.name ??
-            field.key ??
-            "Thay đổi"
-        );
-    }
-
-    const map = {
-        deviceName: "Tên",
-        name: "Tên",
-        serialNumber: "Serial",
-        serial: "Serial",
-        station: "Trạm",
-        line: "Tuyến",
-        application: "Ứng dụng",
-        powerUnitDate: "Power Unit Date",
-        faultHistory: "Lịch sử lỗi",
-        operationHours: "Operation Hours",
-        description: "Mô tả",
-        possibleCause: "Nguyên nhân",
-        correctiveActions: "Khắc phục",
-        note: "Ghi chú",
-        status: "Trạng thái",
-        firmware: "Firmware",
-        tandem: "Tandem",
-    };
-
-    return map[field] || field;
-}
-
-// ============================================================
-// MAIN COMPONENT
-// ============================================================
-
 export default function PreviewImportModal({
-    show,
-    summary,
+    open,
+    module = "VACON",
+    summary = {},
     rows = [],
     loading = false,
     onClose,
     onConfirm,
-    module = "VACON",
-    title,
-    subtitle,
 }) {
-    const [activeFilter, setActiveFilter] = useState("ALL");
+    /*
+     * Hook phải được khai báo trước khi return
+     */
+    const [filter, setFilter] = useState("ALL");
 
-    // --------------------------------------------------------
-    // RESET FILTER WHEN MODAL OPENS / ROWS CHANGE
-    // --------------------------------------------------------
+    /* =========================================================
+       HELPER
+    ========================================================= */
 
-    React.useEffect(() => {
-        if (show) {
-            setActiveFilter("ALL");
-        }
-    }, [show]);
+    const getAction = (item) => {
+        return String(
+            item?.action ||
+            item?.status ||
+            item?.result ||
+            "SKIP"
+        ).toUpperCase();
+    };
 
-    // --------------------------------------------------------
-    // NORMALIZE ROWS
-    // --------------------------------------------------------
+    const getRow = (item) => {
+        return item?.row || item?.data || item;
+    };
 
-    const normalizedRows = useMemo(() => {
-        return (Array.isArray(rows) ? rows : []).map(
-            (item, index) => {
-                const row = getRow(item);
-                const action = normalizeAction(item);
+    /* =========================================================
+       FILTER
+    ========================================================= */
 
-                return {
-                    original: item,
-                    row,
-                    action,
-                    index: index + 1,
-                    reason: getReason(item, action),
-                    changedFields: getChangedFields(item),
-                };
-            }
-        );
-    }, [rows]);
+    const filteredRows =
+        filter === "ALL"
+            ? rows
+            : rows.filter(
+                  (item) => getAction(item) === filter
+              );
 
-    // --------------------------------------------------------
-    // COUNTS
-    // --------------------------------------------------------
+    /* =========================================================
+       CLOSE
+    ========================================================= */
 
-    const counts = useMemo(() => {
-        const result = {
-            ALL: normalizedRows.length,
-            NEW: 0,
-            UPDATE: 0,
-            SKIP: 0,
-        };
-
-        normalizedRows.forEach((item) => {
-            if (result[item.action] !== undefined) {
-                result[item.action]++;
-            }
-        });
-
-        // Ưu tiên summary từ backend nếu có
-        return {
-            total:
-                summary?.total ??
-                normalizedRows.length,
-
-            NEW:
-                summary?.newCount ??
-                result.NEW,
-
-            UPDATE:
-                summary?.updateCount ??
-                result.UPDATE,
-
-            SKIP:
-                summary?.skipCount ??
-                result.SKIP,
-        };
-    }, [normalizedRows, summary]);
-
-    // --------------------------------------------------------
-    // FILTER
-    // --------------------------------------------------------
-
-    const visibleRows = useMemo(() => {
-        if (activeFilter === "ALL") {
-            return normalizedRows;
-        }
-
-        return normalizedRows.filter(
-            (item) => item.action === activeFilter
-        );
-    }, [normalizedRows, activeFilter]);
-
-    // --------------------------------------------------------
-    // TITLE
-    // --------------------------------------------------------
-
-    const displayTitle =
-        title ||
-        `Preview Import ${module}`;
-
-    const displaySubtitle =
-        subtitle ||
-        "Kiểm tra dữ liệu trước khi import";
-
-    // --------------------------------------------------------
-    // CLOSE
-    // --------------------------------------------------------
-
-    if (!show) {
+    if (!open) {
         return null;
     }
 
-    // --------------------------------------------------------
-    // FILTER LABEL
-    // --------------------------------------------------------
+    /* =========================================================
+       SUMMARY
+    ========================================================= */
 
-    const filterLabel =
-        activeFilter === "ALL"
-            ? "Tất cả thiết bị"
-            : activeFilter === "NEW"
-                ? "Thiết bị mới"
-                : activeFilter === "UPDATE"
-                    ? "Thiết bị cập nhật"
-                    : "Thiết bị bị bỏ qua";
+    const total =
+        summary?.total ??
+        summary?.totalCount ??
+        rows.length;
 
-    // --------------------------------------------------------
-    // CONFIRM ENABLE
-    // --------------------------------------------------------
+    const newCount =
+        summary?.newCount ??
+        summary?.new ??
+        0;
 
-    const canImport =
-        counts.NEW > 0 ||
-        counts.UPDATE > 0;
+    const updateCount =
+        summary?.updateCount ??
+        summary?.update ??
+        0;
 
-    // ========================================================
-    // RENDER
-    // ========================================================
+    const skipCount =
+        summary?.skipCount ??
+        summary?.skip ??
+        0;
+
+    const moduleName =
+        module === "ABB"
+            ? "ABB"
+            : "VACON";
+
+    /* =========================================================
+       FILTER CARD
+    ========================================================= */
+
+    const handleCardClick = (type) => {
+        setFilter(type);
+    };
+
+    /* =========================================================
+       RENDER
+    ========================================================= */
 
     return (
         <div
             className="
                 fixed
                 inset-0
-                z-[9999]
+                z-[100]
                 bg-black/50
-                backdrop-blur-[1px]
                 flex
                 items-center
                 justify-center
-                p-4
+                p-3
             "
         >
             <div
@@ -390,152 +134,161 @@ export default function PreviewImportModal({
                     rounded-2xl
                     shadow-2xl
                     w-full
-                    max-w-[1280px]
+                    max-w-[1240px]
                     max-h-[92vh]
                     flex
                     flex-col
                     overflow-hidden
                 "
             >
-                {/* =====================================================
+                {/* =================================================
                     HEADER
-                ====================================================== */}
+                ================================================= */}
 
                 <div
                     className="
-                        shrink-0
-                        border-b
-                        border-slate-200
                         px-6
                         py-4
+                        border-b
                         flex
-                        items-start
+                        items-center
                         justify-between
+                        shrink-0
                     "
                 >
                     <div>
                         <h2
                             className="
-                                text-2xl
+                                text-xl
                                 font-bold
                                 text-slate-800
                             "
                         >
-                            {displayTitle}
+                            Preview Import {moduleName}
                         </h2>
 
                         <p
                             className="
-                                mt-1
                                 text-sm
                                 text-slate-500
+                                mt-1
                             "
                         >
-                            {displaySubtitle}
+                            Kiểm tra dữ liệu trước khi import
                         </p>
                     </div>
 
                     <button
                         type="button"
                         onClick={onClose}
-                        disabled={loading}
                         className="
                             p-2
                             rounded-lg
-                            text-slate-500
-                            hover:text-slate-800
                             hover:bg-slate-100
-                            disabled:opacity-50
+                            transition
                         "
                     >
-                        <X size={24} />
+                        <X size={23} />
                     </button>
                 </div>
 
-                {/* =====================================================
-                    SUMMARY CARDS
-                ====================================================== */}
+                {/* =================================================
+                    SUMMARY
+                ================================================= */}
 
                 <div
                     className="
-                        shrink-0
                         grid
                         grid-cols-4
-                        gap-4
+                        gap-3
                         px-6
-                        py-5
+                        py-4
+                        shrink-0
                     "
                 >
                     <SummaryCard
                         title="Tổng"
-                        value={counts.total}
-                        type="ALL"
-                        active={activeFilter === "ALL"}
+                        value={total}
+                        color="blue"
+                        active={filter === "ALL"}
                         onClick={() =>
-                            setActiveFilter("ALL")
+                            handleCardClick("ALL")
                         }
                     />
 
                     <SummaryCard
                         title="Tạo mới"
-                        value={counts.NEW}
-                        type="NEW"
-                        active={activeFilter === "NEW"}
+                        value={newCount}
+                        color="green"
+                        active={filter === "NEW"}
                         onClick={() =>
-                            setActiveFilter("NEW")
+                            handleCardClick("NEW")
                         }
                     />
 
                     <SummaryCard
                         title="Cập nhật"
-                        value={counts.UPDATE}
-                        type="UPDATE"
-                        active={activeFilter === "UPDATE"}
+                        value={updateCount}
+                        color="amber"
+                        active={filter === "UPDATE"}
                         onClick={() =>
-                            setActiveFilter("UPDATE")
+                            handleCardClick("UPDATE")
                         }
                     />
 
                     <SummaryCard
                         title="Bỏ qua"
-                        value={counts.SKIP}
-                        type="SKIP"
-                        active={activeFilter === "SKIP"}
+                        value={skipCount}
+                        color="slate"
+                        active={filter === "SKIP"}
                         onClick={() =>
-                            setActiveFilter("SKIP")
+                            handleCardClick("SKIP")
                         }
                     />
                 </div>
 
-                {/* =====================================================
-                    CURRENT FILTER
-                ====================================================== */}
+                {/* =================================================
+                    FILTER HEADER
+                ================================================= */}
 
                 <div
                     className="
-                        shrink-0
                         px-6
                         pb-3
                         flex
                         items-center
                         justify-between
+                        shrink-0
                     "
                 >
                     <div className="text-sm text-slate-500">
                         Đang xem:{" "}
-                        <span className="font-semibold text-slate-700">
-                            {filterLabel}
-                        </span>{" "}
-                        <span className="text-slate-400">
-                            ({visibleRows.length} bản ghi)
+
+                        <span
+                            className="
+                                font-semibold
+                                text-slate-700
+                            "
+                        >
+                            {filter === "ALL"
+                                ? "Tất cả thiết bị"
+                                : filter === "NEW"
+                                ? "Thiết bị mới"
+                                : filter === "UPDATE"
+                                ? "Thiết bị cập nhật"
+                                : "Thiết bị bị bỏ qua"}
+                        </span>
+
+                        <span className="ml-2">
+                            ({filteredRows.length} bản ghi)
                         </span>
                     </div>
 
-                    {activeFilter !== "ALL" && (
+                    {filter !== "ALL" && (
                         <button
                             type="button"
                             onClick={() =>
-                                setActiveFilter("ALL")
+                                setFilter("ALL")
                             }
                             className="
                                 text-sm
@@ -549,146 +302,126 @@ export default function PreviewImportModal({
                     )}
                 </div>
 
-                {/* =====================================================
+                {/* =================================================
                     TABLE
-                ====================================================== */}
+                ================================================= */}
 
                 <div
                     className="
+                        px-6
                         flex-1
                         min-h-0
-                        px-6
-                        pb-4
                     "
                 >
                     <div
                         className="
-                            h-full
-                            max-h-[48vh]
                             border
-                            border-slate-200
                             rounded-xl
                             overflow-auto
+                            h-full
+                            max-h-[48vh]
                         "
                     >
                         <table
                             className="
                                 w-full
-                                text-sm
                                 table-fixed
+                                text-sm
+                                border-collapse
                             "
                         >
+                            <colgroup>
+                                <col className="w-[48px]" />
+                                <col className="w-[27%]" />
+                                <col className="w-[14%]" />
+                                <col className="w-[9%]" />
+                                <col className="w-[11%]" />
+                                <col className="w-[19%]" />
+                                <col className="w-[20%]" />
+                            </colgroup>
+
                             <thead
                                 className="
                                     sticky
                                     top-0
-                                    z-30
+                                    z-20
                                     bg-slate-100
                                     border-b
-                                    border-slate-200
                                 "
                             >
                                 <tr>
-                                    {/* # */}
-
                                     <th
                                         className="
-                                            w-[50px]
                                             px-3
                                             py-3
                                             text-center
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         #
                                     </th>
 
-                                    {/* DEVICE */}
-
                                     <th
                                         className="
-                                            w-[24%]
                                             px-3
                                             py-3
                                             text-left
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Thiết bị
                                     </th>
 
-                                    {/* SERIAL */}
-
                                     <th
                                         className="
-                                            w-[15%]
                                             px-3
                                             py-3
                                             text-left
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Serial
                                     </th>
 
-                                    {/* STATION */}
-
                                     <th
                                         className="
-                                            w-[10%]
                                             px-3
                                             py-3
-                                            text-center
+                                            text-left
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Trạm
                                     </th>
 
-                                    {/* STATUS */}
-
                                     <th
                                         className="
-                                            w-[12%]
                                             px-3
                                             py-3
                                             text-center
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Trạng thái
                                     </th>
 
-                                    {/* REASON */}
-
                                     <th
                                         className="
-                                            w-[22%]
                                             px-3
                                             py-3
                                             text-left
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Kết quả / Lý do
                                     </th>
 
-                                    {/* CHANGES */}
-
                                     <th
                                         className="
-                                            w-[12%]
                                             px-3
                                             py-3
                                             text-left
                                             font-semibold
-                                            text-slate-700
                                         "
                                     >
                                         Thay đổi
@@ -697,13 +430,13 @@ export default function PreviewImportModal({
                             </thead>
 
                             <tbody>
-                                {visibleRows.length === 0 ? (
+                                {filteredRows.length === 0 ? (
                                     <tr>
                                         <td
                                             colSpan={7}
                                             className="
-                                                py-16
                                                 text-center
+                                                py-12
                                                 text-slate-400
                                             "
                                         >
@@ -711,14 +444,288 @@ export default function PreviewImportModal({
                                         </td>
                                     </tr>
                                 ) : (
-                                    visibleRows.map(
-                                        (item) => (
-                                            <PreviewRow
-                                                key={`${item.index}-${item.action}`}
-                                                item={item}
-                                                module={module}
-                                            />
-                                        )
+                                    filteredRows.map(
+                                        (item, index) => {
+                                            const row =
+                                                getRow(item);
+
+                                            const action =
+                                                getAction(item);
+
+                                            const config =
+                                                statusConfig[
+                                                    action
+                                                ] ||
+                                                statusConfig.SKIP;
+
+                                            const changedFields =
+                                                item?.changedFields ||
+                                                item?.changes ||
+                                                [];
+
+                                            const reason =
+                                                item?.reason ||
+                                                item?.skipReason ||
+                                                item?.message ||
+                                                item?.reasonText ||
+                                                (
+                                                    action === "SKIP"
+                                                        ? "Thiết bị đã tồn tại và không có thay đổi"
+                                                        : action === "UPDATE"
+                                                        ? "Có dữ liệu thay đổi"
+                                                        : "Thiết bị mới"
+                                                );
+
+                                            return (
+                                                <tr
+                                                    key={
+                                                        item?.id ||
+                                                        item?.rowIndex ||
+                                                        item?.excelRow ||
+                                                        index
+                                                    }
+                                                    className={`
+                                                        border-b
+                                                        last:border-b-0
+                                                        ${
+                                                            action ===
+                                                            "UPDATE"
+                                                                ? "bg-amber-50"
+                                                                : action ===
+                                                                  "NEW"
+                                                                ? "bg-emerald-50/60"
+                                                                : "bg-white"
+                                                        }
+                                                        hover:bg-slate-50
+                                                    `}
+                                                >
+                                                    {/* # */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            text-center
+                                                            text-slate-500
+                                                            align-top
+                                                        "
+                                                    >
+                                                        {item?.rowIndex ||
+                                                            item?.excelRow ||
+                                                            index + 1}
+                                                    </td>
+
+                                                    {/* DEVICE */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            align-top
+                                                        "
+                                                    >
+                                                        <div
+                                                            className="
+                                                                font-medium
+                                                                text-slate-800
+                                                                break-words
+                                                                leading-5
+                                                            "
+                                                        >
+                                                            {row?.deviceName ||
+                                                                row?.name ||
+                                                                row?.title ||
+                                                                "-"}
+                                                        </div>
+
+                                                        {module ===
+                                                            "VACON" && (
+                                                            <div
+                                                                className="
+                                                                    text-xs
+                                                                    text-slate-400
+                                                                    mt-1
+                                                                    break-words
+                                                                "
+                                                            >
+                                                                {row?.application ||
+                                                                    "-"}
+                                                            </div>
+                                                        )}
+                                                    </td>
+
+                                                    {/* SERIAL */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            align-top
+                                                            break-all
+                                                        "
+                                                    >
+                                                        {row?.serialNumber ||
+                                                            row?.serial ||
+                                                            "-"}
+                                                    </td>
+
+                                                    {/* STATION */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            align-top
+                                                            break-words
+                                                        "
+                                                    >
+                                                        {row?.station ||
+                                                            row?.line ||
+                                                            "-"}
+                                                    </td>
+
+                                                    {/* STATUS */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            text-center
+                                                            align-top
+                                                        "
+                                                    >
+                                                        <span
+                                                            className={`
+                                                                inline-flex
+                                                                items-center
+                                                                justify-center
+                                                                gap-1
+                                                                px-2.5
+                                                                py-1
+                                                                rounded-full
+                                                                text-xs
+                                                                font-semibold
+                                                                whitespace-nowrap
+                                                                ${config.className}
+                                                            `}
+                                                        >
+                                                            {action ===
+                                                                "UPDATE" && (
+                                                                <AlertTriangle
+                                                                    size={
+                                                                        13
+                                                                    }
+                                                                />
+                                                            )}
+
+                                                            {action ===
+                                                                "NEW" && (
+                                                                <CheckCircle2
+                                                                    size={
+                                                                        13
+                                                                    }
+                                                                />
+                                                            )}
+
+                                                            {config.label}
+                                                        </span>
+                                                    </td>
+
+                                                    {/* REASON */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            align-top
+                                                        "
+                                                    >
+                                                        <div
+                                                            className={`
+                                                                break-words
+                                                                leading-5
+                                                                ${
+                                                                    action ===
+                                                                    "UPDATE"
+                                                                        ? "text-amber-700"
+                                                                        : "text-slate-600"
+                                                                }
+                                                            `}
+                                                        >
+                                                            {reason}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* CHANGES */}
+
+                                                    <td
+                                                        className="
+                                                            px-3
+                                                            py-3
+                                                            align-top
+                                                        "
+                                                    >
+                                                        {action ===
+                                                        "UPDATE" ? (
+                                                            <div
+                                                                className="
+                                                                    flex
+                                                                    flex-wrap
+                                                                    gap-1
+                                                                "
+                                                            >
+                                                                {Array.isArray(
+                                                                    changedFields
+                                                                ) &&
+                                                                changedFields.length >
+                                                                    0 ? (
+                                                                    changedFields.map(
+                                                                        (
+                                                                            field,
+                                                                            fieldIndex
+                                                                        ) => (
+                                                                            <span
+                                                                                key={
+                                                                                    fieldIndex
+                                                                                }
+                                                                                className="
+                                                                                    px-2
+                                                                                    py-1
+                                                                                    rounded-full
+                                                                                    bg-blue-100
+                                                                                    text-blue-700
+                                                                                    text-xs
+                                                                                    font-medium
+                                                                                    break-words
+                                                                                "
+                                                                            >
+                                                                                {typeof field ===
+                                                                                "string"
+                                                                                    ? field
+                                                                                    : field?.field ||
+                                                                                      field?.name ||
+                                                                                      "Thay đổi"}
+                                                                            </span>
+                                                                        )
+                                                                    )
+                                                                ) : (
+                                                                    <span className="text-slate-400">
+                                                                        Có dữ
+                                                                        liệu
+                                                                        thay
+                                                                        đổi
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-400">
+                                                                -
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
                                     )
                                 )}
                             </tbody>
@@ -726,21 +733,21 @@ export default function PreviewImportModal({
                     </div>
                 </div>
 
-                {/* =====================================================
+                {/* =================================================
                     FOOTER
-                ====================================================== */}
+                ================================================= */}
 
                 <div
                     className="
-                        shrink-0
                         border-t
-                        border-slate-200
+                        mt-4
                         px-6
-                        py-4
+                        py-3
                         flex
                         items-center
                         justify-between
                         gap-4
+                        shrink-0
                     "
                 >
                     <div
@@ -751,39 +758,36 @@ export default function PreviewImportModal({
                         "
                     >
                         Tổng cộng{" "}
-                        <strong className="text-slate-700">
-                            {counts.total}
-                        </strong>{" "}
-                        bản ghi.{" "}
 
-                        <span className="text-emerald-600 font-medium">
-                            Mới: {counts.NEW}
-                        </span>{" "}
+                        <b className="text-slate-700">
+                            {total}
+                        </b>{" "}
+                        bản ghi.
 
-                        <span className="text-amber-600 font-medium ml-1">
-                            Cập nhật: {counts.UPDATE}
-                        </span>{" "}
+                        <span className="ml-2 text-emerald-600">
+                            Mới: {newCount}
+                        </span>
 
-                        <span className="text-slate-500 font-medium ml-1">
-                            Bỏ qua: {counts.SKIP}
+                        <span className="ml-2 text-amber-600">
+                            Cập nhật: {updateCount}
+                        </span>
+
+                        <span className="ml-2 text-slate-500">
+                            Bỏ qua: {skipCount}
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex gap-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            disabled={loading}
                             className="
                                 px-5
-                                py-2.5
+                                py-2
                                 rounded-lg
                                 border
                                 border-slate-300
-                                text-slate-700
-                                bg-white
                                 hover:bg-slate-50
-                                disabled:opacity-50
                             "
                         >
                             Hủy
@@ -793,27 +797,28 @@ export default function PreviewImportModal({
                             type="button"
                             disabled={
                                 loading ||
-                                !canImport
+                                (
+                                    newCount === 0 &&
+                                    updateCount === 0
+                                )
                             }
                             onClick={onConfirm}
                             className="
-                                inline-flex
+                                flex
                                 items-center
-                                justify-center
                                 gap-2
-                                px-6
-                                py-2.5
+                                px-5
+                                py-2
                                 rounded-lg
                                 bg-blue-600
                                 text-white
                                 font-semibold
                                 hover:bg-blue-700
                                 disabled:bg-slate-300
-                                disabled:text-slate-500
                                 disabled:cursor-not-allowed
                             "
                         >
-                            <Upload size={18} />
+                            <Upload size={17} />
 
                             {loading
                                 ? "Đang import..."
@@ -826,45 +831,65 @@ export default function PreviewImportModal({
     );
 }
 
-// ============================================================
-// SUMMARY CARD
-// ============================================================
+
+/* =========================================================
+   SUMMARY CARD
+========================================================= */
 
 function SummaryCard({
     title,
     value,
-    type,
+    color,
     active,
     onClick,
 }) {
-    const config =
-        type === "ALL"
-            ? {
-                  card:
-                      "border-blue-200 bg-blue-50/70 hover:border-blue-400",
-                  value:
-                      "text-blue-600",
-              }
-            : ACTION_CONFIG[type];
+    const colors = {
+        blue: {
+            bg: "bg-blue-50",
+            border: "border-blue-200",
+            text: "text-blue-600",
+        },
+
+        green: {
+            bg: "bg-emerald-50",
+            border: "border-emerald-200",
+            text: "text-emerald-600",
+        },
+
+        amber: {
+            bg: "bg-amber-50",
+            border: "border-amber-200",
+            text: "text-amber-600",
+        },
+
+        slate: {
+            bg: "bg-slate-50",
+            border: "border-slate-200",
+            text: "text-slate-600",
+        },
+    };
+
+    const c =
+        colors[color] ||
+        colors.slate;
 
     return (
         <button
             type="button"
             onClick={onClick}
             className={`
-                w-full
                 text-left
-                border
                 rounded-xl
-                px-5
-                py-5
+                border
+                px-4
+                py-3
                 transition
-                duration-150
-                ${config.cardClass || config.card}
+                ${c.bg}
+                ${c.border}
                 ${
                     active
                         ? "ring-2 ring-blue-500 ring-offset-1"
-                        : ""
+                        : "hover:shadow-sm"
                 }
             `}
         >
@@ -873,10 +898,9 @@ function SummaryCard({
                     flex
                     items-center
                     justify-between
-                    gap-3
                 "
             >
-                <span
+                <div
                     className="
                         text-sm
                         font-medium
@@ -884,336 +908,24 @@ function SummaryCard({
                     "
                 >
                     {title}
-                </span>
+                </div>
 
-                {active ? (
-                    <ChevronDown
-                        size={20}
-                        className="text-slate-500"
-                    />
-                ) : (
-                    <ChevronRight
-                        size={20}
-                        className="text-slate-400"
-                    />
-                )}
+                <ChevronRight
+                    size={18}
+                    className={c.text}
+                />
             </div>
 
             <div
                 className={`
-                    mt-2
-                    text-4xl
+                    text-3xl
                     font-bold
-                    ${
-                        config.valueClass ||
-                        config.value
-                    }
+                    mt-1
+                    ${c.text}
                 `}
             >
                 {value}
             </div>
         </button>
-    );
-}
-
-// ============================================================
-// PREVIEW ROW
-// ============================================================
-
-function PreviewRow({
-    item,
-    module,
-}) {
-    const {
-        row,
-        action,
-        index,
-        reason,
-        changedFields,
-    } = item;
-
-    const config =
-        ACTION_CONFIG[action] ||
-        ACTION_CONFIG.SKIP;
-
-    const deviceName =
-        getDeviceName(row);
-
-    const serial =
-        getSerial(row);
-
-    const station =
-        getStation(row);
-
-    return (
-        <tr
-            className="
-                border-b
-                border-slate-200
-                hover:bg-slate-50
-                transition
-            "
-        >
-            {/* =================================================
-                INDEX
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    text-center
-                    align-top
-                    text-slate-500
-                "
-            >
-                {index}
-            </td>
-
-            {/* =================================================
-                DEVICE
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                "
-            >
-                <div
-                    className="
-                        font-semibold
-                        text-slate-800
-                        break-words
-                        leading-5
-                    "
-                    title={deviceName}
-                >
-                    {safeValue(deviceName)}
-                </div>
-
-                {/* VACON application */}
-
-                {module?.toUpperCase() ===
-                    "VACON" &&
-                    row?.application && (
-                        <div
-                            className="
-                                mt-1
-                                text-xs
-                                text-slate-400
-                                truncate
-                            "
-                            title={
-                                row.application
-                            }
-                        >
-                            {row.application}
-                        </div>
-                    )}
-
-                {/* ABB type */}
-
-                {module?.toUpperCase() ===
-                    "ABB" &&
-                    row?.typeCode && (
-                        <div
-                            className="
-                                mt-1
-                                text-xs
-                                text-slate-400
-                            "
-                        >
-                            Type:{" "}
-                            {row.typeCode}
-                        </div>
-                    )}
-            </td>
-
-            {/* =================================================
-                SERIAL
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                    break-all
-                    text-slate-700
-                "
-            >
-                {safeValue(serial)}
-            </td>
-
-            {/* =================================================
-                STATION
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                    text-center
-                    text-slate-700
-                "
-            >
-                {safeValue(station)}
-            </td>
-
-            {/* =================================================
-                STATUS
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                    text-center
-                "
-            >
-                <StatusBadge
-                    action={action}
-                />
-            </td>
-
-            {/* =================================================
-                REASON
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                "
-            >
-                <div
-                    className="
-                        text-slate-600
-                        leading-5
-                    "
-                    title={reason}
-                >
-                    {safeValue(reason)}
-                </div>
-            </td>
-
-            {/* =================================================
-                CHANGES
-            ================================================== */}
-
-            <td
-                className="
-                    px-3
-                    py-4
-                    align-top
-                "
-            >
-                {action ===
-                "UPDATE" ? (
-                    changedFields.length >
-                    0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                            {changedFields.map(
-                                (
-                                    field,
-                                    fieldIndex
-                                ) => (
-                                    <span
-                                        key={
-                                            fieldIndex
-                                        }
-                                        className="
-                                            inline-flex
-                                            items-center
-                                            px-2
-                                            py-1
-                                            rounded-full
-                                            bg-blue-100
-                                            text-blue-700
-                                            text-xs
-                                            font-medium
-                                        "
-                                    >
-                                        {normalizeFieldName(
-                                            field
-                                        )}
-                                    </span>
-                                )
-                            )}
-                        </div>
-                    ) : (
-                        <span
-                            className="
-                                text-slate-500
-                                text-xs
-                            "
-                        >
-                            Có thay đổi
-                        </span>
-                    )
-                ) : (
-                    <span
-                        className="
-                            text-slate-400
-                        "
-                    >
-                        -
-                    </span>
-                )}
-            </td>
-        </tr>
-    );
-}
-
-// ============================================================
-// STATUS BADGE
-// ============================================================
-
-function StatusBadge({
-    action,
-}) {
-    const config =
-        ACTION_CONFIG[action] ||
-        ACTION_CONFIG.SKIP;
-
-    return (
-        <span
-            className={`
-                inline-flex
-                items-center
-                justify-center
-                gap-1.5
-                px-3
-                py-1
-                rounded-full
-                text-xs
-                font-semibold
-                whitespace-nowrap
-                ${config.badgeClass}
-            `}
-        >
-            {action === "NEW" && (
-                <CheckCircle2
-                    size={12}
-                />
-            )}
-
-            {action === "UPDATE" && (
-                <AlertTriangle
-                    size={12}
-                />
-            )}
-
-            {action === "SKIP" && (
-                <Minus size={12} />
-            )}
-
-            {config.shortLabel}
-        </span>
     );
 }
