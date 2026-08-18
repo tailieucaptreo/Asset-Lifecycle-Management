@@ -1,302 +1,509 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+
 const XLSX = require("xlsx");
 const ExcelJS = require("exceljs");
 
-// ============================
-// PARSE EXCEL
-// ============================
-async function parseExcel(file) {
 
-    const workbook = XLSX.read(file.buffer, {
-        type: "buffer"
-    });
+// ============================================================
+// HELPERS
+// ============================================================
 
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+function normalize(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
 
-    return XLSX.utils.sheet_to_json(sheet, {
-        defval: ""
-    });
-
+    return String(value)
+        .trim()
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
 }
 
-// ============================
-// COMPARE ROWS
-// ============================
-async function compareRows(rows) {
 
-    function excelDateToJS(value) {
+// ============================================================
+// EXCEL DATE -> JS DATE
+// ============================================================
 
-        if (!value) return null;
+function excelDateToJS(value) {
 
-        if (typeof value === "number") {
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return null;
+    }
 
-            const excelEpoch =
-                new Date(Date.UTC(1899, 11, 30));
+    if (value instanceof Date) {
+        return value;
+    }
 
-            return new Date(
-                excelEpoch.getTime() +
-                value * 86400000
+    // Excel serial date
+    if (typeof value === "number") {
+
+        const excelEpoch =
+            new Date(Date.UTC(1899, 11, 30));
+
+        return new Date(
+            excelEpoch.getTime() +
+            value * 86400000
+        );
+    }
+
+    const text =
+        String(value).trim();
+
+    // dd/mm/yyyy
+    const match =
+        text.match(
+            /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/
+        );
+
+    if (match) {
+
+        const day =
+            Number(match[1]);
+
+        const month =
+            Number(match[2]);
+
+        const year =
+            Number(match[3]);
+
+        return new Date(
+            Date.UTC(
+                year,
+                month - 1,
+                day
+            )
+        );
+    }
+
+    const d =
+        new Date(text);
+
+    if (isNaN(d.getTime())) {
+        return null;
+    }
+
+    return d;
+}
+
+
+// ============================================================
+// DATE KEY
+// ============================================================
+
+function dateKey(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const d =
+        value instanceof Date
+            ? value
+            : new Date(value);
+
+    if (isNaN(d.getTime())) {
+        return "";
+    }
+
+    return d
+        .toISOString()
+        .slice(0, 10);
+}
+
+
+// ============================================================
+// EXCEL TIME
+// ============================================================
+
+function excelTimeToString(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return "";
+    }
+
+    if (typeof value === "number") {
+
+        const total =
+            Math.round(
+                value * 24 * 60 * 60
             );
 
-        }
+        const hours =
+            String(
+                Math.floor(total / 3600)
+            ).padStart(2, "0");
+
+        const minutes =
+            String(
+                Math.floor(
+                    (total % 3600) / 60
+                )
+            ).padStart(2, "0");
+
+        const seconds =
+            String(
+                total % 60
+            ).padStart(2, "0");
+
+        return `${hours}:${minutes}:${seconds}`;
+    }
+
+    return String(value).trim();
+}
+
+
+// ============================================================
+// GET EXCEL VALUE
+// ============================================================
+
+function getValue(row, ...keys) {
+
+    for (const key of keys) {
 
         if (
-            typeof value === "string" &&
-            value.includes("/")
+            row[key] !== undefined &&
+            row[key] !== null
         ) {
 
-            const p = value.split("/");
-
-            if (p.length === 3) {
-
-                return new Date(
-                    Number(p[2]),
-                    Number(p[1]) - 1,
-                    Number(p[0])
-                );
-
-            }
+            return row[key];
 
         }
 
-        const d = new Date(value);
-
-        return isNaN(d) ? null : d;
-
     }
 
-    function excelTimeToString(value) {
+    return "";
+}
 
-        if (!value) return "";
 
-        if (typeof value === "number") {
+// ============================================================
+// PARSE EXCEL
+// ============================================================
 
-            const total =
-                Math.round(value * 24 * 60 * 60);
+async function parseExcel(file) {
 
-            const h =
-                String(Math.floor(total / 3600))
-                    .padStart(2, "0");
+    const workbook =
+        XLSX.read(file.buffer, {
+            type: "buffer"
+        });
 
-            const m =
-                String(
-                    Math.floor((total % 3600) / 60)
-                ).padStart(2, "0");
+    const sheetName =
+        workbook.SheetNames[0];
 
-            const s =
-                String(total % 60)
-                    .padStart(2, "0");
+    if (!sheetName) {
+        return [];
+    }
 
-            return `${h}:${m}:${s}`;
+    const sheet =
+        workbook.Sheets[sheetName];
 
+    return XLSX.utils.sheet_to_json(
+        sheet,
+        {
+            defval: ""
         }
+    );
+}
 
-        return String(value);
 
-    }
+// ============================================================
+// COMPARE ROWS
+// ============================================================
 
-    function get(row, ...keys) {
+async function compareRows(rows) {
 
-        for (const key of keys) {
-
-            const value = row[key];
-
-            if (
-                value !== undefined &&
-                value !== null &&
-                String(value).trim() !== ""
-            ) {
-                return value;
-            }
-
-        }
-
-        return "";
-
-    }
-
-    // ===================================
-    // Load DB chỉ 1 lần
-    // ===================================
+    // ========================================================
+    // LOAD DEVICES
+    // ========================================================
 
     const devices =
         await prisma.vaconDevice.findMany();
 
+
+    // ========================================================
+    // LOAD HISTORIES
+    // ========================================================
+
     const histories =
         await prisma.vaconHistory.findMany({
-    
+
             select: {
-    
+
+                id: true,
+
                 deviceId: true,
-    
+
                 recordDate: true,
-    
+
                 operationHours: true,
-    
+
                 powerUnitDate: true,
-    
+
                 faultHistory: true,
-    
+
                 description: true,
-    
+
                 possibleCause: true,
-    
+
                 correctiveActions: true,
-    
+
                 note: true
-    
+
             }
-    
+
         });
 
-    // ===================================
-    // Device Map
-    // ===================================
 
-    const deviceMap = new Map();
+    // ========================================================
+    // DEVICE MAP
+    // Serial Number = khóa nhận diện thiết bị
+    // ========================================================
 
-    devices.forEach(device => {
+    const deviceMap =
+        new Map();
 
-        if (device.serialNumber) {
+    for (const device of devices) {
 
-            deviceMap.set(
-                device.serialNumber.trim(),
-                device
+        const serial =
+            normalize(
+                device.serialNumber
             );
 
+        if (!serial) {
+            continue;
         }
 
-    });
+        deviceMap.set(
+            serial,
+            device
+        );
+    }
 
-    // ===================================
-    // History Map
-    // ===================================
 
-    const historyMap = new Map();
+    // ========================================================
+    // HISTORY MAP
+    //
+    // KHÔNG dùng Note / Description / Fault History
+    // làm khóa.
+    //
+    // Ưu tiên:
+    // Device + Record Date
+    // ========================================================
 
-    histories.forEach(h => {
-    
-        const date =
-            new Date(h.recordDate)
-                .toISOString()
-                .slice(0,10);
-    
+    const historyMap =
+        new Map();
+
+    for (const history of histories) {
+
         const key =
-            `${h.deviceId}|${date}|${h.operationHours}|${String(h.powerUnitDate || "")}|${String(h.faultHistory || "")}`;
-    
-        historyMap.set(key, h);
-    
-    });
+            `${history.deviceId}|${dateKey(history.recordDate)}`;
 
-    // ===================================
-    // Compare
-    // ===================================
+        if (!historyMap.has(key)) {
 
-    let currentRecordDate = null;
+            historyMap.set(
+                key,
+                []
+            );
+        }
+
+        historyMap
+            .get(key)
+            .push(history);
+    }
+
+
+    // ========================================================
+    // COMPARE
+    // ========================================================
+
+    let currentRecordDate =
+        null;
 
     const result = [];
 
+
     for (const row of rows) {
 
+        // ====================================================
+        // RECORD DATE
+        //
+        // File Excel có thể chỉ ghi ngày ở dòng đầu,
+        // các dòng sau để trống.
+        //
+        // Vì vậy giữ lại currentRecordDate.
+        // ====================================================
+
         if (
-            row["Record Date"] &&
-            String(row["Record Date"]).trim() !== ""
+            row["Record Date"] !== undefined &&
+            String(
+                row["Record Date"]
+            ).trim() !== ""
         ) {
 
             currentRecordDate =
                 excelDateToJS(
                     row["Record Date"]
                 );
-
         }
 
-        const deviceName = String(
-            get(
-                row,
-                "Device Name",
-                "The Device Name"
-            )
-        ).trim();
 
-        if (!deviceName) continue;
+        // ====================================================
+        // DEVICE NAME
+        // ====================================================
 
-        const serialNumber = String(
-            get(
-                row,
-                "Serial Number",
-                "Serial number"
-            )
-        ).trim();
+        const deviceName =
+            normalize(
+                getValue(
+                    row,
+                    "Device Name",
+                    "The Device Name"
+                )
+            );
 
-        const station = String(
-            get(row, "Station")
-        ).trim();
+        if (!deviceName) {
+            continue;
+        }
 
-        const tandem = String(
-            get(row, "Tandem")
-        ).trim();
 
-        const application = String(
-            get(row, "Application")
-        ).trim();
+        // ====================================================
+        // SERIAL
+        // ====================================================
+
+        const serialNumber =
+            normalize(
+                getValue(
+                    row,
+                    "Serial Number",
+                    "Serial number"
+                )
+            );
+
+
+        // ====================================================
+        // DEVICE DATA
+        // ====================================================
+
+        const station =
+            normalize(
+                getValue(
+                    row,
+                    "Station"
+                )
+            );
+
+        const tandem =
+            normalize(
+                getValue(
+                    row,
+                    "Tandem"
+                )
+            );
+
+        const application =
+            normalize(
+                getValue(
+                    row,
+                    "Application"
+                )
+            );
+
+
+        // ====================================================
+        // HISTORY DATA
+        // ====================================================
 
         const operationHours =
-            excelTimeToString(
-
-                get(
-                    row,
-                    "Operation Hours",
-                    "Operation hours"
+            normalize(
+                excelTimeToString(
+                    getValue(
+                        row,
+                        "Operation Hours",
+                        "Operation hours"
+                    )
                 )
-
             );
 
-        const powerUnitDate = String(
-            get(
-                row,
-                "Power Unit Date",
-                "Power unit date"
-            ) || ""
-        ).trim();
+
+        const powerUnitDate =
+            normalize(
+                getValue(
+                    row,
+                    "Power Unit Date",
+                    "Power unit date"
+                )
+            );
+
 
         const faultHistory =
-            get(
-                row,
-                "Fault History",
-                "Fault history"
+            normalize(
+                getValue(
+                    row,
+                    "Fault History",
+                    "Fault history"
+                )
             );
+
 
         const description =
-            get(row, "Description");
+            normalize(
+                getValue(
+                    row,
+                    "Description"
+                )
+            );
+
 
         const possibleCause =
-            get(
-                row,
-                "Possible Cause",
-                "Possible cause"
+            normalize(
+                getValue(
+                    row,
+                    "Possible Cause",
+                    "Possible cause"
+                )
             );
+
 
         const correctiveActions =
-            get(
-                row,
-                "Corrective Actions",
-                "Corrective actions"
+            normalize(
+                getValue(
+                    row,
+                    "Corrective Actions",
+                    "Corrective actions"
+                )
             );
+
 
         const note =
-            get(
-                row,
-                "Note",
-                "note"
+            normalize(
+                getValue(
+                    row,
+                    "Note",
+                    "note"
+                )
             );
 
-        //---------------------------------
-        // Device
-        //---------------------------------
+
+        // ====================================================
+        // TÌM DEVICE
+        // ====================================================
 
         const device =
-            deviceMap.get(serialNumber);
+            deviceMap.get(
+                serialNumber
+            );
+
+
+        // ====================================================
+        // NEW DEVICE
+        // ====================================================
 
         if (!device) {
 
@@ -305,6 +512,8 @@ async function compareRows(rows) {
                 status: "NEW",
 
                 deviceId: null,
+
+                historyId: null,
 
                 updateData: {},
 
@@ -318,7 +527,8 @@ async function compareRows(rows) {
 
                 application,
 
-                recordDate: currentRecordDate,
+                recordDate:
+                    currentRecordDate,
 
                 operationHours,
 
@@ -332,328 +542,598 @@ async function compareRows(rows) {
 
                 correctiveActions,
 
-                note
+                note,
+
+                changes: [
+                    "Thiết bị mới"
+                ]
 
             });
 
             continue;
-
         }
 
-        //---------------------------------
-        // Update data
-        //---------------------------------
+
+        // ====================================================
+        // DEVICE CHANGES
+        // ====================================================
 
         const updateData = {};
 
+        const deviceChanges = [];
+
+
         if (
-            device.deviceName !== deviceName
+            normalize(device.deviceName)
+            !== deviceName
         ) {
+
             updateData.deviceName =
                 deviceName;
+
+            deviceChanges.push(
+                "Tên thiết bị"
+            );
         }
 
+
         if (
-            device.station !== station
+            normalize(device.station)
+            !== station
         ) {
+
             updateData.station =
                 station;
+
+            deviceChanges.push(
+                "Trạm"
+            );
         }
 
+
         if (
-            device.tandem !== tandem
+            normalize(device.tandem)
+            !== tandem
         ) {
+
             updateData.tandem =
                 tandem;
+
+            deviceChanges.push(
+                "Tandem"
+            );
         }
+
 
         if (
-            device.application !== application
+            normalize(device.application)
+            !== application
         ) {
+
             updateData.application =
                 application;
+
+            deviceChanges.push(
+                "Ứng dụng"
+            );
         }
 
-        //---------------------------------
-        // History
-        //---------------------------------
 
-        const date =
-            currentRecordDate
-                ? currentRecordDate
-                    .toISOString()
-                    .slice(0, 10)
-                : "";
-
-        const historyKey =
-            `${device.id}|${date}|${operationHours}|${powerUnitDate}|${faultHistory}`;
-
-        const oldHistory =
-            historyMap.get(historyKey);
-        
         const deviceChanged =
             Object.keys(updateData).length > 0;
-        
-        let historyChanged = false;
-        
-        if (!oldHistory) {
-        
-            historyChanged = true;
-        
-        } else {
-        
-            historyChanged = !(
-                String(oldHistory.powerUnitDate || "") === String(powerUnitDate || "") &&
-                String(oldHistory.faultHistory || "") === String(faultHistory || "") &&
-                String(oldHistory.description || "") === String(description || "") &&
-                String(oldHistory.possibleCause || "") === String(possibleCause || "") &&
-                String(oldHistory.correctiveActions || "") === String(correctiveActions || "") &&
-                String(oldHistory.note || "") === String(note || "")
+
+
+        // ====================================================
+        // HISTORY KEY
+        // ====================================================
+
+        const historyKey =
+            `${device.id}|${dateKey(
+                currentRecordDate
+            )}`;
+
+
+        const historyCandidates =
+            historyMap.get(
+                historyKey
+            ) || [];
+
+
+        // ====================================================
+        // TÌM HISTORY PHÙ HỢP
+        //
+        // Ưu tiên bản ghi có cùng:
+        // - Operation Hours
+        // - Power Unit Date
+        // - Fault History
+        //
+        // Sau đó mới lấy bản ghi đầu tiên.
+        // ====================================================
+
+        let oldHistory =
+            historyCandidates.find(
+                history => {
+
+                    return (
+
+                        normalize(
+                            history.operationHours
+                        )
+                        === operationHours
+
+                        &&
+
+                        normalize(
+                            history.powerUnitDate
+                        )
+                        === powerUnitDate
+
+                        &&
+
+                        normalize(
+                            history.faultHistory
+                        )
+                        === faultHistory
+
+                    );
+
+                }
             );
-        
+
+
+        if (!oldHistory) {
+
+            oldHistory =
+                historyCandidates[0] || null;
+
         }
-        
-        let status = "SKIP";
-        
-        if (!deviceChanged && !historyChanged) {
-        
-            status = "SKIP";
-        
+
+
+        // ====================================================
+        // KHÔNG CÓ HISTORY
+        //
+        // Đây là lịch sử mới của thiết bị.
+        // ====================================================
+
+        if (!oldHistory) {
+
+            result.push({
+
+                status:
+                    deviceChanged
+                        ? "UPDATE_BOTH"
+                        : "UPDATE_HISTORY",
+
+                deviceId:
+                    device.id,
+
+                historyId:
+                    null,
+
+                updateData,
+
+                deviceName,
+
+                serialNumber,
+
+                station,
+
+                tandem,
+
+                application,
+
+                recordDate:
+                    currentRecordDate,
+
+                operationHours,
+
+                powerUnitDate,
+
+                faultHistory,
+
+                description,
+
+                possibleCause,
+
+                correctiveActions,
+
+                note,
+
+                changes: [
+
+                    ...deviceChanges,
+
+                    "Lịch sử mới"
+
+                ]
+
+            });
+
+            continue;
         }
-        else if (deviceChanged && historyChanged) {
-        
-            status = "UPDATE_BOTH";
-        
+
+
+        // ====================================================
+        // HISTORY CHANGES
+        // ====================================================
+
+        const historyChanges = [];
+
+
+        if (
+            normalize(
+                oldHistory.operationHours
+            )
+            !== operationHours
+        ) {
+
+            historyChanges.push(
+                "Operation Hours"
+            );
         }
-        else if (deviceChanged) {
-        
-            status = "UPDATE_DEVICE";
-        
+
+
+        if (
+            normalize(
+                oldHistory.powerUnitDate
+            )
+            !== powerUnitDate
+        ) {
+
+            historyChanges.push(
+                "Power Unit Date"
+            );
         }
-        else if (historyChanged) {
-        
-            status = "UPDATE_HISTORY";
-        
+
+
+        if (
+            normalize(
+                oldHistory.faultHistory
+            )
+            !== faultHistory
+        ) {
+
+            historyChanges.push(
+                "Fault History"
+            );
         }
-        
+
+
+        if (
+            normalize(
+                oldHistory.description
+            )
+            !== description
+        ) {
+
+            historyChanges.push(
+                "Description"
+            );
+        }
+
+
+        if (
+            normalize(
+                oldHistory.possibleCause
+            )
+            !== possibleCause
+        ) {
+
+            historyChanges.push(
+                "Possible Cause"
+            );
+        }
+
+
+        if (
+            normalize(
+                oldHistory.correctiveActions
+            )
+            !== correctiveActions
+        ) {
+
+            historyChanges.push(
+                "Corrective Actions"
+            );
+        }
+
+
+        if (
+            normalize(
+                oldHistory.note
+            )
+            !== note
+        ) {
+
+            historyChanges.push(
+                "Note"
+            );
+        }
+
+
+        const historyChanged =
+            historyChanges.length > 0;
+
+
+        // ====================================================
+        // STATUS
+        // ====================================================
+
+        let status =
+            "SKIP";
+
+
+        if (
+            deviceChanged &&
+            historyChanged
+        ) {
+
+            status =
+                "UPDATE_BOTH";
+
+        }
+        else if (
+            deviceChanged
+        ) {
+
+            status =
+                "UPDATE_DEVICE";
+
+        }
+        else if (
+            historyChanged
+        ) {
+
+            status =
+                "UPDATE_HISTORY";
+
+        }
+
+
+        // ====================================================
+        // RESULT
+        // ====================================================
+
         result.push({
-        
+
             status,
-        
-            deviceId: device.id,
-        
+
+            deviceId:
+                device.id,
+
+            historyId:
+                oldHistory.id,
+
             updateData,
-        
+
             deviceName,
-        
+
             serialNumber,
-        
+
             station,
-        
+
             tandem,
-        
+
             application,
-        
-            recordDate: currentRecordDate,
-        
+
+            recordDate:
+                currentRecordDate,
+
             operationHours,
-        
+
             powerUnitDate,
-        
+
             faultHistory,
-        
+
             description,
-        
+
             possibleCause,
-        
+
             correctiveActions,
-        
-            note
-        
-        });
-    }
 
-    return result;
+            note,
 
-}
-// ============================
-// GET ALL VACON DEVICE
-// ============================
-exports.getAll = async (req, res) => {
+            changes: [
 
-    try {
+                ...deviceChanges,
 
-        const search = req.query.search?.trim() || "";
-
-        const devices = await prisma.vaconDevice.findMany({
-
-            where: search
-
-                ? {
-
-                    OR: [
-
-                        {
-                            deviceName: {
-                                contains: search,
-                                mode: "insensitive"
-                            }
-                        },
-
-                        {
-                            serialNumber: {
-                                contains: search,
-                                mode: "insensitive"
-                            }
-                        },
-
-                        {
-                            station: {
-                                contains: search,
-                                mode: "insensitive"
-                            }
-                        },
-
-                        {
-                            tandem: {
-                                contains: search,
-                                mode: "insensitive"
-                            }
-                        },
-
-                        {
-                            application: {
-                                contains: search,
-                                mode: "insensitive"
-                            }
-                        },
-
-                        {
-                            histories: {
-
-                                some: {
-
-                                    OR: [
-
-                                        {
-                                            faultHistory: {
-                                                contains: search,
-                                                mode: "insensitive"
-                                            }
-                                        },
-
-                                        {
-                                            description: {
-                                                contains: search,
-                                                mode: "insensitive"
-                                            }
-                                        },
-
-                                        {
-                                            possibleCause: {
-                                                contains: search,
-                                                mode: "insensitive"
-                                            }
-                                        },
-
-                                        {
-                                            correctiveActions: {
-                                                contains: search,
-                                                mode: "insensitive"
-                                            }
-                                        }
-
-                                    ]
-
-                                }
-
-                            }
-
-                        }
-
-                    ]
-
-                }
-
-                : {},
-
-            include: {
-
-                histories: {
-
-                    orderBy: {
-
-                        recordDate: "desc"
-
-                    },
-
-                    take: 1,
-
-                    select: {
-
-                        recordDate: true
-
-                    }
-
-                },
-
-                _count: {
-
-                    select: {
-
-                        histories: true
-
-                    }
-
-                }
-
-            },
-
-            orderBy: [
-
-                {
-
-                    deviceName: "asc"
-
-                },
-
-                {
-
-                    serialNumber: "asc"
-
-                }
+                ...historyChanges
 
             ]
 
         });
 
-        const result = devices.map(device => ({
+    }
 
-            id: device.id,
 
-            deviceName: device.deviceName,
+    return result;
+}
 
-            serialNumber: device.serialNumber,
 
-            station: device.station,
+// ============================================================
+// GET ALL VACON DEVICE
+// ============================================================
 
-            tandem: device.tandem,
+exports.getAll = async (req, res) => {
 
-            application: device.application,
+    try {
 
-            recordDate:
+        const search =
+            req.query.search?.trim() || "";
 
-                device.histories.length
 
-                    ? device.histories[0].recordDate
+        const devices =
+            await prisma.vaconDevice.findMany({
 
-                    : null,
+                where: search
+                    ? {
 
-            historyCount:
+                        OR: [
 
-                device._count.histories
+                            {
+                                deviceName: {
+                                    contains: search,
+                                    mode: "insensitive"
+                                }
+                            },
 
-        }));
+                            {
+                                serialNumber: {
+                                    contains: search,
+                                    mode: "insensitive"
+                                }
+                            },
+
+                            {
+                                station: {
+                                    contains: search,
+                                    mode: "insensitive"
+                                }
+                            },
+
+                            {
+                                tandem: {
+                                    contains: search,
+                                    mode: "insensitive"
+                                }
+                            },
+
+                            {
+                                application: {
+                                    contains: search,
+                                    mode: "insensitive"
+                                }
+                            },
+
+                            {
+                                histories: {
+
+                                    some: {
+
+                                        OR: [
+
+                                            {
+                                                faultHistory: {
+                                                    contains: search,
+                                                    mode: "insensitive"
+                                                }
+                                            },
+
+                                            {
+                                                description: {
+                                                    contains: search,
+                                                    mode: "insensitive"
+                                                }
+                                            },
+
+                                            {
+                                                possibleCause: {
+                                                    contains: search,
+                                                    mode: "insensitive"
+                                                }
+                                            },
+
+                                            {
+                                                correctiveActions: {
+                                                    contains: search,
+                                                    mode: "insensitive"
+                                                }
+                                            },
+
+                                            {
+                                                note: {
+                                                    contains: search,
+                                                    mode: "insensitive"
+                                                }
+                                            }
+
+                                        ]
+
+                                    }
+
+                                }
+
+                            }
+
+                        ]
+
+                    }
+                    : {},
+
+                include: {
+
+                    histories: {
+
+                        orderBy: {
+                            recordDate: "desc"
+                        },
+
+                        take: 1,
+
+                        select: {
+                            recordDate: true
+                        }
+
+                    },
+
+                    _count: {
+
+                        select: {
+                            histories: true
+                        }
+
+                    }
+
+                },
+
+                orderBy: [
+
+                    {
+                        deviceName: "asc"
+                    },
+
+                    {
+                        serialNumber: "asc"
+                    }
+
+                ]
+
+            });
+
+
+        const result =
+            devices.map(
+                device => ({
+
+                    id:
+                        device.id,
+
+                    deviceName:
+                        device.deviceName,
+
+                    serialNumber:
+                        device.serialNumber,
+
+                    station:
+                        device.station,
+
+                    tandem:
+                        device.tandem,
+
+                    application:
+                        device.application,
+
+                    recordDate:
+                        device.histories.length
+                            ? device.histories[0].recordDate
+                            : null,
+
+                    historyCount:
+                        device._count.histories
+
+                })
+            );
+
 
         res.json(result);
 
@@ -661,7 +1141,7 @@ exports.getAll = async (req, res) => {
 
     catch (err) {
 
-        console.log(err);
+        console.error(err);
 
         res.status(500).json({
 
@@ -675,9 +1155,11 @@ exports.getAll = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // EXPORT VACON HISTORY
-// ============================
+// ============================================================
+
 exports.exportExcel = async (req, res) => {
 
     try {
@@ -702,26 +1184,27 @@ exports.exportExcel = async (req, res) => {
                 orderBy: [
 
                     {
-
                         deviceName: "asc"
-
                     },
 
                     {
-
                         serialNumber: "asc"
-
                     }
 
                 ]
 
             });
 
+
         const workbook =
             new ExcelJS.Workbook();
 
+
         const sheet =
-            workbook.addWorksheet("VACON History");
+            workbook.addWorksheet(
+                "VACON History"
+            );
+
 
         sheet.columns = [
 
@@ -805,7 +1288,18 @@ exports.exportExcel = async (req, res) => {
 
         ];
 
+
+        // Header style
+        sheet.getRow(1).font = {
+            bold: true
+        };
+
+
         for (const device of devices) {
+
+            // =================================================
+            // DEVICE KHÔNG CÓ HISTORY
+            // =================================================
 
             if (!device.histories.length) {
 
@@ -813,15 +1307,20 @@ exports.exportExcel = async (req, res) => {
 
                     recordDate: "",
 
-                    station: device.station,
+                    station:
+                        device.station,
 
-                    tandem: device.tandem,
+                    tandem:
+                        device.tandem,
 
-                    deviceName: device.deviceName,
+                    deviceName:
+                        device.deviceName,
 
-                    serialNumber: device.serialNumber,
+                    serialNumber:
+                        device.serialNumber,
 
-                    application: device.application,
+                    application:
+                        device.application,
 
                     powerUnitDate: "",
 
@@ -840,49 +1339,64 @@ exports.exportExcel = async (req, res) => {
                 });
 
                 continue;
-
             }
 
-            for (const history of device.histories) {
+
+            // =================================================
+            // HISTORY
+            // =================================================
+
+            for (
+                const history
+                of device.histories
+            ) {
 
                 sheet.addRow({
 
                     recordDate:
                         history.recordDate
-                            ? new Date(history.recordDate)
-                                .toLocaleDateString("vi-VN")
+                            ? new Date(
+                                history.recordDate
+                            ).toLocaleDateString(
+                                "vi-VN"
+                            )
                             : "",
 
-                    station: device.station,
+                    station:
+                        device.station,
 
-                    tandem: device.tandem,
+                    tandem:
+                        device.tandem,
 
-                    deviceName: device.deviceName,
+                    deviceName:
+                        device.deviceName,
 
-                    serialNumber: device.serialNumber,
+                    serialNumber:
+                        device.serialNumber,
 
-                    application: device.application,
+                    application:
+                        device.application,
 
                     powerUnitDate:
-                        history.powerUnitDate,
+                        history.powerUnitDate || "",
 
                     operationHours:
-                        history.operationHours,
+                        history.operationHours || "",
 
                     faultHistory:
-                        history.faultHistory,
+                        history.faultHistory || "",
 
                     description:
-                        history.description,
+                        history.description || "",
 
                     possibleCause:
-                        history.possibleCause,
+                        history.possibleCause || "",
 
                     correctiveActions:
-                        history.correctiveActions,
+                        history.correctiveActions || "",
 
                     note:
-                        history.note
+                        history.note || ""
 
                 });
 
@@ -890,21 +1404,18 @@ exports.exportExcel = async (req, res) => {
 
         }
 
-        res.setHeader(
 
+        res.setHeader(
             "Content-Type",
-
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
         );
+
 
         res.setHeader(
-
             "Content-Disposition",
-
             'attachment; filename="Vacon_History.xlsx"'
-
         );
+
 
         await workbook.xlsx.write(res);
 
@@ -928,48 +1439,66 @@ exports.exportExcel = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // GET ONE DEVICE
-// ============================
+// ============================================================
+
 exports.getOne = async (req, res) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(req.params.id);
 
-        const device = await prisma.vaconDevice.findUnique({
 
-            where: {
+        if (isNaN(id)) {
 
-                id
+            return res.status(400).json({
 
-            },
+                message:
+                    "ID không hợp lệ"
 
-            include: {
+            });
 
-                histories: {
+        }
 
-                    orderBy: {
 
-                        recordDate: "desc"
+        const device =
+            await prisma.vaconDevice.findUnique({
+
+                where: {
+                    id
+                },
+
+                include: {
+
+                    histories: {
+
+                        orderBy: {
+
+                            recordDate: "desc"
+
+                        }
 
                     }
 
                 }
 
-            }
+            });
 
-        });
 
         if (!device) {
 
             return res.status(404).json({
 
-                message: "Không tìm thấy thiết bị"
+                message:
+                    "Không tìm thấy thiết bị"
 
             });
 
         }
+
 
         res.json(device);
 
@@ -981,7 +1510,8 @@ exports.getOne = async (req, res) => {
 
         res.status(500).json({
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -989,9 +1519,11 @@ exports.getOne = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // CREATE DEVICE
-// ============================
+// ============================================================
+
 exports.create = async (req, res) => {
 
     try {
@@ -1010,23 +1542,31 @@ exports.create = async (req, res) => {
 
         } = req.body;
 
-        const device = await prisma.vaconDevice.create({
 
-            data: {
+        const device =
+            await prisma.vaconDevice.create({
 
-                deviceName,
+                data: {
 
-                serialNumber,
+                    deviceName:
+                        normalize(deviceName),
 
-                station,
+                    serialNumber:
+                        normalize(serialNumber),
 
-                tandem,
+                    station:
+                        normalize(station),
 
-                application
+                    tandem:
+                        normalize(tandem),
 
-            }
+                    application:
+                        normalize(application)
 
-        });
+                }
+
+            });
+
 
         res.json(device);
 
@@ -1038,7 +1578,8 @@ exports.create = async (req, res) => {
 
         res.status(500).json({
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1047,14 +1588,29 @@ exports.create = async (req, res) => {
 };
 
 
-// ============================
+// ============================================================
 // UPDATE DEVICE
-// ============================
+// ============================================================
+
 exports.update = async (req, res) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(req.params.id);
+
+
+        if (isNaN(id)) {
+
+            return res.status(400).json({
+
+                message:
+                    "ID không hợp lệ"
+
+            });
+
+        }
+
 
         const {
 
@@ -1070,29 +1626,61 @@ exports.update = async (req, res) => {
 
         } = req.body;
 
-        const device = await prisma.vaconDevice.update({
 
-            where: {
+        const data = {};
 
-                id
 
-            },
+        if (
+            deviceName !== undefined
+        ) {
+            data.deviceName =
+                normalize(deviceName);
+        }
 
-            data: {
 
-                deviceName,
+        if (
+            serialNumber !== undefined
+        ) {
+            data.serialNumber =
+                normalize(serialNumber);
+        }
 
-                serialNumber,
 
-                station,
+        if (
+            station !== undefined
+        ) {
+            data.station =
+                normalize(station);
+        }
 
-                tandem,
 
-                application
+        if (
+            tandem !== undefined
+        ) {
+            data.tandem =
+                normalize(tandem);
+        }
 
-            }
 
-        });
+        if (
+            application !== undefined
+        ) {
+            data.application =
+                normalize(application);
+        }
+
+
+        const device =
+            await prisma.vaconDevice.update({
+
+                where: {
+                    id
+                },
+
+                data
+
+            });
+
 
         res.json(device);
 
@@ -1104,7 +1692,8 @@ exports.update = async (req, res) => {
 
         res.status(500).json({
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1112,14 +1701,32 @@ exports.update = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // DELETE DEVICE
-// ============================
+// ============================================================
+
 exports.remove = async (req, res) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(req.params.id);
+
+
+        if (isNaN(id)) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "ID không hợp lệ"
+
+            });
+
+        }
+
 
         await prisma.vaconHistory.deleteMany({
 
@@ -1131,6 +1738,7 @@ exports.remove = async (req, res) => {
 
         });
 
+
         await prisma.vaconDevice.delete({
 
             where: {
@@ -1141,11 +1749,13 @@ exports.remove = async (req, res) => {
 
         });
 
+
         res.json({
 
             success: true,
 
-            message: "Đã xóa thiết bị"
+            message:
+                "Đã xóa thiết bị"
 
         });
 
@@ -1159,7 +1769,8 @@ exports.remove = async (req, res) => {
 
             success: false,
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1167,9 +1778,11 @@ exports.remove = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // PREVIEW IMPORT
-// ============================
+// ============================================================
+
 exports.previewImport = async (req, res) => {
 
     try {
@@ -1180,117 +1793,218 @@ exports.previewImport = async (req, res) => {
 
                 success: false,
 
-                message: "Chưa chọn file"
+                message:
+                    "Chưa chọn file"
 
             });
 
         }
 
-       // Đọc Excel
-        const rows = await parseExcel(req.file);
-        
-        console.log("========== PREVIEW IMPORT ==========");
-        console.log("Excel rows:", rows.length);
-        
+
+        // ====================================================
+        // PARSE EXCEL
+        // ====================================================
+
+        const rows =
+            await parseExcel(
+                req.file
+            );
+
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "========== PREVIEW IMPORT VACON =========="
+        );
+
+        console.log(
+            "Excel rows:",
+            rows.length
+        );
+
+
         if (rows.length) {
-            console.log("First Excel row:");
-            console.log(rows[0]);
+
+            console.log(
+                "First Excel row:"
+            );
+
+            console.log(
+                rows[0]
+            );
+
         }
-        
-        // So sánh
-        const compare = await compareRows(rows);
-        
-        console.log("Compare rows:", compare.length);
-        
+
+
+        // ====================================================
+        // COMPARE
+        // ====================================================
+
+        const compare =
+            await compareRows(
+                rows
+            );
+
+
+        console.log(
+            "Compare rows:",
+            compare.length
+        );
+
+
         if (compare.length) {
-            console.log("First compare row:");
-            console.log(compare[0]);
+
+            console.log(
+                "First compare row:"
+            );
+
+            console.log(
+                compare[0]
+            );
+
         }
-        
-        // Thống kê
+
+
+        // ====================================================
+        // SUMMARY
+        // ====================================================
+
         const summary = {
 
-            total: compare.length,
-        
-            newCount:
-                compare.filter(x => x.status === "NEW").length,
-        
-            deviceUpdateCount:
-                compare.filter(x => x.status === "UPDATE_DEVICE").length,
-        
-            historyUpdateCount:
-                compare.filter(x => x.status === "UPDATE_HISTORY").length,
-        
-            bothUpdateCount:
-                compare.filter(x => x.status === "UPDATE_BOTH").length,
-        
-            skipCount:
-                compare.filter(x => x.status === "SKIP").length
-        
-        };
-        
-        console.log("Summary:", summary);
-        console.log("==============================");
+            total:
+                compare.length,
 
-        // Xóa Preview cũ của user (nếu có)
+            newCount:
+                compare.filter(
+                    x =>
+                        x.status === "NEW"
+                ).length,
+
+            deviceUpdateCount:
+                compare.filter(
+                    x =>
+                        x.status === "UPDATE_DEVICE"
+                ).length,
+
+            historyUpdateCount:
+                compare.filter(
+                    x =>
+                        x.status === "UPDATE_HISTORY"
+                ).length,
+
+            bothUpdateCount:
+                compare.filter(
+                    x =>
+                        x.status === "UPDATE_BOTH"
+                ).length,
+
+            skipCount:
+                compare.filter(
+                    x =>
+                        x.status === "SKIP"
+                ).length
+
+        };
+
+
+        // Tổng số UPDATE
+        summary.updateCount =
+            summary.deviceUpdateCount +
+            summary.historyUpdateCount +
+            summary.bothUpdateCount;
+
+
+        console.log(
+            "Summary:",
+            summary
+        );
+
+
+        console.log(
+            "========================================"
+        );
+
+
+        // ====================================================
+        // DELETE OLD SESSION
+        // ====================================================
+
         await prisma.importSession.deleteMany({
 
             where: {
 
-                module: "VACON",
+                module:
+                    "VACON",
 
-                userId: req.user.id
-
-            }
-
-        });
-
-        // Tạo Preview mới
-        const session = await prisma.importSession.create({
-
-            data: {
-
-                module: "VACON",
-
-                filename: req.file.originalname,
-
-                data: compare,
-
-                total: summary.total,
-
-                newCount: summary.newCount,
-
-                updateCount:
-
-                    summary.deviceUpdateCount +
-                
-                    summary.historyUpdateCount +
-                
-                    summary.bothUpdateCount,
-
-                skipCount: summary.skipCount,
-
-                userId: req.user.id,
-
-                expiredAt: new Date(
-
-                    Date.now() + 30 * 60 * 1000
-
-                )
+                userId:
+                    req.user?.id || null
 
             }
 
         });
+
+
+        // ====================================================
+        // CREATE SESSION
+        // ====================================================
+
+        const session =
+            await prisma.importSession.create({
+
+                data: {
+
+                    module:
+                        "VACON",
+
+                    filename:
+                        req.file.originalname,
+
+                    data:
+                        compare,
+
+                    total:
+                        summary.total,
+
+                    newCount:
+                        summary.newCount,
+
+                    updateCount:
+                        summary.updateCount,
+
+                    skipCount:
+                        summary.skipCount,
+
+                    userId:
+                        req.user?.id || null,
+
+                    expiredAt:
+                        new Date(
+                            Date.now() +
+                            30 * 60 * 1000
+                        )
+
+                }
+
+            });
+
+
+        // ====================================================
+        // RESPONSE
+        // ====================================================
 
         res.json({
 
             success: true,
 
-            sessionId: session.id,
+            sessionId:
+                session.id,
 
             summary,
 
-            rows: compare
+            rows:
+                compare
 
         });
 
@@ -1298,13 +2012,17 @@ exports.previewImport = async (req, res) => {
 
     catch (err) {
 
-        console.error(err);
+        console.error(
+            "PREVIEW IMPORT ERROR:",
+            err
+        );
 
         res.status(500).json({
 
             success: false,
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1312,14 +2030,19 @@ exports.previewImport = async (req, res) => {
 
 };
 
-// ============================
+
+// ============================================================
 // IMPORT FROM PREVIEW
-// ============================
+// ============================================================
+
 exports.importExcel = async (req, res) => {
 
     try {
 
-        const { sessionId } = req.body;
+        const {
+            sessionId
+        } = req.body;
+
 
         if (!sessionId) {
 
@@ -1327,21 +2050,30 @@ exports.importExcel = async (req, res) => {
 
                 success: false,
 
-                message: "Thiếu sessionId"
+                message:
+                    "Thiếu sessionId"
 
             });
 
         }
 
-        const session = await prisma.importSession.findUnique({
 
-            where: {
+        // ====================================================
+        // GET SESSION
+        // ====================================================
 
-                id: sessionId
+        const session =
+            await prisma.importSession.findUnique({
 
-            }
+                where: {
 
-        });
+                    id:
+                        sessionId
+
+                }
+
+            });
+
 
         if (!session) {
 
@@ -1349,478 +2081,552 @@ exports.importExcel = async (req, res) => {
 
                 success: false,
 
-                message: "Preview không tồn tại"
+                message:
+                    "Preview không tồn tại"
 
             });
 
         }
 
-        if (session.module !== "VACON") {
+
+        if (
+            session.module !== "VACON"
+        ) {
 
             return res.status(400).json({
 
                 success: false,
 
-                message: "Sai module"
+                message:
+                    "Sai module"
 
             });
 
         }
 
-        if (new Date(session.expiredAt) < new Date()) {
+
+        if (
+            new Date(
+                session.expiredAt
+            ) < new Date()
+        ) {
 
             await prisma.importSession.delete({
 
                 where: {
 
-                    id: session.id
+                    id:
+                        session.id
 
                 }
 
             });
+
 
             return res.status(400).json({
 
                 success: false,
 
-                message: "Preview đã hết hạn"
+                message:
+                    "Preview đã hết hạn"
 
             });
 
         }
 
-        const rows = session.data;
 
-        let created = 0;
-        let updated = 0;
-        let skipped = 0;
-        let histories = 0;
+        const rows =
+            Array.isArray(session.data)
+                ? session.data
+                : [];
 
-        for (const item of rows) {
 
-            if (item.status === "NEW") {
+        let created =
+            0;
 
-                const device = await prisma.vaconDevice.upsert({
+        let updated =
+            0;
 
-                    where: {
-                
-                        serialNumber: item.serialNumber
-                
-                    },
-                
-                    update: {
-                
-                        deviceName: item.deviceName,
-                
-                        station: item.station,
-                
-                        tandem: item.tandem,
-                
-                        application: item.application
-                
-                    },
-                
-                    create: {
-                
-                        deviceName: item.deviceName,
-                
-                        serialNumber: item.serialNumber,
-                
-                        station: item.station,
-                
-                        tandem: item.tandem,
-                
-                        application: item.application
-                
-                    }
-                
-                });
+        let skipped =
+            0;
 
-                if (item.status === "NEW") {
+        let histories =
+            0;
 
-                    created++;
-                
-                }
 
-                const existed = await prisma.vaconHistory.findFirst({
+        // ====================================================
+        // IMPORT
+        // ====================================================
 
-                    where: {
-                
-                        deviceId: device.id,
-                
-                        recordDate: item.recordDate,
-                
-                        operationHours: item.operationHours,
-                
-                        powerUnitDate:
-                            item.powerUnitDate == null
-                                ? null
-                                : String(item.powerUnitDate),
-                
-                        faultHistory: item.faultHistory
-                
-                    }
-                
-                });
-                
-                if (!existed) {
-                
-                    await prisma.vaconHistory.create({
-                
-                        data: {
-                
-                            deviceId: device.id,
-                
-                            recordDate: item.recordDate,
-                
-                            operationHours: item.operationHours,
-                
-                            powerUnitDate:
-                                item.powerUnitDate == null
-                                    ? null
-                                    : String(item.powerUnitDate),
-                
-                            faultHistory: item.faultHistory,
-                
-                            description: item.description,
-                
-                            possibleCause: item.possibleCause,
-                
-                            correctiveActions: item.correctiveActions,
-                
-                            note: item.note
-                
+        for (
+            const item
+            of rows
+        ) {
+
+            // =================================================
+            // NEW
+            // =================================================
+
+            if (
+                item.status === "NEW"
+            ) {
+
+                const device =
+                    await prisma.vaconDevice.upsert({
+
+                        where: {
+
+                            serialNumber:
+                                item.serialNumber
+
+                        },
+
+                        update: {
+
+                            deviceName:
+                                item.deviceName,
+
+                            station:
+                                item.station,
+
+                            tandem:
+                                item.tandem,
+
+                            application:
+                                item.application
+
+                        },
+
+                        create: {
+
+                            deviceName:
+                                item.deviceName,
+
+                            serialNumber:
+                                item.serialNumber,
+
+                            station:
+                                item.station,
+
+                            tandem:
+                                item.tandem,
+
+                            application:
+                                item.application
+
                         }
-                
+
                     });
-                
+
+
+                created++;
+
+
+                // =============================================
+                // HISTORY
+                // =============================================
+
+                const existed =
+                    await prisma.vaconHistory.findFirst({
+
+                        where: {
+
+                            deviceId:
+                                device.id,
+
+                            recordDate:
+                                item.recordDate,
+
+                            operationHours:
+                                item.operationHours,
+
+                            powerUnitDate:
+                                item.powerUnitDate || null,
+
+                            faultHistory:
+                                item.faultHistory || null
+
+                        }
+
+                    });
+
+
+                if (!existed) {
+
+                    await prisma.vaconHistory.create({
+
+                        data: {
+
+                            deviceId:
+                                device.id,
+
+                            recordDate:
+                                item.recordDate,
+
+                            operationHours:
+                                item.operationHours || null,
+
+                            powerUnitDate:
+                                item.powerUnitDate || null,
+
+                            faultHistory:
+                                item.faultHistory || null,
+
+                            description:
+                                item.description || null,
+
+                            possibleCause:
+                                item.possibleCause || null,
+
+                            correctiveActions:
+                                item.correctiveActions || null,
+
+                            note:
+                                item.note || null
+
+                        }
+
+                    });
+
+
                     histories++;
-                
+
                 }
+
                 else {
-                
+
                     skipped++;
-                
+
                 }
 
-                continue;
 
+                continue;
             }
 
-            if (item.status === "UPDATE_DEVICE") {
+
+            // =================================================
+            // UPDATE DEVICE
+            // =================================================
+
+            if (
+                item.status === "UPDATE_DEVICE"
+            ) {
 
                 await prisma.vaconDevice.update({
-            
+
                     where: {
-                        id: item.deviceId
+
+                        id:
+                            Number(
+                                item.deviceId
+                            )
+
                     },
-            
-                    data: item.updateData
-            
+
+                    data:
+                        item.updateData || {}
+
                 });
-            
+
+
                 updated++;
-            
+
                 continue;
-            
             }
 
-            if (item.status === "UPDATE_HISTORY") {
 
-                // ==========================================
-                // Tìm lịch sử cũ
-                // ==========================================
-            
-                const existed = await prisma.vaconHistory.findFirst({
-            
-                    where: {
-            
-                        deviceId: item.deviceId,
-            
-                        recordDate: item.recordDate,
-            
-                        operationHours: item.operationHours,
-            
-                        powerUnitDate:
-                            item.powerUnitDate == null
-                                ? null
-                                : String(item.powerUnitDate),
-            
-                        faultHistory: item.faultHistory
-            
-                    },
-            
-                    orderBy: {
-            
-                        id: "desc"
-            
-                    }
-            
-                });
-            
-            
-                // ==========================================
-                // Không tìm thấy → tạo mới
-                // ==========================================
-            
-                if (!existed) {
-            
-                    await prisma.vaconHistory.create({
-            
-                        data: {
-            
-                            deviceId: item.deviceId,
-            
-                            recordDate: item.recordDate,
-            
-                            operationHours:
-                                item.operationHours,
-            
-                            powerUnitDate:
-                                item.powerUnitDate == null
-                                    ? null
-                                    : String(item.powerUnitDate),
-            
-                            faultHistory:
-                                item.faultHistory,
-            
-                            description:
-                                item.description,
-            
-                            possibleCause:
-                                item.possibleCause,
-            
-                            correctiveActions:
-                                item.correctiveActions,
-            
-                            note:
-                                item.note
-            
-                        }
-            
-                    });
-            
-                    histories++;
-            
-                }
-            
-                // ==========================================
-                // Đã có → CẬP NHẬT
-                // ==========================================
-            
-                else {
-            
+            // =================================================
+            // UPDATE HISTORY
+            // =================================================
+
+            if (
+                item.status === "UPDATE_HISTORY"
+            ) {
+
+                // ---------------------------------------------
+                // Có historyId → UPDATE TRỰC TIẾP
+                // ---------------------------------------------
+
+                if (item.historyId) {
+
                     await prisma.vaconHistory.update({
-            
+
                         where: {
-            
-                            id: existed.id
-            
+
+                            id:
+                                Number(
+                                    item.historyId
+                                )
+
                         },
-            
+
                         data: {
-            
+
                             recordDate:
                                 item.recordDate,
-            
+
                             operationHours:
-                                item.operationHours,
-            
+                                item.operationHours || null,
+
                             powerUnitDate:
-                                item.powerUnitDate == null
-                                    ? null
-                                    : String(item.powerUnitDate),
-            
+                                item.powerUnitDate || null,
+
                             faultHistory:
-                                item.faultHistory,
-            
+                                item.faultHistory || null,
+
                             description:
-                                item.description,
-            
+                                item.description || null,
+
                             possibleCause:
-                                item.possibleCause,
-            
+                                item.possibleCause || null,
+
                             correctiveActions:
-                                item.correctiveActions,
-            
+                                item.correctiveActions || null,
+
                             note:
-                                item.note
-            
+                                item.note || null
+
                         }
-            
+
                     });
-            
+
+
                     updated++;
-            
-                }
-            
-                continue;
-            
-            }
 
-           if (item.status === "UPDATE_BOTH") {
-
-                // ==========================================
-                // 1. Cập nhật thiết bị
-                // ==========================================
-            
-                await prisma.vaconDevice.update({
-            
-                    where: {
-            
-                        id: item.deviceId
-            
-                    },
-            
-                    data: item.updateData
-            
-                });
-            
-            
-                // ==========================================
-                // 2. Tìm lịch sử
-                // ==========================================
-            
-                const existed = await prisma.vaconHistory.findFirst({
-            
-                    where: {
-            
-                        deviceId: item.deviceId,
-            
-                        recordDate: item.recordDate,
-            
-                        operationHours: item.operationHours,
-            
-                        powerUnitDate:
-                            item.powerUnitDate == null
-                                ? null
-                                : String(item.powerUnitDate),
-            
-                        faultHistory: item.faultHistory
-            
-                    },
-            
-                    orderBy: {
-            
-                        id: "desc"
-            
-                    }
-            
-                });
-            
-            
-                // ==========================================
-                // 3. Không có → tạo lịch sử
-                // ==========================================
-            
-                if (!existed) {
-            
-                    await prisma.vaconHistory.create({
-            
-                        data: {
-            
-                            deviceId: item.deviceId,
-            
-                            recordDate: item.recordDate,
-            
-                            operationHours:
-                                item.operationHours,
-            
-                            powerUnitDate:
-                                item.powerUnitDate == null
-                                    ? null
-                                    : String(item.powerUnitDate),
-            
-                            faultHistory:
-                                item.faultHistory,
-            
-                            description:
-                                item.description,
-            
-                            possibleCause:
-                                item.possibleCause,
-            
-                            correctiveActions:
-                                item.correctiveActions,
-            
-                            note:
-                                item.note
-            
-                        }
-            
-                    });
-            
-                    histories++;
-            
                 }
-            
-                // ==========================================
-                // 4. Có → cập nhật lịch sử
-                // ==========================================
-            
+
+                // ---------------------------------------------
+                // Không có historyId → CREATE
+                // ---------------------------------------------
+
                 else {
-            
-                    await prisma.vaconHistory.update({
-            
-                        where: {
-            
-                            id: existed.id
-            
-                        },
-            
+
+                    await prisma.vaconHistory.create({
+
                         data: {
-            
+
+                            deviceId:
+                                Number(
+                                    item.deviceId
+                                ),
+
                             recordDate:
                                 item.recordDate,
-            
+
                             operationHours:
-                                item.operationHours,
-            
+                                item.operationHours || null,
+
                             powerUnitDate:
-                                item.powerUnitDate == null
-                                    ? null
-                                    : String(item.powerUnitDate),
-            
+                                item.powerUnitDate || null,
+
                             faultHistory:
-                                item.faultHistory,
-            
+                                item.faultHistory || null,
+
                             description:
-                                item.description,
-            
+                                item.description || null,
+
                             possibleCause:
-                                item.possibleCause,
-            
+                                item.possibleCause || null,
+
                             correctiveActions:
-                                item.correctiveActions,
-            
+                                item.correctiveActions || null,
+
                             note:
-                                item.note
-            
+                                item.note || null
+
                         }
-            
+
                     });
-            
+
+
+                    histories++;
                 }
-            
-                updated++;
-            
+
+
                 continue;
-            
             }
+
+
+            // =================================================
+            // UPDATE BOTH
+            // =================================================
+
+            if (
+                item.status === "UPDATE_BOTH"
+            ) {
+
+                // ---------------------------------------------
+                // 1. UPDATE DEVICE
+                // ---------------------------------------------
+
+                if (
+                    item.updateData &&
+                    Object.keys(
+                        item.updateData
+                    ).length > 0
+                ) {
+
+                    await prisma.vaconDevice.update({
+
+                        where: {
+
+                            id:
+                                Number(
+                                    item.deviceId
+                                )
+
+                        },
+
+                        data:
+                            item.updateData
+
+                    });
+
+                }
+
+
+                // ---------------------------------------------
+                // 2. UPDATE HISTORY
+                // ---------------------------------------------
+
+                if (item.historyId) {
+
+                    await prisma.vaconHistory.update({
+
+                        where: {
+
+                            id:
+                                Number(
+                                    item.historyId
+                                )
+
+                        },
+
+                        data: {
+
+                            recordDate:
+                                item.recordDate,
+
+                            operationHours:
+                                item.operationHours || null,
+
+                            powerUnitDate:
+                                item.powerUnitDate || null,
+
+                            faultHistory:
+                                item.faultHistory || null,
+
+                            description:
+                                item.description || null,
+
+                            possibleCause:
+                                item.possibleCause || null,
+
+                            correctiveActions:
+                                item.correctiveActions || null,
+
+                            note:
+                                item.note || null
+
+                        }
+
+                    });
+
+
+                    updated++;
+
+                }
+
+                else {
+
+                    await prisma.vaconHistory.create({
+
+                        data: {
+
+                            deviceId:
+                                Number(
+                                    item.deviceId
+                                ),
+
+                            recordDate:
+                                item.recordDate,
+
+                            operationHours:
+                                item.operationHours || null,
+
+                            powerUnitDate:
+                                item.powerUnitDate || null,
+
+                            faultHistory:
+                                item.faultHistory || null,
+
+                            description:
+                                item.description || null,
+
+                            possibleCause:
+                                item.possibleCause || null,
+
+                            correctiveActions:
+                                item.correctiveActions || null,
+
+                            note:
+                                item.note || null
+
+                        }
+
+                    });
+
+
+                    histories++;
+                }
+
+
+                continue;
+            }
+
+
+            // =================================================
+            // SKIP
+            // =================================================
+
+            if (
+                item.status === "SKIP"
+            ) {
+
+                skipped++;
+
+                continue;
+            }
+
+
+            // =================================================
+            // UNKNOWN STATUS
+            // =================================================
 
             skipped++;
 
         }
 
+
+        // ====================================================
+        // DELETE SESSION
+        // ====================================================
+
         await prisma.importSession.delete({
 
             where: {
 
-                id: session.id
+                id:
+                    session.id
 
             }
 
         });
+
+
+        // ====================================================
+        // RESPONSE
+        // ====================================================
 
         res.json({
 
@@ -1828,7 +2634,8 @@ exports.importExcel = async (req, res) => {
 
             summary: {
 
-                total: rows.length,
+                total:
+                    rows.length,
 
                 created,
 
@@ -1846,13 +2653,369 @@ exports.importExcel = async (req, res) => {
 
     catch (err) {
 
+        console.error(
+            "IMPORT VACON ERROR:",
+            err
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message:
+                err.message
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// GET HISTORY BY DEVICE
+// ============================================================
+
+exports.getHistory = async (req, res) => {
+
+    try {
+
+        const deviceId =
+            Number(
+                req.params.deviceId
+            );
+
+
+        if (isNaN(deviceId)) {
+
+            return res.status(400).json({
+
+                message:
+                    "deviceId không hợp lệ"
+
+            });
+
+        }
+
+
+        const device =
+            await prisma.vaconDevice.findUnique({
+
+                where: {
+
+                    id:
+                        deviceId
+
+                },
+
+                include: {
+
+                    histories: {
+
+                        orderBy: {
+
+                            recordDate:
+                                "desc"
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+
+        if (!device) {
+
+            return res.status(404).json({
+
+                message:
+                    "Không tìm thấy thiết bị"
+
+            });
+
+        }
+
+
+        res.json({
+
+            device: {
+
+                id:
+                    device.id,
+
+                deviceName:
+                    device.deviceName,
+
+                serialNumber:
+                    device.serialNumber,
+
+                station:
+                    device.station,
+
+                tandem:
+                    device.tandem,
+
+                application:
+                    device.application
+
+            },
+
+            histories:
+                device.histories
+
+        });
+
+    }
+
+    catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+
+            message:
+                err.message
+
+        });
+
+    }
+
+};
+
+
+// ============================================================
+// MIGRATE VACON RECORD
+// ============================================================
+
+exports.migrateData = async (req, res) => {
+
+    try {
+
+        const records =
+            await prisma.vaconRecord.findMany({
+
+                orderBy: {
+
+                    recordDate:
+                        "asc"
+
+                }
+
+            });
+
+
+        let deviceCount =
+            0;
+
+        let historyCount =
+            0;
+
+
+        for (
+            const row
+            of records
+        ) {
+
+            if (!row.deviceName) {
+                continue;
+            }
+
+
+            let device =
+                null;
+
+
+            // =================================================
+            // FIND BY SERIAL
+            // =================================================
+
+            if (row.serialNumber) {
+
+                device =
+                    await prisma.vaconDevice.findUnique({
+
+                        where: {
+
+                            serialNumber:
+                                row.serialNumber
+
+                        }
+
+                    });
+
+            }
+
+
+            // =================================================
+            // CREATE DEVICE
+            // =================================================
+
+            if (!device) {
+
+                device =
+                    await prisma.vaconDevice.create({
+
+                        data: {
+
+                            deviceName:
+                                row.deviceName,
+
+                            serialNumber:
+                                row.serialNumber,
+
+                            station:
+                                row.station,
+
+                            tandem:
+                                row.tandem,
+
+                            application:
+                                row.application
+
+                        }
+
+                    });
+
+
+                deviceCount++;
+
+            }
+
+            // =================================================
+            // UPDATE DEVICE
+            // =================================================
+
+            else {
+
+                await prisma.vaconDevice.update({
+
+                    where: {
+
+                        id:
+                            device.id
+
+                    },
+
+                    data: {
+
+                        deviceName:
+                            row.deviceName,
+
+                        station:
+                            row.station,
+
+                        tandem:
+                            row.tandem,
+
+                        application:
+                            row.application
+
+                    }
+
+                });
+
+            }
+
+
+            // =================================================
+            // FIND HISTORY
+            // =================================================
+
+            const existed =
+                await prisma.vaconHistory.findFirst({
+
+                    where: {
+
+                        deviceId:
+                            device.id,
+
+                        recordDate:
+                            row.recordDate,
+
+                        operationHours:
+                            row.operationHours
+
+                    }
+
+                });
+
+
+            if (existed) {
+                continue;
+            }
+
+
+            // =================================================
+            // CREATE HISTORY
+            // =================================================
+
+            await prisma.vaconHistory.create({
+
+                data: {
+
+                    deviceId:
+                        device.id,
+
+                    recordDate:
+                        row.recordDate,
+
+                    operationHours:
+                        row.operationHours,
+
+                    powerUnitDate:
+                        row.powerUnitDate,
+
+                    faultHistory:
+                        row.faultHistory,
+
+                    description:
+                        row.description,
+
+                    possibleCause:
+                        row.possibleCause,
+
+                    correctiveActions:
+                        row.correctiveActions,
+
+                    note:
+                        row.note
+
+                }
+
+            });
+
+
+            historyCount++;
+
+        }
+
+
+        res.json({
+
+            success: true,
+
+            devices:
+                deviceCount,
+
+            histories:
+                historyCount
+
+        });
+
+    }
+
+    catch (err) {
+
         console.error(err);
 
         res.status(500).json({
 
             success: false,
 
-            message: err.message
+            message:
+                err.message
 
         });
 
@@ -1860,291 +3023,32 @@ exports.importExcel = async (req, res) => {
 
 };
 
-// ============================
-// GET HISTORY BY DEVICE
-// ============================
-exports.getHistory = async (req, res) => {
 
-  try {
-
-    const deviceId = Number(req.params.deviceId);
-
-    if (isNaN(deviceId)) {
-
-      return res.status(400).json({
-
-        message: "deviceId không hợp lệ"
-
-      });
-
-    }
-
-    const device =
-      await prisma.vaconDevice.findUnique({
-
-        where: {
-
-          id: deviceId
-
-        },
-
-        include: {
-
-          histories: {
-
-            orderBy: {
-
-              recordDate: "desc"
-
-            }
-
-          }
-
-        }
-
-      });
-
-    if (!device) {
-
-      return res.status(404).json({
-
-        message: "Không tìm thấy thiết bị"
-
-      });
-
-    }
-
-    res.json({
-
-      device: {
-
-        id: device.id,
-
-        deviceName: device.deviceName,
-
-        serialNumber: device.serialNumber,
-
-        station: device.station,
-
-        tandem: device.tandem,
-
-        application: device.application
-
-      },
-
-      histories: device.histories
-
-    });
-
-  }
-
-  catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-
-      message: err.message
-
-    });
-
-  }
-
-};
-
-// ============================
-// MIGRATE VACON RECORD -> DEVICE + HISTORY
-// ============================
-exports.migrateData = async (req, res) => {
-
-  try {
-
-    const records = await prisma.vaconRecord.findMany({
-
-      orderBy: {
-
-        recordDate: "asc"
-
-      }
-
-    });
-
-    let deviceCount = 0;
-    let historyCount = 0;
-
-    for (const row of records) {
-
-      if (!row.deviceName) continue;
-
-      let device = null;
-
-      // ==========================
-      // Tìm theo Serial Number
-      // ==========================
-
-      if (row.serialNumber) {
-
-        device = await prisma.vaconDevice.findUnique({
-
-          where: {
-
-            serialNumber: row.serialNumber
-
-          }
-
-        });
-
-      }
-
-      // ==========================
-      // Nếu chưa có thì tạo
-      // ==========================
-
-      if (!device) {
-
-        device = await prisma.vaconDevice.create({
-
-          data: {
-
-            deviceName: row.deviceName,
-
-            serialNumber: row.serialNumber,
-
-            station: row.station,
-
-            tandem: row.tandem,
-
-            application: row.application
-
-          }
-
-        });
-
-        deviceCount++;
-
-      }
-
-      // ==========================
-      // Nếu đã có thì cập nhật
-      // ==========================
-
-      else {
-
-        await prisma.vaconDevice.update({
-
-          where: {
-
-            id: device.id
-
-          },
-
-          data: {
-
-            deviceName: row.deviceName,
-
-            station: row.station,
-
-            tandem: row.tandem,
-
-            application: row.application
-
-          }
-
-        });
-
-      }
-
-      // ==========================
-      // Kiểm tra lịch sử đã tồn tại
-      // ==========================
-
-      const existed = await prisma.vaconHistory.findFirst({
-
-        where: {
-
-          deviceId: device.id,
-
-          recordDate: row.recordDate,
-
-          operationHours: row.operationHours
-
-        }
-
-      });
-
-      if (existed) {
-
-        continue;
-
-      }
-
-      // ==========================
-      // Thêm lịch sử
-      // ==========================
-
-      await prisma.vaconHistory.create({
-
-        data: {
-
-          deviceId: device.id,
-
-          recordDate: row.recordDate,
-
-          operationHours: row.operationHours,
-
-          powerUnitDate: row.powerUnitDate,
-
-          faultHistory: row.faultHistory,
-
-          description: row.description,
-
-          possibleCause: row.possibleCause,
-
-          correctiveActions: row.correctiveActions,
-
-          note: row.note
-
-        }
-
-      });
-
-      historyCount++;
-
-    }
-
-    res.json({
-
-      success: true,
-
-      devices: deviceCount,
-
-      histories: historyCount
-
-    });
-
-  }
-
-  catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-
-      success: false,
-
-      message: err.message
-
-    });
-
-  }
-
-};
+// ============================================================
+// UPDATE HISTORY
+// ============================================================
 
 exports.updateHistory = async (req, res) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const id =
+            Number(
+                req.params.id
+            );
+
+
+        if (isNaN(id)) {
+
+            return res.status(400).json({
+
+                message:
+                    "ID lịch sử không hợp lệ"
+
+            });
+
+        }
+
 
         const item =
             await prisma.vaconHistory.update({
@@ -2159,45 +3063,49 @@ exports.updateHistory = async (req, res) => {
 
                     recordDate:
                         req.body.recordDate
-                            ? new Date(req.body.recordDate)
+                            ? new Date(
+                                req.body.recordDate
+                            )
                             : null,
 
                     operationHours:
-                        req.body.operationHours,
+                        req.body.operationHours || null,
 
                     powerUnitDate:
-                        req.body.powerUnitDate,
+                        req.body.powerUnitDate || null,
 
                     faultHistory:
-                        req.body.faultHistory,
+                        req.body.faultHistory || null,
 
                     description:
-                        req.body.description,
+                        req.body.description || null,
 
                     possibleCause:
-                        req.body.possibleCause,
+                        req.body.possibleCause || null,
 
                     correctiveActions:
-                        req.body.correctiveActions,
+                        req.body.correctiveActions || null,
 
                     note:
-                        req.body.note
+                        req.body.note || null
 
                 }
 
             });
 
+
         res.json(item);
 
     }
 
-    catch(err){
+    catch (err) {
 
         console.error(err);
 
         res.status(500).json({
 
-            message: err.message
+            message:
+                err.message
 
         });
 
