@@ -8,7 +8,7 @@ import AbbEditModal from "../components/Fault/AbbEditModal";
 import VaconHistoryEditModal from "../components/Fault/VaconHistoryEditModal";
 import VaconDeviceTable from "../components/Fault/VaconDeviceTable";
 import VaconHistoryModal from "../components/Fault/VaconHistoryModal";
-import PreviewImportModal from "../components/PreviewImportModal";
+import PreviewImportModal from "../components/Fault/PreviewImportModal";
 
 import {
     Upload,
