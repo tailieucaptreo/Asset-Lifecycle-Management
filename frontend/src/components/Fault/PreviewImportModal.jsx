@@ -2,17 +2,10 @@ import { useState } from "react";
 import {
     X,
     ChevronRight,
-    ChevronDown,
     AlertTriangle,
     CheckCircle2,
     Upload
 } from "lucide-react";
-
-const ACTION = {
-    NEW: "NEW",
-    UPDATE: "UPDATE",
-    SKIP: "SKIP",
-};
 
 const statusConfig = {
     NEW: {
@@ -40,8 +33,43 @@ export default function PreviewImportModal({
     onClose,
     onConfirm,
 }) {
+
+    /*
+     * QUAN TRỌNG:
+     * Không được return trước khi khai báo Hook.
+     */
+
     const [filter, setFilter] = useState("ALL");
 
+    const getAction = (item) => {
+        return String(
+            item?.action ||
+            item?.status ||
+            item?.result ||
+            "SKIP"
+        ).toUpperCase();
+    };
+
+    const getRow = (item) => {
+        return item?.row || item?.data || item;
+    };
+
+    /*
+     * Không dùng useMemo nữa.
+     * Dữ liệu import vài trăm / vài nghìn dòng
+     * vẫn xử lý được bình thường.
+     */
+    const filteredRows =
+        filter === "ALL"
+            ? rows
+            : rows.filter(
+                (item) =>
+                    getAction(item) === filter
+            );
+
+    /*
+     * Chỉ return sau khi tất cả Hook đã được gọi.
+     */
     if (!open) return null;
 
     const total =
@@ -64,35 +92,14 @@ export default function PreviewImportModal({
         summary?.skip ??
         0;
 
-    const getAction = (item) => {
-        return String(
-            item?.action ||
-            item?.status ||
-            item?.result ||
-            "SKIP"
-        ).toUpperCase();
-    };
-
-    const getRow = (item) => {
-        return item?.row || item?.data || item;
-    };
-
-    const filteredRows = useMemo(() => {
-        if (filter === "ALL") return rows;
-
-        return rows.filter(
-            (item) => getAction(item) === filter
-        );
-    }, [rows, filter]);
-
-    const handleCardClick = (type) => {
-        setFilter(type);
-    };
-
     const moduleName =
         module === "ABB"
             ? "ABB"
             : "VACON";
+
+    const handleCardClick = (type) => {
+        setFilter(type);
+    };
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
@@ -111,9 +118,7 @@ export default function PreviewImportModal({
                 "
             >
 
-                {/* ================================= */}
                 {/* HEADER */}
-                {/* ================================= */}
 
                 <div
                     className="
@@ -157,7 +162,6 @@ export default function PreviewImportModal({
                             p-2
                             rounded-lg
                             hover:bg-slate-100
-                            transition
                         "
                     >
                         <X size={25} />
@@ -165,9 +169,7 @@ export default function PreviewImportModal({
 
                 </div>
 
-                {/* ================================= */}
-                {/* SUMMARY CARDS */}
-                {/* ================================= */}
+                {/* SUMMARY */}
 
                 <div
                     className="
@@ -184,9 +186,8 @@ export default function PreviewImportModal({
                     <SummaryCard
                         title="Tổng"
                         value={total}
-                        type="ALL"
-                        active={filter === "ALL"}
                         color="blue"
+                        active={filter === "ALL"}
                         onClick={() =>
                             handleCardClick("ALL")
                         }
@@ -195,9 +196,8 @@ export default function PreviewImportModal({
                     <SummaryCard
                         title="Tạo mới"
                         value={newCount}
-                        type="NEW"
-                        active={filter === "NEW"}
                         color="green"
+                        active={filter === "NEW"}
                         onClick={() =>
                             handleCardClick("NEW")
                         }
@@ -206,9 +206,8 @@ export default function PreviewImportModal({
                     <SummaryCard
                         title="Cập nhật"
                         value={updateCount}
-                        type="UPDATE"
-                        active={filter === "UPDATE"}
                         color="amber"
+                        active={filter === "UPDATE"}
                         onClick={() =>
                             handleCardClick("UPDATE")
                         }
@@ -217,9 +216,8 @@ export default function PreviewImportModal({
                     <SummaryCard
                         title="Bỏ qua"
                         value={skipCount}
-                        type="SKIP"
-                        active={filter === "SKIP"}
                         color="slate"
+                        active={filter === "SKIP"}
                         onClick={() =>
                             handleCardClick("SKIP")
                         }
@@ -227,9 +225,7 @@ export default function PreviewImportModal({
 
                 </div>
 
-                {/* ================================= */}
-                {/* CURRENT FILTER */}
-                {/* ================================= */}
+                {/* FILTER */}
 
                 <div
                     className="
@@ -259,9 +255,7 @@ export default function PreviewImportModal({
                         </span>
 
                         <span className="ml-2">
-
                             ({filteredRows.length} bản ghi)
-
                         </span>
 
                     </div>
@@ -287,9 +281,7 @@ export default function PreviewImportModal({
 
                 </div>
 
-                {/* ================================= */}
                 {/* TABLE */}
-                {/* ================================= */}
 
                 <div className="px-7 flex-1 min-h-0">
 
@@ -407,7 +399,6 @@ export default function PreviewImportModal({
                                                 );
 
                                             return (
-
                                                 <tr
                                                     key={
                                                         item?.id ||
@@ -428,22 +419,11 @@ export default function PreviewImportModal({
                                                     `}
                                                 >
 
-                                                    {/* # */}
-
-                                                    <td
-                                                        className="
-                                                            px-4
-                                                            py-4
-                                                            text-center
-                                                            text-slate-500
-                                                        "
-                                                    >
+                                                    <td className="px-4 py-4 text-center text-slate-500">
                                                         {item?.rowIndex ||
                                                             item?.excelRow ||
                                                             index + 1}
                                                     </td>
-
-                                                    {/* DEVICE */}
 
                                                     <td className="px-4 py-4">
 
@@ -451,7 +431,6 @@ export default function PreviewImportModal({
                                                             className="
                                                                 font-medium
                                                                 text-slate-800
-                                                                whitespace-normal
                                                             "
                                                         >
                                                             {
@@ -473,8 +452,6 @@ export default function PreviewImportModal({
 
                                                     </td>
 
-                                                    {/* SERIAL */}
-
                                                     <td className="px-4 py-4">
 
                                                         {
@@ -485,8 +462,6 @@ export default function PreviewImportModal({
 
                                                     </td>
 
-                                                    {/* STATION */}
-
                                                     <td className="px-4 py-4">
 
                                                         {
@@ -496,8 +471,6 @@ export default function PreviewImportModal({
                                                         }
 
                                                     </td>
-
-                                                    {/* STATUS */}
 
                                                     <td className="px-4 py-4">
 
@@ -529,25 +502,19 @@ export default function PreviewImportModal({
 
                                                     </td>
 
-                                                    {/* REASON */}
-
                                                     <td className="px-4 py-4">
 
                                                         <div
-                                                            className={`
-                                                                ${
-                                                                    action === "UPDATE"
-                                                                        ? "text-amber-700"
-                                                                        : "text-slate-600"
-                                                                }
-                                                            `}
+                                                            className={
+                                                                action === "UPDATE"
+                                                                    ? "text-amber-700"
+                                                                    : "text-slate-600"
+                                                            }
                                                         >
                                                             {reason}
                                                         </div>
 
                                                     </td>
-
-                                                    {/* CHANGES */}
 
                                                     <td className="px-4 py-4">
 
@@ -558,8 +525,7 @@ export default function PreviewImportModal({
                                                                 {Array.isArray(
                                                                     changedFields
                                                                 ) &&
-                                                                changedFields.length >
-                                                                    0 ? (
+                                                                changedFields.length > 0 ? (
 
                                                                     changedFields.map(
                                                                         (
@@ -582,8 +548,7 @@ export default function PreviewImportModal({
                                                                                 "
                                                                             >
                                                                                 {
-                                                                                    typeof field ===
-                                                                                    "string"
+                                                                                    typeof field === "string"
                                                                                         ? field
                                                                                         : field?.field ||
                                                                                           field?.name ||
@@ -615,7 +580,6 @@ export default function PreviewImportModal({
                                                     </td>
 
                                                 </tr>
-
                                             );
                                         }
                                     )
@@ -630,9 +594,7 @@ export default function PreviewImportModal({
 
                 </div>
 
-                {/* ================================= */}
                 {/* FOOTER */}
-                {/* ================================= */}
 
                 <div
                     className="
@@ -691,8 +653,10 @@ export default function PreviewImportModal({
                             type="button"
                             disabled={
                                 loading ||
-                                (newCount === 0 &&
-                                    updateCount === 0)
+                                (
+                                    newCount === 0 &&
+                                    updateCount === 0
+                                )
                             }
                             onClick={onConfirm}
                             className="
@@ -737,7 +701,6 @@ export default function PreviewImportModal({
 function SummaryCard({
     title,
     value,
-    type,
     color,
     active,
     onClick,
@@ -774,7 +737,6 @@ function SummaryCard({
     const c = colors[color];
 
     return (
-
         <button
             type="button"
             onClick={onClick}
@@ -802,13 +764,7 @@ function SummaryCard({
                 "
             >
 
-                <div
-                    className="
-                        text-sm
-                        font-medium
-                        text-slate-500
-                    "
-                >
+                <div className="text-sm font-medium text-slate-500">
                     {title}
                 </div>
 
