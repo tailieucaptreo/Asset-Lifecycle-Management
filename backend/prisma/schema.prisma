@@ -55,6 +55,8 @@ model Device {
   lifespan            Int?
   expiryDate          DateTime?
 
+  note                String?
+
   createdAt            DateTime @default(now())
 
   // Quan hệ
