@@ -1780,8 +1780,31 @@ exports.exportDevices =
 
         try {
 
+            // =====================================================
+            // FILTER THEO NHÀ GA
+            // =====================================================
+
+            const station =
+                String(req.query.station || "").trim();
+
+            const where = {};
+
+
+            // Nếu có chọn nhà ga
+            if (
+                station &&
+                station !== "all" &&
+                station !== "Tất cả"
+            ) {
+
+                where.station = station;
+
+            }
+
             const devices =
                 await prisma.device.findMany({
+
+                    where,
 
                     orderBy: {
 

@@ -13,75 +13,71 @@ import DeviceHistoryModal from "../components/Device/DeviceHistoryModal";
 
 export default function DeviceList() {
 
-  // =========================
+  // =====================================================
   // TABLE DATA
-  // =========================
+  // =====================================================
 
   const [devices, setDevices] = useState([]);
 
-  const [filteredData, setFilteredData] =
-    useState([]);
+  const [filteredData, setFilteredData] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // =========================
+
+  // =====================================================
   // MODAL
-  // =========================
+  // =====================================================
 
-  const [open, setOpen] =
-    useState(false);
+  const [open, setOpen] = useState(false);
 
-  const [editingDevice, setEditingDevice] =
-    useState(null);
+  const [editingDevice, setEditingDevice] = useState(null);
 
-  // =========================
+
+  // =====================================================
   // IMPORT
-  // =========================
+  // =====================================================
 
-  const [importOpen, setImportOpen] =
-    useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
-  const [previewRows, setPreviewRows] =
-    useState([]);
+  const [previewRows, setPreviewRows] = useState([]);
 
-  const [summary, setSummary] =
-    useState(null);
+  const [summary, setSummary] = useState(null);
 
-  const [sessionId, setSessionId] =
-    useState("");
+  const [sessionId, setSessionId] = useState("");
 
-  const [importLoading, setImportLoading] =
-    useState(false);
+  const [importLoading, setImportLoading] = useState(false);
 
-  const fileInputRef =
-    useRef(null);
+  const fileInputRef = useRef(null);
 
-  const [openHistory, setOpenHistory] =
-    useState(false);
 
-  // =========================
+  // =====================================================
+  // HISTORY
+  // =====================================================
+
+  const [openHistory, setOpenHistory] = useState(false);
+
+
+  // =====================================================
   // ROLE
-  // =========================
+  // =====================================================
 
-  const role =
-    localStorage.getItem("role");
+  const role = localStorage.getItem("role");
 
-  // =========================
+
+  // =====================================================
   // URL STATUS
-  // =========================
+  // =====================================================
 
-  const location =
-    useLocation();
+  const location = useLocation();
 
-  const params =
-    new URLSearchParams(
-      location.search
-    );
+  const params = new URLSearchParams(location.search);
 
-  const status =
-    params.get("status");
+  const status = params.get("status");
 
+
+  // =====================================================
+  // FILTERS
+  // =====================================================
 
   const [filters, setFilters] = useState({
 
@@ -93,113 +89,142 @@ export default function DeviceList() {
 
   });
 
+
+  // =====================================================
+  // CALCULATE STATUS
+  // =====================================================
+
   const calcStatus = (d) => {
 
     if (!d.installDate || !d.lifespan) {
+
       return "Active";
+
     }
-  
+
+
     const install = new Date(d.installDate);
-  
+
+
     const usedYear =
       (new Date() - install) /
       (1000 * 60 * 60 * 24 * 365);
-  
+
+
     const percent =
       usedYear / Number(d.lifespan);
-  
+
+
     if (percent >= 1) {
+
       return "Expired";
+
     }
-  
+
+
     if (percent >= 0.7) {
+
       return "Maintenance";
+
     }
-  
+
+
     return "Active";
+
   };
 
-  // =========================
+
+  // =====================================================
   // LOAD DEVICES
-  // =========================
+  // =====================================================
 
-  const loadDevices =
-    async () => {
+  const loadDevices = async () => {
 
-      try {
+    try {
 
-        setLoading(true);
+      setLoading(true);
 
-        const token =
-          localStorage.getItem(
-            "token"
-          );
 
-        const res =
-          await axios.get(
+      const token =
+        localStorage.getItem("token");
 
-            `${API}/api/devices`,
 
-            {
+      const res =
+        await axios.get(
 
-              headers: {
+          `${API}/api/devices`,
 
-                Authorization:
-                  `Bearer ${token}`
+          {
 
-              }
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
 
             }
 
-          );
+          }
 
-        let rows =
-          Array.isArray(
-            res.data
-          )
-            ? res.data
-            : [];
+        );
 
-        if (status) {
 
-          rows = rows.filter(
-        
+      let rows =
+        Array.isArray(res.data)
+          ? res.data
+          : [];
+
+
+      // -----------------------------------------------
+      // FILTER STATUS TỪ URL
+      // -----------------------------------------------
+
+      if (status) {
+
+        rows =
+          rows.filter(
+
             item =>
-        
               calcStatus(item) === status
-        
+
           );
-        
-        }
-
-        setDevices(rows);
-
-        setFilteredData(rows);
 
       }
 
-      catch (err) {
 
-          console.error(
-              "LOAD DEVICES ERROR:",
-              err
-          );
-      
-          setDevices([]);
-      
-          setFilteredData([]);
-      
-          throw err;
-      
-      }
+      setDevices(rows);
 
-      finally {
+      setFilteredData(rows);
 
-        setLoading(false);
+    }
 
-      }
+    catch (err) {
 
-    };
+      console.error(
+        "LOAD DEVICES ERROR:",
+        err
+      );
+
+
+      setDevices([]);
+
+      setFilteredData([]);
+
+      throw err;
+
+    }
+
+    finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+
+  // =====================================================
+  // APPLY FILTER
+  // =====================================================
 
   useEffect(() => {
 
@@ -207,9 +232,10 @@ export default function DeviceList() {
 
   }, [filters, devices]);
 
-  // =========================
+
+  // =====================================================
   // LOAD FIRST
-  // =========================
+  // =====================================================
 
   useEffect(() => {
 
@@ -217,9 +243,10 @@ export default function DeviceList() {
 
   }, [status]);
 
-  // =========================
+
+  // =====================================================
   // SEARCH
-  // =========================
+  // =====================================================
 
   const handleSearch = (keyword) => {
 
@@ -231,8 +258,10 @@ export default function DeviceList() {
 
     }
 
+
     const q =
       keyword.toLowerCase();
+
 
     const result =
       devices.filter(device =>
@@ -247,61 +276,91 @@ export default function DeviceList() {
 
       );
 
+
     setFilteredData(result);
 
   };
 
-  // =========================
+
+  // =====================================================
   // FILTER
-  // =========================
-  const handleFilter = (filters) => {
+  // =====================================================
+
+  const handleFilter = (currentFilters) => {
 
     let rows = [...devices];
 
-    if (filters.name) {
 
-      const keyword = filters.name.toLowerCase();
+    // -----------------------------------------------
+    // SEARCH NAME / ALL FIELDS
+    // -----------------------------------------------
 
-      rows = rows.filter(item =>
+    if (currentFilters.name) {
 
-        Object.values(item)
-          .join(" ")
-          .toLowerCase()
-          .includes(keyword)
+      const keyword =
+        currentFilters.name.toLowerCase();
 
-      );
+
+      rows =
+        rows.filter(item =>
+
+          Object.values(item)
+
+            .join(" ")
+
+            .toLowerCase()
+
+            .includes(keyword)
+
+        );
 
     }
 
-    if (filters.station) {
 
-      rows = rows.filter(
+    // -----------------------------------------------
+    // STATION
+    // -----------------------------------------------
 
-        item => item.station === filters.station
+    if (currentFilters.station) {
 
-      );
+      rows =
+        rows.filter(
+
+          item =>
+            String(item.station || "").trim() ===
+            String(currentFilters.station).trim()
+
+        );
 
     }
 
-    if (filters.status) {
-    
-      rows = rows.filter(
-    
-        item =>
-    
-          calcStatus(item) === filters.status
-    
-      );
-    
+
+    // -----------------------------------------------
+    // STATUS
+    // -----------------------------------------------
+
+    if (currentFilters.status) {
+
+      rows =
+        rows.filter(
+
+          item =>
+            calcStatus(item) ===
+            currentFilters.status
+
+        );
+
     }
+
 
     setFilteredData(rows);
 
   };
 
-  // =========================
-  // EXPORT
-  // =========================
+
+  // =====================================================
+  // EXPORT EXCEL
+  // =====================================================
 
   const handleExport = async () => {
 
@@ -310,10 +369,74 @@ export default function DeviceList() {
       const token =
         localStorage.getItem("token");
 
+
+      // =================================================
+      // LẤY NHÀ GA ĐANG CHỌN
+      // =================================================
+
+      const selectedStation =
+        String(filters.station || "").trim();
+
+
+      // =================================================
+      // TẠO QUERY PARAMETER
+      // =================================================
+
+      const queryParams =
+        new URLSearchParams();
+
+
+      if (
+        selectedStation &&
+        selectedStation !== "all" &&
+        selectedStation !== "Tất cả" &&
+        selectedStation !== "Tất cả nhà ga"
+      ) {
+
+        queryParams.append(
+          "station",
+          selectedStation
+        );
+
+      }
+
+
+      // =================================================
+      // URL EXPORT
+      // =================================================
+
+      const queryString =
+        queryParams.toString();
+
+
+      const exportUrl =
+        `${API}/api/devices/export${
+          queryString
+            ? `?${queryString}`
+            : ""
+        }`;
+
+
+      console.log(
+        "EXPORT URL:",
+        exportUrl
+      );
+
+
+      console.log(
+        "EXPORT STATION:",
+        selectedStation || "ALL"
+      );
+
+
+      // =================================================
+      // REQUEST
+      // =================================================
+
       const res =
         await axios.get(
 
-          `${API}/api/devices/export`,
+          exportUrl,
 
           {
 
@@ -330,23 +453,83 @@ export default function DeviceList() {
 
         );
 
-      const url =
-        window.URL.createObjectURL(
 
-          new Blob([res.data])
+      // =================================================
+      // TẠO FILE
+      // =================================================
+
+      const blob =
+        new Blob(
+
+          [res.data],
+
+          {
+
+            type:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+          }
 
         );
+
+
+      const url =
+        window.URL.createObjectURL(blob);
+
 
       const a =
         document.createElement("a");
 
+
       a.href = url;
 
-      a.download =
 
-        "devices.xlsx";
+      // =================================================
+      // TÊN FILE
+      // =================================================
+
+      if (
+        selectedStation &&
+        selectedStation !== "all" &&
+        selectedStation !== "Tất cả" &&
+        selectedStation !== "Tất cả nhà ga"
+      ) {
+
+        const safeStation =
+          selectedStation
+
+            .replace(
+              /[\\/:*?"<>|]+/g,
+              ""
+            )
+
+            .replace(
+              /\s+/g,
+              "_"
+            )
+
+            .trim();
+
+
+        a.download =
+          `devices_${safeStation}.xlsx`;
+
+      }
+
+      else {
+
+        a.download =
+          "devices.xlsx";
+
+      }
+
+
+      document.body.appendChild(a);
 
       a.click();
+
+      a.remove();
+
 
       window.URL.revokeObjectURL(url);
 
@@ -354,43 +537,49 @@ export default function DeviceList() {
 
     catch (err) {
 
-      console.log(err);
+      console.error(
+        "EXPORT ERROR:",
+        err
+      );
+
 
       alert(
-
+        err.response?.data?.message ||
         "Không thể xuất Excel"
-
       );
 
     }
 
   };
 
-  // =========================
+
+  // =====================================================
   // IMPORT PREVIEW
-  // =========================
+  // =====================================================
 
   const handlePreview = async (file) => {
 
     if (!file) return;
 
+
     try {
 
       setImportLoading(true);
 
+
       const token =
         localStorage.getItem("token");
+
 
       const formData =
         new FormData();
 
+
       formData.append(
-
         "file",
-
         file
-
       );
+
 
       const res =
         await axios.post(
@@ -414,25 +603,28 @@ export default function DeviceList() {
           }
 
         );
-      console.log("PREVIEW =", res.data);
+
+
+      console.log(
+        "PREVIEW =",
+        res.data
+      );
+
 
       setSummary(
-
         res.data.summary
-
       );
+
 
       setPreviewRows(
-
         res.data.rows
-
       );
+
 
       setSessionId(
-
         res.data.sessionId
-
       );
+
 
       setImportOpen(true);
 
@@ -440,7 +632,11 @@ export default function DeviceList() {
 
     catch (err) {
 
-      console.log(err);
+      console.error(
+        "PREVIEW IMPORT ERROR:",
+        err
+      );
+
 
       alert(
 
@@ -456,10 +652,9 @@ export default function DeviceList() {
 
       setImportLoading(false);
 
+
       if (
-
         fileInputRef.current
-
       ) {
 
         fileInputRef.current.value = "";
@@ -470,211 +665,218 @@ export default function DeviceList() {
 
   };
 
-  // =========================
+
+  // =====================================================
   // CONFIRM IMPORT
-  // =========================
-  
+  // =====================================================
+
   const confirmImport = async () => {
-  
-      if (!sessionId) {
-  
-          alert("Không tìm thấy phiên import.");
-  
-          return;
-  
+
+    if (!sessionId) {
+
+      alert(
+        "Không tìm thấy phiên import."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setImportLoading(true);
+
+
+      const token =
+        localStorage.getItem("token");
+
+
+      // =================================================
+      // IMPORT
+      // =================================================
+
+      const response =
+        await axios.post(
+
+          `${API}/api/devices/import`,
+
+          {
+            sessionId
+          },
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
+
+            }
+
+          }
+
+        );
+
+
+      console.log(
+        "IMPORT RESULT =",
+        response.data
+      );
+
+
+      // =================================================
+      // KIỂM TRA
+      // =================================================
+
+      if (
+        response.data?.success === false
+      ) {
+
+        throw new Error(
+
+          response.data?.message ||
+
+          "Server báo import thất bại."
+
+        );
+
       }
-  
+
+
+      // =================================================
+      // KẾT QUẢ
+      // =================================================
+
+      const inserted =
+        response.data?.inserted ?? 0;
+
+
+      const updated =
+        response.data?.updated ?? 0;
+
+
+      const skipped =
+        response.data?.skipped ?? 0;
+
+
+      const total =
+        response.data?.total ?? 0;
+
+
+      console.log(
+        "IMPORT SUCCESS:",
+        {
+          total,
+          inserted,
+          updated,
+          skipped
+        }
+      );
+
+
+      // =================================================
+      // ĐÓNG MODAL
+      // =================================================
+
+      setImportOpen(false);
+
+      setPreviewRows([]);
+
+      setSummary(null);
+
+      setSessionId("");
+
+
+      // =================================================
+      // THÔNG BÁO
+      // =================================================
+
+      alert(
+
+        `Import thành công!\n\n` +
+
+        `Tổng: ${total}\n` +
+
+        `Thiết bị mới: ${inserted}\n` +
+
+        `Cập nhật: ${updated}\n` +
+
+        `Bỏ qua: ${skipped}`
+
+      );
+
+
+      // =================================================
+      // RELOAD
+      // =================================================
+
       try {
-  
-          setImportLoading(true);
-  
-          const token =
-              localStorage.getItem("token");
-  
-  
-          // =================================================
-          // 1. THỰC HIỆN IMPORT
-          // =================================================
-  
-          const response =
-              await axios.post(
-  
-                  `${API}/api/devices/import`,
-  
-                  {
-                      sessionId
-                  },
-  
-                  {
-                      headers: {
-                          Authorization:
-                              `Bearer ${token}`
-                      }
-                  }
-  
-              );
-  
-  
-          console.log(
-              "IMPORT RESULT =",
-              response.data
-          );
-  
-  
-          // =================================================
-          // 2. KIỂM TRA KẾT QUẢ IMPORT
-          // =================================================
-  
-          if (
-              response.data?.success === false
-          ) {
-  
-              throw new Error(
-  
-                  response.data?.message ||
-  
-                  "Server báo import thất bại."
-  
-              );
-  
-          }
-  
-  
-          // =================================================
-          // 3. IMPORT DATABASE ĐÃ THÀNH CÔNG
-          // =================================================
-  
-          const inserted =
-              response.data?.inserted ?? 0;
-  
-          const updated =
-              response.data?.updated ?? 0;
-  
-          const skipped =
-              response.data?.skipped ?? 0;
-  
-          const total =
-              response.data?.total ?? 0;
-  
-  
-          console.log(
-              "IMPORT SUCCESS:",
-              {
-                  total,
-                  inserted,
-                  updated,
-                  skipped
-              }
-          );
-  
-  
-          // =================================================
-          // 4. ĐÓNG MODAL
-          // =================================================
-  
-          setImportOpen(false);
-  
-          setPreviewRows([]);
-  
-          setSummary(null);
-  
-          setSessionId("");
-  
-  
-          // =================================================
-          // 5. THÔNG BÁO IMPORT THÀNH CÔNG
-          // =================================================
-  
-          alert(
-  
-              `Import thành công!\n\n` +
-  
-              `Tổng: ${total}\n` +
-  
-              `Thiết bị mới: ${inserted}\n` +
-  
-              `Cập nhật: ${updated}\n` +
-  
-              `Bỏ qua: ${skipped}`
-  
-          );
-  
-  
-          // =================================================
-          // 6. RELOAD DANH SÁCH
-          //
-          // QUAN TRỌNG:
-          // Reload lỗi KHÔNG được coi là Import lỗi
-          // =================================================
-  
-          try {
-  
-              await loadDevices();
-  
-          }
-  
-          catch (reloadError) {
-  
-              console.error(
-  
-                  "IMPORT OK - RELOAD ERROR:",
-  
-                  reloadError
-  
-              );
-  
-              alert(
-  
-                  "Import đã thành công vào database,\n" +
-  
-                  "nhưng không thể tải lại danh sách thiết bị.\n\n" +
-  
-                  "Vui lòng bấm Reload để cập nhật danh sách."
-  
-              );
-  
-          }
-  
+
+        await loadDevices();
+
       }
-  
-      catch (err) {
-  
-          console.error(
-  
-              "CONFIRM IMPORT ERROR:",
-  
-              err
-  
-          );
-  
-  
-          // =================================================
-          // CHỈ VÀO ĐÂY KHI POST /import THỰC SỰ LỖI
-          // =================================================
-  
-          alert(
-  
-              err.response?.data?.message ||
-  
-              err.message ||
-  
-              "Import thất bại."
-  
-          );
-  
+
+      catch (reloadError) {
+
+        console.error(
+
+          "IMPORT OK - RELOAD ERROR:",
+
+          reloadError
+
+        );
+
+
+        alert(
+
+          "Import đã thành công vào database,\n" +
+
+          "nhưng không thể tải lại danh sách thiết bị.\n\n" +
+
+          "Vui lòng bấm Reload để cập nhật danh sách."
+
+        );
+
       }
-  
-      finally {
-  
-          setImportLoading(false);
-  
-      }
-  
+
+    }
+
+    catch (err) {
+
+      console.error(
+
+        "CONFIRM IMPORT ERROR:",
+
+        err
+
+      );
+
+
+      alert(
+
+        err.response?.data?.message ||
+
+        err.message ||
+
+        "Import thất bại."
+
+      );
+
+    }
+
+    finally {
+
+      setImportLoading(false);
+
+    }
+
   };
 
-  // =========================
+
+  // =====================================================
   // ADD
-  // =========================
+  // =====================================================
 
   const handleAdd = () => {
 
@@ -684,9 +886,10 @@ export default function DeviceList() {
 
   };
 
-  // =========================
+
+  // =====================================================
   // EDIT
-  // =========================
+  // =====================================================
 
   const handleEdit = (device) => {
 
@@ -696,9 +899,10 @@ export default function DeviceList() {
 
   };
 
-  // =========================
+
+  // =====================================================
   // DELETE
-  // =========================
+  // =====================================================
 
   const handleDelete = async (device) => {
 
@@ -709,12 +913,15 @@ export default function DeviceList() {
 
       );
 
+
     if (!ok) return;
+
 
     try {
 
       const token =
         localStorage.getItem("token");
+
 
       await axios.delete(
 
@@ -733,13 +940,18 @@ export default function DeviceList() {
 
       );
 
+
       await loadDevices();
 
     }
 
     catch (err) {
 
-      console.log(err);
+      console.error(
+        "DELETE DEVICE ERROR:",
+        err
+      );
+
 
       alert(
 
@@ -753,9 +965,10 @@ export default function DeviceList() {
 
   };
 
-  // =========================
+
+  // =====================================================
   // SAVE SUCCESS
-  // =========================
+  // =====================================================
 
   const handleSuccess = async () => {
 
@@ -767,11 +980,39 @@ export default function DeviceList() {
 
   };
 
+
+  // =====================================================
+  // CLOSE IMPORT
+  // =====================================================
+
+  const handleCloseImport = () => {
+
+    if (importLoading) return;
+
+
+    setImportOpen(false);
+
+    setPreviewRows([]);
+
+    setSummary(null);
+
+    setSessionId("");
+
+  };
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
 
     <div className="p-3 md:p-6 space-y-5">
 
-      {/* ================= TOOLBAR ================= */}
+
+      {/* =================================================
+          TOOLBAR
+      ================================================= */}
 
       <DeviceToolbar
 
@@ -786,20 +1027,21 @@ export default function DeviceList() {
         onExport={handleExport}
 
         onHistory={() =>
-            setOpenHistory(true)
+          setOpenHistory(true)
         }
 
         onImport={() =>
-
           fileInputRef.current?.click()
-
         }
 
         onSearch={handleSearch}
 
       />
 
-      {/* ================= FILTER ================= */}
+
+      {/* =================================================
+          FILTER
+      ================================================= */}
 
       <DeviceFilter
 
@@ -811,7 +1053,10 @@ export default function DeviceList() {
 
       />
 
-      {/* ================= TABLE ================= */}
+
+      {/* =================================================
+          TABLE
+      ================================================= */}
 
       {
 
@@ -858,7 +1103,10 @@ export default function DeviceList() {
 
       }
 
-      {/* ================= IMPORT INPUT ================= */}
+
+      {/* =================================================
+          IMPORT INPUT
+      ================================================= */}
 
       <input
 
@@ -871,18 +1119,17 @@ export default function DeviceList() {
         accept=".xlsx,.xls"
 
         onChange={(e) =>
-
           handlePreview(
-
             e.target.files?.[0]
-
           )
-
         }
 
       />
 
-      {/* ================= ADD / EDIT ================= */}
+
+      {/* =================================================
+          ADD / EDIT MODAL
+      ================================================= */}
 
       <DeviceModal
 
@@ -902,7 +1149,10 @@ export default function DeviceList() {
 
       />
 
-      {/* ================= IMPORT MODAL ================= */}
+
+      {/* =================================================
+          IMPORT MODAL
+      ================================================= */}
 
       <DeviceImportModal
 
@@ -914,33 +1164,25 @@ export default function DeviceList() {
 
         loading={importLoading}
 
-        onClose={() => {
-
-          if (importLoading) return;
-
-          setImportOpen(false);
-
-          setPreviewRows([]);
-
-          setSummary(null);
-
-          setSessionId("");
-
-        }}
+        onClose={handleCloseImport}
 
         onConfirm={confirmImport}
 
       />
 
-      {/* ================= HISTORY MODAL ================= */}
+
+      {/* =================================================
+          HISTORY MODAL
+      ================================================= */}
+
       <DeviceHistoryModal
 
-          open={openHistory}
-      
-          onClose={() =>
-              setOpenHistory(false)
-          }
-      
+        open={openHistory}
+
+        onClose={() =>
+          setOpenHistory(false)
+        }
+
       />
 
     </div>
