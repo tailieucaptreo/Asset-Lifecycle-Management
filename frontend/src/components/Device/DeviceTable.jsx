@@ -12,7 +12,13 @@ export default function DeviceTable({
 
     onEdit,
 
-    onDelete
+    onDelete,
+
+    selectedStation = "",
+
+    selectedStatus = "",
+
+    searchKeyword = ""
 
 }) {
 
@@ -97,15 +103,29 @@ export default function DeviceTable({
                                 )
                             }
 
-                            onView={() =>
+                            onView={() => {
+
+                                const params = new URLSearchParams();
+
+                                if (selectedStation) {
+                                    params.set("station", selectedStation);
+                                }
+
+                                if (selectedStatus) {
+                                    params.set("status", selectedStatus);
+                                }
+
+                                if (searchKeyword) {
+                                    params.set("search", searchKeyword);
+                                }
+
+                                const query = params.toString();
 
                                 nav(
+                                    `/devices/${device.id}${query ? `?${query}` : ""}`
+                                );
 
-                                    `/devices/${device.id}`
-
-                                )
-
-                            }
+                            }}
 
                             onEdit={() =>
 
@@ -189,15 +209,29 @@ export default function DeviceTable({
                                             )
                                         }
 
-                                        onView={() =>
+                                        onView={() => {
+
+                                            const params = new URLSearchParams();
+
+                                            if (selectedStation) {
+                                                params.set("station", selectedStation);
+                                            }
+
+                                            if (selectedStatus) {
+                                                params.set("status", selectedStatus);
+                                            }
+
+                                            if (searchKeyword) {
+                                                params.set("search", searchKeyword);
+                                            }
+
+                                            const query = params.toString();
 
                                             nav(
+                                                `/devices/${device.id}${query ? `?${query}` : ""}`
+                                            );
 
-                                                `/devices/${device.id}`
-
-                                            )
-
-                                        }
+                                        }}
 
                                         onEdit={() =>
 
@@ -233,7 +267,7 @@ export default function DeviceTable({
 
             </div>
 
-         </>
+        </>
 
     );
 

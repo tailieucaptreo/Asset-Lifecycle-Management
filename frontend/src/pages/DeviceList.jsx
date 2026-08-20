@@ -82,10 +82,8 @@ export default function DeviceList() {
   const [filters, setFilters] = useState({
 
     name: "",
-
-    station: "",
-
-    status: ""
+    station: params.get("station") || "",
+    status: status || ""
 
   });
 
@@ -410,10 +408,9 @@ export default function DeviceList() {
 
 
       const exportUrl =
-        `${API}/api/devices/export${
-          queryString
-            ? `?${queryString}`
-            : ""
+        `${API}/api/devices/export${queryString
+          ? `?${queryString}`
+          : ""
         }`;
 
 
@@ -1096,6 +1093,12 @@ export default function DeviceList() {
               onEdit={handleEdit}
 
               onDelete={handleDelete}
+
+              selectedStation={filters.station}
+
+              selectedStatus={filters.status}
+
+              searchKeyword={filters.name}
 
             />
 
