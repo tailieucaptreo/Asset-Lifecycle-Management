@@ -1111,19 +1111,19 @@ function compareDeviceFields(
     //
     // =================================================
 
-    if (
-        data.status &&
-        !sameStatus(
-            old.status,
-            data.status
-        )
-    ) {
+    //if (
+    //    data.status &&
+    //    !sameStatus(
+    //        old.status,
+    //        data.status 
+    //    )
+    //) {
 
-        changedFields.push(
-            "Trạng thái"
-        );
+    //    changedFields.push(
+    //        "Trạng thái"
+    //    );
 
-    }
+    //}
 
 
     // =================================================

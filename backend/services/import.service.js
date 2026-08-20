@@ -181,8 +181,8 @@ function buildDeviceData(row) {
 
         deviceId:
             d.deviceId === null ||
-            d.deviceId === undefined ||
-            d.deviceId === ""
+                d.deviceId === undefined ||
+                d.deviceId === ""
                 ? null
                 : cleanText(
                     d.deviceId
@@ -436,6 +436,18 @@ async function importRows(
                     ...data
 
                 };
+
+                // =================================================
+                // STATUS KHÔNG IMPORT TỪ EXCEL
+                // =================================================
+                //
+                // Status hiển thị được tính từ:
+                // installDate + lifespan / expiryDate
+                //
+                // Không ghi status từ file Excel trở lại DB.
+                // =================================================
+
+                delete updateData.status;
 
 
                 // -------------------------------------
