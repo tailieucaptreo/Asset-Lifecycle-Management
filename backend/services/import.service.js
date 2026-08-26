@@ -70,9 +70,21 @@ function toNumber(value, fallback = 0) {
 //
 // Dùng chung cho NEW và UPDATE.
 //
-// LƯU Ý:
-// Không đưa deviceKey vào đây cho UPDATE.
-// Device Key là khóa bất biến.
+// QUY TẮC:
+//
+// 1. originalInstallDate KHÔNG xử lý ở đây
+//    → giữ nguyên ngày lắp ban đầu trong DB.
+//
+// 2. replacementDate có giá trị:
+//       installDate = replacementDate
+//
+// 3. replacementDate có giá trị:
+//       status = Active
+//
+// 4. replacementDate có giá trị:
+//       expiryDate = replacementDate + lifespan
+//
+// 5. deviceKey không xử lý ở đây.
 // =====================================================
 
 function buildDeviceData(row) {
@@ -81,11 +93,47 @@ function buildDeviceData(row) {
         row || {};
 
 
-    const installDate =
+    // =================================================
+    // REPLACEMENT DATE
+    // =================================================
+
+    const replacementDate =
+        parseDate(
+            d.replacementDate
+        );
+
+
+    // =================================================
+    // INSTALL DATE
+    // =================================================
+    //
+    // Nếu có ngày thay thế:
+    //
+    //     installDate = replacementDate
+    //
+    // Nếu không:
+    //
+    //     installDate = ngày lắp trong Excel
+    //
+    // =================================================
+
+    let installDate =
         parseDate(
             d.installDate
         );
 
+
+    if (replacementDate) {
+
+        installDate =
+            replacementDate;
+
+    }
+
+
+    // =================================================
+    // LIFESPAN
+    // =================================================
 
     const lifespan =
         toNumber(
@@ -94,31 +142,67 @@ function buildDeviceData(row) {
         );
 
 
+    // =================================================
+    // EXPIRY DATE
+    // =================================================
+
     let expiryDate =
         parseDate(
             d.expiryDate
         );
 
 
-    // Nếu Excel không có ngày hết hạn
-    // thì tính từ ngày lắp + tuổi thọ.
+    // =================================================
+    // NẾU CÓ NGÀY THAY THẾ
+    //
+    // Bắt buộc tính lại ngày hết hạn.
+    //
+    // Ví dụ:
+    //
+    // replacementDate = 18/08/2026
+    // lifespan = 10
+    //
+    // expiryDate = 18/08/2036
+    // =================================================
 
     if (
+        replacementDate &&
+        lifespan > 0
+    ) {
+
+        expiryDate =
+            calculateExpiryDate(
+                replacementDate,
+                lifespan
+            );
+
+    }
+
+    // =================================================
+    // NẾU KHÔNG CÓ NGÀY THAY THẾ
+    //
+    // Excel không có expiryDate
+    // → tính từ installDate + lifespan.
+    // =================================================
+
+    else if (
         !expiryDate &&
         installDate &&
         lifespan > 0
     ) {
+
         expiryDate =
             calculateExpiryDate(
                 installDate,
                 lifespan
             );
+
     }
 
 
-    // -------------------------------------------------
+    // =================================================
     // CATEGORY
-    // -------------------------------------------------
+    // =================================================
 
     let category =
         cleanText(
@@ -130,6 +214,7 @@ function buildDeviceData(row) {
 
         const categoryInfo =
             detectCategory({
+
                 name:
                     d.name || "",
 
@@ -141,14 +226,53 @@ function buildDeviceData(row) {
 
                 brand:
                     d.brand || ""
+
             });
 
 
         category =
             categoryInfo?.category ||
             "";
+
     }
 
+
+    // =================================================
+    // STATUS
+    // =================================================
+    //
+    // Nếu có ngày thay thế:
+    //
+    //     Active
+    //
+    // Nếu không:
+    //
+    //     lấy status từ Excel.
+    //
+    // Tuy nhiên khi UPDATE chúng ta sẽ quyết định
+    // có ghi status hay không ở phía dưới.
+    //
+    // =================================================
+
+    let status =
+        normalizeStatus(
+            d.status
+        );
+
+
+    if (replacementDate) {
+
+        status =
+            normalizeStatus(
+                "Active"
+            );
+
+    }
+
+
+    // =================================================
+    // RETURN
+    // =================================================
 
     return {
 
@@ -188,10 +312,7 @@ function buildDeviceData(row) {
                     d.deviceId
                 ),
 
-        status:
-            normalizeStatus(
-                d.status
-            ),
+        status,
 
         installDate,
 
@@ -200,10 +321,7 @@ function buildDeviceData(row) {
                 d.lastMaintenance
             ),
 
-        replacementDate:
-            parseDate(
-                d.replacementDate
-            ),
+        replacementDate,
 
         lifespan,
 
@@ -280,6 +398,7 @@ async function importRows(
                 throw new Error(
                     "Dòng import không hợp lệ."
                 );
+
             }
 
 
@@ -306,11 +425,12 @@ async function importRows(
                 skipped++;
 
                 continue;
+
             }
 
 
             // =========================================
-            // DATA
+            // BUILD DATA
             // =========================================
 
             const data =
@@ -342,6 +462,7 @@ async function importRows(
                         deviceKey,
 
                         ...data
+
                     }
 
                 });
@@ -353,16 +474,33 @@ async function importRows(
                 console.log(
                     `[IMPORT][NEW] Excel row ${excelRow}`,
                     {
+
                         deviceKey,
+
                         deviceId:
                             data.deviceId,
+
                         name:
-                            data.name
+                            data.name,
+
+                        installDate:
+                            data.installDate,
+
+                        replacementDate:
+                            data.replacementDate,
+
+                        expiryDate:
+                            data.expiryDate,
+
+                        status:
+                            data.status
+
                     }
                 );
 
 
                 continue;
+
             }
 
 
@@ -394,19 +532,22 @@ async function importRows(
                     throw new Error(
                         `UPDATE nhưng existingId không hợp lệ: ${item.existingId}`
                     );
+
                 }
 
 
                 // -------------------------------------
-                // KIỂM TRA THIẾT BỊ
+                // LẤY THIẾT BỊ CŨ
                 // -------------------------------------
 
                 const existing =
                     await prisma.device.findUnique({
 
                         where: {
+
                             id:
                                 existingId
+
                         }
 
                     });
@@ -417,18 +558,12 @@ async function importRows(
                     throw new Error(
                         `Không tìm thấy thiết bị ID=${existingId}`
                     );
+
                 }
 
 
                 // -------------------------------------
                 // UPDATE DATA
-                // -------------------------------------
-                //
-                // TUYỆT ĐỐI KHÔNG update:
-                // - id
-                // - deviceKey
-                //
-                // Device Key phải giữ nguyên.
                 // -------------------------------------
 
                 const updateData = {
@@ -437,26 +572,70 @@ async function importRows(
 
                 };
 
+
                 // =================================================
-                // STATUS KHÔNG IMPORT TỪ EXCEL
+                // ORIGINAL INSTALL DATE
                 // =================================================
                 //
-                // Status hiển thị được tính từ:
-                // installDate + lifespan / expiryDate
+                // RẤT QUAN TRỌNG:
                 //
-                // Không ghi status từ file Excel trở lại DB.
+                // Không cho Excel ghi đè ngày lắp ban đầu.
+                //
+                // Prisma schema của bạn có:
+                //
+                // originalInstallDate
+                //
+                // nên giá trị cũ phải được giữ nguyên.
+                //
                 // =================================================
 
-                delete updateData.status;
+                delete updateData.originalInstallDate;
 
 
-                // -------------------------------------
-                // DEBUG
-                // -------------------------------------
+                // =================================================
+                // STATUS
+                // =================================================
+                //
+                // TRƯỜNG HỢP 1:
+                //
+                // Có ngày thay thế
+                //
+                // → PHẢI cập nhật status = Active
+                //
+                // TRƯỜNG HỢP 2:
+                //
+                // Không có ngày thay thế
+                //
+                // → KHÔNG lấy status export từ Excel
+                //    ghi ngược vào DB.
+                //
+                // =================================================
+
+                if (
+                    data.replacementDate
+                ) {
+
+                    updateData.status =
+                        normalizeStatus(
+                            "Active"
+                        );
+
+                }
+                else {
+
+                    delete updateData.status;
+
+                }
+
+
+                // =================================================
+                // DEBUG REPLACEMENT
+                // =================================================
 
                 console.log(
                     `[IMPORT][UPDATE] Excel row ${excelRow}`,
                     {
+
                         existingId,
 
                         oldDeviceKey:
@@ -474,31 +653,55 @@ async function importRows(
                         name:
                             data.name,
 
+                        oldInstallDate:
+                            existing.installDate,
+
+                        oldOriginalInstallDate:
+                            existing.originalInstallDate,
+
+                        oldReplacementDate:
+                            existing.replacementDate,
+
+                        excelInstallDate:
+                            data.installDate,
+
+                        excelReplacementDate:
+                            data.replacementDate,
+
+                        newExpiryDate:
+                            data.expiryDate,
+
+                        newStatus:
+                            updateData.status ||
+                            "(KHÔNG UPDATE)",
+
                         changedFields:
                             item.changedFields || []
+
                     }
                 );
 
 
-                // -------------------------------------
-                // UPDATE BẰNG ID
-                // -------------------------------------
+                // =================================================
+                // UPDATE DATABASE
+                // =================================================
                 //
-                // Đây là điểm quan trọng nhất.
+                // CHỈ UPDATE BẰNG ID
                 //
-                // KHÔNG dùng:
+                // KHÔNG update:
+                // - id
+                // - deviceKey
+                // - originalInstallDate
                 //
-                // where: {
-                //     line_code: ...
-                // }
-                //
-                // -------------------------------------
+                // =================================================
 
                 await prisma.device.update({
 
                     where: {
+
                         id:
                             existingId
+
                     },
 
                     data:
@@ -510,7 +713,32 @@ async function importRows(
                 updated++;
 
 
+                console.log(
+                    `[IMPORT][UPDATE SUCCESS] Excel row ${excelRow}`,
+                    {
+
+                        id:
+                            existingId,
+
+                        installDate:
+                            updateData.installDate,
+
+                        replacementDate:
+                            updateData.replacementDate,
+
+                        expiryDate:
+                            updateData.expiryDate,
+
+                        status:
+                            updateData.status ||
+                            "(GIỮ NGUYÊN)"
+
+                    }
+                );
+
+
                 continue;
+
             }
 
 
@@ -538,13 +766,16 @@ async function importRows(
                     excelRow,
 
                 action:
-                    item?.action || null,
+                    item?.action ||
+                    null,
 
                 existingId:
-                    item?.existingId || null,
+                    item?.existingId ||
+                    null,
 
                 matchedBy:
-                    item?.matchedBy || null,
+                    item?.matchedBy ||
+                    null,
 
                 deviceKey:
                     item?.row?.deviceKey ||
