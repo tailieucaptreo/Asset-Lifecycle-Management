@@ -2,72 +2,161 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import API from "../config";
 
-import { Plus, Search, Download, Upload } from "lucide-react";
-import SpareRow from "../components/Spare/SpareRow";
 import SpareTable from "../components/Spare/SpareTable";
-import EditSpareModal from "../components/Spare/EditSpareModal";
-import HistoryModal from "../components/Spare/HistoryModal";
-import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
 import SpareHeader from "../components/Spare/SpareHeader";
 import SpareToolbar from "../components/Spare/SpareToolbar";
 import SpareCard from "../components/Spare/SpareCard";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+
+import EditSpareModal from "../components/Spare/EditSpareModal";
+import HistoryModal from "../components/Spare/HistoryModal";
+import ImportPreviewModal from "../components/Spare/ImportPreviewModal";
+
+import { useNavigate, useLocation } from "react-router-dom";
+
 
 export default function SpareDevices() {
 
-  // ================= STATE =================
-  const role = localStorage.getItem("role");
+  // =====================================================
+  // USER / AUTH
+  // =====================================================
 
-  const token = localStorage.getItem("token");
+  const role =
+    localStorage.getItem("role");
 
-  const [data, setData] = useState([]);
+  const token =
+    localStorage.getItem("token");
 
-  const [search, setSearch] = useState("");
 
-  const [filter, setFilter] = useState("All");
+  // =====================================================
+  // ROUTER
+  // =====================================================
 
-  const [showModal, setShowModal] = useState(false);
+  const navigate =
+    useNavigate();
 
-  const [showHistory, setShowHistory] = useState(false);
+  const location =
+    useLocation();
 
-  const [historyData, setHistoryData] = useState([]);
 
-  const [editing, setEditing] = useState(null);
+  // =====================================================
+  // DATA
+  // =====================================================
 
-  const [previewRows, setPreviewRows] = useState([]);
+  const [data, setData] =
+    useState([]);
 
-  const [showPreview, setShowPreview] = useState(false);
 
-  const [summary, setSummary] = useState({
-    total: 0,
-    newCount: 0,
-    updateCount: 0,
-    skipCount: 0,
-  });
+  // =====================================================
+  // SEARCH
+  // =====================================================
 
-  const [sessionId, setSessionId] = useState(null);
+  const [search, setSearch] =
+    useState("");
 
-  const [importLoading, setImportLoading] = useState(false);
 
-  const navigate = useNavigate();
+  // =====================================================
+  // FILTER
+  // =====================================================
+
+  const [filter, setFilter] =
+    useState("All");
+
+
+  // =====================================================
+  // EDIT MODAL
+  // =====================================================
+
+  const [showModal, setShowModal] =
+    useState(false);
+
+  const [editing, setEditing] =
+    useState(null);
+
+
+  // =====================================================
+  // HISTORY
+  // =====================================================
+
+  const [showHistory, setShowHistory] =
+    useState(false);
+
+  const [historyData, setHistoryData] =
+    useState([]);
+
+
+  // =====================================================
+  // IMPORT PREVIEW
+  // =====================================================
+
+  const [previewRows, setPreviewRows] =
+    useState([]);
+
+  const [showPreview, setShowPreview] =
+    useState(false);
+
+
+  // =====================================================
+  // IMPORT SUMMARY
+  // =====================================================
+
+  const [summary, setSummary] =
+    useState({
+
+      total: 0,
+
+      newCount: 0,
+
+      updateCount: 0,
+
+      skipCount: 0,
+
+      warningCount: 0
+
+    });
+
+
+  // =====================================================
+  // IMPORT SESSION
+  // =====================================================
+
+  const [sessionId, setSessionId] =
+    useState(null);
+
+
+  // =====================================================
+  // IMPORT LOADING
+  // =====================================================
+
+  const [importLoading, setImportLoading] =
+    useState(false);
+
+
+  // =====================================================
+  // DEFAULT FORM
+  // =====================================================
 
   const defaultForm = {
 
     name: "",
+
     deviceId: "",
+
     symbol: "",
 
     condition: "New",
 
     warehouse: "",
+
     cabinet: "",
+
     shelf: "",
+
     slot: "",
 
-    // =========================
+
+    // =================================================
     // INVENTORY
-    // =========================
+    // =================================================
 
     initialQuantity: 0,
 
@@ -79,117 +168,468 @@ export default function SpareDevices() {
 
     unit: "Cái",
 
+
+    // =================================================
+    // OTHER
+    // =================================================
+
     editedBy: "",
 
     note: "",
 
     image: ""
+
   };
 
-  const [form, setForm] = useState(defaultForm);
 
-  // ================= LOAD =================
-  const fetchData = () => {
+  const [form, setForm] =
+    useState(defaultForm);
 
-    axios.get(
 
-      `${API}/api/spare-devices`,
 
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`
-        }
-      }
+  // =====================================================
+  // NORMALIZE SEARCH
+  // =====================================================
+  //
+  // Ví dụ:
+  //
+  // "Công Tắc Hành Trình"
+  //        ↓
+  // "cong tac hanh trinh"
+  //
+  // "Đà Nẵng"
+  //        ↓
+  // "da nang"
+  //
+  // =====================================================
 
-    )
-      .then((res) => {
-        setData(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  const normalizeSearch = (value) => {
+
+    if (
+      value === null ||
+      value === undefined
+    ) {
+
+      return "";
+
+    }
+
+
+    return String(value)
+
+      .toLowerCase()
+
+      .normalize("NFD")
+
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+
+      .replace(
+        /đ/g,
+        "d"
+      )
+
+      .replace(
+        /\s+/g,
+        " "
+      )
+
+      .trim();
+
   };
+
+
+  // =====================================================
+  // GET INITIALS
+  // =====================================================
+  //
+  // Ví dụ:
+  //
+  // Công tắc hành trình
+  //        ↓
+  // ctht
+  //
+  // PLC điều khiển
+  //        ↓
+  // pdk
+  //
+  // =====================================================
+
+  const getInitials = (value) => {
+
+    const text =
+      normalizeSearch(value);
+
+
+    if (!text) {
+
+      return "";
+
+    }
+
+
+    return text
+
+      .split(/\s+/)
+
+      .filter(Boolean)
+
+      .map(
+        word =>
+          word.charAt(0)
+      )
+
+      .join("");
+
+  };
+
+
+  // =====================================================
+  // LOAD DATA
+  // =====================================================
+
+  const fetchData = async () => {
+
+    try {
+
+      const res =
+        await axios.get(
+
+          `${API}/api/spare-devices`,
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
+
+            }
+
+          }
+
+        );
+
+
+      setData(
+        Array.isArray(res.data)
+          ? res.data
+          : []
+      );
+
+    }
+
+    catch (err) {
+
+      console.error(
+        "LOAD SPARE DEVICES ERROR:",
+        err
+      );
+
+      setData([]);
+
+    }
+
+  };
+
+
+  // =====================================================
+  // LOAD FIRST
+  // =====================================================
 
   useEffect(() => {
+
     fetchData();
+
   }, []);
 
-  // ================= FILTER =================
-  const filtered = data.filter((d) => {
 
-    const keyword =
-      search.toLowerCase().trim();
 
-    const fullText = `
+  // =====================================================
+  // SEARCH + FILTER
+  // =====================================================
 
-      ${d.name || ""}
-      ${d.deviceId || ""}
-      ${d.condition || ""}
-      ${d.warehouse || ""}
-      ${d.cabinet || ""}
-      ${d.shelf || ""}
-      ${d.slot || ""}
-      ${d.unit || ""}
-      ${d.symbol || ""}
-      ${d.quantity || ""}
-      ${d.initialQuantity || ""}
-      ${d.importQty || ""}
-      ${d.exportQty || ""}
+  const filtered =
+    data.filter((item) => {
 
-    `
-      .toLowerCase();
 
-    return (
+      // =================================================
+      // KEYWORD
+      // =================================================
 
-      (filter === "All" ||
-        d.condition === filter)
+      const keyword =
+        normalizeSearch(search);
 
-      &&
 
-      fullText.includes(keyword)
-    );
-  });
+      // =================================================
+      // CÁC TRƯỜNG ĐƯỢC PHÉP TÌM
+      // =================================================
 
-  // ================= CARD =================
-  const total = data.length;
+      const searchFields = [
 
-  const newCount = data.filter(
-    d => d.condition === "New"
-  ).length;
+        // Tên
+        item.name,
 
-  const usedCount = data.filter(
-    d => d.condition === "Used"
-  ).length;
+        // Mã ID
+        item.deviceId,
 
-  const warehouse =
-    data[0]?.warehouse || "Chưa có";
+        // Ký hiệu
+        item.symbol,
 
-  // ================= SAVE =================
+        // Tình trạng
+        item.condition,
+
+        // Kho
+        item.warehouse,
+
+        // Tủ
+        item.cabinet,
+
+        // Kệ
+        item.shelf,
+
+        // Khay
+        item.slot,
+
+        // ĐVT
+        item.unit,
+
+        // Số lượng
+        item.quantity,
+
+        item.initialQuantity,
+
+        item.importQty,
+
+        item.exportQty,
+
+        // Người chỉnh sửa
+        item.editedBy,
+
+        // Ghi chú
+        item.note
+
+      ];
+
+
+      // =================================================
+      // GHÉP TEXT
+      //
+      // Mỗi field gồm:
+      //
+      // 1. Nội dung bình thường
+      // 2. Chữ cái đầu
+      //
+      // =================================================
+
+      const fullText =
+
+        searchFields
+
+          .filter(
+            value =>
+              value !== null &&
+              value !== undefined
+          )
+
+          .map((value) => {
+
+            const text =
+              normalizeSearch(value);
+
+
+            const initials =
+              getInitials(value);
+
+
+            return `
+              ${text}
+              ${initials}
+            `;
+
+          })
+
+          .join(" ");
+
+
+      // =================================================
+      // SEARCH MATCH
+      // =================================================
+
+      const matchSearch =
+
+        !keyword ||
+
+        fullText.includes(
+          keyword
+        );
+
+
+      // =================================================
+      // CONDITION FILTER
+      // =================================================
+
+      const matchCondition =
+
+        filter === "All" ||
+
+        normalizeSearch(
+          item.condition
+        ) ===
+
+        normalizeSearch(
+          filter
+        );
+
+
+      // =================================================
+      // RETURN
+      // =================================================
+
+      return (
+
+        matchSearch &&
+
+        matchCondition
+
+      );
+
+    });
+
+
+
+  // =====================================================
+  // STATISTICS
+  // =====================================================
+
+  const total =
+    data.length;
+
+
+  const newCount =
+    data.filter(
+      item =>
+        item.condition === "New"
+    ).length;
+
+
+  const usedCount =
+    data.filter(
+      item =>
+        item.condition === "Used"
+    ).length;
+
+
+  const brokenCount =
+    data.filter(
+      item =>
+        item.condition === "Broken"
+    ).length;
+
+
+  // =====================================================
+  // SAVE
+  // =====================================================
+
   const handleSave = async () => {
 
     try {
 
-      if (!form.name) {
 
-        alert("Nhập tên thiết bị");
+      // ================================================
+      // VALIDATE
+      // ================================================
+
+      if (
+        !String(form.name || "").trim()
+      ) {
+
+        alert(
+          "Nhập tên thiết bị"
+        );
 
         return;
+
       }
+
+
+      // ================================================
+      // PAYLOAD
+      // ================================================
 
       const payload = {
 
         ...form,
 
+        name:
+          String(form.name || "").trim(),
+
+        deviceId:
+          String(form.deviceId || "").trim(),
+
+        symbol:
+          String(form.symbol || "").trim(),
+
+        condition:
+          form.condition || "New",
+
+        warehouse:
+          String(form.warehouse || "").trim(),
+
+        cabinet:
+          String(form.cabinet || "").trim(),
+
+        shelf:
+          String(form.shelf || "").trim(),
+
+        slot:
+          String(form.slot || "").trim(),
+
+
         initialQuantity:
-          Number(form.initialQuantity || 0),
+          Number(
+            form.initialQuantity || 0
+          ),
+
+
+        quantity:
+          Number(
+            form.quantity || 0
+          ),
+
 
         importQty:
-          Number(form.importQty || 0),
+          Number(
+            form.importQty || 0
+          ),
+
 
         exportQty:
-          Number(form.exportQty || 0),
+          Number(
+            form.exportQty || 0
+          ),
+
+
+        unit:
+          form.unit || "Cái",
+
+        editedBy:
+          form.editedBy || "",
+
+        note:
+          form.note || "",
+
+        image:
+          form.image || ""
+
       };
+
+
+      // ================================================
+      // UPDATE
+      // ================================================
 
       if (editing) {
 
@@ -200,15 +640,25 @@ export default function SpareDevices() {
           payload,
 
           {
+
             headers: {
+
               Authorization:
                 `Bearer ${token}`
+
             }
+
           }
 
         );
 
-      } else {
+      }
+
+      // ================================================
+      // CREATE
+      // ================================================
+
+      else {
 
         await axios.post(
 
@@ -217,53 +667,96 @@ export default function SpareDevices() {
           payload,
 
           {
+
             headers: {
+
               Authorization:
                 `Bearer ${token}`
+
             }
+
           }
 
         );
+
       }
+
+
+      // ================================================
+      // CLOSE
+      // ================================================
 
       setShowModal(false);
 
       setEditing(null);
 
-      setForm(defaultForm);
+      setForm({
+        ...defaultForm
+      });
 
-      fetchData();
 
-    } catch (err) {
+      // ================================================
+      // RELOAD
+      // ================================================
 
-      console.log(err);
+      await fetchData();
 
-      alert("❌ Lưu thiết bị lỗi");
     }
+
+    catch (err) {
+
+      console.error(
+        "SAVE SPARE DEVICE ERROR:",
+        err
+      );
+
+
+      alert(
+        err.response?.data?.message ||
+        "❌ Lưu thiết bị lỗi"
+      );
+
+    }
+
   };
 
-  // ================= EDIT =================
+
+
+  // =====================================================
+  // EDIT
+  // =====================================================
+
   const handleEdit = (item) => {
 
     setEditing(item);
 
+
     setForm({
 
-      name: item.name || "",
+      name:
+        item.name || "",
 
-      deviceId: item.deviceId || "",
+      deviceId:
+        item.deviceId || "",
 
-      symbol: item.symbol || "",
+      symbol:
+        item.symbol || "",
 
-      condition: item.condition || "New",
+      condition:
+        item.condition || "New",
 
-      warehouse: item.warehouse || "",
+      warehouse:
+        item.warehouse || "",
 
-      cabinet: item.cabinet || "",
+      cabinet:
+        item.cabinet || "",
 
-      shelf: item.shelf || "",
+      shelf:
+        item.shelf || "",
 
-      slot: item.slot || "",
+      slot:
+        item.slot || "",
+
 
       initialQuantity:
         item.initialQuantity || 0,
@@ -271,10 +764,15 @@ export default function SpareDevices() {
       quantity:
         item.quantity || 0,
 
-      // reset nhập xuất mới
+
+      // ===============================================
+      // NHẬP / XUẤT MỚI
+      // ===============================================
+
       importQty: 0,
 
       exportQty: 0,
+
 
       unit:
         item.unit || "Cái",
@@ -287,17 +785,33 @@ export default function SpareDevices() {
 
       image:
         item.image || ""
+
     });
 
+
     setShowModal(true);
+
   };
 
-  // ================= DELETE =================
+
+
+  // =====================================================
+  // DELETE
+  // =====================================================
+
   const handleDelete = async (id) => {
 
-    if (!window.confirm("Xóa thiết bị này?")) {
+
+    if (
+      !window.confirm(
+        "Xóa thiết bị này?"
+      )
+    ) {
+
       return;
+
     }
+
 
     try {
 
@@ -306,25 +820,46 @@ export default function SpareDevices() {
         `${API}/api/spare-devices/${id}`,
 
         {
+
           headers: {
+
             Authorization:
               `Bearer ${token}`
+
           }
+
         }
 
       );
 
-      fetchData();
 
-    } catch (err) {
+      await fetchData();
 
-      console.log(err);
-
-      alert("❌ Xóa lỗi");
     }
+
+    catch (err) {
+
+      console.error(
+        "DELETE SPARE DEVICE ERROR:",
+        err
+      );
+
+
+      alert(
+        err.response?.data?.message ||
+        "❌ Xóa lỗi"
+      );
+
+    }
+
   };
 
-  // ================= EXPORT =================
+
+
+  // =====================================================
+  // EXPORT
+  // =====================================================
+
   const handleExport = () => {
 
     window.open(
@@ -332,139 +867,473 @@ export default function SpareDevices() {
       `${API}/api/spare-devices/export`,
 
       "_blank"
+
     );
+
   };
 
-  // ================= IMPORT PREVIEW =================
-  const handleImportExcel = async (file) => {
 
-    try {
 
-      const formData = new FormData();
+  // =====================================================
+  // IMPORT EXCEL
+  // =====================================================
 
-      formData.append("file", file);
+  const handleImportExcel =
+    async (file) => {
 
-      const res = await axios.post(
-        `${API}/api/spare-devices/preview-import`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+      if (!file) {
+
+        return;
+
+      }
+
+
+      try {
+
+        setImportLoading(true);
+
+
+        // ==============================================
+        // FORM DATA
+        // ==============================================
+
+        const formData =
+          new FormData();
+
+
+        formData.append(
+          "file",
+          file
+        );
+
+
+        // ==============================================
+        // PREVIEW API
+        // ==============================================
+
+        const res =
+          await axios.post(
+
+            `${API}/api/spare-devices/preview-import`,
+
+            formData,
+
+            {
+
+              headers: {
+
+                Authorization:
+                  `Bearer ${token}`,
+
+                "Content-Type":
+                  "multipart/form-data"
+
+              }
+
+            }
+
+          );
+
+
+        // ==============================================
+        // SESSION
+        // ==============================================
+
+        setSessionId(
+          res.data.sessionId ||
+          null
+        );
+
+
+        // ==============================================
+        // SUMMARY
+        // ==============================================
+
+        setSummary({
+
+          total:
+            res.data.summary?.total ||
+            0,
+
+          newCount:
+            res.data.summary?.newCount ||
+            0,
+
+          updateCount:
+            res.data.summary?.updateCount ||
+            0,
+
+          skipCount:
+            res.data.summary?.skipCount ||
+            0,
+
+          warningCount:
+            res.data.summary?.warningCount ||
+            0
+
+        });
+
+
+        // ==============================================
+        // ROWS
+        // ==============================================
+
+        setPreviewRows(
+
+          Array.isArray(
+            res.data.rows
+          )
+
+            ? res.data.rows
+
+            : []
+
+        );
+
+
+        // ==============================================
+        // SHOW PREVIEW
+        // ==============================================
+
+        setShowPreview(true);
+
+      }
+
+      catch (err) {
+
+        console.error(
+          "IMPORT PREVIEW ERROR:",
+          err
+        );
+
+
+        alert(
+
+          err.response?.data?.error ||
+
+          err.response?.data?.message ||
+
+          "❌ Preview import thất bại"
+
+        );
+
+      }
+
+      finally {
+
+        setImportLoading(false);
+
+      }
+
+    };
+
+
+
+  // =====================================================
+  // CONFIRM IMPORT
+  // =====================================================
+
+  const handleConfirmImport =
+    async () => {
+
+
+      if (!sessionId) {
+
+        alert(
+          "Không có phiên import."
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        setImportLoading(true);
+
+
+        // ==============================================
+        // CONFIRM API
+        // ==============================================
+
+        await axios.post(
+
+          `${API}/api/spare-devices/confirm-import`,
+
+          {
+
+            sessionId
+
           },
-        }
-      );
 
-      setSessionId(res.data.sessionId);
+          {
 
-      setSummary(res.data.summary);
+            headers: {
 
-      setPreviewRows(res.data.rows);
+              Authorization:
+                `Bearer ${token}`
 
-      setShowPreview(true);
+            }
 
-    } catch (err) {
+          }
 
-      console.error(err);
+        );
 
-      alert("Preview thất bại.");
+
+        // ==============================================
+        // CLOSE PREVIEW
+        // ==============================================
+
+        setShowPreview(false);
+
+
+        // ==============================================
+        // RESET IMPORT
+        // ==============================================
+
+        setPreviewRows([]);
+
+        setSessionId(null);
+
+        setSummary({
+
+          total: 0,
+
+          newCount: 0,
+
+          updateCount: 0,
+
+          skipCount: 0,
+
+          warningCount: 0
+
+        });
+
+
+        // ==============================================
+        // RELOAD
+        // ==============================================
+
+        await fetchData();
+
+
+        alert(
+          "✅ Import thành công"
+        );
+
+      }
+
+      catch (err) {
+
+        console.error(
+          "CONFIRM IMPORT ERROR:",
+          err
+        );
+
+
+        alert(
+
+          err.response?.data?.error ||
+
+          err.response?.data?.message ||
+
+          "❌ Import thất bại"
+
+        );
+
+      }
+
+      finally {
+
+        setImportLoading(false);
+
+      }
+
+    };
+
+
+
+  // =====================================================
+  // CLOSE PREVIEW
+  // =====================================================
+
+  const handleClosePreview = () => {
+
+    if (importLoading) {
+
+      return;
 
     }
 
-  };
 
-  // ================= CONFIRM IMPORT =================
-  const handleConfirmImport = async () => {
+    setShowPreview(false);
 
-    try {
+    setPreviewRows([]);
 
-      setImportLoading(true);
-
-      await axios.post(
-        `${API}/api/spare-devices/confirm-import`,
-        {
-          sessionId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setShowPreview(false);
-
-      setPreviewRows([]);
-
-      fetchData();
-
-    } catch (err) {
-
-      console.error(err);
-
-      alert("Import thất bại.");
-
-    } finally {
-
-      setImportLoading(false);
-
-    }
+    setSessionId(null);
 
   };
 
-  // ================= LOAD HISTORY =================
+
+
+  // =====================================================
+  // LOAD HISTORY
+  // =====================================================
+
   const loadHistory = async () => {
 
     try {
 
-      const res = await axios.get(
-        `${API}/api/spare-devices/history`
+      const res =
+        await axios.get(
+
+          `${API}/api/spare-devices/history`,
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`
+
+            }
+
+          }
+
+        );
+
+
+      setHistoryData(
+
+        Array.isArray(res.data)
+
+          ? res.data
+
+          : []
+
       );
 
-      setHistoryData(res.data);
 
       setShowHistory(true);
 
-    } catch (err) {
-
-      console.log(err);
     }
+
+    catch (err) {
+
+      console.error(
+        "LOAD SPARE HISTORY ERROR:",
+        err
+      );
+
+
+      alert(
+        "❌ Không thể lấy lịch sử"
+      );
+
+    }
+
   };
 
-  // ================= OPEN CREATE =================
+
+
+  // =====================================================
+  // OPEN CREATE
+  // =====================================================
+
   const openCreate = () => {
 
     setEditing(null);
 
-    setForm(defaultForm);
+    setForm({
+      ...defaultForm
+    });
 
     setShowModal(true);
+
   };
 
-  // =================EDIT MODAL SPARE ==========
-  const location = useLocation();
+
+
+  // =====================================================
+  // EDIT FROM NAVIGATION STATE
+  // =====================================================
+  //
+  // Giữ tương thích với trường hợp:
+  //
+  // navigate("/spare-devices", {
+  //   state: {
+  //     edit: item
+  //   }
+  // })
+  //
+  // =====================================================
 
   useEffect(() => {
-    if (location.state?.edit) {
-      setEditing(location.state.edit);
-      setForm(location.state.edit);
-      setShowModal(true);
-    }
-  }, [location.state]);
 
-  // ================= RENDER =================
+    const editItem =
+      location.state?.edit;
+
+
+    if (!editItem) {
+
+      return;
+
+    }
+
+
+    handleEdit(
+      editItem
+    );
+
+
+    // ==============================================
+    // XÓA STATE
+    // ==============================================
+
+    navigate(
+      location.pathname,
+      {
+        replace: true,
+        state: {}
+      }
+    );
+
+  }, [
+    location.state
+  ]);
+
+
+
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
 
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div
+      className="
+        p-6
+        bg-gray-100
+        min-h-screen
+      "
+    >
 
-      {/* HEADER */}
+
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
       <SpareHeader
-
         role={role}
-
       />
 
-      {/* TOOLBAR */}
+
+
+      {/* =================================================
+          TOOLBAR
+      ================================================= */}
+
       <SpareToolbar
 
         role={role}
@@ -487,85 +1356,340 @@ export default function SpareDevices() {
 
       />
 
-      {/* Desktop */}
-      <div className="hidden lg:block">
+
+
+      {/* =================================================
+          STATISTICS
+      ================================================= */}
+
+      <div
+        className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          lg:grid-cols-4
+          gap-4
+          mb-6
+        "
+      >
+
+        {/* TOTAL */}
+
+        <div
+          className="
+            bg-white
+            rounded-xl
+            shadow
+            p-4
+          "
+        >
+
+          <div
+            className="
+              text-sm
+              text-gray-500
+            "
+          >
+            Tổng thiết bị
+          </div>
+
+          <div
+            className="
+              text-2xl
+              font-bold
+              text-blue-600
+            "
+          >
+            {total}
+          </div>
+
+        </div>
+
+
+
+        {/* NEW */}
+
+        <div
+          className="
+            bg-white
+            rounded-xl
+            shadow
+            p-4
+          "
+        >
+
+          <div
+            className="
+              text-sm
+              text-gray-500
+            "
+          >
+            Thiết bị mới
+          </div>
+
+          <div
+            className="
+              text-2xl
+              font-bold
+              text-green-600
+            "
+          >
+            {newCount}
+          </div>
+
+        </div>
+
+
+
+        {/* USED */}
+
+        <div
+          className="
+            bg-white
+            rounded-xl
+            shadow
+            p-4
+          "
+        >
+
+          <div
+            className="
+              text-sm
+              text-gray-500
+            "
+          >
+            Đã sử dụng
+          </div>
+
+          <div
+            className="
+              text-2xl
+              font-bold
+              text-orange-500
+            "
+          >
+            {usedCount}
+          </div>
+
+        </div>
+
+
+
+        {/* BROKEN */}
+
+        <div
+          className="
+            bg-white
+            rounded-xl
+            shadow
+            p-4
+          "
+        >
+
+          <div
+            className="
+              text-sm
+              text-gray-500
+            "
+          >
+            Hỏng
+          </div>
+
+          <div
+            className="
+              text-2xl
+              font-bold
+              text-red-500
+            "
+          >
+            {brokenCount}
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      {/* =================================================
+          DESKTOP TABLE
+      ================================================= */}
+
+      <div
+        className="
+          hidden
+          lg:block
+        "
+      >
 
         <SpareTable
+
           data={filtered}
+
           role={role}
-          onView={(item) => navigate(`/spare-devices/${item.id}`)}
+
           onEdit={handleEdit}
+
           onDelete={handleDelete}
+
         />
 
       </div>
 
-      {/* Mobile */}
+
+
+      {/* =================================================
+          MOBILE CARD
+      ================================================= */}
+
       <div
         className="
-              grid
-              grid-cols-1
-              gap-4
-              lg:hidden
-          "
+          lg:hidden
+          space-y-4
+        "
       >
 
-        {filtered.map(item => (
+        {filtered.map(
+          (item) => (
 
-          <SpareCard
-            key={item.id}
-            item={item}
-            role={role}
-            onView={(item) => navigate(`/spare-devices/${item.id}`)}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+            <SpareCard
 
-        ))}
+              key={item.id}
+
+              item={item}
+
+              role={role}
+
+              onView={() =>
+                navigate(
+                  `/spare-devices/${item.id}`
+                )
+              }
+
+              onEdit={
+                handleEdit
+              }
+
+              onDelete={
+                handleDelete
+              }
+
+            />
+
+          )
+        )}
+
+
+        {/* EMPTY */}
+
+        {filtered.length === 0 && (
+
+          <div
+            className="
+              bg-white
+              rounded-xl
+              shadow
+              p-10
+              text-center
+              text-gray-400
+            "
+          >
+
+            Không có thiết bị phù hợp.
+
+          </div>
+
+        )}
 
       </div>
 
-      {/* ================= PREVIEW IMPORT ================= */}
+
+
+      {/* =================================================
+          IMPORT PREVIEW
+      ================================================= */}
+
       <ImportPreviewModal
 
-        show={showPreview}
+        show={
+          showPreview
+        }
 
-        summary={summary}
+        previewData={
+          previewRows
+        }
 
-        rows={previewRows}
+        summary={
+          summary
+        }
 
-        loading={importLoading}
+        loading={
+          importLoading
+        }
 
-        onClose={() => setShowPreview(false)}
-        
-        onConfirm={handleConfirmImport}
+        onClose={
+          handleClosePreview
+        }
+
+        onImport={
+          handleConfirmImport
+        }
+
       />
 
-      {/* ================= HISTORY ================= */}
+
+
+      {/* =================================================
+          HISTORY
+      ================================================= */}
+
       <HistoryModal
 
-        show={showHistory}
+        show={
+          showHistory
+        }
 
-        history={historyData}
+        history={
+          historyData
+        }
 
-        onClose={() => setShowHistory(false)}
+        onClose={() =>
+          setShowHistory(false)
+        }
 
       />
 
-      {/* ================= MODAL ================= */}
+
+
+      {/* =================================================
+          EDIT / CREATE
+      ================================================= */}
+
       <EditSpareModal
 
-        show={showModal}
+        show={
+          showModal
+        }
 
-        editing={editing}
+        editing={
+          editing
+        }
 
-        form={form}
+        form={
+          form
+        }
 
-        setForm={setForm}
+        setForm={
+          setForm
+        }
 
-        role={role}
+        role={
+          role
+        }
 
-        defaultForm={defaultForm}
+        defaultForm={
+          defaultForm
+        }
 
         onClose={() => {
 
@@ -573,14 +1697,21 @@ export default function SpareDevices() {
 
           setEditing(null);
 
-          setForm(defaultForm);
+          setForm({
+            ...defaultForm
+          });
 
         }}
 
-        onSave={handleSave}
+        onSave={
+          handleSave
+        }
 
       />
 
+
     </div>
+
   );
+
 }
